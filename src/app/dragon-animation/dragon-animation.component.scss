@@ -5,21 +5,21 @@
   width: 100vw;
   height: 100vh;
   pointer-events: none;
-  z-index: 9999;
+  z-index: 99999;
   overflow: hidden;
 }
 
 .dragon-sprite {
   position: absolute;
-  top: 30%;
+  top: 10%;
   width: 128px;
   height: 128px;
   background-image: url('/dragon-sprite.png');
   background-size: 512px 512px;
   image-rendering: pixelated;
   animation:
-    fly-across 2.4s linear forwards,
-    flap-wings 0.4s steps(1) infinite;
+    fly-across 5.4s linear forwards,
+    flap-wings 0.7s steps(1) infinite;
 }
 
 @keyframes fly-across {
