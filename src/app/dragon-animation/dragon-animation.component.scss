@@ -1,0 +1,41 @@
+.dragon-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.dragon-sprite {
+  position: absolute;
+  top: 30%;
+  width: 128px;
+  height: 128px;
+  background-image: url('/dragon-sprite.png');
+  background-size: 512px 512px;
+  image-rendering: pixelated;
+  animation:
+    fly-across 2.4s linear forwards,
+    flap-wings 0.4s steps(1) infinite;
+}
+
+@keyframes fly-across {
+  0%   { left: -160px; }
+  100% { left: calc(100vw + 160px); }
+}
+
+/* cycles through all 8 frames: 4 cols × 2 rows, each 128×128px */
+@keyframes flap-wings {
+  0%    { background-position:    0px   0px; }
+  12.5% { background-position: -128px   0px; }
+  25%   { background-position: -256px   0px; }
+  37.5% { background-position: -384px   0px; }
+  50%   { background-position:    0px -128px; }
+  62.5% { background-position: -128px -128px; }
+  75%   { background-position: -256px -128px; }
+  87.5% { background-position: -384px -128px; }
+  100%  { background-position:    0px   0px; }
+}

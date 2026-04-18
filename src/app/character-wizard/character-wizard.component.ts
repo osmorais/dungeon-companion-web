@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { CharacterSheetData } from '../models/character.interface';
+import { DragonAnimationComponent } from '../dragon-animation/dragon-animation.component';
 
 @Component({
   selector: 'app-character-wizard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DragonAnimationComponent],
   templateUrl: './character-wizard.component.html',
   styleUrls: ['./character-wizard.component.scss']
 })
@@ -15,6 +16,7 @@ export class CharacterWizardComponent {
   private http = inject(HttpClient);
 
   currentStep = 1;
+  dragonTrigger = 0;
 
   characterData: CharacterSheetData = {
     core_build: { level: 1, race: '', class: '', background: '', subrace: '' },
@@ -28,6 +30,7 @@ export class CharacterWizardComponent {
   availableSpells = ['Raio de Fogo', 'Mãos Mágicas', 'Escudo Arcano', 'Bola de Fogo', 'Ilusão Menor', 'Mísseis Mágicos', 'Curar Ferimentos', 'Invisibilidade'];
 
   nextStep() {
+    this.dragonTrigger++;
     if (this.currentStep < 7) this.currentStep++;
   }
 

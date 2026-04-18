@@ -1,11 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
+// :root {
+//   --bg-color: #000000;
+//   --panel-bg: #000033;
+//   --text-color: #ffffff;
+//   --accent-color: #ffaa00;
+//   --border-color: #ffffff;
+// }
+
 :root {
-  --bg-color: #000000;
-  --panel-bg: #000033;
+  --bg-color: #1d0a0a;
+  --panel-bg: #5e2d12; /* Azul escuro retro */
   --text-color: #ffffff;
-  --accent-color: #ffaa00;
-  --border-color: #ffffff;
+  --accent-color: #ffaa00; /* Laranja da checkbox */
+  --border-color: #99430a;
+  --btn-color: #6b1616; /* Azul dos botões */
+  --btn-color-hover: #8b1c1c; /* Azul mais claro para hover */
+  --label-title-color: #c70d0d; /* Azul claro para títulos de seções */
 }
 
 body {
@@ -51,7 +62,7 @@ input:focus, select:focus {
 }
 
 button.retro-btn {
-  background-color: #0000aa;
+  background-color: var(--btn-color);
   color: var(--text-color);
   border: 2px solid var(--border-color);
   padding: 10px 20px;
@@ -62,7 +73,7 @@ button.retro-btn {
   float: right;
 
   &:hover {
-    background-color: #0000ff;
+    background-color: var(--btn-color-hover);
   }
 }
 
