@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { CharacterSheetData } from '../models/character.interface';
 
 @Component({
@@ -11,6 +12,8 @@ import { CharacterSheetData } from '../models/character.interface';
   styleUrls: ['./character-wizard.component.scss']
 })
 export class CharacterWizardComponent {
+  private http = inject(HttpClient);
+
   currentStep = 1;
 
   characterData: CharacterSheetData = {
@@ -49,6 +52,9 @@ export class CharacterWizardComponent {
   }
 
   saveGame() {
-    console.log('Payload enviado para a API:', this.characterData);
+    this.http.post('http://127.0.0.1:3000/api/character-sheet', this.characterData).subscribe({
+      next: (response) => console.log('Ficha salva com sucesso:', response),
+      error: (err) => console.error('Erro ao salvar ficha:', err),
+    });
   }
 }
