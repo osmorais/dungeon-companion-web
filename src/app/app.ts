@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
-import { CharacterWizardComponent } from './character-wizard/character-wizard.component';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  imports: [CharacterWizardComponent],
-  template: '<app-character-wizard />'
+  imports: [RouterOutlet],
+  template: '<router-outlet />'
 })
 export class App {}

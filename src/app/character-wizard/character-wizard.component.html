@@ -181,9 +181,27 @@
 
       <div class="action-buttons">
         <button class="retro-btn secondary" (click)="currentStep = 1">VOLTAR E EDITAR</button>
-        <button class="retro-btn primary" (click)="saveGame()">SALVAR JOGO</button>
+        <button class="retro-btn primary" (click)="saveCharacter()" [disabled]="isSaving">SALVAR PERSONAGEM</button>
       </div>
     }
 
   }
 </div>
+
+@if (isSaving) {
+  <div class="overlay loading-overlay">
+    <div class="retro-panel blinking-text">
+      <p>SALVANDO O JOGO...</p>
+      <p>AGUARDE A API MAGICA</p>
+    </div>
+  </div>
+}
+
+@if (showSuccess) {
+  <div class="overlay success-overlay">
+    <div class="retro-panel success-panel">
+      <h2 style="color: #00ff00;">SUCESSO!</h2>
+      <p>PERSONAGEM CRIADO COM SUCESSO</p>
+    </div>
+  </div>
+}

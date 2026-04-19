@@ -1,0 +1,196 @@
+.full-sheet-container {
+  width: 960px;
+  max-width: 95vw;
+  margin: 20px auto;
+  padding-bottom: 40px;
+}
+
+.header-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-color: #ffaa00;
+
+  h1 {
+    margin: 0 0 8px;
+    font-size: 16px;
+    color: #ffaa00;
+  }
+
+  p {
+    margin: 4px 0;
+    font-size: 10px;
+    color: #ccaa44;
+  }
+
+  .char-details p {
+    color: #aaa;
+    font-size: 8px;
+  }
+}
+
+.sheet-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 1.5fr;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+/* Atributos */
+.attributes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .attr-box {
+    border: 1px solid var(--border-color);
+    text-align: center;
+    padding: 8px 4px;
+
+    .attr-name {
+      display: block;
+      font-size: 8px;
+      margin-bottom: 4px;
+      color: #88aaff;
+    }
+
+    .attr-score {
+      display: block;
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .attr-mod {
+      display: block;
+      font-size: 10px;
+      margin-bottom: 4px;
+    }
+
+    .save-box {
+      font-size: 8px;
+      border-top: 1px dashed #555;
+      padding-top: 4px;
+    }
+  }
+}
+
+.prof-dot {
+  color: var(--accent-color);
+  margin-right: 5px;
+}
+
+/* Combate */
+.combat-panel .stats-row {
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
+  margin-bottom: 15px;
+
+  label {
+    display: block;
+    font-size: 7px;
+    color: #88aaff;
+    margin-bottom: 4px;
+  }
+
+  span {
+    font-size: 14px;
+  }
+}
+
+.hp-box {
+  border: 1px solid var(--border-color);
+  text-align: center;
+  padding: 10px;
+
+  p { margin: 0 0 8px; font-size: 8px; }
+  h3 { margin: 0 0 4px; font-size: 16px; color: #00ff00; }
+  small { font-size: 7px; color: #888; }
+}
+
+.passive-box {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 8px;
+  color: #aaa;
+
+  p { margin: 0; }
+}
+
+/* Perícias */
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.skills-panel li {
+  margin-bottom: 6px;
+  font-size: 8px;
+  display: flex;
+  align-items: center;
+
+  small { color: #555; margin-left: 4px; }
+}
+
+/* Traços */
+.traits-list li {
+  font-size: 8px;
+  margin-bottom: 12px;
+  line-height: 1.6;
+
+  strong {
+    color: #ffaa00;
+    display: block;
+    margin-bottom: 2px;
+  }
+}
+
+/* Magia */
+.magic-panel p {
+  font-size: 8px;
+  color: #88aaff;
+  margin: 8px 0 4px;
+}
+
+.magic-panel li {
+  font-size: 8px;
+  margin-bottom: 4px;
+}
+
+/* Proficiências */
+.prof-label {
+  font-size: 8px;
+  margin: 6px 0;
+  color: #aaa;
+}
+
+.sheet-actions {
+  margin-top: 30px;
+  text-align: center;
+}
+
+/* Overlay para ficha não encontrada */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.blinking-text p {
+  text-align: center;
+  color: var(--text-color);
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}

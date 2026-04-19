@@ -1,9 +1,10 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { CharacterSheetData } from '../models/character.interface';
 import { DragonAnimationComponent } from '../dragon-animation/dragon-animation.component';
+import { CharacterService } from '../services/character.service';
 
 @Component({
   selector: 'app-character-wizard',
@@ -13,10 +14,13 @@ import { DragonAnimationComponent } from '../dragon-animation/dragon-animation.c
   styleUrls: ['./character-wizard.component.scss']
 })
 export class CharacterWizardComponent {
-  private http = inject(HttpClient);
+  private router = inject(Router);
+  private charService = inject(CharacterService);
 
   currentStep = 1;
   dragonTrigger = 0;
+  isSaving = false;
+  showSuccess = false;
 
   characterData: CharacterSheetData = {
     core_build: { level: 1, race: '', class: '', background: '', subrace: '' },
@@ -54,10 +58,24 @@ export class CharacterWizardComponent {
     }
   }
 
-  saveGame() {
-    this.http.post('http://127.0.0.1:3000/api/character-sheet', this.characterData).subscribe({
-      next: (response) => console.log('Ficha salva com sucesso:', response),
-      error: (err) => console.error('Erro ao salvar ficha:', err),
+  saveCharacter() {
+    this.isSaving = true;
+
+    this.charService.saveCharacter(this.characterData).subscribe({
+      next: (apiResponse) => {
+        this.charService.currentCharacter.set(apiResponse);
+        this.isSaving = false;
+        this.showSuccess = true;
+
+        setTimeout(() => {
+          this.router.navigate(['/sheet-result']);
+        }, 1500);
+      },
+      error: (err) => {
+        console.error('Erro ao salvar ficha:', err);
+        this.isSaving = false;
+        alert('Erro ao criar personagem!');
+      }
     });
   }
 }
