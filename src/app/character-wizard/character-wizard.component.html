@@ -54,39 +54,98 @@
     @case (3) {
       <fieldset class="retro-panel">
         <legend>ATRIBUTOS</legend>
+
         <label>MÉTODO DE GERAÇÃO
-          <select [(ngModel)]="characterData.attributes.generation_method">
-            <option value="standard_array">standard_array</option>
+          <select [(ngModel)]="characterData.attributes.generation_method" (change)="onMethodChange()">
+            <option value="standard_array">Matriz Padrão</option>
+            <option value="dice_roll">Rolagem de Dados</option>
+            <option value="point_buy">Compra de Pontos</option>
           </select>
         </label>
-        <div class="stats-grid">
-          @for (attr of availableAttributes; track attr.id_attribute) {
-            <div class="stat-box">
-              <label>{{ attr.name }} <input type="number" [(ngModel)]="characterData.attributes.base_values[attr.name]"></label>
+
+        <!-- ================= DRAG MODE ================= -->
+        @if (characterData.attributes.generation_method !== 'point_buy') {
+
+        <div class="drag-container">
+
+          <!-- POOL -->
+          <div class="pool">
+            <p>Valores</p>
+
+            @for (value of (isRolling ? displayPool : pool); track value) {
+            <div class="drag-item" draggable="true" (dragstart)="onDragStart(value)">
+              {{ value }}
             </div>
+            }
+          </div>
+
+          <!-- ATRIBUTOS -->
+          <div class="attributes">
+            @for (stat of attributesList; track stat) {
+            <div class="stat-box" (dragover)="allowDrop($event)" (drop)="onDrop(stat)">
+
+              <label>{{ stat }}</label>
+
+              @if (characterData.attributes.base_values[stat] !== 0) {
+              <div class="drag-item" draggable="true" (dragstart)="onDragFromStat(stat)">
+                {{ characterData.attributes.base_values[stat] }}
+              </div>
+              } @else {
+              <div class="empty-slot">---</div>
+              }
+
+            </div>
+            }
+          </div>
+
+        </div>
+        }
+
+        <!-- ================= POINT BUY ================= -->
+        @if (characterData.attributes.generation_method === 'point_buy') {
+
+        <div class="stats-grid">
+          @for (stat of attributesList; track stat) {
+          <div class="stat-box">
+            <label>{{ stat }}</label>
+
+            <div class="point-controls">
+              <button (click)="decreaseStat(stat)">-</button>
+              <span>{{ characterData.attributes.base_values[stat] }}</span>
+              <button (click)="increaseStat(stat)">+</button>
+            </div>
+          </div>
           }
         </div>
+
+        <p>Pontos restantes: {{ availablePoints }}</p>
+        }
+
       </fieldset>
-      <button class="retro-btn" (click)="nextStep()">CONFIRMAR</button>
-      <button class="retro-btn secondary" style="margin-right: 35px;" (click)="prevStep()">VOLTAR</button>
-    }
+  <button class="retro-btn" (click)="nextStep()">CONFIRMAR</button>
+  <button class="retro-btn secondary" (click)="prevStep()">VOLTAR</button>
+  }
 
     @case (4) {
+      @if (hasMagic()) {
       <fieldset class="retro-panel">
         <legend>MAGIAS</legend>
+
         <p class="panel-subtitle">SELECIONE AS MAGIAS</p>
+
         <div class="grid-2-col checkboxes">
           @for (spell of availableSpells; track spell) {
-            <label>
-              <input type="checkbox" class="retro-checkbox"
-                     (change)="toggleArrayItem('spells', spell, $event)">
-              {{ spell }}
-            </label>
+          <label>
+            <input type="checkbox" class="retro-checkbox" (change)="toggleArrayItem('spells', spell, $event)">
+            {{ spell }}
+          </label>
           }
         </div>
       </fieldset>
+
       <button class="retro-btn" (click)="nextStep()">CONFIRMAR</button>
-      <button class="retro-btn secondary" style="margin-right: 35px;" (click)="prevStep()">VOLTAR</button>
+      <button class="retro-btn secondary" (click)="prevStep()">VOLTAR</button>
+      }
     }
 
     @case (5) {
