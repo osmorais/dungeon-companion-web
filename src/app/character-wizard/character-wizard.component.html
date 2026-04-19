@@ -224,10 +224,14 @@
 
       <fieldset class="retro-panel">
         <legend>PERÍCIAS</legend>
-
-        <ul>
-          @for (skill of characterData.choices.skills; track skill) {
-          <li>> {{ skill }}</li>
+        <p class="panel-subtitle">SELECIONE AS PERÍCIAS</p>
+        <div class="grid-2-col checkboxes">
+          @for (skill of availableSkills; track skill.id_skill) {
+            <label>
+              <input type="checkbox" class="retro-checkbox"
+                     (change)="toggleArrayItem('skills', skill.name, $event)">
+              {{ skill.name }}
+            </label>
           }
         </ul>
       </fieldset>
@@ -250,9 +254,11 @@
   }
 </div>
 @if (isSaving) {
-<div class="overlay">
-  <div class="retro-panel">
-    <p>SALVANDO...</p>
+  <div class="overlay loading-overlay">
+    <div class="retro-panel blinking-text">
+      <p>SALVANDO SEU PERSONAGEM...</p>
+      <p>AGUARDE ENQUANTO A MAGIA ACONTECE</p>
+    </div>
   </div>
 </div>
 }
