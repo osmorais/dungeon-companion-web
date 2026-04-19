@@ -1,8 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CharacterSheetData } from '../models/character.interface';
+import { AttributeType, Skill } from '../models/character-options.interface';
 import { DragonAnimationComponent } from '../dragon-animation/dragon-animation.component';
 import { CharacterService } from '../services/character.service';
 
@@ -13,7 +14,7 @@ import { CharacterService } from '../services/character.service';
   templateUrl: './character-wizard.component.html',
   styleUrls: ['./character-wizard.component.scss']
 })
-export class CharacterWizardComponent {
+export class CharacterWizardComponent implements OnInit {
   private router = inject(Router);
   private charService = inject(CharacterService);
 
@@ -30,8 +31,19 @@ export class CharacterWizardComponent {
     equipment: { armor_type: '', weapons: [], has_shield: false }
   };
 
-  availableSkills = ['Arcanismo', 'Atletismo', 'Enganação', 'Furtividade', 'História', 'Intuição', 'Investigação', 'Percepção'];
+  availableAttributes: AttributeType[] = [];
+  availableSkills: Skill[] = [];
   availableSpells = ['Raio de Fogo', 'Mãos Mágicas', 'Escudo Arcano', 'Bola de Fogo', 'Ilusão Menor', 'Mísseis Mágicos', 'Curar Ferimentos', 'Invisibilidade'];
+
+  ngOnInit(): void {
+    this.charService.getCharacterOptions().subscribe({
+      next: (options) => {
+        this.availableAttributes = options.attributes;
+        this.availableSkills = options.skills;
+      },
+      error: (err) => console.error('Erro ao carregar opções de personagem:', err)
+    });
+  }
 
   nextStep() {
     this.dragonTrigger++;
