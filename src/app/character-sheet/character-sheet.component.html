@@ -1,0 +1,125 @@
+@if (sheetData(); as data) {
+  <div class="full-sheet-container">
+
+    <fieldset class="retro-panel header-panel">
+      <div class="char-title">
+        <h1>{{ data.character_sheet.header.name }}</h1>
+        <p>{{ data.character_sheet.header.class_and_level }} &mdash; {{ data.character_sheet.header.race || 'Humano' }}</p>
+      </div>
+      <div class="char-details">
+        <p>Antecedente: {{ data.character_sheet.header.background }}</p>
+        <p>Alinhamento: {{ data.character_sheet.header.alignment }}</p>
+        <p>XP: {{ data.character_sheet.header.experience_points }}</p>
+      </div>
+    </fieldset>
+
+    <div class="sheet-grid">
+
+      <!-- ATRIBUTOS -->
+      <div class="column">
+        <fieldset class="retro-panel">
+          <legend>ATRIBUTOS & RESISTÊNCIAS</legend>
+          <div class="attributes-list">
+            @for (attr of data.character_sheet.attributes_and_saves | keyvalue; track attr.key) {
+              <div class="attr-box">
+                <span class="attr-name">{{ attr.key }}</span>
+                <span class="attr-score">{{ attr.value.score }}</span>
+                <span class="attr-mod">{{ formatMod(attr.value.modifier) }}</span>
+                <div class="save-box">
+                  <span class="prof-dot">{{ attr.value.save_proficiency ? '●' : '○' }}</span>
+                  Save: {{ formatMod(attr.value.save) }}
+                </div>
+              </div>
+            }
+          </div>
+        </fieldset>
+      </div>
+
+      <!-- COMBATE & PERÍCIAS -->
+      <div class="column">
+        <fieldset class="retro-panel combat-panel">
+          <legend>COMBATE</legend>
+          <div class="stats-row">
+            <div><label>CA</label><span>{{ data.character_sheet.combat_stats.armor_class }}</span></div>
+            <div><label>INIT</label><span>{{ formatMod(data.character_sheet.combat_stats.initiative) }}</span></div>
+            <div><label>MOV</label><span>{{ data.character_sheet.combat_stats.speed }}</span></div>
+            <div><label>BÔNUS PROF</label><span>{{ formatMod(data.character_sheet.combat_stats.proficiency_bonus) }}</span></div>
+          </div>
+          <div class="hp-box">
+            <p>PONTOS DE VIDA</p>
+            <h3>{{ data.character_sheet.combat_stats.hit_points.current }} / {{ data.character_sheet.combat_stats.hit_points.max }}</h3>
+            <small>Dado de Vida: {{ data.character_sheet.combat_stats.hit_dice }}</small>
+          </div>
+          <div class="passive-box">
+            <p>Percepção Passiva: {{ data.character_sheet.combat_stats.passive_perception }}</p>
+          </div>
+        </fieldset>
+
+        <fieldset class="retro-panel skills-panel">
+          <legend>PERÍCIAS</legend>
+          <ul>
+            @for (skill of data.character_sheet.skills | keyvalue; track skill.key) {
+              <li>
+                <span class="prof-dot">{{ skill.value.proficient ? '●' : '○' }}</span>
+                {{ formatMod(skill.value.bonus) }} {{ skill.key }} <small>({{ skill.value.stat }})</small>
+              </li>
+            }
+          </ul>
+        </fieldset>
+      </div>
+
+      <!-- TRAÇOS & MAGIAS -->
+      <div class="column">
+        <fieldset class="retro-panel">
+          <legend>TRAÇOS & HABILIDADES</legend>
+          <ul class="traits-list">
+            @for (trait of data.character_sheet.features_and_traits; track trait.name) {
+              <li><strong>{{ trait.name }}:</strong> {{ trait.description }}</li>
+            }
+          </ul>
+        </fieldset>
+
+        @if (data.character_sheet.spellcasting?.is_spellcaster) {
+          <fieldset class="retro-panel magic-panel">
+            <legend>MAGIA</legend>
+            <p>Atributo: {{ data.character_sheet.spellcasting?.spellcasting_ability }} | CD: {{ data.character_sheet.spellcasting?.spell_save_dc }} | Ataque: {{ formatMod(data.character_sheet.spellcasting?.spell_attack_bonus ?? 0) }}</p>
+            <p>Truques:</p>
+            <ul>
+              @for (cantrip of data.character_sheet.spellcasting?.spells_known?.cantrips; track cantrip) {
+                <li>&gt; {{ cantrip }}</li>
+              }
+            </ul>
+            @if (data.character_sheet.spellcasting?.spells_known?.level_1?.length) {
+              <p>Nível 1:</p>
+              <ul>
+                @for (spell of data.character_sheet.spellcasting?.spells_known?.level_1; track spell) {
+                  <li>&gt; {{ spell }}</li>
+                }
+              </ul>
+            }
+          </fieldset>
+        }
+
+        <fieldset class="retro-panel">
+          <legend>PROFICIÊNCIAS</legend>
+          <p class="prof-label">Armaduras: {{ data.character_sheet.proficiencies_and_languages.armor.join(', ') || '—' }}</p>
+          <p class="prof-label">Armas: {{ data.character_sheet.proficiencies_and_languages.weapons.join(', ') || '—' }}</p>
+          <p class="prof-label">Idiomas: {{ data.character_sheet.proficiencies_and_languages.languages.join(', ') || '—' }}</p>
+        </fieldset>
+      </div>
+
+    </div>
+
+    <div class="sheet-actions">
+      <button class="retro-btn" (click)="goBack()">CRIAR NOVO PERSONAGEM</button>
+    </div>
+
+  </div>
+} @else {
+  <div class="overlay">
+    <div class="retro-panel blinking-text">
+      <p>NENHUMA FICHA ENCONTRADA</p>
+      <button class="retro-btn" (click)="goBack()">VOLTAR</button>
+    </div>
+  </div>
+}
