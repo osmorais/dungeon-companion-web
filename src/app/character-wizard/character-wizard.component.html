@@ -4,224 +4,92 @@
 
   @switch (currentStep) {
 
-  @case (1) {
-  <fieldset class="retro-panel">
-    <legend>CONSTRUÇÃO BÁSICA</legend>
-    <div class="grid-2-col">
-      <label>NÍVEL <input type="number" [(ngModel)]="characterData.core_build.level" min="1" max="20"></label>
-
-      <label>RAÇA
-        <select [(ngModel)]="characterData.core_build.race">
-          <option value="Elfo">Elfo</option>
-          <option value="Anão">Anão</option>
-          <option value="Humano">Humano</option>
-        </select>
-      </label>
-
-      <label>CLASSE
-        <select [(ngModel)]="characterData.core_build.class">
-          <option value="Mago">Mago</option>
-          <option value="Guerreiro">Guerreiro</option>
-        </select>
-      </label>
-
-      <label>ANTECEDENTE
-        <select [(ngModel)]="characterData.core_build.background">
-          <option value="Sábio">Sábio</option>
-          <option value="Soldado">Soldado</option>
-        </select>
-      </label>
-    </div>
-  </fieldset>
-
-  <button class="retro-btn" (click)="nextStep()">CONFIRMAR</button>
-  }
-
-  @case (2) {
-  <fieldset class="retro-panel">
-    <legend>DETALHES DO PERSONAGEM</legend>
-    <div class="grid-2-col">
-      <label>NOME <input type="text" [(ngModel)]="characterData.character_details.name"></label>
-
-      <label>IDADE <input type="number" [(ngModel)]="characterData.character_details.age"></label>
-
-      <label class="full-width">ALINHAMENTO
-        <select [(ngModel)]="characterData.character_details.alignment">
-          <option value="Caótico e Bom">Caótico e Bom</option>
-          <option value="Leal e Neutro">Leal e Neutro</option>
-        </select>
-      </label>
-    </div>
-  </fieldset>
-
-  <button class="retro-btn" (click)="nextStep()">CONFIRMAR</button>
-  <button class="retro-btn" (click)="prevStep()">VOLTAR</button>
-  }
-
-  @case (3) {
-  <fieldset class="retro-panel">
-    <legend>ATRIBUTOS</legend>
-
-    <label>MÉTODO DE GERAÇÃO
-      <select [(ngModel)]="characterData.attributes.generation_method" (change)="onMethodChange()">
-        <option value="standard_array">Matriz Padrão</option>
-        <option value="dice_roll">Rolagem de Dados</option>
-        <option value="point_buy">Compra de Pontos</option>
-      </select>
-    </label>
-
-    <!-- ================= DRAG MODE ================= -->
-    @if (characterData.attributes.generation_method !== 'point_buy') {
-
-    <div class="drag-container">
-
-      <!-- POOL -->
-      <div class="pool">
-        <p>Valores</p>
-
-        @for (value of (isRolling ? displayPool : pool); track value) {
-        <div class="drag-item" draggable="true" (dragstart)="onDragStart(value)">
-          {{ value }}
+    @case (1) {
+      <fieldset class="retro-panel">
+        <legend>CONSTRUÇÃO BÁSICA</legend>
+        <div class="grid-2-col">
+          <label>NÍVEL <input type="number" [(ngModel)]="characterData.core_build.level" min="1" max="20"></label>
+          <label>RAÇA
+            <select [(ngModel)]="characterData.core_build.race">
+              <option value="Elfo">Elfo</option>
+              <option value="Anão">Anão</option>
+              <option value="Humano">Humano</option>
+            </select>
+          </label>
+          <label>CLASSE
+            <select [(ngModel)]="characterData.core_build.class">
+              <option value="Mago">Mago</option>
+              <option value="Guerreiro">Guerreiro</option>
+            </select>
+          </label>
+          <label>ANTECEDENTE
+            <select [(ngModel)]="characterData.core_build.background">
+              <option value="Sábio">Sábio</option>
+              <option value="Soldado">Soldado</option>
+            </select>
+          </label>
         </div>
-        }
-      </div>
-
-      <!-- ATRIBUTOS -->
-      <div class="attributes">
-        @for (stat of attributesList; track stat) {
-        <div class="stat-box" (dragover)="allowDrop($event)" (drop)="onDrop(stat)">
-
-          <label>{{ stat }}</label>
-
-          @if (characterData.attributes.base_values[stat] !== 0) {
-          <div class="drag-item" draggable="true" (dragstart)="onDragFromStat(stat)">
-            {{ characterData.attributes.base_values[stat] }}
-          </div>
-          } @else {
-          <div class="empty-slot">---</div>
-          }
-
-        </div>
-        }
-      </div>
-
-    </div>
+      </fieldset>
+      <button class="retro-btn" (click)="nextStep()">CONFIRMAR</button>
     }
 
-    <!-- ================= POINT BUY ================= -->
-    @if (characterData.attributes.generation_method === 'point_buy') {
-
-    <div class="stats-grid">
-      @for (stat of attributesList; track stat) {
-      <div class="stat-box">
-        <label>{{ stat }}</label>
-
-        <div class="point-controls">
-          <button (click)="decreaseStat(stat)">-</button>
-          <span>{{ characterData.attributes.base_values[stat] }}</span>
-          <button (click)="increaseStat(stat)">+</button>
+    @case (2) {
+      <fieldset class="retro-panel">
+        <legend>DETALHES DO PERSONAGEM</legend>
+        <div class="grid-2-col">
+          <label>NOME <input type="text" [(ngModel)]="characterData.character_details.name"></label>
+          <label>IDADE <input type="number" [(ngModel)]="characterData.character_details.age"></label>
+          <label class="full-width">ALINHAMENTO
+            <select [(ngModel)]="characterData.character_details.alignment">
+              <option value="Caótico e Bom">Caótico e Bom</option>
+              <option value="Leal e Neutro">Leal e Neutro</option>
+            </select>
+          </label>
         </div>
-      </div>
-      }
-    </div>
-
-    <p>Pontos restantes: {{ availablePoints }}</p>
+      </fieldset>
+      <button class="retro-btn" (click)="nextStep()">CONFIRMAR</button>
+      <button class="retro-btn" style="margin-right: 35px;" (click)="prevStep()">VOLTAR</button>
     }
 
-  </fieldset>
-
-  <button class="retro-btn" (click)="nextStep()">CONFIRMAR</button>
-  <button class="retro-btn secondary" (click)="prevStep()">VOLTAR</button>
-  }
-
-  @case (4) {
-  @if (hasMagic()) {
-  <fieldset class="retro-panel">
-    <legend>MAGIAS</legend>
-
-    <p class="panel-subtitle">SELECIONE AS MAGIAS</p>
-
-    <div class="grid-2-col checkboxes">
-      @for (spell of availableSpells; track spell) {
-      <label>
-        <input type="checkbox" class="retro-checkbox" (change)="toggleArrayItem('spells', spell, $event)">
-        {{ spell }}
-      </label>
-      }
-    </div>
-  </fieldset>
-
-  <button class="retro-btn" (click)="nextStep()">CONFIRMAR</button>
-  <button class="retro-btn secondary" (click)="prevStep()">VOLTAR</button>
-  }
-  }
-
-  @case (5) {
-  <fieldset class="retro-panel">
-    <legend>PERÍCIAS</legend>
-
-    <div class="grid-2-col checkboxes">
-      @for (skill of availableSkills; track skill) {
-      <label>
-        <input type="checkbox" class="retro-checkbox" (change)="toggleArrayItem('skills', skill, $event)">
-        {{ skill }}
-      </label>
-      }
-    </div>
-  </fieldset>
-
-  <button class="retro-btn" (click)="nextStep()">CONFIRMAR</button>
-  <button class="retro-btn secondary" (click)="prevStep()">VOLTAR</button>
-  }
-
-  @case (6) {
-  <fieldset class="retro-panel">
-    <legend>EQUIPAMENTO</legend>
-
-    <label>TIPO DE ARMADURA
-      <select [(ngModel)]="characterData.equipment.armor_type">
-        <option value="Nenhuma">Nenhuma</option>
-        <option value="Armadura Leve">Armadura Leve</option>
-        <option value="Armadura Média">Armadura Média</option>
-        <option value="Armadura Pesada">Armadura Pesada</option>
-      </select>
-    </label>
-
-    <label class="shield-label">
-      <input type="checkbox" class="retro-checkbox" [(ngModel)]="characterData.equipment.has_shield">
-      ESCUDO
-    </label>
-  </fieldset>
-
-  <button class="retro-btn" (click)="nextStep()">CONFIRMAR</button>
-  <button class="retro-btn secondary" (click)="prevStep()">VOLTAR</button>
-  }
-
-  @case (7) {
-  <div class="sheet-layout">
-
-    <div class="left-col">
-      <div class="portrait-box">?</div>
-      <h2>{{ characterData.character_details.name || 'Sem Nome' }}</h2>
-      <p>Lvl {{ characterData.core_build.level }} {{ characterData.core_build.race }} {{ characterData.core_build.class
-        }}</p>
-    </div>
-
-    <div class="right-col">
-
+    @case (3) {
       <fieldset class="retro-panel">
         <legend>ATRIBUTOS</legend>
-
+        <label>MÉTODO DE GERAÇÃO
+          <select [(ngModel)]="characterData.attributes.generation_method">
+            <option value="standard_array">standard_array</option>
+          </select>
+        </label>
         <div class="stats-grid">
-          @for (stat of attributesList; track stat) {
-          <div class="stat-box">
-            <span>{{ stat }}</span>
-            <span>{{ characterData.attributes.base_values[stat] }}</span>
-          </div>
+          @for (attr of availableAttributes; track attr.id_attribute) {
+            <div class="stat-box">
+              <label>{{ attr.name }} <input type="number" [(ngModel)]="characterData.attributes.base_values[attr.name]"></label>
+            </div>
           }
         </div>
       </fieldset>
+      <button class="retro-btn" (click)="nextStep()">CONFIRMAR</button>
+      <button class="retro-btn secondary" style="margin-right: 35px;" (click)="prevStep()">VOLTAR</button>
+    }
 
+    @case (4) {
+      <fieldset class="retro-panel">
+        <legend>MAGIAS</legend>
+        <p class="panel-subtitle">SELECIONE AS MAGIAS</p>
+        <div class="grid-2-col checkboxes">
+          @for (spell of availableSpells; track spell) {
+            <label>
+              <input type="checkbox" class="retro-checkbox"
+                     (change)="toggleArrayItem('spells', spell, $event)">
+              {{ spell }}
+            </label>
+          }
+        </div>
+      </fieldset>
+      <button class="retro-btn" (click)="nextStep()">CONFIRMAR</button>
+      <button class="retro-btn secondary" style="margin-right: 35px;" (click)="prevStep()">VOLTAR</button>
+    }
+
+    @case (5) {
       <fieldset class="retro-panel">
         <legend>PERÍCIAS</legend>
         <p class="panel-subtitle">SELECIONE AS PERÍCIAS</p>
@@ -233,26 +101,92 @@
               {{ skill.name }}
             </label>
           }
-        </ul>
+        </div>
       </fieldset>
+      <button class="retro-btn" (click)="nextStep()">CONFIRMAR</button>
+      <button class="retro-btn secondary" style="margin-right: 35px;" (click)="prevStep()">VOLTAR</button>
+    }
 
+    @case (6) {
       <fieldset class="retro-panel">
-        <legend>MAGIAS</legend>
-
-        <ul>
-          @for (spell of characterData.choices.spells; track spell) {
-          <li>[x] {{ spell }}</li>
-          }
-        </ul>
+        <legend>EQUIPAMENTO</legend>
+        <label>TIPO DE ARMADURA
+          <select [(ngModel)]="characterData.equipment.armor_type">
+            <option value="Nenhuma">Nenhuma</option>
+            <option value="Armadura Leve">Armadura Leve</option>
+            <option value="Armadura Média">Armadura Média</option>
+            <option value="Armadura Pesada">Armadura Pesada</option>
+          </select>
+        </label>
+        <label class="shield-label">
+          <input type="checkbox" class="retro-checkbox" [(ngModel)]="characterData.equipment.has_shield">
+          ESCUDO
+        </label>
       </fieldset>
-    </div>
-  </div>
-  <button class="retro-btn primary" (click)="saveCharacter()" [disabled]="isSaving">
-    SALVAR
-  </button>
-  }
+      <button class="retro-btn" (click)="nextStep()">CONFIRMAR</button>
+      <button class="retro-btn secondary" style="margin-right: 35px;" (click)="prevStep()">VOLTAR</button>
+    }
+
+    @case (7) {
+      <div class="sheet-layout">
+        <div class="left-col">
+          <div class="portrait-box">?</div>
+          <h2 class="char-name">{{ characterData.character_details.name || 'Sem Nome' }}</h2>
+          <p>Lvl {{ characterData.core_build.level }} {{ characterData.core_build.race }} {{ characterData.core_build.class }}</p>
+          <p>{{ characterData.character_details.alignment }}</p>
+          <p>{{ characterData.character_details.age }} anos</p>
+        </div>
+
+        <div class="right-col">
+          <fieldset class="retro-panel stats-panel">
+            <legend>ATRIBUTOS</legend>
+            <div class="stats-grid">
+              <div class="stat-box"><span>FOR</span><span>{{ characterData.attributes.base_values.FOR }}</span></div>
+              <div class="stat-box"><span>DES</span><span>{{ characterData.attributes.base_values.DES }}</span></div>
+              <div class="stat-box"><span>CON</span><span>{{ characterData.attributes.base_values.CON }}</span></div>
+              <div class="stat-box"><span>INT</span><span>{{ characterData.attributes.base_values.INT }}</span></div>
+              <div class="stat-box"><span>SAB</span><span>{{ characterData.attributes.base_values.SAB }}</span></div>
+              <div class="stat-box"><span>CAR</span><span>{{ characterData.attributes.base_values.CAR }}</span></div>
+            </div>
+          </fieldset>
+
+          <div class="grid-2-col">
+            <fieldset class="retro-panel">
+              <legend>COMBATE</legend>
+              <p>Armadura: {{ characterData.equipment.armor_type || 'Nenhuma' }}</p>
+              <p>Escudo: {{ characterData.equipment.has_shield ? 'Equipado' : 'Nenhum' }}</p>
+            </fieldset>
+
+            <fieldset class="retro-panel">
+              <legend>PERÍCIAS</legend>
+              <ul>
+                @for (skill of characterData.choices.skills; track skill) {
+                  <li>> {{ skill }}</li>
+                }
+              </ul>
+            </fieldset>
+          </div>
+
+          <fieldset class="retro-panel">
+            <legend>MAGIAS CONHECIDAS</legend>
+            <ul class="magias-list">
+              @for (spell of characterData.choices.spells; track spell) {
+                <li>[x] {{ spell }}</li>
+              }
+            </ul>
+          </fieldset>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button class="retro-btn secondary" (click)="currentStep = 1">VOLTAR E EDITAR</button>
+        <button class="retro-btn primary" (click)="saveCharacter()" [disabled]="isSaving">SALVAR PERSONAGEM</button>
+      </div>
+    }
+
   }
 </div>
+
 @if (isSaving) {
   <div class="overlay loading-overlay">
     <div class="retro-panel blinking-text">
@@ -260,12 +194,13 @@
       <p>AGUARDE ENQUANTO A MAGIA ACONTECE</p>
     </div>
   </div>
-</div>
 }
+
 @if (showSuccess) {
-<div class="overlay">
-  <div class="retro-panel">
-    <p>SUCESSO!</p>
+  <div class="overlay success-overlay">
+    <div class="retro-panel success-panel">
+      <h2 style="color: #00ff00;">SUCESSO!</h2>
+      <p>PERSONAGEM CRIADO COM SUCESSO</p>
+    </div>
   </div>
-</div>
 }
