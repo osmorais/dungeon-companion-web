@@ -9,6 +9,7 @@ export interface CharacterSheetData {
   attributes: {
     generation_method: string;
     base_values: {
+      [key: string]: number;
       FOR: number;
       DES: number;
       CON: number;

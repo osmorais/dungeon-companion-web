@@ -60,12 +60,11 @@
           </select>
         </label>
         <div class="stats-grid">
-          <div class="stat-box"><label>FOR <input type="number" [(ngModel)]="characterData.attributes.base_values.FOR"></label></div>
-          <div class="stat-box"><label>DES <input type="number" [(ngModel)]="characterData.attributes.base_values.DES"></label></div>
-          <div class="stat-box"><label>CON <input type="number" [(ngModel)]="characterData.attributes.base_values.CON"></label></div>
-          <div class="stat-box"><label>INT <input type="number" [(ngModel)]="characterData.attributes.base_values.INT"></label></div>
-          <div class="stat-box"><label>SAB <input type="number" [(ngModel)]="characterData.attributes.base_values.SAB"></label></div>
-          <div class="stat-box"><label>CAR <input type="number" [(ngModel)]="characterData.attributes.base_values.CAR"></label></div>
+          @for (attr of availableAttributes; track attr.id_attribute) {
+            <div class="stat-box">
+              <label>{{ attr.name }} <input type="number" [(ngModel)]="characterData.attributes.base_values[attr.name]"></label>
+            </div>
+          }
         </div>
       </fieldset>
       <button class="retro-btn" (click)="nextStep()">CONFIRMAR</button>
@@ -95,11 +94,11 @@
         <legend>PERÍCIAS</legend>
         <p class="panel-subtitle">SELECIONE AS PERÍCIAS</p>
         <div class="grid-2-col checkboxes">
-          @for (skill of availableSkills; track skill) {
+          @for (skill of availableSkills; track skill.id_skill) {
             <label>
               <input type="checkbox" class="retro-checkbox"
-                     (change)="toggleArrayItem('skills', skill, $event)">
-              {{ skill }}
+                     (change)="toggleArrayItem('skills', skill.name, $event)">
+              {{ skill.name }}
             </label>
           }
         </div>
@@ -191,8 +190,8 @@
 @if (isSaving) {
   <div class="overlay loading-overlay">
     <div class="retro-panel blinking-text">
-      <p>SALVANDO O JOGO...</p>
-      <p>AGUARDE A API MAGICA</p>
+      <p>SALVANDO SEU PERSONAGEM...</p>
+      <p>AGUARDE ENQUANTO A MAGIA ACONTECE</p>
     </div>
   </div>
 }
