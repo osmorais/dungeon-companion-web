@@ -182,6 +182,24 @@
           ESCUDO
         </label>
       </fieldset>
+
+      <fieldset class="retro-panel">
+        <legend>ARMAS</legend>
+        <p class="panel-subtitle">SELECIONE AS ARMAS</p>
+        <div class="grid-2-col checkboxes">
+          @for (weapon of availableWeapons; track weapon.name) {
+            <label>
+              <input type="checkbox" class="retro-checkbox"
+                     (change)="toggleArrayItem('weapons', weapon.name, $event)">
+              <span class="weapon-info">
+                <span>{{ weapon.name }}</span>
+                <span class="weapon-damage weapon-details-link" (click)="openWeaponModal(weapon); $event.stopPropagation(); $event.preventDefault()">Detalhes</span>
+              </span>
+            </label>
+          }
+        </div>
+      </fieldset>
+
       <button class="retro-btn" (click)="nextStep()">CONFIRMAR</button>
       <button class="retro-btn secondary" style="margin-right: 35px;" (click)="prevStep()">VOLTAR</button>
     }
@@ -227,6 +245,18 @@
           </div>
 
           <fieldset class="retro-panel">
+            <legend>ARMAS</legend>
+            <ul class="weapons-list">
+              @for (weapon of characterData.equipment.weapons; track weapon) {
+                <li>[x] {{ weapon }}</li>
+              }
+              @if (characterData.equipment.weapons.length === 0) {
+                <li>Nenhuma arma selecionada</li>
+              }
+            </ul>
+          </fieldset>
+
+          <fieldset class="retro-panel">
             <legend>MAGIAS CONHECIDAS</legend>
             <ul class="magias-list">
               @for (spell of characterData.choices.spells; track spell) {
@@ -245,6 +275,38 @@
 
   }
 </div>
+
+@if (selectedWeapon) {
+  <div class="overlay weapon-modal-overlay" (click)="closeWeaponModal()">
+    <div class="retro-panel weapon-modal" (click)="$event.stopPropagation()">
+      <button class="weapon-modal-close" (click)="closeWeaponModal()">✕</button>
+      <h3 class="weapon-modal-title">{{ selectedWeapon.name }}</h3>
+      <div class="weapon-modal-image">
+        <span>{{ selectedWeapon.isRanged ? '🏹' : '⚔️' }}</span>
+      </div>
+      <div class="weapon-modal-info">
+        <div class="weapon-modal-row">
+          <span class="weapon-modal-label">DANO</span>
+          <span class="weapon-modal-value">{{ selectedWeapon.damage }}</span>
+        </div>
+        <div class="weapon-modal-row">
+          <span class="weapon-modal-label">TIPO</span>
+          <span class="weapon-modal-value">{{ selectedWeapon.isRanged ? 'À Distância' : 'Corpo a Corpo' }}</span>
+        </div>
+        @if (selectedWeapon.properties.length > 0) {
+          <div class="weapon-modal-properties">
+            <span class="weapon-modal-label">PROPRIEDADES</span>
+            <ul>
+              @for (prop of selectedWeapon.properties; track prop) {
+                <li>› {{ prop }}</li>
+              }
+            </ul>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}
 
 @if (isSaving) {
   <div class="overlay loading-overlay">

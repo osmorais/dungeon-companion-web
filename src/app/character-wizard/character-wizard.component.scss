@@ -25,6 +25,17 @@
   margin-bottom: 8px;
 }
 
+.weapon-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.weapon-damage {
+  font-size: 7px;
+  color: var(--label-title-color);
+}
+
 .shield-label {
   display: flex;
   align-items: center;
@@ -88,6 +99,11 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
     }
+
+    .weapons-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
   }
 }
 
@@ -125,6 +141,95 @@
 
   h2 { margin: 0 0 10px; }
   p { margin: 0; font-size: 10px; }
+}
+
+.weapon-details-link {
+  cursor: pointer;
+  color: var(--accent-color);
+  text-decoration: underline;
+
+  &:hover { opacity: 0.75; }
+}
+
+.weapon-modal {
+  position: relative;
+  width: 320px;
+  max-width: 90vw;
+  padding: 20px;
+
+  &-close {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+
+    &:hover { color: var(--accent-color); }
+  }
+
+  &-title {
+    font-size: 11px;
+    color: var(--accent-color);
+    margin: 0 0 15px;
+    text-align: center;
+  }
+
+  &-image {
+    width: 100%;
+    height: 120px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    margin-bottom: 15px;
+  }
+
+  &-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 6px;
+  }
+
+  &-label {
+    font-size: 8px;
+    color: var(--label-title-color);
+  }
+
+  &-value {
+    font-size: 9px;
+    color: var(--text-color);
+  }
+
+  &-properties {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 6px 0 0;
+    }
+
+    li {
+      font-size: 8px;
+      margin-bottom: 4px;
+      color: var(--text-color);
+    }
+  }
 }
 
 @keyframes blink {
