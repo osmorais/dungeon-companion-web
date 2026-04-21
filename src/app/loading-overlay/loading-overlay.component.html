@@ -1,0 +1,10 @@
+@if (svc.visible()) {
+  <div class="overlay">
+    <app-dragon-animation [stationary]="true" />
+    <div class="retro-panel blinking-text">
+      <p>{{ svc.message() }}</p>
+      <p>{{ svc.subMessage() }}</p>
+    </div>
+    <app-dragon-animation [stationaryInvert]="true" />
+  </div>
+}

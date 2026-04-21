@@ -1,3 +1,16 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
 .wizard-container {
   width: 600px;
   max-width: 90vw;
@@ -149,24 +162,6 @@
   .primary { background-color: #00aa00; border-color: #ffffff; float: none; }
 }
 
-.overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.85);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
-}
-
-.blinking-text p {
-  text-align: center;
-  color: var(--text-color);
-  animation: blink 1s step-end infinite;
-}
 
 .success-panel {
   border-color: #00ff00;

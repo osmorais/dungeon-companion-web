@@ -1,10 +1,12 @@
-import { Component, inject, OnInit, HostListener, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit, HostListener, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CharacterSheetData } from '../models/character.interface';
-import { AttributeType, Skill, WeaponOption } from '../models/character-options.interface';
+import { Alignment, AttributeType, Background, CharacterClass, Race, Skill, WeaponOption } from '../models/character-options.interface';
 import { DragonAnimationComponent } from '../dragon-animation/dragon-animation.component';
+import { LoadingOverlayComponent } from '../loading-overlay/loading-overlay.component';
+import { LoadingOverlayService } from '../loading-overlay/loading-overlay.service';
 import { CharacterService } from '../services/character.service';
 import { AvatarPickerModalComponent } from '../avatar-picker-modal/avatar-picker-modal.component';
 import { Avatar } from '../constants/avatars';
@@ -14,18 +16,19 @@ type AttributeKey = 'FOR' | 'DES' | 'CON' | 'INT' | 'SAB' | 'CAR';
 @Component({
   selector: 'app-character-wizard',
   standalone: true,
-  imports: [CommonModule, FormsModule, DragonAnimationComponent, AvatarPickerModalComponent],
+  imports: [CommonModule, FormsModule, DragonAnimationComponent, LoadingOverlayComponent, AvatarPickerModalComponent],
   templateUrl: './character-wizard.component.html',
   styleUrls: ['./character-wizard.component.scss']
 })
 export class CharacterWizardComponent implements OnInit {
   private router = inject(Router);
   private charService = inject(CharacterService);
+  private loadingOverlay = inject(LoadingOverlayService);
+  private cdr = inject(ChangeDetectorRef);
 
   currentStep = 1;
   dragonTrigger = 0;
 
-  isSaving = false;
   showSuccess = false;
   showAvatarPicker = signal(false);
   avatarUrl = this.charService.avatarUrl;
@@ -66,21 +69,35 @@ export class CharacterWizardComponent implements OnInit {
   availableAttributes: AttributeType[] = [];
   availableSkills: Skill[] = [];
   availableWeapons: WeaponOption[] = [];
+  availableRaces: Race[] = [];
+  availableClasses: CharacterClass[] = [];
+  availableBackgrounds: Background[] = [];
+  availableAlignments: Alignment[] = [];
   availableSpells = ['Raio de Fogo', 'Mãos Mágicas', 'Escudo Arcano', 'Bola de Fogo', 'Ilusão Menor', 'Mísseis Mágicos', 'Curar Ferimentos', 'Invisibilidade'];
   constructor() {
       this.onMethodChange();
     }
 
   ngOnInit(): void {
-            this.fillWeapons();
-
+            // this.fillWeapons();
+    
+    this.loadingOverlay.show('CARREGANDO DADOS...', 'AGUARDE PARA COMEÇAR SUA JORNADA');
     this.charService.getCharacterOptions().subscribe({
       next: (options) => {
         this.availableAttributes = options.attributes;
         this.availableSkills = options.skills;
         this.availableWeapons = options.weapons ?? [];
+        this.availableRaces = options.races ?? [];
+        this.availableClasses = options.classes ?? [];
+        this.availableBackgrounds = options.backgrounds ?? [];
+        this.availableAlignments = options.alignments ?? [];
+        this.loadingOverlay.hide();
+        this.cdr.detectChanges();
       },
-      error: (err) => console.error('Erro ao carregar opções de personagem:', err)
+      error: (err) => {
+        this.loadingOverlay.hide();
+        console.error('Erro ao carregar opções de personagem:', err)
+      }
     });
   }
 
@@ -362,21 +379,21 @@ this.availableWeapons = [
   /** ========================= SAVE ========================= */
 
   saveCharacter() {
-    this.isSaving = true;
+    this.loadingOverlay.show('SALVANDO SEU PERSONAGEM...', 'AGUARDE ENQUANTO A MAGIA ACONTECE');
 
     this.charService.saveCharacter(this.characterData).subscribe({
       next: (res) => {
         this.charService.currentCharacter.set(res);
-        this.isSaving = false;
         this.showSuccess = true;
 
         setTimeout(() => {
+          this.loadingOverlay.hide();
           this.router.navigate(['/sheet-result']);
         }, 1500);
       },
       error: (err) => {
         console.error(err);
-        this.isSaving = false;
+        this.loadingOverlay.hide();
         alert('Erro ao salvar personagem!');
       }
     });
