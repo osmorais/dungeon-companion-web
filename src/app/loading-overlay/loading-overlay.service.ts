@@ -12,7 +12,9 @@ export class LoadingOverlayService {
     this.visible.set(true);
   }
 
-  hide() {
+  async hide() {
+
+    await new Promise(resolve => setTimeout(resolve, 2000)); //espera 2 sec pra dar tempo de ver o loader
     this.visible.set(false);
   }
 }

@@ -384,10 +384,10 @@ this.availableWeapons = [
     this.charService.saveCharacter(this.characterData).subscribe({
       next: (res) => {
         this.charService.currentCharacter.set(res);
-        this.loadingOverlay.hide();
         this.showSuccess = true;
 
         setTimeout(() => {
+          this.loadingOverlay.hide();
           this.router.navigate(['/sheet-result']);
         }, 1500);
       },
