@@ -11,21 +11,23 @@
           <label>NÍVEL <input type="number" [(ngModel)]="characterData.core_build.level" min="1" max="20"></label>
           <label>RAÇA
             <select [(ngModel)]="characterData.core_build.race">
-              <option value="Elfo">Elfo</option>
-              <option value="Anão">Anão</option>
-              <option value="Humano">Humano</option>
+              @for (race of availableRaces; track race.id_race) {
+                <option [value]="race.name">{{ race.name }}</option>
+              }
             </select>
           </label>
           <label>CLASSE
             <select [(ngModel)]="characterData.core_build.class">
-              <option value="Mago">Mago</option>
-              <option value="Guerreiro">Guerreiro</option>
+              @for (cls of availableClasses; track cls.id_class) {
+                <option [value]="cls.name">{{ cls.name }}</option>
+              }
             </select>
           </label>
           <label>ANTECEDENTE
             <select [(ngModel)]="characterData.core_build.background">
-              <option value="Sábio">Sábio</option>
-              <option value="Soldado">Soldado</option>
+              @for (bg of availableBackgrounds; track bg.id_background) {
+                <option [value]="bg.name">{{ bg.name }}</option>
+              }
             </select>
           </label>
         </div>
@@ -41,8 +43,9 @@
           <label>IDADE <input type="number" [(ngModel)]="characterData.character_details.age"></label>
           <label class="full-width">ALINHAMENTO
             <select [(ngModel)]="characterData.character_details.alignment">
-              <option value="Caótico e Bom">Caótico e Bom</option>
-              <option value="Leal e Neutro">Leal e Neutro</option>
+              @for (alignment of availableAlignments; track alignment.id_alignment) {
+                <option [value]="alignment.name">{{ alignment.name }}</option>
+              }
             </select>
           </label>
         </div>
@@ -123,7 +126,7 @@
 
       </fieldset>
   <button class="retro-btn" (click)="nextStep()">CONFIRMAR</button>
-  <button class="retro-btn secondary" (click)="prevStep()">VOLTAR</button>
+  <button class="retro-btn secondary" style="margin-right: 35px;" (click)="prevStep()">VOLTAR</button>
   }
 
     @case (4) {
@@ -276,7 +279,7 @@
 
       <div class="action-buttons">
         <button class="retro-btn secondary" (click)="currentStep = 1">VOLTAR E EDITAR</button>
-        <button class="retro-btn primary" (click)="saveCharacter()" [disabled]="isSaving">SALVAR PERSONAGEM</button>
+        <button class="retro-btn primary" (click)="saveCharacter()">SALVAR PERSONAGEM</button>
       </div>
     }
 
@@ -323,16 +326,7 @@
   </div>
 }
 
-@if (isSaving) {
-  <div class="overlay loading-overlay">
-    <app-dragon-animation [stationary]="true" />
-    <div class="retro-panel blinking-text">
-      <p>SALVANDO SEU PERSONAGEM...</p>
-      <p>AGUARDE ENQUANTO A MAGIA ACONTECE</p>
-    </div>
-    <app-dragon-animation [stationaryInvert]="true" />
-  </div>
-}
+<app-loading-overlay />
 
 @if (showSuccess) {
   <div class="overlay success-overlay">
