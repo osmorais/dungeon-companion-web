@@ -2,6 +2,15 @@
   <div class="full-sheet-container">
 
     <fieldset class="retro-panel header-panel">
+      <div class="portrait-section">
+        <div class="portrait-box">
+          @if (avatarUrl()) {
+            <img [src]="avatarUrl()!" alt="Avatar do personagem" />
+          } @else {
+            <span class="portrait-placeholder">?</span>
+          }
+        </div>
+      </div>
       <div class="char-title">
         <h1>{{ data.character_sheet.header.name }}</h1>
         <p>{{ data.character_sheet.header.class_and_level }} &mdash; {{ data.character_sheet.header.race || 'Humano' }}</p>
@@ -115,6 +124,7 @@
     </div>
 
   </div>
+
 } @else {
   <div class="overlay">
     <div class="retro-panel blinking-text">

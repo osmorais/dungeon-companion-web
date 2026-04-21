@@ -1,0 +1,94 @@
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-container {
+  width: 560px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-panel {
+  border-color: #ffaa00;
+
+  legend {
+    color: #ffaa00;
+    font-size: 12px;
+    padding: 0 8px;
+  }
+}
+
+.avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  padding: 8px 0 16px;
+}
+
+.avatar-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 6px;
+  border: 2px solid transparent;
+  transition: border-color 0.15s;
+
+  &:hover {
+    border-color: #ccaa44;
+  }
+
+  &.selected {
+    border-color: #ffaa00;
+    background: rgba(255, 170, 0, 0.1);
+  }
+
+  img {
+    width: 80px;
+    height: 80px;
+    image-rendering: pixelated;
+    display: block;
+  }
+}
+
+.avatar-label {
+  font-size: 7px;
+  color: #aaa;
+  text-align: center;
+}
+
+.checkmark {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  color: #ffaa00;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px dashed #444;
+
+  .cancel-btn {
+    background: #333;
+    color: #aaa;
+  }
+
+  .save-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
