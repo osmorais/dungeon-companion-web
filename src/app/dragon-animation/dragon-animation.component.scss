@@ -9,6 +9,20 @@
   overflow: hidden;
 }
 
+.dragon-overlay.dragon-stationary {
+  position: relative;
+  width: 128px;
+  height: 128px;
+  margin: 0 auto 16px;
+}
+
+.dragon-overlay.dragon-stationary-invert {
+  position: relative;
+  width: 128px;
+  height: 128px;
+  margin: 0 auto 16px;
+}
+
 .dragon-sprite {
   position: absolute;
   top: 10%;
@@ -20,6 +34,21 @@
   animation:
     fly-across 5.4s linear forwards,
     flap-wings 0.7s steps(1) infinite;
+}
+
+.dragon-stationary .dragon-sprite {
+  position: relative;
+  top: auto;
+  left: auto;
+  animation: flap-wings 1.7s steps(1) infinite;
+}
+
+.dragon-stationary-invert .dragon-sprite {
+  position: relative;
+  top: auto;
+  left: auto;
+  animation: flap-wings 1.7s steps(1) infinite;
+  transform: scaleX(-1);
 }
 
 @keyframes fly-across {

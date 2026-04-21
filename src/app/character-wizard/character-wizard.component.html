@@ -325,10 +325,12 @@
 
 @if (isSaving) {
   <div class="overlay loading-overlay">
+    <app-dragon-animation [stationary]="true" />
     <div class="retro-panel blinking-text">
       <p>SALVANDO SEU PERSONAGEM...</p>
       <p>AGUARDE ENQUANTO A MAGIA ACONTECE</p>
     </div>
+    <app-dragon-animation [stationaryInvert]="true" />
   </div>
 }
 

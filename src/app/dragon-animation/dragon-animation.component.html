@@ -1,5 +1,5 @@
-@if (visible) {
-  <div class="dragon-overlay">
+@if (visible || stationary || stationaryInvert) {
+  <div class="dragon-overlay" [class.dragon-stationary]="stationary" [class.dragon-stationary-invert]="stationaryInvert">
     <div class="dragon-sprite"></div>
   </div>
 }
