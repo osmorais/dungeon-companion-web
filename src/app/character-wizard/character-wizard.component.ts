@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, HostListener} from '@angular/core';
+import { Component, inject, OnInit, HostListener, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -6,13 +6,15 @@ import { CharacterSheetData } from '../models/character.interface';
 import { AttributeType, Skill, WeaponOption } from '../models/character-options.interface';
 import { DragonAnimationComponent } from '../dragon-animation/dragon-animation.component';
 import { CharacterService } from '../services/character.service';
+import { AvatarPickerModalComponent } from '../avatar-picker-modal/avatar-picker-modal.component';
+import { Avatar } from '../constants/avatars';
 
 type AttributeKey = 'FOR' | 'DES' | 'CON' | 'INT' | 'SAB' | 'CAR';
 
 @Component({
   selector: 'app-character-wizard',
   standalone: true,
-  imports: [CommonModule, FormsModule, DragonAnimationComponent],
+  imports: [CommonModule, FormsModule, DragonAnimationComponent, AvatarPickerModalComponent],
   templateUrl: './character-wizard.component.html',
   styleUrls: ['./character-wizard.component.scss']
 })
@@ -25,6 +27,17 @@ export class CharacterWizardComponent implements OnInit {
 
   isSaving = false;
   showSuccess = false;
+  showAvatarPicker = signal(false);
+  avatarUrl = this.charService.avatarUrl;
+
+  openAvatarPicker() { this.showAvatarPicker.set(true); }
+
+  onAvatarSelected(avatar: Avatar) {
+    this.charService.avatarUrl.set(avatar.url);
+    this.showAvatarPicker.set(false);
+  }
+
+  closeAvatarPicker() { this.showAvatarPicker.set(false); }
 
   attributesList: AttributeKey[] = ['FOR', 'DES', 'CON', 'INT', 'SAB', 'CAR'];
 

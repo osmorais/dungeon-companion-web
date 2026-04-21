@@ -207,7 +207,14 @@
     @case (7) {
       <div class="sheet-layout">
         <div class="left-col">
-          <div class="portrait-box">?</div>
+          <div class="portrait-box" (click)="openAvatarPicker()" title="Escolher avatar">
+            @if (avatarUrl()) {
+              <img [src]="avatarUrl()!" alt="Avatar do personagem" />
+            } @else {
+              <span class="portrait-placeholder">?</span>
+            }
+            <div class="portrait-overlay">✎</div>
+          </div>
           <h2 class="char-name">{{ characterData.character_details.name || 'Sem Nome' }}</h2>
           <p>Lvl {{ characterData.core_build.level }} {{ characterData.core_build.race }} {{ characterData.core_build.class }}</p>
           <p>{{ characterData.character_details.alignment }}</p>
@@ -275,6 +282,14 @@
 
   }
 </div>
+
+@if (showAvatarPicker()) {
+  <app-avatar-picker-modal
+    [currentAvatarUrl]="avatarUrl()"
+    (avatarSelected)="onAvatarSelected($event)"
+    (cancelled)="closeAvatarPicker()"
+  />
+}
 
 @if (selectedWeapon) {
   <div class="overlay weapon-modal-overlay" (click)="closeWeaponModal()">

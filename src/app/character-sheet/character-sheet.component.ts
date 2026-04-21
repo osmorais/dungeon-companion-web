@@ -8,13 +8,14 @@ import { CharacterService } from '../services/character.service';
   standalone: true,
   imports: [CommonModule, KeyValuePipe],
   templateUrl: './character-sheet.component.html',
-  styleUrls: ['./character-sheet.component.scss']
+  styleUrls: ['./character-sheet.component.scss'],
 })
 export class CharacterSheetComponent {
   private charService = inject(CharacterService);
   private router = inject(Router);
 
   sheetData = this.charService.currentCharacter;
+  avatarUrl = this.charService.avatarUrl;
 
   goBack() {
     this.router.navigate(['/']);

@@ -1,0 +1,29 @@
+<div class="modal-backdrop" (click)="cancel()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <fieldset class="retro-panel modal-panel">
+      <legend>ESCOLHER AVATAR</legend>
+
+      <div class="avatar-grid">
+        @for (avatar of avatars; track avatar.id) {
+          <div
+            class="avatar-item"
+            [class.selected]="selectedAvatar()?.id === avatar.id"
+            (click)="select(avatar)"
+            [title]="avatar.label"
+          >
+            <img [src]="avatar.url" [alt]="avatar.label" />
+            <span class="avatar-label">{{ avatar.label }}</span>
+            @if (selectedAvatar()?.id === avatar.id) {
+              <div class="checkmark">✓</div>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="modal-actions">
+        <button class="retro-btn cancel-btn" (click)="cancel()">CANCELAR</button>
+        <button class="retro-btn save-btn" [disabled]="!selectedAvatar()" (click)="save()">SALVAR</button>
+      </div>
+    </fieldset>
+  </div>
+</div>
