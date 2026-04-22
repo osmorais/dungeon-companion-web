@@ -32,10 +32,7 @@
           </label>
         </div>
       </fieldset>
-      <button class="retro-btn" (click)="nextStep()">CONFIRMAR</button>
-    }
 
-    @case (2) {
       <fieldset class="retro-panel">
         <legend>DETALHES DO PERSONAGEM</legend>
         <div class="grid-2-col">
@@ -51,10 +48,9 @@
         </div>
       </fieldset>
       <button class="retro-btn" (click)="nextStep()">CONFIRMAR</button>
-      <button class="retro-btn" style="margin-right: 35px;" (click)="prevStep()">VOLTAR</button>
     }
 
-    @case (3) {
+    @case (2) {
       <fieldset class="retro-panel">
         <legend>ATRIBUTOS</legend>
 
@@ -129,7 +125,7 @@
   <button class="retro-btn secondary" style="margin-right: 35px;" (click)="prevStep()">VOLTAR</button>
   }
 
-    @case (4) {
+    @case (3) {
       @if (hasMagic()) {
       <fieldset class="retro-panel">
         <legend>MAGIAS</legend>
@@ -137,21 +133,30 @@
         <p class="panel-subtitle">SELECIONE AS MAGIAS</p>
 
         <div class="grid-2-col checkboxes">
-          @for (spell of availableSpells; track spell) {
+          @for (spell of pagedSpells; track spell.id_spell) {
           <label>
-            <input type="checkbox" class="retro-checkbox" (change)="toggleArrayItem('spells', spell, $event)">
-            {{ spell }}
+            <input type="checkbox" class="retro-checkbox" (change)="toggleArrayItem('spells', spell.name, $event)">
+            <span class="item-info">
+              <span>{{ spell.name }}</span>
+              <span class="item-hint details-link" (click)="openSpellModal(spell); $event.stopPropagation(); $event.preventDefault()">Detalhes</span>
+            </span>
           </label>
           }
+        </div>
+
+        <div class="pagination">
+          <button class="retro-btn pagination-btn" (click)="spellsPrevPage()" [disabled]="spellsPage === 0">◀</button>
+          <span>{{ spellsPage + 1 }} / {{ spellsTotalPages }}</span>
+          <button class="retro-btn pagination-btn" (click)="spellsNextPage()" [disabled]="spellsPage === spellsTotalPages - 1">▶</button>
         </div>
       </fieldset>
 
       <button class="retro-btn" (click)="nextStep()">CONFIRMAR</button>
-      <button class="retro-btn secondary" (click)="prevStep()">VOLTAR</button>
+      <button class="retro-btn secondary" style="margin-right: 35px;" (click)="prevStep()">VOLTAR</button>
       }
     }
 
-    @case (5) {
+    @case (4) {
       <fieldset class="retro-panel">
         <legend>PERÍCIAS</legend>
         <p class="panel-subtitle">SELECIONE AS PERÍCIAS</p>
@@ -169,7 +174,7 @@
       <button class="retro-btn secondary" style="margin-right: 35px;" (click)="prevStep()">VOLTAR</button>
     }
 
-    @case (6) {
+    @case (5) {
       <fieldset class="retro-panel">
         <legend>EQUIPAMENTO</legend>
         <label>TIPO DE ARMADURA
@@ -190,16 +195,22 @@
         <legend>ARMAS</legend>
         <p class="panel-subtitle">SELECIONE AS ARMAS</p>
         <div class="grid-2-col checkboxes">
-          @for (weapon of availableWeapons; track weapon.name) {
+          @for (weapon of pagedWeapons; track weapon.name) {
             <label>
               <input type="checkbox" class="retro-checkbox"
                      (change)="toggleArrayItem('weapons', weapon.name, $event)">
-              <span class="weapon-info">
+              <span class="item-info">
                 <span>{{ weapon.name }}</span>
-                <span class="weapon-damage weapon-details-link" (click)="openWeaponModal(weapon); $event.stopPropagation(); $event.preventDefault()">Detalhes</span>
+                <span class="item-hint details-link" (click)="openWeaponModal(weapon); $event.stopPropagation(); $event.preventDefault()">Detalhes</span>
               </span>
             </label>
           }
+        </div>
+
+        <div class="pagination">
+          <button class="retro-btn pagination-btn" (click)="weaponsPrevPage()" [disabled]="weaponsPage === 0">◀</button>
+          <span>{{ weaponsPage + 1 }} / {{ weaponsTotalPages }}</span>
+          <button class="retro-btn pagination-btn" (click)="weaponsNextPage()" [disabled]="weaponsPage === weaponsTotalPages - 1">▶</button>
         </div>
       </fieldset>
 
@@ -207,7 +218,7 @@
       <button class="retro-btn secondary" style="margin-right: 35px;" (click)="prevStep()">VOLTAR</button>
     }
 
-    @case (7) {
+    @case (6) {
       <div class="sheet-layout">
         <div class="left-col">
           <div class="portrait-box" (click)="openAvatarPicker()" title="Escolher avatar">
@@ -265,7 +276,7 @@
               }
             </ul>
           </fieldset>
-
+        @if (hasMagic()) {
           <fieldset class="retro-panel">
             <legend>MAGIAS CONHECIDAS</legend>
             <ul class="magias-list">
@@ -274,6 +285,7 @@
               }
             </ul>
           </fieldset>
+        }
         </div>
       </div>
 
@@ -295,31 +307,67 @@
 }
 
 @if (selectedWeapon) {
-  <div class="overlay weapon-modal-overlay" (click)="closeWeaponModal()">
-    <div class="retro-panel weapon-modal" (click)="$event.stopPropagation()">
-      <button class="weapon-modal-close" (click)="closeWeaponModal()">✕</button>
-      <h3 class="weapon-modal-title">{{ selectedWeapon.name }}</h3>
-      <div class="weapon-modal-image">
+  <div class="overlay modal-overlay" (click)="closeWeaponModal()">
+    <div class="retro-panel item-modal" (click)="$event.stopPropagation()">
+      <button class="item-modal-close" (click)="closeWeaponModal()">✕</button>
+      <h3 class="item-modal-title">{{ selectedWeapon.name }}</h3>
+      <div class="item-modal-image">
         <span>{{ selectedWeapon.isRanged ? '🏹' : '⚔️' }}</span>
       </div>
-      <div class="weapon-modal-info">
-        <div class="weapon-modal-row">
-          <span class="weapon-modal-label">DANO</span>
-          <span class="weapon-modal-value">{{ selectedWeapon.damage }}</span>
+      <div class="item-modal-info">
+        <div class="item-modal-row">
+          <span class="item-modal-label">DANO</span>
+          <span class="item-modal-value">{{ selectedWeapon.damage }}</span>
         </div>
-        <div class="weapon-modal-row">
-          <span class="weapon-modal-label">TIPO</span>
-          <span class="weapon-modal-value">{{ selectedWeapon.isRanged ? 'À Distância' : 'Corpo a Corpo' }}</span>
+        <div class="item-modal-row">
+          <span class="item-modal-label">TIPO</span>
+          <span class="item-modal-value">{{ selectedWeapon.isRanged ? 'À Distância' : 'Corpo a Corpo' }}</span>
         </div>
         @if (selectedWeapon.properties.length > 0) {
-          <div class="weapon-modal-properties">
-            <span class="weapon-modal-label">PROPRIEDADES</span>
+          <div class="item-modal-properties">
+            <span class="item-modal-label">PROPRIEDADES</span>
             <ul>
               @for (prop of selectedWeapon.properties; track prop) {
                 <li>› {{ prop }}</li>
               }
             </ul>
           </div>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+
+@if (selectedSpell) {
+  <div class="overlay modal-overlay" (click)="closeSpellModal()">
+    <div class="retro-panel item-modal" (click)="$event.stopPropagation()">
+      <button class="item-modal-close" (click)="closeSpellModal()">✕</button>
+      <h3 class="item-modal-title">{{ selectedSpell.name }}</h3>
+      <p class="spell-school">{{ selectedSpell.school }} — Nível {{ selectedSpell.spellLevel === 0 ? 'Truque' : selectedSpell.spellLevel }}</p>
+      <div class="item-modal-info">
+        <div class="item-modal-row">
+          <span class="item-modal-label">TEMPO DE CONJURAÇÃO</span>
+          <span class="item-modal-value">{{ selectedSpell.casting_time ?? '—' }}</span>
+        </div>
+        <div class="item-modal-row">
+          <span class="item-modal-label">ALCANCE</span>
+          <span class="item-modal-value">{{ selectedSpell.range_distance != null ? selectedSpell.range_distance + ' m' : '—' }}</span>
+        </div>
+        <div class="item-modal-row">
+          <span class="item-modal-label">DURAÇÃO</span>
+          <span class="item-modal-value">{{ selectedSpell.duration ?? '—' }}</span>
+        </div>
+        <div class="item-modal-row">
+          <span class="item-modal-label">COMPONENTES</span>
+          <span class="item-modal-value spell-components">
+            @if (selectedSpell.is_verbal) { <span class="component-tag">V</span> }
+            @if (selectedSpell.is_somatic) { <span class="component-tag">S</span> }
+            @if (selectedSpell.is_material) { <span class="component-tag">M</span> }
+          </span>
+        </div>
+        @if (selectedSpell.description) {
+          <div class="spell-description">{{ selectedSpell.description }}</div>
         }
       </div>
     </div>
