@@ -56,8 +56,8 @@ export class CharacterWizardComponent implements OnInit {
   };
 
   characterData: CharacterSheetData = {
-    core_build: { level: 1, race: '', class: '', background: '', subrace: '' },
-    character_details: { name: '', alignment: '', age: 20 },
+    core_build: { level: 1, id_race: 0, race: '', id_class: 0, class: '', id_background: 0, background: '', subrace: '' },
+    character_details: { name: '', id_alignment: 0, alignment: '', age: 20 },
     attributes: {
       generation_method: 'standard_array',
       base_values: { FOR: 8, DES: 8, CON: 8, INT: 8, SAB: 8, CAR: 8 }
