@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CharacterSheetData } from '../models/character.interface';
-import { Alignment, AttributeType, Background, CharacterClass, Race, Skill, WeaponOption } from '../models/character-options.interface';
+import { Alignment, AttributeType, Background, CharacterClass, Race, Skill, Spell, WeaponOption } from '../models/character-options.interface';
 import { DragonAnimationComponent } from '../dragon-animation/dragon-animation.component';
 import { LoadingOverlayComponent } from '../loading-overlay/loading-overlay.component';
 import { LoadingOverlayService } from '../loading-overlay/loading-overlay.service';
@@ -73,7 +73,7 @@ export class CharacterWizardComponent implements OnInit {
   availableClasses: CharacterClass[] = [];
   availableBackgrounds: Background[] = [];
   availableAlignments: Alignment[] = [];
-  availableSpells = ['Raio de Fogo', 'Mãos Mágicas', 'Escudo Arcano', 'Bola de Fogo', 'Ilusão Menor', 'Mísseis Mágicos', 'Curar Ferimentos', 'Invisibilidade'];
+  availableSpells: Spell[] = [];
   constructor() {
       this.onMethodChange();
     }
@@ -91,6 +91,7 @@ export class CharacterWizardComponent implements OnInit {
         this.availableClasses = options.classes ?? [];
         this.availableBackgrounds = options.backgrounds ?? [];
         this.availableAlignments = options.alignments ?? [];
+        this.availableSpells = options.spells ?? [];
         this.loadingOverlay.hide();
         this.cdr.detectChanges();
       },
@@ -104,17 +105,17 @@ export class CharacterWizardComponent implements OnInit {
   nextStep() {
     this.dragonTrigger++;
 
-    if (this.currentStep === 3 && !this.hasMagic()) {
-      this.currentStep = 5;
+    if (this.currentStep === 2 && !this.hasMagic()) {
+      this.currentStep = 4;
       return;
     }
 
-    if (this.currentStep < 7) this.currentStep++;
+    if (this.currentStep < 6) this.currentStep++;
   }
 
   prevStep() {
-    if (this.currentStep === 5 && !this.hasMagic()) {
-      this.currentStep = 3;
+    if (this.currentStep === 4 && !this.hasMagic()) {
+      this.currentStep = 2;
       return;
     }
 
@@ -124,8 +125,43 @@ export class CharacterWizardComponent implements OnInit {
   /** ========================= MAGIC ========================= */
 
   hasMagic(): boolean {
-    return this.characterData.core_build.class === 'Mago';
+    const magicClasses = ["2", "3", "4", "5", "6", "9", "11", "12"];
+    return magicClasses.includes(this.characterData.core_build.id_class.toString());
   }
+
+  /** ========================= WEAPON PAGINATION ========================= */
+
+  readonly weaponsPageSize = 8;
+  weaponsPage = 0;
+
+  get pagedWeapons(): WeaponOption[] {
+    const start = this.weaponsPage * this.weaponsPageSize;
+    return this.availableWeapons.slice(start, start + this.weaponsPageSize);
+  }
+
+  get weaponsTotalPages(): number {
+    return Math.ceil(this.availableWeapons.length / this.weaponsPageSize);
+  }
+
+  weaponsPrevPage() { if (this.weaponsPage > 0) this.weaponsPage--; }
+  weaponsNextPage() { if (this.weaponsPage < this.weaponsTotalPages - 1) this.weaponsPage++; }
+
+  /** ========================= SPELL PAGINATION ========================= */
+
+  readonly spellsPageSize = 8;
+  spellsPage = 0;
+
+  get pagedSpells(): Spell[] {
+    const start = this.spellsPage * this.spellsPageSize;
+    return this.availableSpells.slice(start, start + this.spellsPageSize);
+  }
+
+  get spellsTotalPages(): number {
+    return Math.ceil(this.availableSpells.length / this.spellsPageSize);
+  }
+
+  spellsPrevPage() { if (this.spellsPage > 0) this.spellsPage--; }
+  spellsNextPage() { if (this.spellsPage < this.spellsTotalPages - 1) this.spellsPage++; }
 
   /** ========================= METHOD ========================= */
 
@@ -351,6 +387,19 @@ this.availableWeapons = [
 
   closeWeaponModal() {
     this.selectedWeapon = null;
+  }
+
+  
+  /** ========================= SPELL MODAL ========================= */
+
+  selectedSpell: Spell | null = null;
+
+  openSpellModal(spell: Spell) {
+    this.selectedSpell = spell;
+  }
+
+  closeSpellModal() {
+    this.selectedSpell = null;
   }
 
   /** ========================= SKILLS / SPELLS ========================= */
