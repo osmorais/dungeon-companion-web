@@ -10,23 +10,23 @@
         <div class="grid-2-col">
           <label>NÍVEL <input type="number" [(ngModel)]="characterData.core_build.level" min="1" max="20"></label>
           <label>RAÇA
-            <select [(ngModel)]="characterData.core_build.race">
+            <select [(ngModel)]="characterData.core_build.id_race">
               @for (race of availableRaces; track race.id_race) {
-                <option [value]="race.name">{{ race.name }}</option>
+                <option [value]="race.id_race">{{ race.name }}</option>
               }
             </select>
           </label>
           <label>CLASSE
-            <select [(ngModel)]="characterData.core_build.class">
+            <select [(ngModel)]="characterData.core_build.id_class">
               @for (cls of availableClasses; track cls.id_class) {
-                <option [value]="cls.name">{{ cls.name }}</option>
+                <option [value]="cls.id_class">{{ cls.name }}</option>
               }
             </select>
           </label>
           <label>ANTECEDENTE
-            <select [(ngModel)]="characterData.core_build.background">
+            <select [(ngModel)]="characterData.core_build.id_background">
               @for (bg of availableBackgrounds; track bg.id_background) {
-                <option [value]="bg.name">{{ bg.name }}</option>
+                <option [value]="bg.id_background">{{ bg.name }}</option>
               }
             </select>
           </label>
@@ -42,9 +42,9 @@
           <label>NOME <input type="text" [(ngModel)]="characterData.character_details.name"></label>
           <label>IDADE <input type="number" [(ngModel)]="characterData.character_details.age"></label>
           <label class="full-width">ALINHAMENTO
-            <select [(ngModel)]="characterData.character_details.alignment">
+            <select [(ngModel)]="characterData.character_details.id_alignment">
               @for (alignment of availableAlignments; track alignment.id_alignment) {
-                <option [value]="alignment.name">{{ alignment.name }}</option>
+                <option [value]="alignment.id_alignment">{{ alignment.name }}</option>
               }
             </select>
           </label>

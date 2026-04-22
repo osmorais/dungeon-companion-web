@@ -1,9 +1,12 @@
 export interface CharacterSheetData {
   core_build: {
     level: number;
+    id_race: number;
     race: string;
     subrace?: string;
+    id_class: number;
     class: string;
+    id_background: number;
     background: string;
   };
   attributes: {
@@ -29,6 +32,7 @@ export interface CharacterSheetData {
   };
   character_details: {
     name: string;
+    id_alignment: number;
     alignment: string;
     age: number;
   };
