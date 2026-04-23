@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CharacterSheetData } from '../models/character.interface';
-import { Alignment, AttributeType, Background, CharacterClass, Race, Skill, Spell, WeaponOption } from '../models/character-options.interface';
+import { Alignment, Armour, AttributeType, Background, CharacterClass, Race, Skill, Spell, WeaponOption } from '../models/character-options.interface';
 import { DragonAnimationComponent } from '../dragon-animation/dragon-animation.component';
 import { LoadingOverlayComponent } from '../loading-overlay/loading-overlay.component';
 import { LoadingOverlayService } from '../loading-overlay/loading-overlay.service';
@@ -63,7 +63,7 @@ export class CharacterWizardComponent implements OnInit {
       base_values: { FOR: 8, DES: 8, CON: 8, INT: 8, SAB: 8, CAR: 8 }
     },
     choices: { skills: [], spells: [] },
-    equipment: { armor_type: '', weapons: [], has_shield: false }
+    equipment: { armour: null, weapons: [], has_shield: false }
   };
 
   availableAttributes: AttributeType[] = [];
@@ -74,6 +74,7 @@ export class CharacterWizardComponent implements OnInit {
   availableBackgrounds: Background[] = [];
   availableAlignments: Alignment[] = [];
   availableSpells: Spell[] = [];
+  availableArmours: Armour[] = [];
   constructor() {
       this.onMethodChange();
     }
@@ -92,6 +93,7 @@ export class CharacterWizardComponent implements OnInit {
         this.availableBackgrounds = options.backgrounds ?? [];
         this.availableAlignments = options.alignments ?? [];
         this.availableSpells = options.spells ?? [];
+        this.availableArmours = (options.armours ?? []).filter(a => a.armour_type !== 'Escudo');
         this.loadingOverlay.hide();
         this.cdr.detectChanges();
       },
@@ -377,6 +379,12 @@ this.availableWeapons = [
   }
 
 
+  /** ========================= ARMOUR SELECTION ========================= */
+
+  selectArmour(armour: Armour | null) {
+    this.characterData.equipment.armour = armour;
+  }
+
   /** ========================= WEAPON MODAL ========================= */
 
   selectedWeapon: WeaponOption | null = null;
@@ -406,22 +414,35 @@ this.availableWeapons = [
 
   toggleArrayItem(
     arrayName: 'skills' | 'spells' | 'weapons',
-    item: string,
+    item: Skill | Spell | WeaponOption,
     event: Event
   ) {
     const isChecked = (event.target as HTMLInputElement).checked;
 
-    let targetArray: string[] = [];
-
-    if (arrayName === 'skills') targetArray = this.characterData.choices.skills;
-    if (arrayName === 'spells') targetArray = this.characterData.choices.spells;
-    if (arrayName === 'weapons') targetArray = this.characterData.equipment.weapons;
-
-    if (isChecked) {
-      targetArray.push(item);
-    } else {
-      const index = targetArray.indexOf(item);
-      if (index > -1) targetArray.splice(index, 1);
+    if (arrayName === 'skills') {
+      const skill = item as Skill;
+      if (isChecked) {
+        this.characterData.choices.skills.push(skill);
+      } else {
+        const idx = this.characterData.choices.skills.findIndex(s => s.id_skill === skill.id_skill);
+        if (idx > -1) this.characterData.choices.skills.splice(idx, 1);
+      }
+    } else if (arrayName === 'spells') {
+      const spell = item as Spell;
+      if (isChecked) {
+        this.characterData.choices.spells.push(spell);
+      } else {
+        const idx = this.characterData.choices.spells.findIndex(s => s.id_spell === spell.id_spell);
+        if (idx > -1) this.characterData.choices.spells.splice(idx, 1);
+      }
+    } else if (arrayName === 'weapons') {
+      const weapon = item as WeaponOption;
+      if (isChecked) {
+        this.characterData.equipment.weapons.push(weapon);
+      } else {
+        const idx = this.characterData.equipment.weapons.findIndex(w => w.name === weapon.name);
+        if (idx > -1) this.characterData.equipment.weapons.splice(idx, 1);
+      }
     }
   }
 

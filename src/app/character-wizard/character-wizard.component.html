@@ -135,7 +135,7 @@
         <div class="grid-2-col checkboxes">
           @for (spell of pagedSpells; track spell.id_spell) {
           <label>
-            <input type="checkbox" class="retro-checkbox" (change)="toggleArrayItem('spells', spell.name, $event)">
+            <input type="checkbox" class="retro-checkbox" (change)="toggleArrayItem('spells', spell, $event)">
             <span class="item-info">
               <span>{{ spell.name }}</span>
               <span class="item-hint details-link" (click)="openSpellModal(spell); $event.stopPropagation(); $event.preventDefault()">Detalhes</span>
@@ -164,7 +164,7 @@
           @for (skill of availableSkills; track skill.id_skill) {
             <label>
               <input type="checkbox" class="retro-checkbox"
-                     (change)="toggleArrayItem('skills', skill.name, $event)">
+                     (change)="toggleArrayItem('skills', skill, $event)">
               {{ skill.name }}
             </label>
           }
@@ -177,14 +177,26 @@
     @case (5) {
       <fieldset class="retro-panel">
         <legend>EQUIPAMENTO</legend>
-        <label>TIPO DE ARMADURA
-          <select [(ngModel)]="characterData.equipment.armor_type">
-            <option value="Nenhuma">Nenhuma</option>
-            <option value="Armadura Leve">Armadura Leve</option>
-            <option value="Armadura Média">Armadura Média</option>
-            <option value="Armadura Pesada">Armadura Pesada</option>
-          </select>
-        </label>
+        <p class="panel-subtitle">SELECIONE A ARMADURA</p>
+        <div class="grid-2-col checkboxes">
+          <label>
+            <input type="radio" name="armour" class="retro-checkbox"
+                   [checked]="!characterData.equipment.armour"
+                   (change)="selectArmour(null)">
+            <span class="item-info"><span>Nenhuma</span></span>
+          </label>
+          @for (armour of availableArmours; track armour.id_armour) {
+            <label>
+              <input type="radio" name="armour" class="retro-checkbox"
+                     [checked]="characterData.equipment.armour?.id_armour === armour.id_armour"
+                     (change)="selectArmour(armour)">
+              <span class="item-info">
+                <span>{{ armour.name }}</span>
+                <span class="item-hint">{{ armour.armour_type }} — CA {{ armour.armour_class_base }}</span>
+              </span>
+            </label>
+          }
+        </div>
         <label class="shield-label">
           <input type="checkbox" class="retro-checkbox" [(ngModel)]="characterData.equipment.has_shield">
           ESCUDO
@@ -198,7 +210,7 @@
           @for (weapon of pagedWeapons; track weapon.name) {
             <label>
               <input type="checkbox" class="retro-checkbox"
-                     (change)="toggleArrayItem('weapons', weapon.name, $event)">
+                     (change)="toggleArrayItem('weapons', weapon, $event)">
               <span class="item-info">
                 <span>{{ weapon.name }}</span>
                 <span class="item-hint details-link" (click)="openWeaponModal(weapon); $event.stopPropagation(); $event.preventDefault()">Detalhes</span>
@@ -251,15 +263,15 @@
           <div class="grid-2-col">
             <fieldset class="retro-panel">
               <legend>COMBATE</legend>
-              <p>Armadura: {{ characterData.equipment.armor_type || 'Nenhuma' }}</p>
+              <p>Armadura: {{ characterData.equipment.armour?.name || 'Nenhuma' }}</p>
               <p>Escudo: {{ characterData.equipment.has_shield ? 'Equipado' : 'Nenhum' }}</p>
             </fieldset>
 
             <fieldset class="retro-panel">
               <legend>PERÍCIAS</legend>
               <ul>
-                @for (skill of characterData.choices.skills; track skill) {
-                  <li>> {{ skill }}</li>
+                @for (skill of characterData.choices.skills; track skill.id_skill) {
+                  <li>> {{ skill.name }}</li>
                 }
               </ul>
             </fieldset>
@@ -268,8 +280,8 @@
           <fieldset class="retro-panel">
             <legend>ARMAS</legend>
             <ul class="weapons-list">
-              @for (weapon of characterData.equipment.weapons; track weapon) {
-                <li>[x] {{ weapon }}</li>
+              @for (weapon of characterData.equipment.weapons; track weapon.name) {
+                <li>[x] {{ weapon.name }}</li>
               }
               @if (characterData.equipment.weapons.length === 0) {
                 <li>Nenhuma arma selecionada</li>
@@ -280,8 +292,8 @@
           <fieldset class="retro-panel">
             <legend>MAGIAS CONHECIDAS</legend>
             <ul class="magias-list">
-              @for (spell of characterData.choices.spells; track spell) {
-                <li>[x] {{ spell }}</li>
+              @for (spell of characterData.choices.spells; track spell.id_spell) {
+                <li>[x] {{ spell.name }}</li>
               }
             </ul>
           </fieldset>
