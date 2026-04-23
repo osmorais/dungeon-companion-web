@@ -1,3 +1,5 @@
+import { Armour, Skill, Spell, WeaponOption } from './character-options.interface';
+
 export interface CharacterSheetData {
   core_build: {
     level: number;
@@ -22,12 +24,12 @@ export interface CharacterSheetData {
     };
   };
   choices: {
-    skills: string[];
-    spells: string[];
+    skills: Skill[];
+    spells: Spell[];
   };
   equipment: {
-    armor_type: string;
-    weapons: string[];
+    armour: Armour | null;
+    weapons: WeaponOption[];
     has_shield: boolean;
   };
   character_details: {
