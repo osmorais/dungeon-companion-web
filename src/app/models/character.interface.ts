@@ -29,7 +29,7 @@ export interface CharacterSheetData {
   };
   equipment: {
     armour: Armour | null;
-    weapons: WeaponOption[];
+    weapons: WeaponOption[];// TO DO: passar o id do weapon para que seja inserido na tabela de character_weapon, e não o nome do weapon
     has_shield: boolean;
   };
   character_details: {
