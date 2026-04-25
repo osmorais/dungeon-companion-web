@@ -48,6 +48,7 @@
         </div>
       </fieldset>
       <button class="retro-btn" (click)="nextStep()">CONFIRMAR</button>
+      <button class="retro-btn secondary" style="margin-right: 35px;" (click)="goHome()">VOLTAR</button>
     }
 
     @case (2) {
@@ -329,22 +330,18 @@
       <div class="item-modal-info">
         <div class="item-modal-row">
           <span class="item-modal-label">DANO</span>
-          <span class="item-modal-value">{{ selectedWeapon.damage }}</span>
+          <span class="item-modal-value">{{ selectedWeapon.damage_die }}</span>
         </div>
         <div class="item-modal-row">
-          <span class="item-modal-label">TIPO</span>
-          <span class="item-modal-value">{{ selectedWeapon.isRanged ? 'À Distância' : 'Corpo a Corpo' }}</span>
+          <span class="item-modal-label">TIPO DE DANO</span>
+          <span class="item-modal-value">{{ selectedWeapon.damage_type }}</span>
         </div>
-        @if (selectedWeapon.properties.length > 0) {
           <div class="item-modal-properties">
             <span class="item-modal-label">PROPRIEDADES</span>
             <ul>
-              @for (prop of selectedWeapon.properties; track prop) {
-                <li>› {{ prop }}</li>
-              }
+              <li> {{ selectedWeapon.properties }}</li>
             </ul>
           </div>
-        }
       </div>
     </div>
   </div>

@@ -67,10 +67,10 @@
         <fieldset class="retro-panel skills-panel">
           <legend>PERÍCIAS</legend>
           <ul>
-            @for (skill of data.character_sheet.skills | keyvalue; track skill.key) {
+            @for (skill of data.character_sheet.skills; track skill.id_skill) {
               <li>
-                <span class="prof-dot">{{ skill.value.proficient ? '●' : '○' }}</span>
-                {{ formatMod(skill.value.bonus) }} {{ skill.key }} <small>({{ skill.value.stat }})</small>
+                <span class="prof-dot">{{ skill.is_trained ? '●' : '○' }}</span>
+                {{ formatMod(skill.total_skill_value) }} {{ skill.name }}
               </li>
             }
           </ul>
@@ -120,12 +120,12 @@
     </div>
 
     <div class="sheet-actions">
-      <button class="retro-btn" (click)="goBack()">CRIAR NOVO PERSONAGEM</button>
+      <button class="retro-btn" (click)="goBack()">VOLTAR PARA O MENU</button>
     </div>
 
   </div>
 
-} @else {
+} @else if (!loading()) {
   <div class="overlay">
     <div class="retro-panel blinking-text">
       <p>NENHUMA FICHA ENCONTRADA</p>

@@ -6,15 +6,29 @@ export class LoadingOverlayService {
   readonly message = signal('CARREGANDO...');
   readonly subMessage = signal('AGUARDE ENQUANTO A MAGIA ACONTECE');
 
-  show(message = 'CARREGANDO...', subMessage = 'AGUARDE ENQUANTO A MAGIA ACONTECE') {
-    this.message.set(message);
-    this.subMessage.set(subMessage);
+  private pendingCount = 0;
+
+  show(message?: string, subMessage?: string) {
+    const wasVisible = this.visible();
+    this.pendingCount++;
+    // Only update the message if not already visible or a specific message was provided.
+    // This preserves custom messages when the HTTP interceptor calls show() without args.
+    if (!wasVisible || message !== undefined) {
+      this.message.set(message ?? 'CARREGANDO...');
+      this.subMessage.set(subMessage ?? 'AGUARDE ENQUANTO A MAGIA ACONTECE');
+    }
     this.visible.set(true);
   }
 
   async hide() {
+    this.pendingCount = Math.max(0, this.pendingCount - 1);
+    if (this.pendingCount > 0) return;
+    await new Promise<void>(resolve => setTimeout(resolve, 2000));
+    if (this.pendingCount === 0) this.visible.set(false);
+  }
 
-    await new Promise(resolve => setTimeout(resolve, 2000)); //espera 2 sec pra dar tempo de ver o loader
-    this.visible.set(false);
+  hideImmediate() {
+    this.pendingCount = Math.max(0, this.pendingCount - 1);
+    if (this.pendingCount === 0) this.visible.set(false);
   }
 }

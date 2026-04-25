@@ -1,4 +1,4 @@
-import { Armour, Skill, Spell, WeaponOption } from './character-options.interface';
+import { Armour, Skill, Spell, WeaponRow } from './character-options.interface';
 
 export interface CharacterSheetData {
   core_build: {
@@ -29,7 +29,7 @@ export interface CharacterSheetData {
   };
   equipment: {
     armour: Armour | null;
-    weapons: WeaponOption[];// TO DO: passar o id do weapon para que seja inserido na tabela de character_weapon, e não o nome do weapon
+    weapons: WeaponRow[];
     has_shield: boolean;
   };
   character_details: {
