@@ -1,3 +1,5 @@
+import { Skill, WeaponRow } from "./character-options.interface";
+
 export interface CharacterSheetResponse {
   character_sheet: {
     header: {
@@ -23,12 +25,8 @@ export interface CharacterSheetResponse {
       save: number;
       save_proficiency: boolean;
     }>;
-    skills: Record<string, {
-      stat: string;
-      bonus: number;
-      proficient: boolean;
-    }>;
-    combat_actions: { weapons: any[] };
+    skills: Skill[];
+    weapons: WeaponRow[];
     features_and_traits: Array<{ name: string; source: string; description: string }>;
     proficiencies_and_languages: {
       armor: string[];

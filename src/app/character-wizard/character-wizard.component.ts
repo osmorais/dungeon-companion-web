@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CharacterSheetData } from '../models/character.interface';
-import { Alignment, Armour, AttributeType, Background, CharacterClass, Race, Skill, Spell, WeaponOption } from '../models/character-options.interface';
+import { Alignment, Armour, AttributeType, Background, CharacterClass, CharacterOptions, Race, Skill, Spell, WeaponRow } from '../models/character-options.interface';
 import { DragonAnimationComponent } from '../dragon-animation/dragon-animation.component';
 import { LoadingOverlayComponent } from '../loading-overlay/loading-overlay.component';
 import { LoadingOverlayService } from '../loading-overlay/loading-overlay.service';
@@ -68,7 +68,7 @@ export class CharacterWizardComponent implements OnInit {
 
   availableAttributes: AttributeType[] = [];
   availableSkills: Skill[] = [];
-  availableWeapons: WeaponOption[] = [];
+  availableWeapons: WeaponRow[] = [];
   availableRaces: Race[] = [];
   availableClasses: CharacterClass[] = [];
   availableBackgrounds: Background[] = [];
@@ -80,28 +80,35 @@ export class CharacterWizardComponent implements OnInit {
     }
 
   ngOnInit(): void {
-            // this.fillWeapons();
-    
-    this.loadingOverlay.show('CARREGANDO DADOS...', 'AGUARDE PARA COMEÇAR SUA JORNADA');
-    this.charService.getCharacterOptions().subscribe({
-      next: (options) => {
-        this.availableAttributes = options.attributes;
-        this.availableSkills = options.skills;
-        this.availableWeapons = options.weapons ?? [];
-        this.availableRaces = options.races ?? [];
-        this.availableClasses = options.classes ?? [];
-        this.availableBackgrounds = options.backgrounds ?? [];
-        this.availableAlignments = options.alignments ?? [];
-        this.availableSpells = options.spells ?? [];
-        this.availableArmours = (options.armours ?? []).filter(a => a.armour_type !== 'Escudo');
-        this.loadingOverlay.hide();
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        this.loadingOverlay.hide();
-        console.error('Erro ao carregar opções de personagem:', err)
-      }
+    const options = this.charService.cachedOptions();
+    if (options) {
+      this.applyOptions(options);
+    }
+  }
+
+  private applyOptions(options: CharacterOptions): void {
+    this.availableAttributes = options.attributes;
+    this.availableSkills = options.skills;
+    this.availableRaces = options.races ?? [];
+    this.availableClasses = options.classes ?? [];
+    this.availableBackgrounds = options.backgrounds ?? [];
+    this.availableAlignments = options.alignments ?? [];
+    this.availableSpells = options.spells ?? [];
+    this.availableArmours = (options.armours ?? []).filter(a => a.armour_type !== 'Escudo');
+    this.availableWeapons = options.weapons.map(w => {
+      const props = w.properties ? w.properties.split(', ') : [];
+      return {
+        id_weapon: w.id_weapon,
+        name: w.name,
+        damage_die: w.damage_die,
+        damage_type: w.damage_type,
+        weight: w.weight,
+        price_value: w.price_value,
+        properties: w.properties,
+        isRanged: props.some(p => p.toLowerCase().startsWith('munição'))
+      };
     });
+    this.cdr.detectChanges();
   }
 
   nextStep() {
@@ -113,6 +120,10 @@ export class CharacterWizardComponent implements OnInit {
     }
 
     if (this.currentStep < 6) this.currentStep++;
+  }
+
+  goHome() {
+    this.router.navigate(['/']);
   }
 
   prevStep() {
@@ -136,7 +147,7 @@ export class CharacterWizardComponent implements OnInit {
   readonly weaponsPageSize = 8;
   weaponsPage = 0;
 
-  get pagedWeapons(): WeaponOption[] {
+  get pagedWeapons(): WeaponRow[] {
     const start = this.weaponsPage * this.weaponsPageSize;
     return this.availableWeapons.slice(start, start + this.weaponsPageSize);
   }
@@ -325,60 +336,6 @@ export class CharacterWizardComponent implements OnInit {
     }, 80);
   }
 
-  /** ========================= WEAPONS ========================= */
-
-  fillWeapons(){
-
-this.availableWeapons = [
-  // Armas Simples Corpo-a-Corpo
-  { name: 'Adaga', damage: '1d4 perfurante', properties: ['Acuidade', 'leve', 'arremesso (distância 6/18)'], isRanged: false },
-  { name: 'Azagaia', damage: '1d6 perfurante', properties: ['Arremesso (distância 9/36)'], isRanged: false },
-  { name: 'Bordão', damage: '1d6 concussão', properties: ['Versátil (1d8)'], isRanged: false },
-  { name: 'Clava Grande', damage: '1d8 concussão', properties: ['Pesada', 'duas mãos'], isRanged: false },
-  { name: 'Foice Curta', damage: '1d4 cortante', properties: ['Leve'], isRanged: false },
-  { name: 'Lança', damage: '1d6 perfurante', properties: ['Arremesso (distância 6/18)', 'versátil (1d8)'], isRanged: false },
-  { name: 'Maça', damage: '1d6 concussão', properties: [], isRanged: false },
-  { name: 'Machadinha', damage: '1d6 cortante', properties: ['Leve', 'arremesso (distância 6/18)'], isRanged: false },
-  { name: 'Martelo Leve', damage: '1d4 concussão', properties: ['Leve', 'arremesso (distância 6/18)'], isRanged: false },
-  { name: 'Porrete', damage: '1d4 concussão', properties: ['Leve'], isRanged: false },
-
-  // Armas Simples à Distância
-  { name: 'Arco Curto', damage: '1d6 perfurante', properties: ['Munição (distância 24/96)', 'duas mãos'], isRanged: true },
-  { name: 'Besta Leve', damage: '1d8 perfurante', properties: ['Munição (distância 24/96)', 'recarga', 'duas mãos'], isRanged: true },
-  { name: 'Dardo', damage: '1d4 perfurante', properties: ['Acuidade', 'arremesso (distância 6/18)'], isRanged: true },
-  { name: 'Funda', damage: '1d4 concussão', properties: ['Munição (distância 9/36)'], isRanged: true },
-
-  // Armas Marciais Corpo-a-Corpo
-  { name: 'Alabarda', damage: '1d10 cortante', properties: ['Pesada', 'alcance', 'duas mãos'], isRanged: false },
-  { name: 'Cimitarra', damage: '1d6 cortante', properties: ['Acuidade', 'leve'], isRanged: false },
-  { name: 'Chicote', damage: '1d4 cortante', properties: ['Acuidade', 'alcance'], isRanged: false },
-  { name: 'Espada Curta', damage: '1d6 perfurante', properties: ['Acuidade', 'leve'], isRanged: false },
-  { name: 'Espada Grande', damage: '2d6 cortante', properties: ['Pesada', 'duas mãos'], isRanged: false },
-  { name: 'Espada Longa', damage: '1d8 cortante', properties: ['Versátil (1d10)'], isRanged: false },
-  { name: 'Glaive', damage: '1d10 cortante', properties: ['Pesada', 'alcance', 'duas mãos'], isRanged: false },
-  { name: 'Lança de Montaria', damage: '1d12 perfurante', properties: ['Alcance', 'especial'], isRanged: false },
-  { name: 'Lança Longa', damage: '1d10 perfurante', properties: ['Pesada', 'alcance', 'duas mãos'], isRanged: false },
-  { name: 'Maça Estrela', damage: '1d8 perfurante', properties: [], isRanged: false },
-  { name: 'Machado Grande', damage: '1d12 cortante', properties: ['Pesada', 'duas mãos'], isRanged: false },
-  { name: 'Machado de Batalha', damage: '1d8 cortante', properties: ['Versátil (1d10)'], isRanged: false },
-  { name: 'Malho', damage: '2d6 concussão', properties: ['Pesada', 'duas mãos'], isRanged: false },
-  { name: 'Mangual', damage: '1d8 concussão', properties: [], isRanged: false },
-  { name: 'Martelo de Guerra', damage: '1d8 concussão', properties: ['Versátil (1d10)'], isRanged: false },
-  { name: 'Picareta de Guerra', damage: '1d8 perfurante', properties: [], isRanged: false },
-  { name: 'Rapieira', damage: '1d8 perfurante', properties: ['Acuidade'], isRanged: false },
-  { name: 'Tridente', damage: '1d6 perfurante', properties: ['Arremesso (6/18)', 'versátil (1d8)'], isRanged: false },
-
-  // Armas Marciais à Distância
-  { name: 'Arco Longo', damage: '1d8 perfurante', properties: ['Munição (distância 45/180)', 'pesada', 'duas mãos'], isRanged: true },
-  { name: 'Besta de Mão', damage: '1d6 perfurante', properties: ['Munição (distância 9/36)', 'leve', 'recarga'], isRanged: true },
-  { name: 'Besta Pesada', damage: '1d10 perfurante', properties: ['Munição (distância 30/120)', 'pesada', 'recarga', 'duas mãos'], isRanged: true },
-  { name: 'Rede', damage: '-', properties: ['Especial', 'arremesso (distância 1,5/4,5)'], isRanged: true },
-  { name: 'Zarabatana', damage: '1 perfurante', properties: ['Munição (distância 7,5/30)', 'recarga'], isRanged: true }
-]; 
-
-  }
-
-
   /** ========================= ARMOUR SELECTION ========================= */
 
   selectArmour(armour: Armour | null) {
@@ -387,9 +344,9 @@ this.availableWeapons = [
 
   /** ========================= WEAPON MODAL ========================= */
 
-  selectedWeapon: WeaponOption | null = null;
+  selectedWeapon: WeaponRow | null = null;
 
-  openWeaponModal(weapon: WeaponOption) {
+  openWeaponModal(weapon: WeaponRow) {
     this.selectedWeapon = weapon;
   }
 
@@ -414,7 +371,7 @@ this.availableWeapons = [
 
   toggleArrayItem(
     arrayName: 'skills' | 'spells' | 'weapons',
-    item: Skill | Spell | WeaponOption,
+    item: Skill | Spell | WeaponRow,
     event: Event
   ) {
     const isChecked = (event.target as HTMLInputElement).checked;
@@ -436,11 +393,11 @@ this.availableWeapons = [
         if (idx > -1) this.characterData.choices.spells.splice(idx, 1);
       }
     } else if (arrayName === 'weapons') {
-      const weapon = item as WeaponOption;
+      const weapon = item as WeaponRow;
       if (isChecked) {
         this.characterData.equipment.weapons.push(weapon);
       } else {
-        const idx = this.characterData.equipment.weapons.findIndex(w => w.name === weapon.name);
+        const idx = this.characterData.equipment.weapons.findIndex(w => w.id_weapon === weapon.id_weapon);
         if (idx > -1) this.characterData.equipment.weapons.splice(idx, 1);
       }
     }
