@@ -1,5 +1,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
+.app-bg {
+  position: fixed;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: -1;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+
+  &--fading {
+    opacity: 0;
+  }
+}
+
 // :root {
 //   --bg-color: #000000;
 //   --panel-bg: #000033;
