@@ -16,6 +16,7 @@ export interface Skill {
 
 export interface WeaponRow {
   id_weapon: number;
+  attack_bonus: number;
   name: string;
   damage_die: string | null;
   damage_type: string | null;

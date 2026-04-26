@@ -119,6 +119,38 @@
 
     </div>
 
+    <!-- EQUIPAMENTO -->
+    <div class="equipment-grid">
+
+      <fieldset class="retro-panel">
+        <legend>ARMAS EQUIPADAS</legend>
+        @if (data.character_sheet.weapons.length) {
+          <table class="weapons-table">
+            <thead>
+              <tr>
+                <th>NOME</th>
+                <th>ATAQUE</th>
+                <th>DANO</th>
+                <th>PROPRIEDADES</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (weapon of data.character_sheet.weapons; track weapon.id_weapon) {
+                <tr>
+                  <td>{{ weapon.name }}</td>
+                  <td class="text-center">{{ formatMod(weapon.attack_bonus) }}</td>
+                  <td>{{ weapon.damage_die ?? '—' }} {{ weapon.damage_type ?? '' }}</td>
+                  <td class="props-cell">{{ weapon.properties || '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <p class="empty-label">Nenhuma arma equipada</p>
+        }
+      </fieldset>
+    </div>
+
     <div class="sheet-actions">
       <button class="retro-btn" (click)="goBack()">VOLTAR PARA O MENU</button>
     </div>

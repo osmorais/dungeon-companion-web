@@ -99,6 +99,7 @@ export class CharacterWizardComponent implements OnInit {
       const props = w.properties ? w.properties.split(', ') : [];
       return {
         id_weapon: w.id_weapon,
+        attack_bonus: w.attack_bonus,
         name: w.name,
         damage_die: w.damage_die,
         damage_type: w.damage_type,
