@@ -5,7 +5,7 @@ import { CharacterSheetData } from '../models/character.interface';
 import { CharacterSheetResponse } from '../models/character-response.interface';
 import { CharacterOptions } from '../models/character-options.interface';
 import { CharacterSummary } from '../models/character-summary.interface';
-import { environment } from '../../../environments/environment';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
