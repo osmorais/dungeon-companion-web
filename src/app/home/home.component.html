@@ -1,24 +1,27 @@
 <div class="home-container">
 
-  <fieldset class="retro-panel title-panel">
-    <legend>FORJA ARCANA</legend>
-    <p class="subtitle">O QUE DESEJA FAZER, AVENTUREIRO?</p>
+  <fieldset class="title-panel">
+    <legend>BEM VINDO AVENTUREIRO!</legend>
+
+    <div class="logo-container">
+      <img src="forja_arcana.png" alt="Forja Arcana" class="logo" />
+    </div>
+
+    <div class="menu-options">
+
+      <button class="retro-card" (click)="createCharacter()">
+        <span class="card-icon">⚔</span>
+        <span class="card-title">CRIAR PERSONAGEM</span>
+        <span class="card-desc">Forje um novo herói</span>
+      </button>
+
+      <button class="retro-card" (click)="listCharacters()">
+        <span class="card-icon">📜</span>
+        <span class="card-title">MEUS PERSONAGENS</span>
+        <span class="card-desc">Acesse as fichas dos seus aventureiros</span>
+      </button>
+
+    </div>
   </fieldset>
-
-  <div class="menu-options">
-
-    <button class="retro-card" (click)="createCharacter()">
-      <span class="card-icon">⚔</span>
-      <span class="card-title">CRIAR PERSONAGEM</span>
-      <span class="card-desc">Forje um novo herói</span>
-    </button>
-
-    <button class="retro-card" (click)="listCharacters()">
-      <span class="card-icon">📜</span>
-      <span class="card-title">MEUS PERSONAGENS</span>
-      <span class="card-desc">Acesse as fichas dos seus aventureiros</span>
-    </button>
-
-  </div>
 
 </div>

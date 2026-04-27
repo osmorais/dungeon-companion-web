@@ -10,6 +10,7 @@
   width: 100%;
   text-align: center;
   margin-bottom: 30px;
+  padding: 5%;
 }
 
 .subtitle {
@@ -17,6 +18,18 @@
   color: var(--label-title-color);
   font-size: 9px;
   line-height: 2;
+}
+
+.logo-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.logo {
+  max-width: 367px;
+  width: 100%;
+  height: auto;
 }
 
 .menu-options {
