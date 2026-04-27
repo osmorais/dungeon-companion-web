@@ -1,0 +1,25 @@
+@if (visible()) {
+  <div class="wakeup-overlay" [class.wakeup-overlay--fading]="ready()">
+    <app-dragon-animation [stationary]="true" />
+
+    <div class="wakeup-panel">
+      <p class="wakeup-title">&#9876; FORJA ARCANA &#9876;</p>
+      <div class="wakeup-separator"></div>
+
+      @if (!ready()) {
+        <div class="wakeup-loading-bar">
+          <div class="wakeup-loading-bar__fill"></div>
+        </div>
+        <p class="wakeup-spinner">[ {{ spinner() }} ]</p>
+        <p class="wakeup-message">{{ currentMessage() }}</p>
+        <p class="wakeup-hint">O SERVIDOR ESTÁ ADORMECIDO...</p>
+      } @else {
+        <p class="wakeup-success-icon">&#10003;</p>
+        <p class="wakeup-message wakeup-message--success">SERVIDOR DESPERTADO!</p>
+        <p class="wakeup-hint wakeup-hint--success">BEM-VINDO, AVENTUREIRO!</p>
+      }
+    </div>
+
+    <app-dragon-animation [stationaryInvert]="true" />
+  </div>
+}

@@ -1,0 +1,109 @@
+.wakeup-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--bg-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  opacity: 1;
+  transition: opacity 1s ease-out;
+
+  &--fading {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+.wakeup-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 32px 40px;
+  border: 3px solid var(--border-color);
+  background: var(--panel-bg);
+  max-width: 420px;
+  width: 90%;
+  text-align: center;
+}
+
+.wakeup-title {
+  font-size: 12px;
+  color: var(--accent-color);
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+.wakeup-separator {
+  width: 100%;
+  height: 2px;
+  background: var(--border-color);
+}
+
+.wakeup-loading-bar {
+  width: 100%;
+  height: 12px;
+  border: 2px solid var(--border-color);
+  position: relative;
+  overflow: hidden;
+
+  &__fill {
+    position: absolute;
+    top: 0;
+    left: -60%;
+    width: 60%;
+    height: 100%;
+    background: var(--accent-color);
+    animation: loading-sweep 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes loading-sweep {
+  0%   { left: -60%; }
+  100% { left: 100%; }
+}
+
+.wakeup-spinner {
+  font-size: 14px;
+  color: var(--accent-color);
+  margin: 0;
+  letter-spacing: 2px;
+}
+
+.wakeup-message {
+  font-size: 9px;
+  color: var(--text-color);
+  margin: 0;
+  animation: blink 1s step-end infinite;
+  min-height: 2.4em;
+  line-height: 1.8;
+
+  &--success {
+    color: #4cff72;
+    animation: none;
+    font-size: 11px;
+  }
+}
+
+.wakeup-hint {
+  font-size: 7px;
+  color: var(--label-title-color);
+  margin: 0;
+
+  &--success {
+    color: #4cff72;
+    font-size: 8px;
+  }
+}
+
+.wakeup-success-icon {
+  font-size: 28px;
+  color: #4cff72;
+  margin: 0;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}

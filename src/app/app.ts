@@ -3,16 +3,17 @@ import { RouterOutlet, Router, NavigationStart, NavigationEnd, NavigationCancel,
 import { LoadingOverlayComponent } from './loading-overlay/loading-overlay.component';
 import { LoadingOverlayService } from './loading-overlay/loading-overlay.service';
 import { BackgroundService } from './services/background.service';
+import { ServerWakeupComponent } from './server-wakeup/server-wakeup.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, LoadingOverlayComponent],
+  imports: [RouterOutlet, LoadingOverlayComponent, ServerWakeupComponent],
   template: `
     <div class="app-bg"
       [style.background-image]="'url(' + bg.currentImage() + ')'"
       [class.app-bg--fading]="bg.transitioning()">
     </div>
-    <router-outlet /><app-loading-overlay />
+    <router-outlet /><app-loading-overlay /><app-server-wakeup />
   `
 })
 export class App {
