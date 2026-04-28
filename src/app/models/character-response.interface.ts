@@ -1,4 +1,4 @@
-import { Skill, WeaponRow } from "./character-options.interface";
+import { Skill, Spell, WeaponRow } from "./character-options.interface";
 
 export interface CharacterSheetResponse {
   character_sheet: {
@@ -38,15 +38,11 @@ export interface CharacterSheetResponse {
       currency: any;
       items: string[];
     };
-    spellcasting?: {
-      is_spellcaster: boolean;
+    spellcasting_info?: {
       spellcasting_ability: string;
       spell_save_dc: number;
       spell_attack_bonus: number;
-      spells_known: {
-        cantrips: string[];
-        level_1?: string[];
-      };
     };
+    spells?: Spell[];
   };
 }

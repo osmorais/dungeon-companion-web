@@ -166,7 +166,7 @@
             <label>
               <input type="checkbox" class="retro-checkbox"
                      (change)="toggleArrayItem('skills', skill, $event)">
-              {{ skill.name }}
+              {{ skill.name }} <span class="skill-attribute">({{ skill.attribute_name }})</span>
             </label>
           }
         </div>

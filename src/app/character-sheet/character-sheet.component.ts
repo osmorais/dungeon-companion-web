@@ -2,6 +2,7 @@ import { Component, inject, input, effect, untracked, signal } from '@angular/co
 import { CommonModule, KeyValuePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { CharacterService } from '../services/character.service';
+import { Spell, WeaponRow } from '../models/character-options.interface';
 
 @Component({
   selector: 'app-character-sheet',
@@ -43,7 +44,50 @@ export class CharacterSheetComponent {
     this.router.navigate(['/']);
   }
 
+  changeHp(delta: number) {
+    const sheet = this.sheetData();
+    if (!sheet) return;
+    const hp = sheet.character_sheet.combat_stats.hit_points;
+    const next = Math.min(hp.max, Math.max(0, hp.current + delta));
+    this.charService.currentCharacter.set({
+      ...sheet,
+      character_sheet: {
+        ...sheet.character_sheet,
+        combat_stats: {
+          ...sheet.character_sheet.combat_stats,
+          hit_points: { ...hp, current: next },
+        },
+      },
+    });
+  }
+
   formatMod(value: number): string {
     return value >= 0 ? `+${value}` : `${value}`;
+  }
+
+  spellComponents(spell: Spell): string {
+    return [spell.is_verbal ? 'V' : '', spell.is_somatic ? 'S' : '', spell.is_material ? 'M' : '']
+      .filter(Boolean)
+      .join(', ') || '—';
+  }
+
+  selectedSpell: Spell | null = null;
+
+  openSpellModal(spell: Spell) {
+    this.selectedSpell = spell;
+  }
+
+  closeSpellModal() {
+    this.selectedSpell = null;
+  }
+
+  selectedWeapon: WeaponRow | null = null;
+
+  openWeaponModal(weapon: WeaponRow) {
+    this.selectedWeapon = weapon;
+  }
+
+  closeWeaponModal() {
+    this.selectedWeapon = null;
   }
 }
