@@ -66,7 +66,7 @@ export class ServerWakeupComponent implements OnInit, OnDestroy {
 
   private async pingServer() {
     try {
-      const response = await fetch(`${environment.apiUrl}/api/character-options`, {
+      const response = await fetch(`${environment.apiUrl}/ping`, {
         signal: AbortSignal.timeout(12000),
       });
       if (response.ok) {

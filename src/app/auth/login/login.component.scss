@@ -1,0 +1,76 @@
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.auth-panel {
+  width: 400px;
+  max-width: 90vw;
+  border: 2px solid var(--border-color);
+  background: var(--panel-bg);
+  padding: 24px;
+
+  legend {
+    border: 2px solid var(--border-color);
+    background: var(--bg-color);
+    padding: 5px 10px;
+    font-size: 10px;
+    color: var(--text-color);
+  }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+
+  label {
+    font-size: 8px;
+    color: var(--label-title-color);
+    margin-bottom: 4px;
+  }
+
+  input {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    padding: 8px;
+    width: 100%;
+    box-sizing: border-box;
+
+    &:focus {
+      outline: 2px solid var(--accent-color);
+    }
+  }
+}
+
+.error-msg {
+  color: #ff4444;
+  font-size: 7px;
+  margin: 4px 0 12px;
+}
+
+.full-btn {
+  float: none;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.auth-links {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+
+  a {
+    color: var(--accent-color);
+    font-size: 7px;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+}
