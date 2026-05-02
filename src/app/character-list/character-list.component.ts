@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { CharacterService } from '../services/character.service';
 import { CharacterSummary } from '../models/character-summary.interface';
@@ -14,6 +14,13 @@ const PAGE_SIZE = 10;
 export class CharacterListComponent implements OnInit {
   private router = inject(Router);
   private charService = inject(CharacterService);
+
+  isMobile = signal(typeof window !== 'undefined' && window.innerWidth < 768);
+
+  @HostListener('window:resize')
+  onResize() {
+    this.isMobile.set(window.innerWidth < 768);
+  }
 
   characters = signal<CharacterSummary[]>([]);
   error = signal(false);

@@ -1,37 +1,79 @@
-<div class="auth-container">
-  <fieldset class="auth-panel">
-    <legend>FORJAR AVENTUREIRO</legend>
+@if (isMobile()) {
+  <!-- ===== MOBILE LAYOUT ===== -->
+  <div class="mobile-signup-container">
+    <fieldset class="mobile-signup-panel">
+      <legend>FORJAR AVENTUREIRO</legend>
 
-    <div class="form-group">
-      <label for="fullName">NOME DO HERÓI (OPCIONAL)</label>
-      <input id="fullName" type="text" [(ngModel)]="fullName" placeholder="Sir Aldric..." />
-    </div>
+      <div class="mobile-form-group">
+        <label for="mobile-fullName">NOME DO HERÓI (OPCIONAL)</label>
+        <input id="mobile-fullName" type="text" [(ngModel)]="fullName" placeholder="Sir Aldric..." />
+      </div>
 
-    <div class="form-group">
-      <label for="email">EMAIL</label>
-      <input id="email" type="email" [(ngModel)]="email" placeholder="heroi@aventura.com" />
-    </div>
+      <div class="mobile-form-group">
+        <label for="mobile-email">EMAIL</label>
+        <input id="mobile-email" type="email" [(ngModel)]="email" placeholder="heroi@aventura.com" />
+      </div>
 
-    <div class="form-group">
-      <label for="password">SENHA</label>
-      <input id="password" type="password" [(ngModel)]="password" placeholder="••••••••" />
-    </div>
+      <div class="mobile-form-group">
+        <label for="mobile-password">SENHA</label>
+        <input id="mobile-password" type="password" [(ngModel)]="password" placeholder="••••••••" />
+      </div>
 
-    <div class="form-group">
-      <label for="confirmPassword">CONFIRMAR SENHA</label>
-      <input id="confirmPassword" type="password" [(ngModel)]="confirmPassword" placeholder="••••••••" (keyup.enter)="submit()" />
-    </div>
+      <div class="mobile-form-group">
+        <label for="mobile-confirmPassword">CONFIRMAR SENHA</label>
+        <input id="mobile-confirmPassword" type="password" [(ngModel)]="confirmPassword" placeholder="••••••••" (keyup.enter)="submit()" />
+      </div>
 
-    @if (errorMessage()) {
-      <p class="error-msg">{{ errorMessage() }}</p>
-    }
+      @if (errorMessage()) {
+        <p class="mobile-error-msg">{{ errorMessage() }}</p>
+      }
 
-    <button class="retro-btn full-btn" (click)="submit()" [disabled]="loading()">
-      {{ loading() ? 'FORJANDO...' : 'FORJAR' }}
-    </button>
+      <button class="retro-btn mobile-full-btn" (click)="submit()" [disabled]="loading()">
+        {{ loading() ? 'FORJANDO...' : 'FORJAR' }}
+      </button>
 
-    <div class="auth-links">
-      <a routerLink="/login">JÁ SOU AVENTUREIRO</a>
-    </div>
-  </fieldset>
-</div>
+      <div class="mobile-auth-links">
+        <a routerLink="/login">JÁ SOU AVENTUREIRO</a>
+      </div>
+    </fieldset>
+  </div>
+} @else {
+  <!-- ===== DESKTOP LAYOUT ===== -->
+  <div class="auth-container">
+    <fieldset class="auth-panel">
+      <legend>FORJAR AVENTUREIRO</legend>
+
+      <div class="form-group">
+        <label for="fullName">NOME DO HERÓI (OPCIONAL)</label>
+        <input id="fullName" type="text" [(ngModel)]="fullName" placeholder="Sir Aldric..." />
+      </div>
+
+      <div class="form-group">
+        <label for="email">EMAIL</label>
+        <input id="email" type="email" [(ngModel)]="email" placeholder="heroi@aventura.com" />
+      </div>
+
+      <div class="form-group">
+        <label for="password">SENHA</label>
+        <input id="password" type="password" [(ngModel)]="password" placeholder="••••••••" />
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword">CONFIRMAR SENHA</label>
+        <input id="confirmPassword" type="password" [(ngModel)]="confirmPassword" placeholder="••••••••" (keyup.enter)="submit()" />
+      </div>
+
+      @if (errorMessage()) {
+        <p class="error-msg">{{ errorMessage() }}</p>
+      }
+
+      <button class="retro-btn full-btn" (click)="submit()" [disabled]="loading()">
+        {{ loading() ? 'FORJANDO...' : 'FORJAR' }}
+      </button>
+
+      <div class="auth-links">
+        <a routerLink="/login">JÁ SOU AVENTUREIRO</a>
+      </div>
+    </fieldset>
+  </div>
+}

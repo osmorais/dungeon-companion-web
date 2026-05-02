@@ -1,34 +1,77 @@
-<div class="home-container">
+@if (isMobile()) {
+  <!-- ===== MOBILE LAYOUT ===== -->
+  <div class="mobile-home-container">
 
-  <fieldset class="title-panel">
-    <legend>BEM VINDO AVENTUREIRO!</legend>
+    <fieldset class="mobile-home-panel">
+      <legend>BEM VINDO AVENTUREIRO!</legend>
 
-    <div class="logo-container">
-      <img src="forja_arcana.png" alt="Forja Arcana" class="logo" />
-    </div>
+      <div class="mobile-logo-container">
+        <img src="forja_arcana.png" alt="Forja Arcana" class="mobile-logo" />
+      </div>
 
-    <div class="menu-options">
+      <div class="mobile-menu-options">
 
-      <button class="retro-card" (click)="createCharacter()">
-        <span class="card-icon">⚔</span>
-        <span class="card-title">CRIAR PERSONAGEM</span>
-        <span class="card-desc">Forje um novo herói</span>
-      </button>
+        <button class="mobile-retro-card" (click)="createCharacter()">
+          <span class="mobile-card-icon">⚔</span>
+          <span class="mobile-card-text">
+            <span class="mobile-card-title">CRIAR PERSONAGEM</span>
+            <span class="mobile-card-desc">Forje um novo herói</span>
+          </span>
+        </button>
 
-      <button class="retro-card" (click)="listCharacters()">
-        <span class="card-icon">📜</span>
-        <span class="card-title">MEUS PERSONAGENS</span>
-        <span class="card-desc">Acesse as fichas dos seus aventureiros</span>
-      </button>
+        <button class="mobile-retro-card" (click)="listCharacters()">
+          <span class="mobile-card-icon">📜</span>
+          <span class="mobile-card-text">
+            <span class="mobile-card-title">MEUS PERSONAGENS</span>
+            <span class="mobile-card-desc">Acesse as fichas dos seus aventureiros</span>
+          </span>
+        </button>
 
-    </div>
+      </div>
 
-    <div class="logout-row">
-      @if (authService.currentUser()) {
-        <span class="user-email">{{ authService.currentUser()!.email }}</span>
-      }
-      <button class="retro-btn logout-btn" (click)="logout()">SAIR</button>
-    </div>
-  </fieldset>
+      <div class="mobile-logout-row">
+        @if (authService.currentUser()) {
+          <span class="mobile-user-email">{{ authService.currentUser()!.email }}</span>
+        }
+        <button class="retro-btn mobile-logout-btn" (click)="logout()">SAIR</button>
+      </div>
+    </fieldset>
 
-</div>
+  </div>
+} @else {
+  <!-- ===== DESKTOP LAYOUT ===== -->
+  <div class="home-container">
+
+    <fieldset class="title-panel">
+      <legend>BEM VINDO AVENTUREIRO!</legend>
+
+      <div class="logo-container">
+        <img src="forja_arcana.png" alt="Forja Arcana" class="logo" />
+      </div>
+
+      <div class="menu-options">
+
+        <button class="retro-card" (click)="createCharacter()">
+          <span class="card-icon">⚔</span>
+          <span class="card-title">CRIAR PERSONAGEM</span>
+          <span class="card-desc">Forje um novo herói</span>
+        </button>
+
+        <button class="retro-card" (click)="listCharacters()">
+          <span class="card-icon">📜</span>
+          <span class="card-title">MEUS PERSONAGENS</span>
+          <span class="card-desc">Acesse as fichas dos seus aventureiros</span>
+        </button>
+
+      </div>
+
+      <div class="logout-row">
+        @if (authService.currentUser()) {
+          <span class="user-email">{{ authService.currentUser()!.email }}</span>
+        }
+        <button class="retro-btn logout-btn" (click)="logout()">SAIR</button>
+      </div>
+    </fieldset>
+
+  </div>
+}
