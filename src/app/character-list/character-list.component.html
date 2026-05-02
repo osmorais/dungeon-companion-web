@@ -6,7 +6,7 @@
 
   @if (error()) {
     <fieldset class="retro-panel">
-      <p class="error-msg">ERRO AO CARREGAR PERSONAGENS.</p>
+      <p class="empty-msg">ERRO AO CARREGAR PERSONAGENS.</p>
     </fieldset>
   } @else if (characters().length === 0) {
     <fieldset class="retro-panel">
@@ -25,6 +25,14 @@
         }
       </ul>
     </fieldset>
+
+    <div class="pagination">
+      <button class="retro-btn page-btn" [disabled]="!hasPrev()" (click)="prevPage()">&#9664; ANTERIOR</button>
+      <span class="page-info">{{ page() }} / {{ totalPages() }}</span>
+      <button class="retro-btn page-btn" [disabled]="!hasNext()" (click)="nextPage()">PRÓXIMA &#9654;</button>
+    </div>
+
+    <p class="total-count">TOTAL DE PERSONAGENS: {{ totalCount() }}</p>
   }
 
   <button class="retro-btn back-btn" (click)="goBack()">VOLTAR</button>

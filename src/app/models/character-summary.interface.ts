@@ -5,3 +5,10 @@ export interface CharacterSummary {
   race: string;
   class: string;
 }
+
+export interface CharacterPagedList {
+  CharacterPagedList: CharacterSummary[];
+  page: number;
+  pageSize: number;
+  total_count: number;
+}

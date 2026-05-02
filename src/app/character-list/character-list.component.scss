@@ -61,6 +61,35 @@
   padding: 10px 0;
 }
 
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+
+.page-btn {
+  font-size: 7px;
+  padding: 6px 12px;
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+}
+
+.page-info {
+  font-size: 8px;
+  color: var(--label-title-color);
+}
+
+.total-count {
+  font-size: 7px;
+  color: var(--label-title-color);
+  text-align: right;
+  margin: 6px 0 0;
+}
+
 .back-btn {
   float: none;
   display: block;

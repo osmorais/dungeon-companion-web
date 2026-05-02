@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { CharacterSheetData } from '../models/character.interface';
 import { CharacterSheetResponse } from '../models/character-response.interface';
 import { CharacterOptions } from '../models/character-options.interface';
-import { CharacterSummary } from '../models/character-summary.interface';
+import { CharacterSummary, CharacterPagedList } from '../models/character-summary.interface';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -30,7 +30,9 @@ export class CharacterService {
     return this.http.get<CharacterOptions>(`${this.baseUrl}/api/character-options`);
   }
 
-  getCharacters(): Observable<CharacterSummary[]> {
-    return this.http.get<CharacterSummary[]>(`${this.baseUrl}/api/character-sheet`);
+  getCharacters(page: number, pageSize: number): Observable<CharacterPagedList> {
+    return this.http.get<CharacterPagedList>(`${this.baseUrl}/api/character-sheet`, {
+      params: { page: page.toString(), pageSize: pageSize.toString() },
+    });
   }
 }
