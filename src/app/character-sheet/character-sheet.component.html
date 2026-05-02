@@ -1,261 +1,445 @@
 @if (sheetData(); as data) {
-  <div class="full-sheet-container">
 
-    <fieldset class="retro-panel header-panel">
-      <div class="portrait-section">
-        <div class="portrait-box">
+  @if (isMobile()) {
+    <!-- ===== MOBILE LAYOUT ===== -->
+    <div class="mobile-sheet-container">
+
+      <div class="mobile-header">
+        <button class="mobile-back-arrow retro-btn" (click)="goBack()">←</button>
+        <div class="mobile-portrait">
           @if (avatarUrl()) {
             <img [src]="avatarUrl()!" alt="Avatar do personagem" />
           } @else {
             <span class="portrait-placeholder">?</span>
           }
         </div>
+        <div class="mobile-char-info">
+          <h2>{{ data.character_sheet.header.name }}</h2>
+          <p>{{ data.character_sheet.header.class_and_level }}</p>
+          <p class="mobile-race">{{ data.character_sheet.header.race || 'Humano' }}</p>
+        </div>
+        <div class="mobile-hp-badge">
+          <div class="mobile-hp-controls">
+            <button class="hp-btn" (click)="changeHp(-1)">−</button>
+            <div class="mobile-hp-value">
+              <span class="hp-current">{{ data.character_sheet.combat_stats.hit_points.current }}</span>
+              <span class="hp-sep">/</span>
+              <span class="hp-max">{{ data.character_sheet.combat_stats.hit_points.max }}</span>
+            </div>
+            <button class="hp-btn" (click)="changeHp(1)">+</button>
+          </div>
+          <small>PV</small>
+        </div>
       </div>
-      <div class="char-title">
-        <h1>{{ data.character_sheet.header.name }}</h1>
-        <p>{{ data.character_sheet.header.class_and_level }} &mdash; {{ data.character_sheet.header.race || 'Humano' }}</p>
-      </div>
-      <div class="char-details">
-        <p>Antecedente: {{ data.character_sheet.header.background }}</p>
-        <p>Alinhamento: {{ data.character_sheet.header.alignment }}</p>
-        <p>XP: {{ data.character_sheet.header.experience_points }}</p>
-      </div>
-    </fieldset>
 
-    <div class="sheet-grid">
+      <div class="mobile-tabs">
+        <button [class.active]="activeTab() === 'combat'" (click)="setTab('combat')">COMBATE</button>
+        <button [class.active]="activeTab() === 'attrs'" (click)="setTab('attrs')">ATRIBUTOS</button>
+        <button [class.active]="activeTab() === 'skills'" (click)="setTab('skills')">PERÍCIAS</button>
+        <button [class.active]="activeTab() === 'traits'" (click)="setTab('traits')">TRAÇOS</button>
+        <button [class.active]="activeTab() === 'equipment'" (click)="setTab('equipment')">ARMAS</button>
+        @if (data.character_sheet.spells?.length) {
+          <button [class.active]="activeTab() === 'spells'" (click)="setTab('spells')">MAGIAS</button>
+        }
+      </div>
 
-      <!-- ATRIBUTOS -->
-      <div class="column">
-        <fieldset class="retro-panel">
-          <legend>ATRIBUTOS & RESISTÊNCIAS</legend>
-          <div class="attributes-list">
-            @for (attr of data.character_sheet.attributes_and_saves | keyvalue; track attr.key) {
-              <div class="attr-box">
-                <span class="attr-name">{{ attr.key }}</span>
-                <span class="attr-score">{{ attr.value.score }}</span>
-                <span class="attr-mod">{{ formatMod(attr.value.modifier) }}</span>
-                <div class="save-box">
-                  <span class="prof-dot">{{ attr.value.save_proficiency ? '●' : '○' }}</span>
-                  Save: {{ formatMod(attr.value.save) }}
+      <div class="mobile-tab-content">
+
+        @switch (activeTab()) {
+
+          @case ('combat') {
+            <div class="mobile-combat-stats">
+              <div class="mobile-stat-card">
+                <label>CA</label>
+                <span>{{ data.character_sheet.combat_stats.armor_class }}</span>
+              </div>
+              <div class="mobile-stat-card">
+                <label>INICIATIVA</label>
+                <span>{{ formatMod(data.character_sheet.combat_stats.initiative) }}</span>
+              </div>
+              <div class="mobile-stat-card">
+                <label>MOVIMENTO</label>
+                <span>{{ data.character_sheet.combat_stats.speed }}</span>
+              </div>
+              <div class="mobile-stat-card">
+                <label>BÔNUS PROF.</label>
+                <span>{{ formatMod(data.character_sheet.combat_stats.proficiency_bonus) }}</span>
+              </div>
+            </div>
+            <div class="mobile-info-row">
+              <span>Percepção Passiva:</span>
+              <strong>{{ data.character_sheet.combat_stats.passive_perception }}</strong>
+            </div>
+            <div class="mobile-info-row">
+              <span>Dado de Vida:</span>
+              <strong>{{ data.character_sheet.combat_stats.hit_dice }}</strong>
+            </div>
+          }
+
+          @case ('attrs') {
+            <div class="mobile-attrs-grid">
+              @for (attr of data.character_sheet.attributes_and_saves | keyvalue; track attr.key) {
+                <div class="mobile-attr-card">
+                  <span class="attr-name">{{ attr.key }}</span>
+                  <span class="attr-score">{{ attr.value.score }}</span>
+                  <span class="attr-mod">{{ formatMod(attr.value.modifier) }}</span>
+                  <div class="attr-save">
+                    <span class="prof-dot">{{ attr.value.save_proficiency ? '●' : '○' }}</span>
+                    Save: {{ formatMod(attr.value.save) }}
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          @case ('skills') {
+            <ul class="mobile-skills-list">
+              @for (skill of data.character_sheet.skills; track skill.id_skill) {
+                <li [class.trained]="skill.is_trained">
+                  <span class="prof-dot">{{ skill.is_trained ? '●' : '○' }}</span>
+                  <span class="skill-mod">{{ formatMod(skill.total_skill_value) }}</span>
+                  <span class="skill-name">{{ skill.name }}</span>
+                  <span class="skill-attr">({{ skill.attribute_name }})</span>
+                </li>
+              }
+            </ul>
+          }
+
+          @case ('traits') {
+            <ul class="mobile-traits-list">
+              @for (trait of data.character_sheet.features_and_traits; track trait.name) {
+                <li>
+                  <strong>{{ trait.name }}</strong>
+                  <p>{{ trait.description }}</p>
+                </li>
+              }
+            </ul>
+            <div class="mobile-prof-section">
+              <h4>PROFICIÊNCIAS</h4>
+              <p>Armaduras: {{ data.character_sheet.proficiencies_and_languages.armor.join(', ') || '—' }}</p>
+              <p>Armas: {{ data.character_sheet.proficiencies_and_languages.weapons.join(', ') || '—' }}</p>
+              <p>Idiomas: {{ data.character_sheet.proficiencies_and_languages.languages.join(', ') || '—' }}</p>
+            </div>
+          }
+
+          @case ('equipment') {
+            @if (data.character_sheet.weapons.length) {
+              <div class="mobile-weapon-cards">
+                @for (weapon of data.character_sheet.weapons; track weapon.id_weapon) {
+                  <div class="mobile-weapon-card" (click)="openWeaponModal(weapon)">
+                    <div class="weapon-card-name">{{ weapon.name }}</div>
+                    <div class="weapon-card-stats">
+                      <span><strong>ATAQUE</strong>{{ formatMod(weapon.attack_bonus) }}</span>
+                      <span><strong>DANO</strong>{{ weapon.damage_die ?? '—' }} {{ weapon.damage_type ?? '' }}</span>
+                      @if (weapon.properties) {
+                        <span><strong>PROP.</strong>{{ weapon.properties }}</span>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="empty-label">Nenhuma arma equipada</p>
+            }
+          }
+
+          @case ('spells') {
+            @if (data.character_sheet.spellcasting_info) {
+              <div class="spellcasting-info-mobile">
+                <div class="mobile-spell-stat-box">
+                  <span class="spell-stat-label">ATRIBUTO</span>
+                  <span class="spell-stat-value">{{ data.character_sheet.spellcasting_info.spellcasting_ability }}</span>
+                </div>
+                <div class="mobile-spell-stat-box">
+                  <span class="spell-stat-label">CD</span>
+                  <span class="spell-stat-value">{{ data.character_sheet.spellcasting_info.spell_save_dc }}</span>
+                </div>
+                <div class="mobile-spell-stat-box">
+                  <span class="spell-stat-label">ATAQUE</span>
+                  <span class="spell-stat-value">{{ formatMod(data.character_sheet.spellcasting_info.spell_attack_bonus) }}</span>
                 </div>
               </div>
             }
-          </div>
-        </fieldset>
-      </div>
-
-      <!-- COMBATE & PERÍCIAS -->
-      <div class="column">
-        <fieldset class="retro-panel combat-panel">
-          <legend>COMBATE</legend>
-          <div class="stats-row">
-            <div><label>CA</label><span>{{ data.character_sheet.combat_stats.armor_class }}</span></div>
-            <div><label>INIT</label><span>{{ formatMod(data.character_sheet.combat_stats.initiative) }}</span></div>
-            <div><label>MOV</label><span>{{ data.character_sheet.combat_stats.speed }}</span></div>
-            <div><label>BÔNUS PROF</label><span>{{ formatMod(data.character_sheet.combat_stats.proficiency_bonus) }}</span></div>
-          </div>
-          <div class="hp-box">
-            <p>PONTOS DE VIDA</p>
-            <div class="hp-controls">
-              <button class="hp-btn" (click)="changeHp(-1)">−</button>
-              <h3>{{ data.character_sheet.combat_stats.hit_points.current }} / {{ data.character_sheet.combat_stats.hit_points.max }}</h3>
-              <button class="hp-btn" (click)="changeHp(1)">+</button>
-            </div>
-            <small>Dado de Vida: {{ data.character_sheet.combat_stats.hit_dice }}</small>
-          </div>
-          <div class="passive-box">
-            <p>Percepção Passiva: {{ data.character_sheet.combat_stats.passive_perception }}</p>
-          </div>
-        </fieldset>
-
-        <fieldset class="retro-panel skills-panel">
-          <legend>PERÍCIAS</legend>
-          <ul>
-            @for (skill of data.character_sheet.skills; track skill.id_skill) {
-              <li [class.trained]="skill.is_trained">
-                <span class="prof-dot">{{ skill.is_trained ? '●' : '○' }}</span>
-                {{ formatMod(skill.total_skill_value) }} {{ skill.name }} <span class="skill-attribute">({{ skill.attribute_name }})</span>
-              </li>
-            }
-          </ul>
-        </fieldset>
-      </div>
-
-      <!-- TRAÇOS & MAGIAS -->
-      <div class="column">
-        <fieldset class="retro-panel">
-          <legend>TRAÇOS & HABILIDADES</legend>
-          <ul class="traits-list">
-            @for (trait of data.character_sheet.features_and_traits; track trait.name) {
-              <li><strong>{{ trait.name }}:</strong> {{ trait.description }}</li>
-            }
-          </ul>
-        </fieldset>
-
-        <fieldset class="retro-panel">
-          <legend>PROFICIÊNCIAS</legend>
-          <p class="prof-label">Armaduras: {{ data.character_sheet.proficiencies_and_languages.armor.join(', ') || '—' }}</p>
-          <p class="prof-label">Armas: {{ data.character_sheet.proficiencies_and_languages.weapons.join(', ') || '—' }}</p>
-          <p class="prof-label">Idiomas: {{ data.character_sheet.proficiencies_and_languages.languages.join(', ') || '—' }}</p>
-        </fieldset>
-      </div>
-
-    </div>
-
-    <!-- EQUIPAMENTO -->
-    <div class="equipment-grid">
-
-      <fieldset class="retro-panel">
-        <legend>ARMAS EQUIPADAS</legend>
-        @if (data.character_sheet.weapons.length) {
-          <table class="weapons-table">
-            <thead>
-              <tr>
-                <th>NOME</th>
-                <th>ATAQUE</th>
-                <th>DANO</th>
-                <th>PROPRIEDADES</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (weapon of data.character_sheet.weapons; track weapon.id_weapon) {
-                <tr class="clickable-row" (click)="openWeaponModal(weapon)">
-                  <td>{{ weapon.name }}</td>
-                  <td class="text-center">{{ formatMod(weapon.attack_bonus) }}</td>
-                  <td>{{ weapon.damage_die ?? '—' }} {{ weapon.damage_type ?? '' }}</td>
-                  <td class="props-cell">{{ weapon.properties || '—' }}</td>
-                </tr>
+            <div class="mobile-spell-cards">
+              @for (spell of data.character_sheet.spells; track spell.id_spell) {
+                <div class="mobile-spell-card" (click)="openSpellModal(spell)">
+                  <div class="spell-card-left">
+                    <div class="spell-card-name">{{ spell.name }}</div>
+                    <div class="spell-card-meta">{{ spell.school ?? '' }}{{ spell.casting_time ? ' · ' + spell.casting_time : '' }}</div>
+                  </div>
+                  <div class="spell-card-level">{{ spell.spellLevel === 0 ? 'T' : spell.spellLevel }}</div>
+                </div>
               }
-            </tbody>
-          </table>
-        } @else {
-          <p class="empty-label">Nenhuma arma equipada</p>
-        }
-      </fieldset>
-
-      @if (data.character_sheet.spells?.length) {
-        <fieldset class="retro-panel magic-panel">
-          <legend>MAGIAS</legend>
-          @if (data.character_sheet.spellcasting_info) {
-            <div class="spellcasting-stats">
-              <div class="spell-stat-box">
-                <span class="spell-stat-label">ATRIBUTO</span>
-                <span class="spell-stat-value">{{ data.character_sheet.spellcasting_info.spellcasting_ability }}</span>
-              </div>
-              <div class="spell-stat-box">
-                <span class="spell-stat-label">CD</span>
-                <span class="spell-stat-value">{{ data.character_sheet.spellcasting_info.spell_save_dc }}</span>
-              </div>
-              <div class="spell-stat-box">
-                <span class="spell-stat-label">ATAQUE</span>
-                <span class="spell-stat-value">{{ formatMod(data.character_sheet.spellcasting_info.spell_attack_bonus) }}</span>
-              </div>
             </div>
           }
-          <table class="weapons-table spells-table">
-            <thead>
-              <tr>
-                <th>NOME</th>
-                <th>NÍV</th>
-                <th>CONJURAÇÃO</th>
-                <th>DISTÂNCIA</th>
-                <th>DURAÇÃO</th>
-                <th>ESCOLA</th>
-                <th>COMP.</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (spell of data.character_sheet.spells; track spell.id_spell) {
-                <tr class="clickable-row" (click)="openSpellModal(spell)">
-                  <td>{{ spell.name }}</td>
-                  <td class="text-center">{{ spell.spellLevel === 0 ? 'T' : spell.spellLevel }}</td>
-                  <td>{{ spell.casting_time ?? '—' }}</td>
-                  <td>{{ spell.range_distance != null ? spell.range_distance + 'm' : '—' }}</td>
-                  <td>{{ spell.duration ?? '—' }}</td>
-                  <td>{{ spell.school ?? '—' }}</td>
-                  <td class="text-center">{{ spellComponents(spell) }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </fieldset>
-      }
-    </div>
 
-    <div class="sheet-actions">
-      <button class="retro-btn" (click)="goBack()">VOLTAR PARA O MENU</button>
-    </div>
+        }
 
-  </div>
-
-@if (selectedWeapon) {
-  <div class="overlay modal-overlay" (click)="closeWeaponModal()">
-    <div class="retro-panel item-modal" (click)="$event.stopPropagation()">
-      <button class="item-modal-close" (click)="closeWeaponModal()">✕</button>
-      <h3 class="item-modal-title">{{ selectedWeapon.name }}</h3>
-      <div class="item-modal-image">
-        <span>{{ selectedWeapon.isRanged ? '🏹' : '⚔️' }}</span>
       </div>
-      <div class="item-modal-info">
-        <div class="item-modal-row">
-          <span class="item-modal-label">BÔNUS DE ATAQUE</span>
-          <span class="item-modal-value">{{ formatMod(selectedWeapon.attack_bonus) }}</span>
-        </div>
-        <div class="item-modal-row">
-          <span class="item-modal-label">DANO</span>
-          <span class="item-modal-value">{{ selectedWeapon.damage_die ?? '—' }}</span>
-        </div>
-        <div class="item-modal-row">
-          <span class="item-modal-label">TIPO DE DANO</span>
-          <span class="item-modal-value">{{ selectedWeapon.damage_type ?? '—' }}</span>
-        </div>
-        @if (selectedWeapon.properties) {
-          <div class="item-modal-properties">
-            <span class="item-modal-label">PROPRIEDADES</span>
-            <ul>
-              <li>{{ selectedWeapon.properties }}</li>
-            </ul>
+    </div>
+
+  } @else {
+    <!-- ===== DESKTOP LAYOUT ===== -->
+    <div class="full-sheet-container">
+
+      <fieldset class="retro-panel header-panel">
+        <div class="portrait-section">
+          <div class="portrait-box">
+            @if (avatarUrl()) {
+              <img [src]="avatarUrl()!" alt="Avatar do personagem" />
+            } @else {
+              <span class="portrait-placeholder">?</span>
+            }
           </div>
-        }
-      </div>
-    </div>
-  </div>
-}
+        </div>
+        <div class="char-title">
+          <h1>{{ data.character_sheet.header.name }}</h1>
+          <p>{{ data.character_sheet.header.class_and_level }} &mdash; {{ data.character_sheet.header.race || 'Humano' }}</p>
+        </div>
+        <div class="char-details">
+          <p>Antecedente: {{ data.character_sheet.header.background }}</p>
+          <p>Alinhamento: {{ data.character_sheet.header.alignment }}</p>
+          <p>XP: {{ data.character_sheet.header.experience_points }}</p>
+        </div>
+      </fieldset>
 
-@if (selectedSpell) {
-  <div class="overlay modal-overlay" (click)="closeSpellModal()">
-    <div class="retro-panel item-modal" (click)="$event.stopPropagation()">
-      <button class="item-modal-close" (click)="closeSpellModal()">✕</button>
-      <h3 class="item-modal-title">{{ selectedSpell.name }}</h3>
-      <p class="spell-school">{{ selectedSpell.school }} — {{ selectedSpell.spellLevel === 0 ? 'Truque' : 'Nível ' + selectedSpell.spellLevel }}</p>
-      <div class="item-modal-info">
-        <div class="item-modal-row">
-          <span class="item-modal-label">TEMPO DE CONJURAÇÃO</span>
-          <span class="item-modal-value">{{ selectedSpell.casting_time ?? '—' }}</span>
+      <div class="sheet-grid">
+
+        <!-- ATRIBUTOS -->
+        <div class="column">
+          <fieldset class="retro-panel">
+            <legend>ATRIBUTOS & RESISTÊNCIAS</legend>
+            <div class="attributes-list">
+              @for (attr of data.character_sheet.attributes_and_saves | keyvalue; track attr.key) {
+                <div class="attr-box">
+                  <span class="attr-name">{{ attr.key }}</span>
+                  <span class="attr-score">{{ attr.value.score }}</span>
+                  <span class="attr-mod">{{ formatMod(attr.value.modifier) }}</span>
+                  <div class="save-box">
+                    <span class="prof-dot">{{ attr.value.save_proficiency ? '●' : '○' }}</span>
+                    Save: {{ formatMod(attr.value.save) }}
+                  </div>
+                </div>
+              }
+            </div>
+          </fieldset>
         </div>
-        <div class="item-modal-row">
-          <span class="item-modal-label">ALCANCE</span>
-          <span class="item-modal-value">{{ selectedSpell.range_distance != null ? selectedSpell.range_distance + ' m' : '—' }}</span>
+
+        <!-- COMBATE & PERÍCIAS -->
+        <div class="column">
+          <fieldset class="retro-panel combat-panel">
+            <legend>COMBATE</legend>
+            <div class="stats-row">
+              <div><label>CA</label><span>{{ data.character_sheet.combat_stats.armor_class }}</span></div>
+              <div><label>INIT</label><span>{{ formatMod(data.character_sheet.combat_stats.initiative) }}</span></div>
+              <div><label>MOV</label><span>{{ data.character_sheet.combat_stats.speed }}</span></div>
+              <div><label>BÔNUS PROF</label><span>{{ formatMod(data.character_sheet.combat_stats.proficiency_bonus) }}</span></div>
+            </div>
+            <div class="hp-box">
+              <p>PONTOS DE VIDA</p>
+              <div class="hp-controls">
+                <button class="hp-btn" (click)="changeHp(-1)">−</button>
+                <h3>{{ data.character_sheet.combat_stats.hit_points.current }} / {{ data.character_sheet.combat_stats.hit_points.max }}</h3>
+                <button class="hp-btn" (click)="changeHp(1)">+</button>
+              </div>
+              <small>Dado de Vida: {{ data.character_sheet.combat_stats.hit_dice }}</small>
+            </div>
+            <div class="passive-box">
+              <p>Percepção Passiva: {{ data.character_sheet.combat_stats.passive_perception }}</p>
+            </div>
+          </fieldset>
+
+          <fieldset class="retro-panel skills-panel">
+            <legend>PERÍCIAS</legend>
+            <ul>
+              @for (skill of data.character_sheet.skills; track skill.id_skill) {
+                <li [class.trained]="skill.is_trained">
+                  <span class="prof-dot">{{ skill.is_trained ? '●' : '○' }}</span>
+                  {{ formatMod(skill.total_skill_value) }} {{ skill.name }} <span class="skill-attribute">({{ skill.attribute_name }})</span>
+                </li>
+              }
+            </ul>
+          </fieldset>
         </div>
-        <div class="item-modal-row">
-          <span class="item-modal-label">DURAÇÃO</span>
-          <span class="item-modal-value">{{ selectedSpell.duration ?? '—' }}</span>
+
+        <!-- TRAÇOS & MAGIAS -->
+        <div class="column">
+          <fieldset class="retro-panel">
+            <legend>TRAÇOS & HABILIDADES</legend>
+            <ul class="traits-list">
+              @for (trait of data.character_sheet.features_and_traits; track trait.name) {
+                <li><strong>{{ trait.name }}:</strong> {{ trait.description }}</li>
+              }
+            </ul>
+          </fieldset>
+
+          <fieldset class="retro-panel">
+            <legend>PROFICIÊNCIAS</legend>
+            <p class="prof-label">Armaduras: {{ data.character_sheet.proficiencies_and_languages.armor.join(', ') || '—' }}</p>
+            <p class="prof-label">Armas: {{ data.character_sheet.proficiencies_and_languages.weapons.join(', ') || '—' }}</p>
+            <p class="prof-label">Idiomas: {{ data.character_sheet.proficiencies_and_languages.languages.join(', ') || '—' }}</p>
+          </fieldset>
         </div>
-        <div class="item-modal-row">
-          <span class="item-modal-label">COMPONENTES</span>
-          <span class="item-modal-value spell-components">
-            @if (selectedSpell.is_verbal) { <span class="component-tag">V</span> }
-            @if (selectedSpell.is_somatic) { <span class="component-tag">S</span> }
-            @if (selectedSpell.is_material) { <span class="component-tag">M</span> }
-          </span>
-        </div>
-        @if (selectedSpell.description) {
-          <div class="spell-description">{{ selectedSpell.description }}</div>
+
+      </div>
+
+      <!-- EQUIPAMENTO -->
+      <div class="equipment-grid">
+
+        <fieldset class="retro-panel">
+          <legend>ARMAS EQUIPADAS</legend>
+          @if (data.character_sheet.weapons.length) {
+            <table class="weapons-table">
+              <thead>
+                <tr>
+                  <th>NOME</th>
+                  <th>ATAQUE</th>
+                  <th>DANO</th>
+                  <th>PROPRIEDADES</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (weapon of data.character_sheet.weapons; track weapon.id_weapon) {
+                  <tr class="clickable-row" (click)="openWeaponModal(weapon)">
+                    <td>{{ weapon.name }}</td>
+                    <td class="text-center">{{ formatMod(weapon.attack_bonus) }}</td>
+                    <td>{{ weapon.damage_die ?? '—' }} {{ weapon.damage_type ?? '' }}</td>
+                    <td class="props-cell">{{ weapon.properties || '—' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          } @else {
+            <p class="empty-label">Nenhuma arma equipada</p>
+          }
+        </fieldset>
+
+        @if (data.character_sheet.spells?.length) {
+          <fieldset class="retro-panel magic-panel">
+            <legend>MAGIAS</legend>
+            @if (data.character_sheet.spellcasting_info) {
+              <div class="spellcasting-stats">
+                <div class="spell-stat-box">
+                  <span class="spell-stat-label">ATRIBUTO</span>
+                  <span class="spell-stat-value">{{ data.character_sheet.spellcasting_info.spellcasting_ability }}</span>
+                </div>
+                <div class="spell-stat-box">
+                  <span class="spell-stat-label">CD</span>
+                  <span class="spell-stat-value">{{ data.character_sheet.spellcasting_info.spell_save_dc }}</span>
+                </div>
+                <div class="spell-stat-box">
+                  <span class="spell-stat-label">ATAQUE</span>
+                  <span class="spell-stat-value">{{ formatMod(data.character_sheet.spellcasting_info.spell_attack_bonus) }}</span>
+                </div>
+              </div>
+            }
+            <table class="weapons-table spells-table">
+              <thead>
+                <tr>
+                  <th>NOME</th>
+                  <th>NÍV</th>
+                  <th>CONJURAÇÃO</th>
+                  <th>DISTÂNCIA</th>
+                  <th>DURAÇÃO</th>
+                  <th>ESCOLA</th>
+                  <th>COMP.</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (spell of data.character_sheet.spells; track spell.id_spell) {
+                  <tr class="clickable-row" (click)="openSpellModal(spell)">
+                    <td>{{ spell.name }}</td>
+                    <td class="text-center">{{ spell.spellLevel === 0 ? 'T' : spell.spellLevel }}</td>
+                    <td>{{ spell.casting_time ?? '—' }}</td>
+                    <td>{{ spell.range_distance != null ? spell.range_distance + 'm' : '—' }}</td>
+                    <td>{{ spell.duration ?? '—' }}</td>
+                    <td>{{ spell.school ?? '—' }}</td>
+                    <td class="text-center">{{ spellComponents(spell) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </fieldset>
         }
       </div>
+
+      <div class="sheet-actions">
+        <button class="retro-btn" (click)="goBack()">VOLTAR PARA O MENU</button>
+      </div>
+
     </div>
-  </div>
-}
+  }
+
+  <!-- ===== MODALS (shared between mobile and desktop) ===== -->
+
+  @if (selectedWeapon) {
+    <div class="overlay modal-overlay" (click)="closeWeaponModal()">
+      <div class="retro-panel item-modal" (click)="$event.stopPropagation()">
+        <button class="item-modal-close" (click)="closeWeaponModal()">✕</button>
+        <h3 class="item-modal-title">{{ selectedWeapon.name }}</h3>
+        <div class="item-modal-image">
+          <span>{{ selectedWeapon.isRanged ? '🏹' : '⚔️' }}</span>
+        </div>
+        <div class="item-modal-info">
+          <div class="item-modal-row">
+            <span class="item-modal-label">BÔNUS DE ATAQUE</span>
+            <span class="item-modal-value">{{ formatMod(selectedWeapon.attack_bonus) }}</span>
+          </div>
+          <div class="item-modal-row">
+            <span class="item-modal-label">DANO</span>
+            <span class="item-modal-value">{{ selectedWeapon.damage_die ?? '—' }}</span>
+          </div>
+          <div class="item-modal-row">
+            <span class="item-modal-label">TIPO DE DANO</span>
+            <span class="item-modal-value">{{ selectedWeapon.damage_type ?? '—' }}</span>
+          </div>
+          @if (selectedWeapon.properties) {
+            <div class="item-modal-properties">
+              <span class="item-modal-label">PROPRIEDADES</span>
+              <ul>
+                <li>{{ selectedWeapon.properties }}</li>
+              </ul>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (selectedSpell) {
+    <div class="overlay modal-overlay" (click)="closeSpellModal()">
+      <div class="retro-panel item-modal" (click)="$event.stopPropagation()">
+        <button class="item-modal-close" (click)="closeSpellModal()">✕</button>
+        <h3 class="item-modal-title">{{ selectedSpell.name }}</h3>
+        <p class="spell-school">{{ selectedSpell.school }} — {{ selectedSpell.spellLevel === 0 ? 'Truque' : 'Nível ' + selectedSpell.spellLevel }}</p>
+        <div class="item-modal-info">
+          <div class="item-modal-row">
+            <span class="item-modal-label">TEMPO DE CONJURAÇÃO</span>
+            <span class="item-modal-value">{{ selectedSpell.casting_time ?? '—' }}</span>
+          </div>
+          <div class="item-modal-row">
+            <span class="item-modal-label">ALCANCE</span>
+            <span class="item-modal-value">{{ selectedSpell.range_distance != null ? selectedSpell.range_distance + ' m' : '—' }}</span>
+          </div>
+          <div class="item-modal-row">
+            <span class="item-modal-label">DURAÇÃO</span>
+            <span class="item-modal-value">{{ selectedSpell.duration ?? '—' }}</span>
+          </div>
+          <div class="item-modal-row">
+            <span class="item-modal-label">COMPONENTES</span>
+            <span class="item-modal-value spell-components">
+              @if (selectedSpell.is_verbal) { <span class="component-tag">V</span> }
+              @if (selectedSpell.is_somatic) { <span class="component-tag">S</span> }
+              @if (selectedSpell.is_material) { <span class="component-tag">M</span> }
+            </span>
+          </div>
+          @if (selectedSpell.description) {
+            <div class="spell-description">{{ selectedSpell.description }}</div>
+          }
+        </div>
+      </div>
+    </div>
+  }
 
 } @else if (!loading()) {
   <div class="overlay">
