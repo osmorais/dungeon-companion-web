@@ -165,3 +165,32 @@
     text-decoration: underline;
   }
 }
+
+/* ===== GOOGLE BUTTON (shared) ===== */
+
+.google-separator {
+  display: flex;
+  align-items: center;
+  margin: 12px 0 8px;
+  gap: 8px;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-color);
+  }
+
+  span {
+    font-size: 7px;
+    color: var(--label-title-color);
+    white-space: nowrap;
+  }
+}
+
+.google-btn-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 4px;
+}

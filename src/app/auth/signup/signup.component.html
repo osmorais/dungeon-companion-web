@@ -32,6 +32,15 @@
         {{ loading() ? 'FORJANDO...' : 'FORJAR' }}
       </button>
 
+      @if (googleEnabled) {
+        <div class="google-separator">
+          <span>OU</span>
+        </div>
+        <div class="google-btn-wrapper">
+          <div #googleBtnMobile></div>
+        </div>
+      }
+
       <div class="mobile-auth-links">
         <a routerLink="/login">JÁ SOU AVENTUREIRO</a>
       </div>
@@ -70,6 +79,15 @@
       <button class="retro-btn full-btn" (click)="submit()" [disabled]="loading()">
         {{ loading() ? 'FORJANDO...' : 'FORJAR' }}
       </button>
+
+      @if (googleEnabled) {
+        <div class="google-separator">
+          <span>OU</span>
+        </div>
+        <div class="google-btn-wrapper">
+          <div #googleBtnDesktop></div>
+        </div>
+      }
 
       <div class="auth-links">
         <a routerLink="/login">JÁ SOU AVENTUREIRO</a>

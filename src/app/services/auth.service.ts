@@ -46,6 +46,12 @@ export class AuthService {
     );
   }
 
+  googleLogin(idToken: string): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(`${this.baseUrl}/auth/google`, { idToken })
+      .pipe(tap(res => this.handleAuthResponse(res)));
+  }
+
   forgotPassword(email: string): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${this.baseUrl}/auth/forgot-password`, { email });
   }

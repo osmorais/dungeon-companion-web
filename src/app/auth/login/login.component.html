@@ -26,6 +26,15 @@
         {{ loading() ? 'ENTRANDO...' : 'ENTRAR' }}
       </button>
 
+      @if (googleEnabled) {
+        <div class="google-separator">
+          <span>OU</span>
+        </div>
+        <div class="google-btn-wrapper">
+          <div #googleBtnMobile></div>
+        </div>
+      }
+
       <div class="mobile-auth-links">
         <a routerLink="/signup">CRIAR CONTA</a>
         <a routerLink="/forgot-password">ESQUECI A SENHA</a>
@@ -59,6 +68,15 @@
       <button class="retro-btn full-btn" (click)="submit()" [disabled]="loading()">
         {{ loading() ? 'ENTRANDO...' : 'ENTRAR' }}
       </button>
+
+      @if (googleEnabled) {
+        <div class="google-separator">
+          <span>OU</span>
+        </div>
+        <div class="google-btn-wrapper">
+          <div #googleBtnDesktop></div>
+        </div>
+      }
 
       <div class="auth-links">
         <a routerLink="/signup">CRIAR CONTA</a>
