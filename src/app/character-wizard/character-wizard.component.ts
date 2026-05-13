@@ -32,6 +32,12 @@ export class CharacterWizardComponent implements OnInit {
   showSuccess = false;
   showAvatarPicker = signal(false);
   avatarUrl = this.charService.avatarUrl;
+  isMobile = signal(typeof window !== 'undefined' && window.innerWidth < 768);
+
+  @HostListener('window:resize')
+  onResize() {
+    this.isMobile.set(window.innerWidth < 768);
+  }
 
   openAvatarPicker() { this.showAvatarPicker.set(true); }
 
@@ -180,6 +186,8 @@ export class CharacterWizardComponent implements OnInit {
   /** ========================= METHOD ========================= */
 
   onMethodChange() {
+    this.mobileSelectedValue = null;
+    this.mobileSelectedFromStat = null;
     const method = this.characterData.attributes.generation_method;
 
     if (method === 'standard_array') {
@@ -201,6 +209,50 @@ export class CharacterWizardComponent implements OnInit {
     this.attributesList.forEach(stat => {
       this.characterData.attributes.base_values[stat] = 0;
     });
+  }
+
+  /** ========================= MOBILE TAP-TO-ASSIGN ========================= */
+
+  mobileSelectedValue: number | null = null;
+  mobileSelectedFromStat: AttributeKey | null = null;
+
+  mobileTapPool(value: number) {
+    if (this.mobileSelectedValue === value && !this.mobileSelectedFromStat) {
+      this.mobileSelectedValue = null;
+    } else {
+      this.mobileSelectedValue = value;
+      this.mobileSelectedFromStat = null;
+    }
+  }
+
+  mobileTapStat(stat: AttributeKey) {
+    const current = this.characterData.attributes.base_values[stat];
+
+    if (this.mobileSelectedValue === null) {
+      if (current !== 0) {
+        this.mobileSelectedValue = current;
+        this.mobileSelectedFromStat = stat;
+      }
+      return;
+    }
+
+    if (this.mobileSelectedFromStat === stat) {
+      this.mobileSelectedValue = null;
+      this.mobileSelectedFromStat = null;
+      return;
+    }
+
+    if (this.mobileSelectedFromStat) {
+      this.characterData.attributes.base_values[this.mobileSelectedFromStat] = current;
+    } else {
+      const index = this.pool.indexOf(this.mobileSelectedValue);
+      if (index > -1) this.pool.splice(index, 1);
+      if (current !== 0) this.pool.push(current);
+    }
+
+    this.characterData.attributes.base_values[stat] = this.mobileSelectedValue;
+    this.mobileSelectedValue = null;
+    this.mobileSelectedFromStat = null;
   }
 
   /** ========================= DRAG & DROP ========================= */

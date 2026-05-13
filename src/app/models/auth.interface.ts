@@ -6,6 +6,7 @@ export interface UserPublic {
 
 export interface AuthResponse {
   user: UserPublic;
+  token: string;
 }
 
 export interface MeResponse {

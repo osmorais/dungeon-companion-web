@@ -1,32 +1,87 @@
-<div class="home-container">
-  <fieldset class="title-panel">
-    <legend>ENTRADA DA MASMORRA</legend>
+@if (isMobile()) {
+  <!-- ===== MOBILE LAYOUT ===== -->
+  <div class="mobile-login-container">
+    <fieldset class="mobile-login-panel">
+      <legend>ENTRADA DA MASMORRA</legend>
 
-    <div class="logo-container">
-      <img src="forja_arcana.png" alt="Forja Arcana" class="logo" />
-    </div>
+      <div class="mobile-logo-container">
+        <img src="forja_arcana.png" alt="Forja Arcana" class="mobile-logo" />
+      </div>
 
-    <div class="form-group">
-      <label for="email">EMAIL</label>
-      <input id="email" type="email" [(ngModel)]="email" placeholder="heroi@aventura.com" />
-    </div>
+      <div class="mobile-form-group">
+        <label for="mobile-email">EMAIL</label>
+        <input id="mobile-email" type="email" [(ngModel)]="email" placeholder="heroi@aventura.com" />
+      </div>
 
-    <div class="form-group">
-      <label for="password">SENHA</label>
-      <input id="password" type="password" [(ngModel)]="password" placeholder="••••••••" (keyup.enter)="submit()" />
-    </div>
+      <div class="mobile-form-group">
+        <label for="mobile-password">SENHA</label>
+        <input id="mobile-password" type="password" [(ngModel)]="password" placeholder="••••••••" (keyup.enter)="submit()" />
+      </div>
 
-    @if (errorMessage()) {
-      <p class="error-msg">{{ errorMessage() }}</p>
-    }
+      @if (errorMessage()) {
+        <p class="mobile-error-msg">{{ errorMessage() }}</p>
+      }
 
-    <button class="retro-btn full-btn" (click)="submit()" [disabled]="loading()">
-      {{ loading() ? 'ENTRANDO...' : 'ENTRAR' }}
-    </button>
+      <button class="retro-btn mobile-full-btn" (click)="submit()" [disabled]="loading()">
+        {{ loading() ? 'ENTRANDO...' : 'ENTRAR' }}
+      </button>
 
-    <div class="auth-links">
-      <a routerLink="/signup">CRIAR CONTA</a>
-      <a routerLink="/forgot-password">ESQUECI A SENHA</a>
-    </div>
-  </fieldset>
-</div>
+      @if (googleEnabled) {
+        <div class="google-separator">
+          <span>OU</span>
+        </div>
+        <div class="google-btn-wrapper">
+          <div #googleBtnMobile></div>
+        </div>
+      }
+
+      <div class="mobile-auth-links">
+        <a routerLink="/signup">CRIAR CONTA</a>
+        <a routerLink="/forgot-password">ESQUECI A SENHA</a>
+      </div>
+    </fieldset>
+  </div>
+} @else {
+  <!-- ===== DESKTOP LAYOUT ===== -->
+  <div class="home-container">
+    <fieldset class="title-panel">
+      <legend>ENTRADA DA MASMORRA</legend>
+
+      <div class="logo-container">
+        <img src="forja_arcana.png" alt="Forja Arcana" class="logo" />
+      </div>
+
+      <div class="form-group">
+        <label for="email">EMAIL</label>
+        <input id="email" type="email" [(ngModel)]="email" placeholder="heroi@aventura.com" />
+      </div>
+
+      <div class="form-group">
+        <label for="password">SENHA</label>
+        <input id="password" type="password" [(ngModel)]="password" placeholder="••••••••" (keyup.enter)="submit()" />
+      </div>
+
+      @if (errorMessage()) {
+        <p class="error-msg">{{ errorMessage() }}</p>
+      }
+
+      <button class="retro-btn full-btn" (click)="submit()" [disabled]="loading()">
+        {{ loading() ? 'ENTRANDO...' : 'ENTRAR' }}
+      </button>
+
+      @if (googleEnabled) {
+        <div class="google-separator">
+          <span>OU</span>
+        </div>
+        <div class="google-btn-wrapper">
+          <div #googleBtnDesktop></div>
+        </div>
+      }
+
+      <div class="auth-links">
+        <a routerLink="/signup">CRIAR CONTA</a>
+        <a routerLink="/forgot-password">ESQUECI A SENHA</a>
+      </div>
+    </fieldset>
+  </div>
+}

@@ -1,8 +1,10 @@
-import { Component, inject, input, effect, untracked, signal } from '@angular/core';
+import { Component, inject, input, effect, untracked, signal, HostListener } from '@angular/core';
 import { CommonModule, KeyValuePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { CharacterService } from '../services/character.service';
 import { Spell, WeaponRow } from '../models/character-options.interface';
+
+type MobileTab = 'combat' | 'attrs' | 'skills' | 'traits' | 'equipment' | 'spells';
 
 @Component({
   selector: 'app-character-sheet',
@@ -20,6 +22,17 @@ export class CharacterSheetComponent {
   sheetData = this.charService.currentCharacter;
   avatarUrl = this.charService.avatarUrl;
   loading = signal(false);
+  isMobile = signal(typeof window !== 'undefined' && window.innerWidth < 768);
+  activeTab = signal<MobileTab>('combat');
+
+  @HostListener('window:resize')
+  onResize() {
+    this.isMobile.set(window.innerWidth < 768);
+  }
+
+  setTab(tab: MobileTab) {
+    this.activeTab.set(tab);
+  }
 
   constructor() {
     effect(() => {

@@ -1,32 +1,78 @@
-<div class="list-container">
+@if (isMobile()) {
+  <!-- ===== MOBILE LAYOUT ===== -->
+  <div class="mobile-character-list-container">
 
-  <fieldset class="retro-panel title-panel">
-    <legend>MEUS PERSONAGENS</legend>
-  </fieldset>
+    <div class="mobile-header">
+      <button class="mobile-back-btn" (click)="goBack()">&#8592;</button>
+      <span class="mobile-title">MEUS PERSONAGENS</span>
+    </div>
 
-  @if (error()) {
-    <fieldset class="retro-panel">
-      <p class="error-msg">ERRO AO CARREGAR PERSONAGENS.</p>
-    </fieldset>
-  } @else if (characters().length === 0) {
-    <fieldset class="retro-panel">
-      <p class="empty-msg">NENHUM PERSONAGEM ENCONTRADO.</p>
-    </fieldset>
-  } @else {
-    <fieldset class="retro-panel">
-      <legend>SELECIONE UM AVENTUREIRO</legend>
-      <ul class="character-list">
+    @if (error()) {
+      <p class="mobile-empty-msg">ERRO AO CARREGAR PERSONAGENS.</p>
+    } @else if (characters().length === 0) {
+      <p class="mobile-empty-msg">NENHUM PERSONAGEM ENCONTRADO.</p>
+    } @else {
+      <ul class="mobile-character-list">
         @for (char of characters(); track char.id_character) {
-          <li class="character-row" (click)="openSheet(char.id_character)">
-            <span class="char-name">{{ char.name }}</span>
-            <span class="char-meta">{{ char.class }} &mdash; {{ char.race }} &mdash; Nível {{ char.level }}</span>
-            <span class="char-arrow">&#9658;</span>
+          <li class="mobile-character-card" (click)="openSheet(char.id_character)">
+            <span class="mobile-char-name">{{ char.name }}</span>
+            <span class="mobile-char-meta">{{ char.class }} &mdash; {{ char.race }}</span>
+            <span class="mobile-char-level">Nível {{ char.level }}</span>
+            <span class="mobile-char-arrow">&#9658;</span>
           </li>
         }
       </ul>
+
+      <div class="mobile-pagination">
+        <button class="mobile-page-btn" [disabled]="!hasPrev()" (click)="prevPage()">&#9664;</button>
+        <span class="mobile-page-info">{{ page() }} / {{ totalPages() }}</span>
+        <button class="mobile-page-btn" [disabled]="!hasNext()" (click)="nextPage()">&#9654;</button>
+      </div>
+
+      <p class="mobile-total-count">TOTAL: {{ totalCount() }}</p>
+    }
+
+  </div>
+} @else {
+  <!-- ===== DESKTOP LAYOUT ===== -->
+  <div class="list-container">
+
+    <fieldset class="retro-panel title-panel">
+      <legend>MEUS PERSONAGENS</legend>
     </fieldset>
-  }
 
-  <button class="retro-btn back-btn" (click)="goBack()">VOLTAR</button>
+    @if (error()) {
+      <fieldset class="retro-panel">
+        <p class="empty-msg">ERRO AO CARREGAR PERSONAGENS.</p>
+      </fieldset>
+    } @else if (characters().length === 0) {
+      <fieldset class="retro-panel">
+        <p class="empty-msg">NENHUM PERSONAGEM ENCONTRADO.</p>
+      </fieldset>
+    } @else {
+      <fieldset class="retro-panel">
+        <legend>SELECIONE UM AVENTUREIRO</legend>
+        <ul class="character-list">
+          @for (char of characters(); track char.id_character) {
+            <li class="character-row" (click)="openSheet(char.id_character)">
+              <span class="char-name">{{ char.name }}</span>
+              <span class="char-meta">{{ char.class }} &mdash; {{ char.race }} &mdash; Nível {{ char.level }}</span>
+              <span class="char-arrow">&#9658;</span>
+            </li>
+          }
+        </ul>
+      </fieldset>
 
-</div>
+      <div class="pagination">
+        <button class="retro-btn page-btn" [disabled]="!hasPrev()" (click)="prevPage()">&#9664; ANTERIOR</button>
+        <span class="page-info">{{ page() }} / {{ totalPages() }}</span>
+        <button class="retro-btn page-btn" [disabled]="!hasNext()" (click)="nextPage()">PRÓXIMA &#9654;</button>
+      </div>
+
+      <p class="total-count">TOTAL DE PERSONAGENS: {{ totalCount() }}</p>
+    }
+
+    <button class="retro-btn back-btn" (click)="goBack()">VOLTAR</button>
+
+  </div>
+}

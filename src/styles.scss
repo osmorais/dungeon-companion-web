@@ -47,6 +47,14 @@ body {
   min-height: 100vh;
 }
 
+@media (max-width: 767px) {
+  body {
+    justify-content: flex-start;
+    align-items: flex-start;
+    overflow-x: hidden;
+  }
+}
+
 fieldset.retro-panel {
   border: 2px solid var(--border-color);
   background-color: var(--panel-bg);
