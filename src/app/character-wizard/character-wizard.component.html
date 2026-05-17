@@ -617,6 +617,7 @@
             @for (weapon of pagedWeapons; track weapon.name) {
               <label>
                 <input type="checkbox" class="retro-checkbox"
+                       [checked]="isWeaponSelected(weapon)"
                        (change)="toggleArrayItem('weapons', weapon, $event)">
                 <span class="item-info">
                   <span>{{ weapon.name }}</span>
