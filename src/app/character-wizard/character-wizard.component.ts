@@ -9,7 +9,13 @@ import { LoadingOverlayComponent } from '../loading-overlay/loading-overlay.comp
 import { LoadingOverlayService } from '../loading-overlay/loading-overlay.service';
 import { CharacterService } from '../services/character.service';
 import { AvatarPickerModalComponent } from '../avatar-picker-modal/avatar-picker-modal.component';
+import { AvatarCustomizerComponent } from '../avatar-customizer/avatar-customizer.component';
 import { Avatar } from '../constants/avatars';
+import {
+  AvatarPreset,
+  RACE_NAME_TO_AVATAR,
+  CLASS_NAME_TO_AVATAR,
+} from '../models/avatar-preset.interface';
 import { CLASS_SKILL_RULES, RACE_SKILL_RULES } from '../constants/skill-rules';
 import { CLASS_SPELLS, getSpellLimits, SpellLimits } from '../constants/spell-rules';
 import { CLASS_ARMOUR_RULES } from '../constants/armour-rules';
@@ -19,7 +25,7 @@ type AttributeKey = 'FOR' | 'DES' | 'CON' | 'INT' | 'SAB' | 'CAR';
 @Component({
   selector: 'app-character-wizard',
   standalone: true,
-  imports: [CommonModule, FormsModule, DragonAnimationComponent, LoadingOverlayComponent, AvatarPickerModalComponent],
+  imports: [CommonModule, FormsModule, DragonAnimationComponent, LoadingOverlayComponent, AvatarPickerModalComponent, AvatarCustomizerComponent],
   templateUrl: './character-wizard.component.html',
   styleUrls: ['./character-wizard.component.scss']
 })
@@ -177,6 +183,7 @@ export class CharacterWizardComponent implements OnInit {
       this.currentStep++;
       if (this.currentStep === 3) this.spellCircleStep = 0;
       if (this.currentStep === 4) this.syncGrantedSkills();
+      if (this.currentStep === 7) this.initAvatarPreset();
     }
   }
 
@@ -221,6 +228,11 @@ export class CharacterWizardComponent implements OnInit {
     const race = this.availableRaces.find(r => +r.id_race === +this.characterData.core_build.id_race);
     this.characterData.core_build.race = race?.name ?? '';
     this.resetAllChoices();
+
+    if (this.characterData.avatar_preset) {
+      const raceKey = RACE_NAME_TO_AVATAR[this.characterData.core_build.race] ?? 'human';
+      this.characterData.avatar_preset = { ...this.characterData.avatar_preset, race: raceKey };
+    }
   }
 
   private resetAllChoices(): void {
@@ -755,6 +767,27 @@ export class CharacterWizardComponent implements OnInit {
         if (idx > -1) this.characterData.equipment.weapons.splice(idx, 1);
       }
     }
+  }
+
+  /** ========================= AVATAR ========================= */
+
+  initAvatarPreset(): void {
+    if (this.characterData.avatar_preset) return;
+    const race = RACE_NAME_TO_AVATAR[this.characterData.core_build.race] ?? 'human';
+    const classKey = CLASS_NAME_TO_AVATAR[this.characterData.core_build.class] ?? 'fighter';
+    this.characterData.avatar_preset = {
+      race,
+      classKey,
+      skinColor: 'medium',
+      hairStyle: 'hair_short_01',
+      hairColor: 'blond',
+      beardStyle: null,
+      beardColor: null,
+    };
+  }
+
+  onPresetChange(preset: AvatarPreset): void {
+    this.characterData.avatar_preset = preset;
   }
 
   /** ========================= SAVE ========================= */

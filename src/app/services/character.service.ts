@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { CharacterSheetData } from '../models/character.interface';
 import { CharacterSheetResponse } from '../models/character-response.interface';
+import { AvatarPreset } from '../models/avatar-preset.interface';
 import { CharacterOptions } from '../models/character-options.interface';
 import { CharacterSummary, CharacterPagedList } from '../models/character-summary.interface';
 import { environment } from '../../environments/environment';
@@ -28,6 +29,10 @@ export class CharacterService {
 
   getCharacterOptions(): Observable<CharacterOptions> {
     return this.http.get<CharacterOptions>(`${this.baseUrl}/api/character-options`);
+  }
+
+  updateAvatarPreset(id: number, preset: AvatarPreset): Observable<{success: boolean}> {
+    return this.http.patch<{success: boolean}>(`${this.baseUrl}/api/character-sheet/${id}/avatar`, { avatar_preset: preset });
   }
 
   getCharacters(page: number, pageSize: number): Observable<CharacterPagedList> {

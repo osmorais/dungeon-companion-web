@@ -1,0 +1,19 @@
+@if (preset) {
+  <div class="avatar-canvas">
+    <img class="avatar-layer" [src]="racePath" alt=""
+         [style.filter]="skinFilter"
+         (load)="showOnLoad($event)" (error)="hideOnError($event)">
+    <img class="avatar-layer" [src]="clothesPath" alt=""
+         (load)="showOnLoad($event)" (error)="hideOnError($event)">
+    @if (beardPath) {
+      <img class="avatar-layer" [src]="beardPath" alt=""
+           (load)="showOnLoad($event)" (error)="hideOnError($event)">
+    }
+    @if (hairPath) {
+      <img class="avatar-layer" [src]="hairPath" alt=""
+           (load)="showOnLoad($event)" (error)="hideOnError($event)">
+    }
+  </div>
+} @else {
+  <div class="avatar-placeholder">?</div>
+}

@@ -6,12 +6,9 @@
 
       <div class="mobile-header">
         <button class="mobile-back-arrow retro-btn" (click)="goBack()">←</button>
-        <div class="mobile-portrait">
-          @if (avatarUrl()) {
-            <img [src]="avatarUrl()!" alt="Avatar do personagem" />
-          } @else {
-            <span class="portrait-placeholder">?</span>
-          }
+        <div class="mobile-portrait avatar-editable" (click)="openAvatarEditor()" title="Editar avatar">
+          <app-avatar-display [preset]="data.character_sheet.avatar_preset" />
+          <div class="avatar-edit-hint">✎</div>
         </div>
         <div class="mobile-char-info">
           <h2>{{ data.character_sheet.header.name }}</h2>
@@ -184,12 +181,9 @@
 
       <fieldset class="retro-panel header-panel">
         <div class="portrait-section">
-          <div class="portrait-box">
-            @if (avatarUrl()) {
-              <img [src]="avatarUrl()!" alt="Avatar do personagem" />
-            } @else {
-              <span class="portrait-placeholder">?</span>
-            }
+          <div class="portrait-box avatar-editable" (click)="openAvatarEditor()" title="Editar avatar">
+            <app-avatar-display [preset]="data.character_sheet.avatar_preset" />
+            <div class="avatar-edit-hint">✎</div>
           </div>
         </div>
         <div class="char-title">
@@ -440,6 +434,26 @@
       </div>
     </div>
   }
+
+@if (showAvatarEditor()) {
+  <div class="overlay modal-overlay" (click)="closeAvatarEditor()">
+    <div class="retro-panel avatar-editor-modal" (click)="$event.stopPropagation()">
+      <button class="item-modal-close" (click)="closeAvatarEditor()">✕</button>
+      <h3 class="item-modal-title">EDITAR AVATAR</h3>
+      @if (editingPreset()) {
+        <app-avatar-customizer
+          [preset]="editingPreset()!"
+          (presetChange)="onEditPresetChange($event)" />
+      }
+      <div class="avatar-modal-actions">
+        <button class="retro-btn avatar-modal-cancel" (click)="closeAvatarEditor()">CANCELAR</button>
+        <button class="retro-btn avatar-modal-save" (click)="saveAvatarPreset()" [disabled]="savingAvatar()">
+          {{ savingAvatar() ? 'SALVANDO...' : 'SALVAR' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
 
 } @else if (!loading()) {
   <div class="overlay">

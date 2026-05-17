@@ -1,7 +1,9 @@
 import { Skill, Spell, WeaponRow } from "./character-options.interface";
+import { AvatarPreset } from "./avatar-preset.interface";
 
 export interface CharacterSheetResponse {
   character_sheet: {
+    id_character?: number;
     header: {
       name: string;
       class_and_level: string;
@@ -44,5 +46,6 @@ export interface CharacterSheetResponse {
       spell_attack_bonus: number;
     };
     spells?: Spell[];
+    avatar_preset?: AvatarPreset | null;
   };
 }
