@@ -692,6 +692,10 @@ export class CharacterWizardComponent implements OnInit {
     this.characterData.equipment.armour = armour;
   }
 
+  isWeaponSelected(weapon: WeaponRow): boolean {
+    return this.characterData.equipment.weapons.some(w => w.id_weapon === weapon.id_weapon);
+  }
+
   /** ========================= WEAPON MODAL ========================= */
 
   selectedWeapon: WeaponRow | null = null;
