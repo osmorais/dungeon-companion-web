@@ -4,7 +4,13 @@
   <!-- ===== MOBILE LAYOUT ===== -->
   <div class="mobile-wizard-container">
 
-    <div class="mobile-step-bar">PASSO {{ currentStep }}</div>
+    <div class="mobile-step-bar">
+      @if (currentStep === 3) {
+        PASSO 3 — {{ circleName(currentSpellCircle) }}
+      } @else {
+        PASSO {{ currentStep }}
+      }
+    </div>
 
     @switch (currentStep) {
 
@@ -14,14 +20,14 @@
           <div class="mobile-form-stack">
             <label>NÍVEL <input type="number" [(ngModel)]="characterData.core_build.level" min="1" max="20"></label>
             <label>RAÇA
-              <select [(ngModel)]="characterData.core_build.id_race">
+              <select [(ngModel)]="characterData.core_build.id_race" (ngModelChange)="onRaceChange()">
                 @for (race of availableRaces; track race.id_race) {
                   <option [value]="race.id_race">{{ race.name }}</option>
                 }
               </select>
             </label>
             <label>CLASSE
-              <select [(ngModel)]="characterData.core_build.id_class">
+              <select [(ngModel)]="characterData.core_build.id_class" (ngModelChange)="onClassChange()">
                 @for (cls of availableClasses; track cls.id_class) {
                   <option [value]="cls.id_class">{{ cls.name }}</option>
                 }
@@ -52,6 +58,9 @@
           </div>
         </fieldset>
 
+        @if (showStepError) {
+          <p class="step-error-msg">Preencha todas as informações necessárias antes de continuar.</p>
+        }
         <div class="mobile-wizard-actions">
           <button class="retro-btn mobile-secondary-btn" (click)="goHome()">← VOLTAR</button>
           <button class="retro-btn" (click)="nextStep()">CONFIRMAR →</button>
@@ -126,6 +135,9 @@
           }
         </fieldset>
 
+        @if (showStepError) {
+          <p class="step-error-msg">Preencha todas as informações necessárias antes de continuar.</p>
+        }
         <div class="mobile-wizard-actions">
           <button class="retro-btn mobile-secondary-btn" (click)="prevStep()">← VOLTAR</button>
           <button class="retro-btn" (click)="nextStep()">CONFIRMAR →</button>
@@ -136,25 +148,38 @@
         @if (hasMagic()) {
           <fieldset class="mobile-wizard-panel">
             <legend>MAGIAS</legend>
-            <p class="mobile-panel-subtitle">SELECIONE AS MAGIAS</p>
-            <div class="mobile-checklist">
-              @for (spell of pagedSpells; track spell.id_spell) {
-                <label class="mobile-check-row">
-                  <input type="checkbox" class="retro-checkbox" (change)="toggleArrayItem('spells', spell, $event)">
+
+            @let spells = spellsByCircle.get(currentSpellCircle) ?? [];
+            @let selected = selectedSpellCountByCircle(currentSpellCircle);
+            @let limit = spellLimitForCircle(currentSpellCircle);
+            <p class="mobile-panel-subtitle">
+              {{ circleName(currentSpellCircle) }}
+              <span class="skill-counter">{{ selected }}/{{ limit }}</span>
+            </p>
+            <div class="mobile-checklist spell-circle-list">
+              @for (spell of spells; track spell.id_spell) {
+                <label class="mobile-check-row"
+                       [class.skill-unavailable]="isSpellCheckboxDisabled(spell) && !isSpellSelected(spell)">
+                  <input type="checkbox" class="retro-checkbox"
+                         [checked]="isSpellSelected(spell)"
+                         [disabled]="isSpellCheckboxDisabled(spell)"
+                         (change)="toggleSpell(spell, $event)">
                   <span class="mobile-item-info">
                     <span>{{ spell.name }}</span>
-                    <span class="item-hint details-link" (click)="openSpellModal(spell); $event.stopPropagation(); $event.preventDefault()">Detalhes</span>
+                    <span class="item-hint details-link"
+                          (click)="openSpellModal(spell); $event.stopPropagation(); $event.preventDefault()">
+                      Detalhes
+                    </span>
                   </span>
                 </label>
               }
             </div>
-            <div class="pagination">
-              <button class="retro-btn pagination-btn" (click)="spellsPrevPage()" [disabled]="spellsPage === 0">◀</button>
-              <span>{{ spellsPage + 1 }} / {{ spellsTotalPages }}</span>
-              <button class="retro-btn pagination-btn" (click)="spellsNextPage()" [disabled]="spellsPage === spellsTotalPages - 1">▶</button>
-            </div>
+
           </fieldset>
 
+          @if (showStepError) {
+            <p class="step-error-msg">Preencha todas as informações necessárias antes de continuar.</p>
+          }
           <div class="mobile-wizard-actions">
             <button class="retro-btn mobile-secondary-btn" (click)="prevStep()">← VOLTAR</button>
             <button class="retro-btn" (click)="nextStep()">CONFIRMAR →</button>
@@ -165,17 +190,33 @@
       @case (4) {
         <fieldset class="mobile-wizard-panel">
           <legend>PERÍCIAS</legend>
-          <p class="mobile-panel-subtitle">SELECIONE AS PERÍCIAS</p>
+          <p class="mobile-panel-subtitle">
+            SELECIONE AS PERÍCIAS
+            <span class="skill-counter">{{ selectedChoicesCount }}/{{ maxSkillChoices }}</span>
+          </p>
           <div class="mobile-checklist">
             @for (skill of availableSkills; track skill.id_skill) {
-              <label class="mobile-check-row">
-                <input type="checkbox" class="retro-checkbox" (change)="toggleArrayItem('skills', skill, $event)">
-                <span>{{ skill.name }} <span class="skill-attribute">({{ skill.attribute_name }})</span></span>
+              <label class="mobile-check-row"
+                     [class.skill-granted]="isSkillGranted(skill)"
+                     [class.skill-unavailable]="isSkillCheckboxDisabled(skill) && !isSkillSelected(skill)">
+                <input type="checkbox" class="retro-checkbox"
+                       [checked]="isSkillSelected(skill)"
+                       [disabled]="isSkillCheckboxDisabled(skill)"
+                       (change)="toggleSkill(skill, $event)">
+                <span>
+                  {{ skill.name }} <span class="skill-attribute">({{ skill.attribute_name }})</span>
+                  @if (isSkillGranted(skill)) {
+                    <span class="skill-badge">Raça</span>
+                  }
+                </span>
               </label>
             }
           </div>
         </fieldset>
 
+        @if (showStepError) {
+          <p class="step-error-msg">Preencha todas as informações necessárias antes de continuar.</p>
+        }
         <div class="mobile-wizard-actions">
           <button class="retro-btn mobile-secondary-btn" (click)="prevStep()">← VOLTAR</button>
           <button class="retro-btn" (click)="nextStep()">CONFIRMAR →</button>
@@ -193,9 +234,10 @@
               <span>Nenhuma</span>
             </label>
             @for (armour of availableArmours; track armour.id_armour) {
-              <label class="mobile-check-row">
+              <label class="mobile-check-row" [class.skill-unavailable]="!isArmourAvailable(armour)">
                 <input type="radio" name="mobile-armour" class="retro-checkbox"
                        [checked]="characterData.equipment.armour?.id_armour === armour.id_armour"
+                       [disabled]="!isArmourAvailable(armour)"
                        (change)="selectArmour(armour)">
                 <span class="mobile-item-info">
                   <span>{{ armour.name }}</span>
@@ -204,12 +246,21 @@
               </label>
             }
           </div>
-          <label class="shield-label">
-            <input type="checkbox" class="retro-checkbox" [(ngModel)]="characterData.equipment.has_shield">
+          <label class="shield-label" [class.skill-unavailable]="!shieldAllowed">
+            <input type="checkbox" class="retro-checkbox"
+                   [(ngModel)]="characterData.equipment.has_shield"
+                   [disabled]="!shieldAllowed">
             ESCUDO
           </label>
         </fieldset>
 
+        <div class="mobile-wizard-actions">
+          <button class="retro-btn mobile-secondary-btn" (click)="prevStep()">← VOLTAR</button>
+          <button class="retro-btn" (click)="nextStep()">CONFIRMAR →</button>
+        </div>
+      }
+
+      @case (6) {
         <fieldset class="mobile-wizard-panel">
           <legend>ARMAS</legend>
           <p class="mobile-panel-subtitle">SELECIONE AS ARMAS</p>
@@ -237,7 +288,7 @@
         </div>
       }
 
-      @case (6) {
+      @case (7) {
         <div class="mobile-summary">
 
           <div class="mobile-portrait-row">
@@ -330,14 +381,14 @@
           <div class="grid-2-col">
             <label>NÍVEL <input type="number" [(ngModel)]="characterData.core_build.level" min="1" max="20"></label>
             <label>RAÇA
-              <select [(ngModel)]="characterData.core_build.id_race">
+              <select [(ngModel)]="characterData.core_build.id_race" (ngModelChange)="onRaceChange()">
                 @for (race of availableRaces; track race.id_race) {
                   <option [value]="race.id_race">{{ race.name }}</option>
                 }
               </select>
             </label>
             <label>CLASSE
-              <select [(ngModel)]="characterData.core_build.id_class">
+              <select [(ngModel)]="characterData.core_build.id_class" (ngModelChange)="onClassChange()">
                 @for (cls of availableClasses; track cls.id_class) {
                   <option [value]="cls.id_class">{{ cls.name }}</option>
                 }
@@ -367,6 +418,9 @@
             </label>
           </div>
         </fieldset>
+        @if (showStepError) {
+          <p class="step-error-msg">Preencha todas as informações necessárias antes de continuar.</p>
+        }
         <button class="retro-btn" (click)="nextStep()">CONFIRMAR</button>
         <button class="retro-btn secondary" style="margin-right: 35px;" (click)="goHome()">VOLTAR</button>
       }
@@ -442,6 +496,9 @@
           }
 
         </fieldset>
+        @if (showStepError) {
+          <p class="step-error-msg">Preencha todas as informações necessárias antes de continuar.</p>
+        }
     <button class="retro-btn" (click)="nextStep()">CONFIRMAR</button>
     <button class="retro-btn secondary" style="margin-right: 35px;" (click)="prevStep()">VOLTAR</button>
     }
@@ -449,29 +506,38 @@
       @case (3) {
         @if (hasMagic()) {
         <fieldset class="retro-panel">
-          <legend>MAGIAS</legend>
+          <legend>MAGIAS — {{ circleName(currentSpellCircle) }}</legend>
 
-          <p class="panel-subtitle">SELECIONE AS MAGIAS</p>
-
-          <div class="grid-2-col checkboxes">
-            @for (spell of pagedSpells; track spell.id_spell) {
-            <label>
-              <input type="checkbox" class="retro-checkbox" (change)="toggleArrayItem('spells', spell, $event)">
-              <span class="item-info">
-                <span>{{ spell.name }}</span>
-                <span class="item-hint details-link" (click)="openSpellModal(spell); $event.stopPropagation(); $event.preventDefault()">Detalhes</span>
-              </span>
-            </label>
+          @let spells = spellsByCircle.get(currentSpellCircle) ?? [];
+          @let selected = selectedSpellCountByCircle(currentSpellCircle);
+          @let limit = spellLimitForCircle(currentSpellCircle);
+          <p class="panel-subtitle">
+            {{ circleName(currentSpellCircle) }}
+            <span class="skill-counter">{{ selected }}/{{ limit }}</span>
+          </p>
+          <div class="grid-2-col checkboxes spell-circle-list">
+            @for (spell of spells; track spell.id_spell) {
+              <label [class.skill-unavailable]="isSpellCheckboxDisabled(spell) && !isSpellSelected(spell)">
+                <input type="checkbox" class="retro-checkbox"
+                       [checked]="isSpellSelected(spell)"
+                       [disabled]="isSpellCheckboxDisabled(spell)"
+                       (change)="toggleSpell(spell, $event)">
+                <span class="item-info">
+                  <span>{{ spell.name }}</span>
+                  <span class="item-hint details-link"
+                        (click)="openSpellModal(spell); $event.stopPropagation(); $event.preventDefault()">
+                    Detalhes
+                  </span>
+                </span>
+              </label>
             }
           </div>
 
-          <div class="pagination">
-            <button class="retro-btn pagination-btn" (click)="spellsPrevPage()" [disabled]="spellsPage === 0">◀</button>
-            <span>{{ spellsPage + 1 }} / {{ spellsTotalPages }}</span>
-            <button class="retro-btn pagination-btn" (click)="spellsNextPage()" [disabled]="spellsPage === spellsTotalPages - 1">▶</button>
-          </div>
         </fieldset>
 
+        @if (showStepError) {
+          <p class="step-error-msg">Preencha todas as informações necessárias antes de continuar.</p>
+        }
         <button class="retro-btn" (click)="nextStep()">CONFIRMAR</button>
         <button class="retro-btn secondary" style="margin-right: 35px;" (click)="prevStep()">VOLTAR</button>
         }
@@ -480,17 +546,29 @@
       @case (4) {
         <fieldset class="retro-panel">
           <legend>PERÍCIAS</legend>
-          <p class="panel-subtitle">SELECIONE AS PERÍCIAS</p>
+          <p class="panel-subtitle">
+            SELECIONE AS PERÍCIAS
+            <span class="skill-counter">{{ selectedChoicesCount }}/{{ maxSkillChoices }}</span>
+          </p>
           <div class="grid-2-col checkboxes">
             @for (skill of availableSkills; track skill.id_skill) {
-              <label>
+              <label [class.skill-granted]="isSkillGranted(skill)"
+                     [class.skill-unavailable]="isSkillCheckboxDisabled(skill) && !isSkillSelected(skill)">
                 <input type="checkbox" class="retro-checkbox"
-                       (change)="toggleArrayItem('skills', skill, $event)">
+                       [checked]="isSkillSelected(skill)"
+                       [disabled]="isSkillCheckboxDisabled(skill)"
+                       (change)="toggleSkill(skill, $event)">
                 {{ skill.name }} <span class="skill-attribute">({{ skill.attribute_name }})</span>
+                @if (isSkillGranted(skill)) {
+                  <span class="skill-badge">Raça</span>
+                }
               </label>
             }
           </div>
         </fieldset>
+        @if (showStepError) {
+          <p class="step-error-msg">Preencha todas as informações necessárias antes de continuar.</p>
+        }
         <button class="retro-btn" (click)="nextStep()">CONFIRMAR</button>
         <button class="retro-btn secondary" style="margin-right: 35px;" (click)="prevStep()">VOLTAR</button>
       }
@@ -507,9 +585,10 @@
               <span class="item-info"><span>Nenhuma</span></span>
             </label>
             @for (armour of availableArmours; track armour.id_armour) {
-              <label>
+              <label [class.skill-unavailable]="!isArmourAvailable(armour)">
                 <input type="radio" name="armour" class="retro-checkbox"
                        [checked]="characterData.equipment.armour?.id_armour === armour.id_armour"
+                       [disabled]="!isArmourAvailable(armour)"
                        (change)="selectArmour(armour)">
                 <span class="item-info">
                   <span>{{ armour.name }}</span>
@@ -518,12 +597,19 @@
               </label>
             }
           </div>
-          <label class="shield-label">
-            <input type="checkbox" class="retro-checkbox" [(ngModel)]="characterData.equipment.has_shield">
+          <label class="shield-label" [class.skill-unavailable]="!shieldAllowed">
+            <input type="checkbox" class="retro-checkbox"
+                   [(ngModel)]="characterData.equipment.has_shield"
+                   [disabled]="!shieldAllowed">
             ESCUDO
           </label>
         </fieldset>
 
+        <button class="retro-btn" (click)="nextStep()">CONFIRMAR</button>
+        <button class="retro-btn secondary" style="margin-right: 35px;" (click)="prevStep()">VOLTAR</button>
+      }
+
+      @case (6) {
         <fieldset class="retro-panel">
           <legend>ARMAS</legend>
           <p class="panel-subtitle">SELECIONE AS ARMAS</p>
@@ -551,7 +637,7 @@
         <button class="retro-btn secondary" style="margin-right: 35px;" (click)="prevStep()">VOLTAR</button>
       }
 
-      @case (6) {
+      @case (7) {
         <div class="sheet-layout">
           <div class="left-col">
             <div class="portrait-box" (click)="openAvatarPicker()" title="Escolher avatar">
