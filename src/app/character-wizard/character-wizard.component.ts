@@ -10,6 +10,9 @@ import { LoadingOverlayService } from '../loading-overlay/loading-overlay.servic
 import { CharacterService } from '../services/character.service';
 import { AvatarPickerModalComponent } from '../avatar-picker-modal/avatar-picker-modal.component';
 import { Avatar } from '../constants/avatars';
+import { CLASS_SKILL_RULES, RACE_SKILL_RULES } from '../constants/skill-rules';
+import { CLASS_SPELLS, getSpellLimits, SpellLimits } from '../constants/spell-rules';
+import { CLASS_ARMOUR_RULES } from '../constants/armour-rules';
 
 type AttributeKey = 'FOR' | 'DES' | 'CON' | 'INT' | 'SAB' | 'CAR';
 
@@ -28,6 +31,8 @@ export class CharacterWizardComponent implements OnInit {
 
   currentStep = 1;
   dragonTrigger = 0;
+  spellCircleStep = 0;
+  showStepError = false;
 
   showSuccess = false;
   showAvatarPicker = signal(false);
@@ -118,15 +123,61 @@ export class CharacterWizardComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
+  private isCurrentStepValid(): boolean {
+    switch (this.currentStep) {
+      case 1:
+        return (
+          +this.characterData.core_build.id_race !== 0 &&
+          +this.characterData.core_build.id_class !== 0 &&
+          +this.characterData.core_build.id_background !== 0 &&
+          this.characterData.character_details.name.trim() !== '' &&
+          +this.characterData.character_details.id_alignment !== 0
+        );
+      case 2:
+        if (this.characterData.attributes.generation_method === 'point_buy') return true;
+        return this.attributesList.every(attr => this.characterData.attributes.base_values[attr] !== 0);
+      case 3: {
+        const circle = this.currentSpellCircle;
+        const limit = this.spellLimitForCircle(circle);
+        const available = (this.spellsByCircle.get(circle) ?? []).length;
+        return this.selectedSpellCountByCircle(circle) >= Math.min(limit, available);
+      }
+      case 4:
+        return this.maxSkillChoices === 0 || this.selectedChoicesCount >= this.maxSkillChoices;
+      default:
+        return true;
+    }
+  }
+
   nextStep() {
+    if (!this.isCurrentStepValid()) {
+      this.showStepError = true;
+      return;
+    }
+    this.showStepError = false;
     this.dragonTrigger++;
 
     if (this.currentStep === 2 && !this.hasMagic()) {
       this.currentStep = 4;
+      this.syncGrantedSkills();
       return;
     }
 
-    if (this.currentStep < 6) this.currentStep++;
+    if (this.currentStep === 3) {
+      if (this.spellCircleStep < this.accessibleCircles.length - 1) {
+        this.spellCircleStep++;
+      } else {
+        this.currentStep = 4;
+        this.syncGrantedSkills();
+      }
+      return;
+    }
+
+    if (this.currentStep < 7) {
+      this.currentStep++;
+      if (this.currentStep === 3) this.spellCircleStep = 0;
+      if (this.currentStep === 4) this.syncGrantedSkills();
+    }
   }
 
   goHome() {
@@ -134,12 +185,150 @@ export class CharacterWizardComponent implements OnInit {
   }
 
   prevStep() {
+    this.showStepError = false;
     if (this.currentStep === 4 && !this.hasMagic()) {
       this.currentStep = 2;
       return;
     }
 
+    if (this.currentStep === 4 && this.hasMagic()) {
+      this.currentStep = 3;
+      this.spellCircleStep = this.accessibleCircles.length - 1;
+      return;
+    }
+
+    if (this.currentStep === 3) {
+      if (this.spellCircleStep > 0) {
+        this.spellCircleStep--;
+      } else {
+        this.currentStep = 2;
+      }
+      return;
+    }
+
     if (this.currentStep > 1) this.currentStep--;
+  }
+
+  /** ========================= CLASS / RACE CHANGE ========================= */
+
+  onClassChange(): void {
+    const cls = this.availableClasses.find(c => +c.id_class === +this.characterData.core_build.id_class);
+    this.characterData.core_build.class = cls?.name ?? '';
+    this.resetAllChoices();
+  }
+
+  onRaceChange(): void {
+    const race = this.availableRaces.find(r => +r.id_race === +this.characterData.core_build.id_race);
+    this.characterData.core_build.race = race?.name ?? '';
+    this.resetAllChoices();
+  }
+
+  private resetAllChoices(): void {
+    this.resetSkillChoices();
+    this.characterData.choices.spells = [];
+    this.characterData.equipment.armour = null;
+    this.characterData.equipment.has_shield = false;
+    this.characterData.equipment.weapons = [];
+    this.spellCircleStep = 0;
+    this.weaponsPage = 0;
+    this.showStepError = false;
+  }
+
+  private resetSkillChoices(): void {
+    const granted = this.grantedSkills;
+    this.characterData.choices.skills = [...granted];
+  }
+
+  private syncGrantedSkills(): void {
+    const granted = this.grantedSkills;
+    for (const skill of granted) {
+      if (!this.characterData.choices.skills.some(s => s.id_skill === skill.id_skill)) {
+        this.characterData.choices.skills.push(skill);
+      }
+    }
+  }
+
+  /** ========================= SKILL STATE ========================= */
+
+  get grantedSkillIds(): Set<number> {
+    const rule = RACE_SKILL_RULES[+this.characterData.core_build.id_race];
+    return new Set(rule?.granted ?? []);
+  }
+
+  get choosableSkillIds(): Set<number> {
+    const classRule = CLASS_SKILL_RULES[+this.characterData.core_build.id_class];
+    const raceRule = RACE_SKILL_RULES[+this.characterData.core_build.id_race];
+    const grantedIds = this.grantedSkillIds;
+    const allIds = this.availableSkills.map(s => s.id_skill);
+
+    // Race com extraChoices livres expande para todas as skills
+    const raceExpandsAll = raceRule?.extraChoices && (!raceRule.extraFrom || raceRule.extraFrom.length === 0);
+
+    let pool: number[];
+    if (!classRule || classRule.from.length === 0 || raceExpandsAll) {
+      pool = allIds;
+    } else {
+      pool = classRule.from;
+    }
+
+    return new Set(pool.filter(id => !grantedIds.has(id)));
+  }
+
+  get maxSkillChoices(): number {
+    const classRule = CLASS_SKILL_RULES[+this.characterData.core_build.id_class];
+    const raceRule = RACE_SKILL_RULES[+this.characterData.core_build.id_race];
+    return (classRule?.choices ?? 0) + (raceRule?.extraChoices ?? 0);
+  }
+
+  get selectedChoicesCount(): number {
+    const grantedIds = this.grantedSkillIds;
+    return this.characterData.choices.skills.filter(s => !grantedIds.has(s.id_skill)).length;
+  }
+
+  get grantedSkills(): Skill[] {
+    const ids = this.grantedSkillIds;
+    return this.availableSkills.filter(s => ids.has(s.id_skill));
+  }
+
+  isSkillGranted(skill: Skill): boolean {
+    return this.grantedSkillIds.has(skill.id_skill);
+  }
+
+  isSkillChoosable(skill: Skill): boolean {
+    return this.choosableSkillIds.has(skill.id_skill);
+  }
+
+  isSkillSelected(skill: Skill): boolean {
+    return this.characterData.choices.skills.some(s => s.id_skill === skill.id_skill);
+  }
+
+  isSkillCheckboxDisabled(skill: Skill): boolean {
+    if (this.isSkillGranted(skill)) return true;
+    if (!this.isSkillChoosable(skill)) return true;
+    if (!this.isSkillSelected(skill) && this.selectedChoicesCount >= this.maxSkillChoices) return true;
+    return false;
+  }
+
+  toggleSkill(skill: Skill, event: Event): void {
+    const isChecked = (event.target as HTMLInputElement).checked;
+
+    if (this.isSkillGranted(skill)) {
+      (event.target as HTMLInputElement).checked = true;
+      return;
+    }
+
+    if (isChecked) {
+      if (this.selectedChoicesCount >= this.maxSkillChoices) {
+        (event.target as HTMLInputElement).checked = false;
+        return;
+      }
+      if (!this.characterData.choices.skills.some(s => s.id_skill === skill.id_skill)) {
+        this.characterData.choices.skills.push(skill);
+      }
+    } else {
+      const idx = this.characterData.choices.skills.findIndex(s => s.id_skill === skill.id_skill);
+      if (idx > -1) this.characterData.choices.skills.splice(idx, 1);
+    }
   }
 
   /** ========================= MAGIC ========================= */
@@ -147,6 +336,92 @@ export class CharacterWizardComponent implements OnInit {
   hasMagic(): boolean {
     const magicClasses = ["2", "3", "4", "5", "6", "9", "11", "12"];
     return magicClasses.includes(this.characterData.core_build.id_class.toString());
+  }
+
+  /** ========================= SPELL STATE ========================= */
+
+  get currentSpellLimits(): SpellLimits {
+    return getSpellLimits(
+      +this.characterData.core_build.id_class,
+      +this.characterData.core_build.level
+    );
+  }
+
+  get classSpellIds(): Set<number> {
+    return new Set(CLASS_SPELLS[+this.characterData.core_build.id_class] ?? []);
+  }
+
+  get spellsByCircle(): Map<number, Spell[]> {
+    const ids = this.classSpellIds;
+    const map = new Map<number, Spell[]>();
+    for (const spell of this.availableSpells) {
+      if (!ids.has(spell.id_spell)) continue;
+      const lvl = spell.spellLevel;
+      if (!map.has(lvl)) map.set(lvl, []);
+      map.get(lvl)!.push(spell);
+    }
+    return map;
+  }
+
+  get accessibleCircles(): number[] {
+    const limits = this.currentSpellLimits;
+    const circles: number[] = [];
+    if (limits.cantrips > 0) circles.push(0);
+    for (let i = 1; i <= 9; i++) {
+      if ((limits.byCircle[i] ?? 0) > 0) circles.push(i);
+    }
+    return circles;
+  }
+
+  get currentSpellCircle(): number {
+    return this.accessibleCircles[this.spellCircleStep] ?? 0;
+  }
+
+  selectedSpellCountByCircle(circle: number): number {
+    return this.characterData.choices.spells.filter(s => s.spellLevel === circle).length;
+  }
+
+  spellLimitForCircle(circle: number): number {
+    return circle === 0
+      ? this.currentSpellLimits.cantrips
+      : (this.currentSpellLimits.byCircle[circle] ?? 0);
+  }
+
+  isSpellAvailable(spell: Spell): boolean {
+    return this.classSpellIds.has(spell.id_spell);
+  }
+
+  isSpellSelected(spell: Spell): boolean {
+    return this.characterData.choices.spells.some(s => s.id_spell === spell.id_spell);
+  }
+
+  isSpellCheckboxDisabled(spell: Spell): boolean {
+    if (!this.isSpellAvailable(spell)) return true;
+    const limit = this.spellLimitForCircle(spell.spellLevel);
+    if (limit === 0) return true;
+    if (!this.isSpellSelected(spell) && this.selectedSpellCountByCircle(spell.spellLevel) >= limit) return true;
+    return false;
+  }
+
+  toggleSpell(spell: Spell, event: Event): void {
+    const isChecked = (event.target as HTMLInputElement).checked;
+    if (isChecked) {
+      const limit = this.spellLimitForCircle(spell.spellLevel);
+      if (this.selectedSpellCountByCircle(spell.spellLevel) >= limit) {
+        (event.target as HTMLInputElement).checked = false;
+        return;
+      }
+      if (!this.characterData.choices.spells.some(s => s.id_spell === spell.id_spell)) {
+        this.characterData.choices.spells.push(spell);
+      }
+    } else {
+      const idx = this.characterData.choices.spells.findIndex(s => s.id_spell === spell.id_spell);
+      if (idx > -1) this.characterData.choices.spells.splice(idx, 1);
+    }
+  }
+
+  circleName(circle: number): string {
+    return circle === 0 ? 'TRUQUES' : `${circle}º CÍRCULO`;
   }
 
   /** ========================= WEAPON PAGINATION ========================= */
@@ -390,6 +665,28 @@ export class CharacterWizardComponent implements OnInit {
   }
 
   /** ========================= ARMOUR SELECTION ========================= */
+
+  get allowedArmourTypes(): Set<string> {
+    const rule = CLASS_ARMOUR_RULES[+this.characterData.core_build.id_class];
+    return new Set(rule?.types ?? []);
+  }
+
+  get shieldAllowed(): boolean {
+    return CLASS_ARMOUR_RULES[+this.characterData.core_build.id_class]?.shield ?? false;
+  }
+
+  isArmourAvailable(armour: Armour): boolean {
+    return !!armour.armour_type && this.allowedArmourTypes.has(armour.armour_type);
+  }
+
+  private resetArmourChoices(): void {
+    if (this.characterData.equipment.armour && !this.isArmourAvailable(this.characterData.equipment.armour)) {
+      this.characterData.equipment.armour = null;
+    }
+    if (!this.shieldAllowed) {
+      this.characterData.equipment.has_shield = false;
+    }
+  }
 
   selectArmour(armour: Armour | null) {
     this.characterData.equipment.armour = armour;
