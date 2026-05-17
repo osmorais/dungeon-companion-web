@@ -289,79 +289,17 @@
       }
 
       @case (7) {
-        <div class="mobile-summary">
-
-          <div class="mobile-portrait-row">
-            <div class="mobile-portrait-box" (click)="openAvatarPicker()" title="Escolher avatar">
-              @if (avatarUrl()) {
-                <img [src]="avatarUrl()!" alt="Avatar do personagem" />
-              } @else {
-                <span class="portrait-placeholder">?</span>
-              }
-              <div class="portrait-overlay">✎</div>
-            </div>
-            <div class="mobile-char-info">
-              <h2 class="mobile-char-name">{{ characterData.character_details.name || 'Sem Nome' }}</h2>
-              <p>Lvl {{ characterData.core_build.level }} {{ characterData.core_build.race }} {{ characterData.core_build.class }}</p>
-              <p>{{ characterData.character_details.alignment }}</p>
-              <p>{{ characterData.character_details.age }} anos</p>
-            </div>
-          </div>
-
-          <fieldset class="mobile-wizard-panel">
-            <legend>ATRIBUTOS</legend>
-            <div class="mobile-stats-grid-6">
-              <div class="mobile-stat-cell"><span>FOR</span><span>{{ characterData.attributes.base_values.FOR }}</span></div>
-              <div class="mobile-stat-cell"><span>DES</span><span>{{ characterData.attributes.base_values.DES }}</span></div>
-              <div class="mobile-stat-cell"><span>CON</span><span>{{ characterData.attributes.base_values.CON }}</span></div>
-              <div class="mobile-stat-cell"><span>INT</span><span>{{ characterData.attributes.base_values.INT }}</span></div>
-              <div class="mobile-stat-cell"><span>SAB</span><span>{{ characterData.attributes.base_values.SAB }}</span></div>
-              <div class="mobile-stat-cell"><span>CAR</span><span>{{ characterData.attributes.base_values.CAR }}</span></div>
-            </div>
-          </fieldset>
-
-          <fieldset class="mobile-wizard-panel">
-            <legend>COMBATE</legend>
-            <p>Armadura: {{ characterData.equipment.armour?.name || 'Nenhuma' }}</p>
-            <p>Escudo: {{ characterData.equipment.has_shield ? 'Equipado' : 'Nenhum' }}</p>
-          </fieldset>
-
-          <fieldset class="mobile-wizard-panel">
-            <legend>PERÍCIAS</legend>
-            <ul class="mobile-list">
-              @for (skill of characterData.choices.skills; track skill.id_skill) {
-                <li>> {{ skill.name }}</li>
-              }
-            </ul>
-          </fieldset>
-
-          <fieldset class="mobile-wizard-panel">
-            <legend>ARMAS</legend>
-            <ul class="mobile-list">
-              @for (weapon of characterData.equipment.weapons; track weapon.name) {
-                <li>[x] {{ weapon.name }}</li>
-              }
-              @if (characterData.equipment.weapons.length === 0) {
-                <li>Nenhuma arma selecionada</li>
-              }
-            </ul>
-          </fieldset>
-
-          @if (hasMagic()) {
-            <fieldset class="mobile-wizard-panel">
-              <legend>MAGIAS CONHECIDAS</legend>
-              <ul class="mobile-list">
-                @for (spell of characterData.choices.spells; track spell.id_spell) {
-                  <li>[x] {{ spell.name }}</li>
-                }
-              </ul>
-            </fieldset>
+        <fieldset class="mobile-wizard-panel">
+          <legend>AVATAR</legend>
+          @if (characterData.avatar_preset) {
+            <app-avatar-customizer
+              [preset]="characterData.avatar_preset"
+              (presetChange)="onPresetChange($event)" />
           }
-
-        </div>
+        </fieldset>
 
         <div class="mobile-wizard-actions">
-          <button class="retro-btn mobile-secondary-btn" (click)="currentStep = 1">← EDITAR</button>
+          <button class="retro-btn mobile-secondary-btn" (click)="prevStep()">← VOLTAR</button>
           <button class="retro-btn mobile-primary-btn" (click)="saveCharacter()">SALVAR →</button>
         </div>
       }
@@ -639,78 +577,17 @@
       }
 
       @case (7) {
-        <div class="sheet-layout">
-          <div class="left-col">
-            <div class="portrait-box" (click)="openAvatarPicker()" title="Escolher avatar">
-              @if (avatarUrl()) {
-                <img [src]="avatarUrl()!" alt="Avatar do personagem" />
-              } @else {
-                <span class="portrait-placeholder">?</span>
-              }
-              <div class="portrait-overlay">✎</div>
-            </div>
-            <h2 class="char-name">{{ characterData.character_details.name || 'Sem Nome' }}</h2>
-            <p>Lvl {{ characterData.core_build.level }} {{ characterData.core_build.race }} {{ characterData.core_build.class }}</p>
-            <p>{{ characterData.character_details.alignment }}</p>
-            <p>{{ characterData.character_details.age }} anos</p>
-          </div>
-
-          <div class="right-col">
-            <fieldset class="retro-panel stats-panel">
-              <legend>ATRIBUTOS</legend>
-              <div class="stats-grid">
-                <div class="stat-box"><span>FOR</span><span>{{ characterData.attributes.base_values.FOR }}</span></div>
-                <div class="stat-box"><span>DES</span><span>{{ characterData.attributes.base_values.DES }}</span></div>
-                <div class="stat-box"><span>CON</span><span>{{ characterData.attributes.base_values.CON }}</span></div>
-                <div class="stat-box"><span>INT</span><span>{{ characterData.attributes.base_values.INT }}</span></div>
-                <div class="stat-box"><span>SAB</span><span>{{ characterData.attributes.base_values.SAB }}</span></div>
-                <div class="stat-box"><span>CAR</span><span>{{ characterData.attributes.base_values.CAR }}</span></div>
-              </div>
-            </fieldset>
-
-            <div class="grid-2-col">
-              <fieldset class="retro-panel">
-                <legend>COMBATE</legend>
-                <p>Armadura: {{ characterData.equipment.armour?.name || 'Nenhuma' }}</p>
-                <p>Escudo: {{ characterData.equipment.has_shield ? 'Equipado' : 'Nenhum' }}</p>
-              </fieldset>
-
-              <fieldset class="retro-panel">
-                <legend>PERÍCIAS</legend>
-                <ul>
-                  @for (skill of characterData.choices.skills; track skill.id_skill) {
-                    <li>> {{ skill.name }}</li>
-                  }
-                </ul>
-              </fieldset>
-            </div>
-
-            <fieldset class="retro-panel">
-              <legend>ARMAS</legend>
-              <ul class="weapons-list">
-                @for (weapon of characterData.equipment.weapons; track weapon.name) {
-                  <li>[x] {{ weapon.name }}</li>
-                }
-                @if (characterData.equipment.weapons.length === 0) {
-                  <li>Nenhuma arma selecionada</li>
-                }
-              </ul>
-            </fieldset>
-          @if (hasMagic()) {
-            <fieldset class="retro-panel">
-              <legend>MAGIAS CONHECIDAS</legend>
-              <ul class="magias-list">
-                @for (spell of characterData.choices.spells; track spell.id_spell) {
-                  <li>[x] {{ spell.name }}</li>
-                }
-              </ul>
-            </fieldset>
+        <fieldset class="retro-panel">
+          <legend>AVATAR</legend>
+          @if (characterData.avatar_preset) {
+            <app-avatar-customizer
+              [preset]="characterData.avatar_preset"
+              (presetChange)="onPresetChange($event)" />
           }
-          </div>
-        </div>
+        </fieldset>
 
         <div class="action-buttons">
-          <button class="retro-btn secondary" (click)="currentStep = 1">VOLTAR E EDITAR</button>
+          <button class="retro-btn secondary" (click)="prevStep()">VOLTAR</button>
           <button class="retro-btn primary" (click)="saveCharacter()">SALVAR PERSONAGEM</button>
         </div>
       }

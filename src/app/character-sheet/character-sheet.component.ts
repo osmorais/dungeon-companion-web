@@ -3,13 +3,16 @@ import { CommonModule, KeyValuePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { CharacterService } from '../services/character.service';
 import { Spell, WeaponRow } from '../models/character-options.interface';
+import { AvatarPreset } from '../models/avatar-preset.interface';
+import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
+import { AvatarCustomizerComponent } from '../avatar-customizer/avatar-customizer.component';
 
 type MobileTab = 'combat' | 'attrs' | 'skills' | 'traits' | 'equipment' | 'spells';
 
 @Component({
   selector: 'app-character-sheet',
   standalone: true,
-  imports: [CommonModule, KeyValuePipe],
+  imports: [CommonModule, KeyValuePipe, AvatarDisplayComponent, AvatarCustomizerComponent],
   templateUrl: './character-sheet.component.html',
   styleUrls: ['./character-sheet.component.scss'],
 })
@@ -102,5 +105,49 @@ export class CharacterSheetComponent {
 
   closeWeaponModal() {
     this.selectedWeapon = null;
+  }
+
+  /** ========================= AVATAR EDITOR ========================= */
+
+  showAvatarEditor = signal(false);
+  editingPreset = signal<AvatarPreset | null>(null);
+  savingAvatar = signal(false);
+
+  openAvatarEditor(): void {
+    const preset = this.sheetData()?.character_sheet.avatar_preset;
+    if (!preset) return;
+    this.editingPreset.set({ ...preset });
+    this.showAvatarEditor.set(true);
+  }
+
+  onEditPresetChange(preset: AvatarPreset): void {
+    this.editingPreset.set(preset);
+  }
+
+  saveAvatarPreset(): void {
+    const preset = this.editingPreset();
+    const id = this.sheetData()?.character_sheet.id_character;
+    if (!preset || !id) return;
+
+    this.savingAvatar.set(true);
+    this.charService.updateAvatarPreset(id, preset).subscribe({
+      next: () => {
+        const sheet = this.sheetData();
+        if (sheet) {
+          this.charService.currentCharacter.set({
+            ...sheet,
+            character_sheet: { ...sheet.character_sheet, avatar_preset: preset },
+          });
+        }
+        this.showAvatarEditor.set(false);
+        this.savingAvatar.set(false);
+      },
+      error: () => this.savingAvatar.set(false),
+    });
+  }
+
+  closeAvatarEditor(): void {
+    this.showAvatarEditor.set(false);
+    this.editingPreset.set(null);
   }
 }

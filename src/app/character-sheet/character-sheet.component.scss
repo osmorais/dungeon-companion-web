@@ -916,3 +916,61 @@ ul {
     text-align: center;
   }
 }
+/* ===== AVATAR EDITABLE ===== */
+
+.avatar-editable {
+  position: relative;
+  cursor: pointer;
+
+  .avatar-edit-hint {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    background: rgba(0, 0, 0, 0.65);
+    color: var(--accent-color);
+    font-size: 10px;
+    padding: 2px 5px;
+    border: 1px solid var(--border-color);
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  &:hover .avatar-edit-hint {
+    opacity: 1;
+  }
+}
+
+/* ===== AVATAR EDITOR MODAL ===== */
+
+.avatar-editor-modal {
+  width: 560px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  padding: 24px;
+}
+
+.avatar-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+
+  .avatar-modal-cancel {
+    background: transparent;
+    border-color: #555;
+    float: none;
+  }
+
+  .avatar-modal-save {
+    background-color: #00aa00;
+    border-color: #ffffff;
+    float: none;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}

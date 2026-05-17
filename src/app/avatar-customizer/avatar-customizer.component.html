@@ -1,0 +1,124 @@
+<div class="avatar-customizer-layout">
+
+  <!-- ===== PRÉ-VISUALIZAÇÃO ===== -->
+  <div class="avatar-preview-section">
+    <div class="avatar-canvas">
+      <img class="avatar-layer"
+           [src]="racePath" alt=""
+           [style.filter]="skinFilter"
+           (load)="showOnLoad($event)" (error)="hideOnError($event)">
+      <img class="avatar-layer"
+           [src]="clothesPath" alt=""
+           (load)="showOnLoad($event)" (error)="hideOnError($event)">
+      @if (beardPath) {
+        <img class="avatar-layer"
+             [src]="beardPath" alt=""
+             (load)="showOnLoad($event)" (error)="hideOnError($event)">
+      }
+      @if (hairPath) {
+        <img class="avatar-layer"
+             [src]="hairPath" alt=""
+             (load)="showOnLoad($event)" (error)="hideOnError($event)">
+      }
+    </div>
+    <p class="preview-label">PRÉ-VISUALIZAÇÃO</p>
+  </div>
+
+  <!-- ===== CONTROLES ===== -->
+  <div class="customizer-controls">
+
+    <!-- ROUPA -->
+    <div class="ctrl-group">
+      <span class="ctrl-label">ROUPA</span>
+      <select [ngModel]="localPreset.classKey" (ngModelChange)="selectClassKey($event)">
+        @for (cls of classes; track cls.key) {
+          <option [value]="cls.key">{{ cls.label }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- COR DE PELE -->
+    <div class="ctrl-group">
+      <span class="ctrl-label">COR DE PELE</span>
+      <div class="color-swatch-group">
+        @for (skin of skinColors; track skin.key) {
+          <button class="color-swatch"
+                  [class.active]="localPreset.skinColor === skin.key"
+                  [style.background-color]="skin.hex"
+                  [title]="skin.label"
+                  (click)="selectSkinColor(skin.key)">
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- ESTILO DE CABELO -->
+    <div class="ctrl-group">
+      <span class="ctrl-label">ESTILO DE CABELO</span>
+      <div class="option-btn-group">
+        <button class="opt-btn" [class.active]="!localPreset.hairStyle"
+                (click)="selectHairStyle(null)">
+          Nenhum
+        </button>
+        @for (style of hairStyles; track style.key) {
+          <button class="opt-btn" [class.active]="localPreset.hairStyle === style.key"
+                  (click)="selectHairStyle(style.key)">
+            {{ style.label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- COR DO CABELO -->
+    @if (localPreset.hairStyle) {
+      <div class="ctrl-group">
+        <span class="ctrl-label">COR DO CABELO</span>
+        <div class="color-swatch-group">
+          @for (color of hairColors; track color.key) {
+            <button class="color-swatch"
+                    [class.active]="localPreset.hairColor === color.key"
+                    [style.background-color]="color.hex"
+                    [title]="color.label"
+                    (click)="selectHairColor(color.key)">
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- BARBA -->
+    <div class="ctrl-group">
+      <span class="ctrl-label">BARBA</span>
+      <div class="option-btn-group">
+        <button class="opt-btn" [class.active]="!localPreset.beardStyle"
+                (click)="selectBeardStyle(null)">
+          Nenhuma
+        </button>
+        @for (style of beardStyles; track style.key) {
+          <button class="opt-btn" [class.active]="localPreset.beardStyle === style.key"
+                  (click)="selectBeardStyle(style.key)">
+            {{ style.label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- COR DA BARBA -->
+    @if (localPreset.beardStyle) {
+      <div class="ctrl-group">
+        <span class="ctrl-label">COR DA BARBA</span>
+        <div class="color-swatch-group">
+          @for (color of hairColors; track color.key) {
+            <button class="color-swatch"
+                    [class.active]="localPreset.beardColor === color.key"
+                    [style.background-color]="color.hex"
+                    [title]="color.label"
+                    (click)="selectBeardColor(color.key)">
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+  </div>
+</div>

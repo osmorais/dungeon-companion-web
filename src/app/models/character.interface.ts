@@ -1,4 +1,5 @@
 import { Armour, Skill, Spell, WeaponRow } from './character-options.interface';
+import { AvatarPreset } from './avatar-preset.interface';
 
 export interface CharacterSheetData {
   core_build: {
@@ -38,4 +39,5 @@ export interface CharacterSheetData {
     alignment: string;
     age: number;
   };
+  avatar_preset?: AvatarPreset;
 }
