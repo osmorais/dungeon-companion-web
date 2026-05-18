@@ -20,6 +20,11 @@
              [src]="hairPath" alt=""
              (load)="showOnLoad($event)" (error)="hideOnError($event)">
       }
+      @if (smilePath) {
+        <img class="avatar-layer"
+             [src]="smilePath" alt=""
+             (load)="showOnLoad($event)" (error)="hideOnError($event)">
+      }
     </div>
     <p class="preview-label">PRÉ-VISUALIZAÇÃO</p>
   </div>
@@ -102,6 +107,23 @@
         }
       </div>
     </div>
+
+    <!-- SORRISO -->
+    @if (canShowSmile) {
+      <div class="ctrl-group">
+        <span class="ctrl-label">SORRISO</span>
+        <div class="option-btn-group">
+          <button class="opt-btn" [class.active]="!localPreset.showSmile"
+                  (click)="selectSmile(false)">
+            Nenhum
+          </button>
+          <button class="opt-btn" [class.active]="localPreset.showSmile"
+                  (click)="selectSmile(true)">
+            Sorriso
+          </button>
+        </div>
+      </div>
+    }
 
     <!-- COR DA BARBA -->
     @if (localPreset.beardStyle) {

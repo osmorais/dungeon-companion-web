@@ -1,18 +1,19 @@
 export type AvatarRace = 'human' | 'elf' | 'dwarf' | 'dragonborn' | 'gnome' | 'half_elf' | 'half_orc' | 'halfling' | 'tiefling';
 export type AvatarClass = 'barbarian' | 'bard' | 'warlock' | 'cleric' | 'druid' | 'sorcerer' | 'fighter' | 'rogue' | 'wizard' | 'monk' | 'paladin' | 'ranger';
-export type HairStyle = 'hair_long_01' | 'hair_short_01' | 'hair_short_02';
-export type BeardStyle = 'beard_01' | 'beard_02';
+export type HairStyle = 'hair_long_01' | 'hair_long_02' | 'hair_short_01' | 'hair_short_02' | 'hair_short_03';
+export type BeardStyle = 'beard_01' | 'beard_02' | 'beard_03';
 export type HairColor = 'blond' | 'grey' | 'lbrown' | 'red';
 export type SkinColor = 'pale' | 'light' | 'medium' | 'tan' | 'dark' | 'very_dark';
 
 export interface AvatarPreset {
   race: AvatarRace;
-  classKey: AvatarClass;
+  classKey: AvatarClass | null;
   skinColor: SkinColor;
   hairStyle: HairStyle | null;
   hairColor: HairColor;
   beardStyle: BeardStyle | null;
   beardColor: HairColor | null;
+  showSmile: boolean;
 }
 
 export const AVATAR_RACES: { key: AvatarRace; label: string }[] = [
@@ -45,12 +46,15 @@ export const AVATAR_CLASSES: { key: AvatarClass; label: string }[] = [
 export const AVATAR_HAIR_STYLES: { key: HairStyle; label: string }[] = [
   { key: 'hair_short_01', label: 'Curto 1' },
   { key: 'hair_short_02', label: 'Curto 2' },
-  { key: 'hair_long_01', label: 'Longo' },
+  { key: 'hair_short_03', label: 'Curto 3' },
+  { key: 'hair_long_01', label: 'Longo 1' },
+  { key: 'hair_long_02', label: 'Longo 2' },
 ];
 
 export const AVATAR_BEARD_STYLES: { key: BeardStyle; label: string }[] = [
   { key: 'beard_01', label: 'Barba 1' },
   { key: 'beard_02', label: 'Barba 2' },
+  { key: 'beard_03', label: 'Barba 3' },
 ];
 
 export const AVATAR_HAIR_COLORS: { key: HairColor; label: string; hex: string }[] = [

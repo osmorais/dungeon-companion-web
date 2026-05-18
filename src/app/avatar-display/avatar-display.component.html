@@ -13,6 +13,10 @@
       <img class="avatar-layer" [src]="hairPath" alt=""
            (load)="showOnLoad($event)" (error)="hideOnError($event)">
     }
+    @if (smilePath) {
+      <img class="avatar-layer" [src]="smilePath" alt=""
+           (load)="showOnLoad($event)" (error)="hideOnError($event)">
+    }
   </div>
 } @else {
   <div class="avatar-placeholder">?</div>

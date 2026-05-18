@@ -34,6 +34,11 @@ export class AvatarDisplayComponent {
     return `assets/avatar/beard/${this.preset.beardStyle}_${this.preset.beardColor}.png`;
   }
 
+  get smilePath(): string | null {
+    if (!this.preset?.showSmile) return null;
+    return `assets/avatar/mouth/smile.png`;
+  }
+
   showOnLoad(event: Event): void {
     (event.target as HTMLImageElement).style.display = '';
   }

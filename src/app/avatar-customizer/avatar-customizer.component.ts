@@ -60,6 +60,15 @@ export class AvatarCustomizerComponent implements OnInit {
     return `assets/avatar/beard/${this.localPreset.beardStyle}_${this.localPreset.beardColor}.png`;
   }
 
+  get smilePath(): string | null {
+    if (!this.localPreset.showSmile) return null;
+    return `assets/avatar/mouth/smile.png`;
+  }
+
+  get canShowSmile(): boolean {
+    return this.localPreset.race !== 'dragonborn';
+  }
+
   showOnLoad(event: Event): void {
     (event.target as HTMLImageElement).style.display = '';
   }
@@ -102,6 +111,11 @@ export class AvatarCustomizerComponent implements OnInit {
 
   selectBeardColor(beardColor: HairColor): void {
     this.localPreset = { ...this.localPreset, beardColor };
+    this.emit();
+  }
+
+  selectSmile(showSmile: boolean): void {
+    this.localPreset = { ...this.localPreset, showSmile };
     this.emit();
   }
 
