@@ -777,6 +777,7 @@ export class CharacterWizardComponent implements OnInit {
     const classKey = CLASS_NAME_TO_AVATAR[this.characterData.core_build.class] ?? 'fighter';
     this.characterData.avatar_preset = {
       race,
+      gender: 'male',
       classKey: null,
       skinColor: 'medium',
       hairStyle: null,

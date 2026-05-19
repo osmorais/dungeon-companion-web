@@ -13,6 +13,9 @@ export class AvatarDisplayComponent {
   @Input() preset?: AvatarPreset | null;
 
   get racePath(): string {
+    if ((this.preset!.gender ?? 'male') === 'female') {
+      return `assets/avatar/race_fem/base_fem_${this.preset!.race}.png`;
+    }
     return `assets/avatar/race/base_${this.preset!.race}.png`;
   }
 
@@ -21,6 +24,9 @@ export class AvatarDisplayComponent {
   }
 
   get clothesPath(): string {
+    if (this.preset?.gender === 'female') {
+      return `assets/avatar/clothes_fem/class_${this.preset.classKey}_fem.png`;
+    }
     return `assets/avatar/clothes/class_${this.preset!.classKey}.png`;
   }
 

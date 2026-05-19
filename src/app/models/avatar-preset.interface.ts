@@ -4,9 +4,11 @@ export type HairStyle = 'hair_long_01' | 'hair_long_02' | 'hair_short_01' | 'hai
 export type BeardStyle = 'beard_01' | 'beard_02' | 'beard_03';
 export type HairColor = 'blond' | 'grey' | 'lbrown' | 'red';
 export type SkinColor = 'pale' | 'light' | 'medium' | 'tan' | 'dark' | 'very_dark';
+export type AvatarGender = 'male' | 'female';
 
 export interface AvatarPreset {
   race: AvatarRace;
+  gender: AvatarGender;
   classKey: AvatarClass | null;
   skinColor: SkinColor;
   hairStyle: HairStyle | null;

@@ -32,6 +32,21 @@
   <!-- ===== CONTROLES ===== -->
   <div class="customizer-controls">
 
+    <!-- GÊNERO -->
+    <div class="ctrl-group">
+      <span class="ctrl-label">GÊNERO</span>
+      <div class="option-btn-group">
+        <button class="opt-btn" [class.active]="localPreset.gender === 'male'"
+                (click)="selectGender('male')">
+          Masculino
+        </button>
+        <button class="opt-btn" [class.active]="localPreset.gender === 'female'"
+                (click)="selectGender('female')">
+          Feminino
+        </button>
+      </div>
+    </div>
+
     <!-- ROUPA -->
     <div class="ctrl-group">
       <span class="ctrl-label">ROUPA</span>
@@ -92,21 +107,40 @@
     }
 
     <!-- BARBA -->
-    <div class="ctrl-group">
-      <span class="ctrl-label">BARBA</span>
-      <div class="option-btn-group">
-        <button class="opt-btn" [class.active]="!localPreset.beardStyle"
-                (click)="selectBeardStyle(null)">
-          Nenhuma
-        </button>
-        @for (style of beardStyles; track style.key) {
-          <button class="opt-btn" [class.active]="localPreset.beardStyle === style.key"
-                  (click)="selectBeardStyle(style.key)">
-            {{ style.label }}
+    @if (localPreset.gender === 'male') {
+      <div class="ctrl-group">
+        <span class="ctrl-label">BARBA</span>
+        <div class="option-btn-group">
+          <button class="opt-btn" [class.active]="!localPreset.beardStyle"
+                  (click)="selectBeardStyle(null)">
+            Nenhuma
           </button>
-        }
+          @for (style of beardStyles; track style.key) {
+            <button class="opt-btn" [class.active]="localPreset.beardStyle === style.key"
+                    (click)="selectBeardStyle(style.key)">
+              {{ style.label }}
+            </button>
+          }
+        </div>
       </div>
-    </div>
+
+      <!-- COR DA BARBA -->
+      @if (localPreset.beardStyle) {
+        <div class="ctrl-group">
+          <span class="ctrl-label">COR DA BARBA</span>
+          <div class="color-swatch-group">
+            @for (color of hairColors; track color.key) {
+              <button class="color-swatch"
+                      [class.active]="localPreset.beardColor === color.key"
+                      [style.background-color]="color.hex"
+                      [title]="color.label"
+                      (click)="selectBeardColor(color.key)">
+              </button>
+            }
+          </div>
+        </div>
+      }
+    }
 
     <!-- SORRISO -->
     @if (canShowSmile) {
@@ -121,23 +155,6 @@
                   (click)="selectSmile(true)">
             Sorriso
           </button>
-        </div>
-      </div>
-    }
-
-    <!-- COR DA BARBA -->
-    @if (localPreset.beardStyle) {
-      <div class="ctrl-group">
-        <span class="ctrl-label">COR DA BARBA</span>
-        <div class="color-swatch-group">
-          @for (color of hairColors; track color.key) {
-            <button class="color-swatch"
-                    [class.active]="localPreset.beardColor === color.key"
-                    [style.background-color]="color.hex"
-                    [title]="color.label"
-                    (click)="selectBeardColor(color.key)">
-            </button>
-          }
         </div>
       </div>
     }

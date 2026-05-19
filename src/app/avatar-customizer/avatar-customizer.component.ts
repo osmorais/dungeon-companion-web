@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import {
   AvatarPreset,
   AvatarClass,
+  AvatarGender,
   HairStyle,
   BeardStyle,
   HairColor,
@@ -35,10 +36,13 @@ export class AvatarCustomizerComponent implements OnInit {
   readonly skinColors = AVATAR_SKIN_COLORS;
 
   ngOnInit(): void {
-    this.localPreset = { ...this.preset };
+    this.localPreset = { ...this.preset, gender: this.preset?.gender ?? 'male' };
   }
 
   get racePath(): string {
+    if ((this.localPreset.gender ?? 'male') === 'female') {
+      return `assets/avatar/race_fem/base_fem_${this.localPreset.race}.png`;
+    }
     return `assets/avatar/race/base_${this.localPreset.race}.png`;
   }
 
@@ -47,6 +51,9 @@ export class AvatarCustomizerComponent implements OnInit {
   }
 
   get clothesPath(): string {
+    if (this.localPreset.gender === 'female') {
+      return `assets/avatar/clothes_fem/class_${this.localPreset.classKey}_fem.png`;
+    }
     return `assets/avatar/clothes/class_${this.localPreset.classKey}.png`;
   }
 
@@ -79,6 +86,13 @@ export class AvatarCustomizerComponent implements OnInit {
 
   private emit(): void {
     this.presetChange.emit({ ...this.localPreset });
+  }
+
+  selectGender(gender: AvatarGender): void {
+    const beardStyle = gender === 'female' ? null : this.localPreset.beardStyle;
+    const beardColor = gender === 'female' ? null : this.localPreset.beardColor;
+    this.localPreset = { ...this.localPreset, gender, beardStyle, beardColor };
+    this.emit();
   }
 
   selectClassKey(classKey: AvatarClass): void {
