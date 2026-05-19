@@ -34,7 +34,7 @@ export const AVATAR_CLASSES: { key: AvatarClass; label: string }[] = [
   { key: 'barbarian', label: 'Bárbaro' },
   { key: 'bard', label: 'Bardo' },
   { key: 'warlock', label: 'Bruxo' },
-  { key: 'cleric', label: 'Clérigo' },
+  // { key: 'cleric', label: 'Clérigo' },
   { key: 'druid', label: 'Druida' },
   { key: 'sorcerer', label: 'Feiticeiro' },
   { key: 'fighter', label: 'Guerreiro' },
