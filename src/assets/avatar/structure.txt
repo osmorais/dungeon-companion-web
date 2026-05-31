@@ -36,23 +36,14 @@
 │   └── hair_short_02_red.png
 ├── race
 │   ├── base_dragonborn.png
-│   ├── base_dragonborn.png:Zone.Identifier
 │   ├── base_dwarf.png
-│   ├── base_dwarf.png:Zone.Identifier
 │   ├── base_elf.png
-│   ├── base_elf.png:Zone.Identifier
 │   ├── base_gnome.png
-│   ├── base_gnome.png:Zone.Identifier
 │   ├── base_half_elf.png
-│   ├── base_half_elf.png:Zone.Identifier
 │   ├── base_half_orc.png
-│   ├── base_half_orc.png:Zone.Identifier
 │   ├── base_halfling.png
-│   ├── base_halfling.png:Zone.Identifier
 │   ├── base_human.png
-│   ├── base_human.png:Zone.Identifier
 │   ├── base_tiefling.png
-│   └── base_tiefling.png:Zone.Identifier
 └── structure.txt
 
 5 directories, 51 files

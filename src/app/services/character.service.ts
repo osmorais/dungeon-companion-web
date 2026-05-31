@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { CharacterSheetData } from '../models/character.interface';
-import { CharacterSheetResponse } from '../models/character-response.interface';
+import { CharacterBackground, CharacterSheetResponse } from '../models/character-response.interface';
 import { AvatarPreset } from '../models/avatar-preset.interface';
 import { CharacterOptions } from '../models/character-options.interface';
 import { CharacterSummary, CharacterPagedList } from '../models/character-summary.interface';
@@ -39,5 +39,13 @@ export class CharacterService {
     return this.http.get<CharacterPagedList>(`${this.baseUrl}/api/character-sheet`, {
       params: { page: page.toString(), pageSize: pageSize.toString() },
     });
+  }
+
+  getCharacterBackground(id: number): Observable<CharacterBackground> {
+    return this.http.get<CharacterBackground>(`${this.baseUrl}/api/character-sheet/${id}/background`);
+  }
+
+  updateNotes(input: CharacterBackground): Observable<object> {
+    return this.http.post<object>(`${this.baseUrl}/api/character-sheet/update-notes`, input);
   }
 }

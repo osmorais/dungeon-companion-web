@@ -38,6 +38,7 @@
         @if (data.character_sheet.spells?.length) {
           <button [class.active]="activeTab() === 'spells'" (click)="setTab('spells')">MAGIAS</button>
         }
+        <button [class.active]="activeTab() === 'notes'" (click)="setTab('notes')">NOTAS</button>
       </div>
 
       <div class="mobile-tab-content">
@@ -170,6 +171,37 @@
             </div>
           }
 
+          @case ('notes') {
+            <div class="notes-page">
+              <div class="notes-field">
+                <label class="notes-label">HISTÓRIA DO PERSONAGEM</label>
+                <textarea
+                  class="notes-textarea"
+                  placeholder="Escreva a história do seu personagem aqui..."
+                  [value]="historyText()"
+                  (input)="historyText.set($any($event.target).value)">
+                </textarea>
+              </div>
+              <div class="notes-field">
+                <label class="notes-label">ANOTAÇÕES GERAIS</label>
+                <textarea
+                  class="notes-textarea"
+                  placeholder="Anotações, lembretes, segredos..."
+                  [value]="notesText()"
+                  (input)="notesText.set($any($event.target).value)">
+                </textarea>
+              </div>
+              <div class="notes-actions">
+                @if (notesSaved()) {
+                  <span class="notes-saved-msg">NOTAS SALVAS!</span>
+                }
+                <button class="retro-btn notes-save-btn" (click)="saveNotes()" [disabled]="savingNotes()">
+                  {{ savingNotes() ? 'SALVANDO...' : 'SALVAR NOTAS' }}
+                </button>
+              </div>
+            </div>
+          }
+
         }
 
       </div>
@@ -196,6 +228,48 @@
           <p>XP: {{ data.character_sheet.header.experience_points }}</p>
         </div>
       </fieldset>
+
+      <div class="desktop-page-tabs">
+        <button [class.active]="desktopPage() === 'sheet'" (click)="desktopPage.set('sheet')">FICHA</button>
+        <button [class.active]="desktopPage() === 'notes'" (click)="desktopPage.set('notes')">HISTÓRIA & NOTAS</button>
+      </div>
+
+      @if (desktopPage() === 'notes') {
+        <div class="notes-page desktop-notes">
+          <div class="notes-field">
+            <fieldset class="retro-panel">
+              <legend>HISTÓRIA DO PERSONAGEM</legend>
+              <textarea
+                class="notes-textarea"
+                placeholder="Escreva a história do seu personagem aqui..."
+                [value]="historyText()"
+                (input)="historyText.set($any($event.target).value)">
+              </textarea>
+            </fieldset>
+          </div>
+          <div class="notes-field">
+            <fieldset class="retro-panel">
+              <legend>ANOTAÇÕES GERAIS</legend>
+              <textarea
+                class="notes-textarea"
+                placeholder="Anotações, lembretes, segredos..."
+                [value]="notesText()"
+                (input)="notesText.set($any($event.target).value)">
+              </textarea>
+            </fieldset>
+          </div>
+          <div class="notes-actions">
+            @if (notesSaved()) {
+              <span class="notes-saved-msg">NOTAS SALVAS!</span>
+            }
+            <button class="retro-btn notes-save-btn" (click)="saveNotes()" [disabled]="savingNotes()">
+              {{ savingNotes() ? 'SALVANDO...' : 'SALVAR NOTAS' }}
+            </button>
+          </div>
+        </div>
+      }
+
+      @if (desktopPage() === 'sheet') {
 
       <div class="sheet-grid">
 
@@ -358,8 +432,10 @@
       </div>
 
       <div class="sheet-actions">
-        <button class="retro-btn" (click)="goBack()">VOLTAR PARA O MENU</button>
+        <button class="retro-btn" (click)="goBack()">VOLTAR</button>
       </div>
+
+      } <!-- end @if desktopPage === 'sheet' -->
 
     </div>
   }
