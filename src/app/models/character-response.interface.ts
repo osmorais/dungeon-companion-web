@@ -1,7 +1,13 @@
 import { Skill, Spell, WeaponRow } from "./character-options.interface";
 import { AvatarPreset } from "./avatar-preset.interface";
 
+export interface CharacterBackground {
+  id_character: number;
+  full_history: string;
+}
+
 export interface CharacterSheetResponse {
+  character_background?: CharacterBackground;
   character_sheet: {
     id_character?: number;
     header: {

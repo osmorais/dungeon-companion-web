@@ -1,4 +1,6 @@
 import { Component, inject, input, effect, untracked, signal, HostListener } from '@angular/core';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { CommonModule, KeyValuePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { CharacterService } from '../services/character.service';
@@ -7,7 +9,10 @@ import { AvatarPreset } from '../models/avatar-preset.interface';
 import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
 import { AvatarCustomizerComponent } from '../avatar-customizer/avatar-customizer.component';
 
-type MobileTab = 'combat' | 'attrs' | 'skills' | 'traits' | 'equipment' | 'spells';
+type MobileTab = 'combat' | 'attrs' | 'skills' | 'traits' | 'equipment' | 'spells' | 'notes';
+type DesktopPage = 'sheet' | 'notes';
+
+const NOTES_SEPARATOR = '\n\n[ANOTAÇÕES]\n\n';
 
 @Component({
   selector: 'app-character-sheet',
@@ -27,6 +32,12 @@ export class CharacterSheetComponent {
   loading = signal(false);
   isMobile = signal(typeof window !== 'undefined' && window.innerWidth < 768);
   activeTab = signal<MobileTab>('combat');
+  desktopPage = signal<DesktopPage>('sheet');
+
+  historyText = signal('');
+  notesText = signal('');
+  savingNotes = signal(false);
+  notesSaved = signal(false);
 
   @HostListener('window:resize')
   onResize() {
@@ -44,9 +55,14 @@ export class CharacterSheetComponent {
         if (paramId) {
           this.loading.set(true);
           this.charService.currentCharacter.set(null);
-          this.charService.getCharacterById(+paramId).subscribe({
-            next: sheet => {
+          const id = +paramId;
+          forkJoin({
+            sheet: this.charService.getCharacterById(id),
+            background: this.charService.getCharacterBackground(id).pipe(catchError(() => of(null))),
+          }).subscribe({
+            next: ({ sheet, background }) => {
               this.charService.currentCharacter.set(sheet);
+              this.initNotesFields(background?.full_history ?? '');
               this.loading.set(false);
             },
             error: () => this.loading.set(false),
@@ -56,8 +72,31 @@ export class CharacterSheetComponent {
     });
   }
 
+  private initNotesFields(fullHistory: string): void {
+    const parts = fullHistory.split(NOTES_SEPARATOR);
+    this.historyText.set(parts[0] ?? '');
+    this.notesText.set(parts[1] ?? '');
+  }
+
+  saveNotes(): void {
+    const idCharacter = this.sheetData()?.character_sheet.id_character;
+    if (!idCharacter) return;
+
+    this.savingNotes.set(true);
+    const fullHistory = this.historyText() + NOTES_SEPARATOR + this.notesText();
+
+    this.charService.updateNotes({ id_character: idCharacter, full_history: fullHistory }).subscribe({
+      next: () => {
+        this.savingNotes.set(false);
+        this.notesSaved.set(true);
+        setTimeout(() => this.notesSaved.set(false), 3000);
+      },
+      error: () => this.savingNotes.set(false),
+    });
+  }
+
   goBack() {
-    this.router.navigate(['/']);
+    this.router.navigate(['/characters']);
   }
 
   changeHp(delta: number) {

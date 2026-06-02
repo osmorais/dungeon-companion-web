@@ -916,6 +916,119 @@ ul {
     text-align: center;
   }
 }
+/* ===== DESKTOP PAGE TABS ===== */
+
+.desktop-page-tabs {
+  display: flex;
+  gap: 0;
+  margin-top: 16px;
+  border-bottom: 1px solid var(--border-color);
+
+  button {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-bottom: none;
+    color: #666;
+    font-family: inherit;
+    font-size: 8px;
+    padding: 8px 20px;
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    transition: color 0.15s, background 0.15s;
+    margin-bottom: -1px;
+
+    &.active {
+      color: var(--accent-color);
+      background: rgba(163, 44, 23, 0.08);
+      border-color: var(--border-color);
+      border-bottom-color: transparent;
+    }
+
+    &:hover:not(.active) {
+      color: #aaa;
+      background: rgba(255, 255, 255, 0.03);
+    }
+  }
+}
+
+/* ===== NOTAS ===== */
+
+.notes-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  &.desktop-notes {
+    margin-top: 20px;
+    padding-bottom: 40px;
+  }
+}
+
+.notes-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.notes-label {
+  font-size: 8px;
+  color: #a32c17;
+  letter-spacing: 0.1em;
+}
+
+.notes-textarea {
+  width: 100%;
+  min-height: 160px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 10px;
+  line-height: 1.7;
+  padding: 10px 12px;
+  resize: vertical;
+  box-sizing: border-box;
+  outline: none;
+
+  &::placeholder {
+    color: #444;
+  }
+
+  &:focus {
+    border-color: #5e2d12;
+    background: rgba(0, 0, 0, 0.6);
+  }
+}
+
+.notes-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  padding-top: 4px;
+}
+
+.notes-saved-msg {
+  font-size: 8px;
+  color: #4caf50;
+  letter-spacing: 0.1em;
+  animation: fadeIn 0.3s ease;
+}
+
+.notes-save-btn {
+  float: none !important;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 /* ===== AVATAR EDITABLE ===== */
 
 .avatar-editable {
