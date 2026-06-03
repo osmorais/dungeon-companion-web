@@ -32,6 +32,10 @@ export class HomeComponent {
     this.view.set('master');
   }
 
+  createSession() {
+    this.router.navigate(['/session-create']);
+  }
+
   goBack() {
     this.view.set('select');
   }

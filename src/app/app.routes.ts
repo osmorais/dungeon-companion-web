@@ -59,5 +59,12 @@ export const routes: Routes = [
       import('./character-sheet/character-sheet.component').then(m => m.CharacterSheetComponent),
   },
 
+  {
+    path: 'session-create',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./session-create/session-create.component').then(m => m.SessionCreateComponent),
+  },
+
   { path: '**', redirectTo: '' },
 ];

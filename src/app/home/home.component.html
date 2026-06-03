@@ -79,7 +79,7 @@
         <p class="mobile-role-subtitle">O QUE DESEJA FAZER?</p>
         <div class="mobile-menu-options">
 
-          <button class="mobile-retro-card" disabled>
+          <button class="mobile-retro-card" (click)="createSession()">
             <span class="mobile-card-icon">🗺</span>
             <span class="mobile-card-text">
               <span class="mobile-card-title">CRIAR NOVA SESSÃO</span>
@@ -195,7 +195,7 @@
         <p class="role-subtitle">O QUE DESEJA FAZER?</p>
         <div class="menu-options menu-options--grid">
 
-          <button class="retro-card retro-card--disabled" disabled>
+          <button class="retro-card" (click)="createSession()">
             <span class="card-icon">🗺</span>
             <span class="card-title">CRIAR NOVA SESSÃO</span>
             <span class="card-desc">Inicie uma nova aventura</span>
