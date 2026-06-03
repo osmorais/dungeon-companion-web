@@ -9,25 +9,111 @@
         <img src="forja_arcana.png" alt="Forja Arcana" class="mobile-logo" />
       </div>
 
-      <div class="mobile-menu-options">
+      @if (view() === 'select') {
+        <!-- Seleção de papel -->
+        <p class="mobile-role-subtitle">QUEM É VOCÊ?</p>
+        <div class="mobile-menu-options">
 
-        <button class="mobile-retro-card" (click)="createCharacter()">
-          <span class="mobile-card-icon">⚔</span>
-          <span class="mobile-card-text">
-            <span class="mobile-card-title">CRIAR PERSONAGEM</span>
-            <span class="mobile-card-desc">Forje um novo herói</span>
-          </span>
-        </button>
+          <button class="mobile-retro-card mobile-retro-card--highlight" (click)="selectPlayer()">
+            <span class="mobile-card-icon">⚔</span>
+            <span class="mobile-card-text">
+              <span class="mobile-card-title">SOU JOGADOR</span>
+              <span class="mobile-card-desc">Crie e gerencie seus personagens</span>
+            </span>
+          </button>
 
-        <button class="mobile-retro-card" (click)="listCharacters()">
-          <span class="mobile-card-icon">📜</span>
-          <span class="mobile-card-text">
-            <span class="mobile-card-title">MEUS PERSONAGENS</span>
-            <span class="mobile-card-desc">Acesse as fichas dos seus aventureiros</span>
-          </span>
-        </button>
+          <button class="mobile-retro-card" (click)="selectMaster()">
+            <span class="mobile-card-icon">🎲</span>
+            <span class="mobile-card-text">
+              <span class="mobile-card-title">SOU MESTRE</span>
+              <span class="mobile-card-desc">Gerencie suas sessões e criaturas</span>
+            </span>
+          </button>
 
-      </div>
+        </div>
+      }
+
+      @if (view() === 'player') {
+        <!-- Opções do Jogador -->
+        <p class="mobile-role-subtitle">O QUE DESEJA FAZER?</p>
+        <div class="mobile-menu-options">
+
+          <button class="mobile-retro-card" (click)="createCharacter()">
+            <span class="mobile-card-icon">⚔</span>
+            <span class="mobile-card-text">
+              <span class="mobile-card-title">CRIAR PERSONAGEM</span>
+              <span class="mobile-card-desc">Forje um novo herói</span>
+            </span>
+          </button>
+
+          <button class="mobile-retro-card" (click)="listCharacters()">
+            <span class="mobile-card-icon">📜</span>
+            <span class="mobile-card-text">
+              <span class="mobile-card-title">MEUS PERSONAGENS</span>
+              <span class="mobile-card-desc">Acesse as fichas dos seus aventureiros</span>
+            </span>
+          </button>
+
+          <button class="mobile-retro-card mobile-retro-card--disabled" disabled>
+            <span class="mobile-card-icon">🧭</span>
+            <span class="mobile-card-text">
+              <span class="mobile-card-title">ENTRAR EM UMA AVENTURA</span>
+              <span class="mobile-card-desc">Junte-se a uma sessão</span>
+            </span>
+          </button>
+
+          <button class="mobile-retro-card mobile-retro-card--disabled" disabled>
+            <span class="mobile-card-icon">⭐</span>
+            <span class="mobile-card-text">
+              <span class="mobile-card-title">MINHAS AVENTURAS</span>
+              <span class="mobile-card-desc">Veja suas campanhas ativas</span>
+            </span>
+          </button>
+
+        </div>
+        <button class="retro-btn mobile-back-btn" (click)="goBack()">← VOLTAR</button>
+      }
+
+      @if (view() === 'master') {
+        <!-- Opções do Mestre -->
+        <p class="mobile-role-subtitle">O QUE DESEJA FAZER?</p>
+        <div class="mobile-menu-options">
+
+          <button class="mobile-retro-card" disabled>
+            <span class="mobile-card-icon">🗺</span>
+            <span class="mobile-card-text">
+              <span class="mobile-card-title">CRIAR NOVA SESSÃO</span>
+              <span class="mobile-card-desc">Inicie uma nova aventura</span>
+            </span>
+          </button>
+
+          <button class="mobile-retro-card" disabled>
+            <span class="mobile-card-icon">📖</span>
+            <span class="mobile-card-text">
+              <span class="mobile-card-title">SESSÕES CRIADAS</span>
+              <span class="mobile-card-desc">Gerencie suas campanhas</span>
+            </span>
+          </button>
+
+          <button class="mobile-retro-card" disabled>
+            <span class="mobile-card-icon">🐉</span>
+            <span class="mobile-card-text">
+              <span class="mobile-card-title">CATALOGAR MONSTROS</span>
+              <span class="mobile-card-desc">Gerencie seu bestiário</span>
+            </span>
+          </button>
+
+          <button class="mobile-retro-card" disabled>
+            <span class="mobile-card-icon">🧙</span>
+            <span class="mobile-card-text">
+              <span class="mobile-card-title">CATALOGAR NPCs</span>
+              <span class="mobile-card-desc">Crie personagens do mundo</span>
+            </span>
+          </button>
+
+        </div>
+        <button class="retro-btn mobile-back-btn" (click)="goBack()">← VOLTAR</button>
+      }
 
       <div class="mobile-logout-row">
         @if (authService.currentUser()) {
@@ -40,7 +126,7 @@
   </div>
 } @else {
   <!-- ===== DESKTOP LAYOUT ===== -->
-  <div class="home-container">
+  <div class="home-container" [class.home-container--wide]="view() === 'master' || view() === 'player'">
 
     <fieldset class="title-panel">
       <legend>BEM VINDO AVENTUREIRO!</legend>
@@ -49,21 +135,95 @@
         <img src="forja_arcana.png" alt="Forja Arcana" class="logo" />
       </div>
 
-      <div class="menu-options">
+      @if (view() === 'select') {
+        <!-- Seleção de papel -->
+        <p class="role-subtitle">QUEM É VOCÊ?</p>
+        <div class="menu-options">
 
-        <button class="retro-card" (click)="createCharacter()">
-          <span class="card-icon">⚔</span>
-          <span class="card-title">CRIAR PERSONAGEM</span>
-          <span class="card-desc">Forje um novo herói</span>
-        </button>
+          <button class="retro-card retro-card--highlight" (click)="selectPlayer()">
+            <span class="card-icon">⚔</span>
+            <span class="card-title">SOU JOGADOR</span>
+            <span class="card-desc">Crie e gerencie seus personagens</span>
+          </button>
 
-        <button class="retro-card" (click)="listCharacters()">
-          <span class="card-icon">📜</span>
-          <span class="card-title">MEUS PERSONAGENS</span>
-          <span class="card-desc">Acesse as fichas dos seus aventureiros</span>
-        </button>
+          <button class="retro-card" (click)="selectMaster()">
+            <span class="card-icon">🎲</span>
+            <span class="card-title">SOU MESTRE</span>
+            <span class="card-desc">Gerencie suas sessões e criaturas</span>
+          </button>
 
-      </div>
+        </div>
+      }
+
+      @if (view() === 'player') {
+        <!-- Opções do Jogador -->
+        <p class="role-subtitle">O QUE DESEJA FAZER?</p>
+        <div class="menu-options menu-options--grid">
+
+          <button class="retro-card" (click)="createCharacter()">
+            <span class="card-icon">⚔</span>
+            <span class="card-title">CRIAR PERSONAGEM</span>
+            <span class="card-desc">Forje um novo herói</span>
+          </button>
+
+          <button class="retro-card" (click)="listCharacters()">
+            <span class="card-icon">📜</span>
+            <span class="card-title">MEUS PERSONAGENS</span>
+            <span class="card-desc">Acesse as fichas dos seus aventureiros</span>
+          </button>
+
+          <button class="retro-card retro-card--disabled" disabled>
+            <span class="card-icon">🧭</span>
+            <span class="card-title">ENTRAR EM UMA AVENTURA</span>
+            <span class="card-desc">Junte-se a uma sessão</span>
+          </button>
+
+          <button class="retro-card retro-card--disabled" disabled>
+            <span class="card-icon">⭐</span>
+            <span class="card-title">MINHAS AVENTURAS</span>
+            <span class="card-desc">Veja suas campanhas ativas</span>
+          </button>
+
+        </div>
+        <div class="back-row">
+          <button class="retro-btn back-btn" (click)="goBack()">← VOLTAR</button>
+        </div>
+      }
+
+      @if (view() === 'master') {
+        <!-- Opções do Mestre -->
+        <p class="role-subtitle">O QUE DESEJA FAZER?</p>
+        <div class="menu-options menu-options--grid">
+
+          <button class="retro-card retro-card--disabled" disabled>
+            <span class="card-icon">🗺</span>
+            <span class="card-title">CRIAR NOVA SESSÃO</span>
+            <span class="card-desc">Inicie uma nova aventura</span>
+          </button>
+
+          <button class="retro-card retro-card--disabled" disabled>
+            <span class="card-icon">📖</span>
+            <span class="card-title">SESSÕES CRIADAS</span>
+            <span class="card-desc">Gerencie suas campanhas</span>
+          </button>
+
+          <button class="retro-card retro-card--disabled" disabled>
+            <span class="card-icon">🐉</span>
+            <span class="card-title">CATALOGAR MONSTROS</span>
+            <span class="card-desc">Gerencie seu bestiário</span>
+          </button>
+
+          <button class="retro-card retro-card--disabled" disabled>
+            <span class="card-icon">🧙</span>
+            <span class="card-title">CATALOGAR NPCs</span>
+            <span class="card-desc">Crie personagens do mundo</span>
+          </button>
+
+        </div>
+        <div class="back-row">
+          <button class="retro-btn back-btn" (click)="goBack()">← VOLTAR</button>
+        </div>
+      }
 
       <div class="logout-row">
         @if (authService.currentUser()) {

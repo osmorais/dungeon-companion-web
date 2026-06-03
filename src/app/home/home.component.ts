@@ -3,6 +3,8 @@ import { Router } from '@angular/router';
 import { CharacterService } from '../services/character.service';
 import { AuthService } from '../services/auth.service';
 
+type HomeView = 'select' | 'player' | 'master';
+
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -15,10 +17,23 @@ export class HomeComponent {
   protected authService = inject(AuthService);
 
   isMobile = signal(typeof window !== 'undefined' && window.innerWidth < 768);
+  view = signal<HomeView>('select');
 
   @HostListener('window:resize')
   onResize() {
     this.isMobile.set(window.innerWidth < 768);
+  }
+
+  selectPlayer() {
+    this.view.set('player');
+  }
+
+  selectMaster() {
+    this.view.set('master');
+  }
+
+  goBack() {
+    this.view.set('select');
   }
 
   createCharacter() {
