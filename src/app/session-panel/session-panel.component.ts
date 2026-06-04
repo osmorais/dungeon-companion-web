@@ -1,6 +1,6 @@
-import { Component, HostListener, inject, input, signal, effect, untracked, computed } from '@angular/core';
+import { Component, HostListener, OnDestroy, inject, input, signal, effect, untracked, computed } from '@angular/core';
 import { Router } from '@angular/router';
-import { finalize } from 'rxjs';
+import { Subscription, finalize, interval } from 'rxjs';
 import { GameSessionService } from '../services/game-session.service';
 import { CharacterService } from '../services/character.service';
 import { AuthService } from '../services/auth.service';
@@ -15,7 +15,7 @@ import { AvatarDisplayComponent } from '../avatar-display/avatar-display.compone
   templateUrl: './session-panel.component.html',
   styleUrls: ['./session-panel.component.scss'],
 })
-export class SessionPanelComponent {
+export class SessionPanelComponent implements OnDestroy {
   private router = inject(Router);
   private gameSessionService = inject(GameSessionService);
   private charService = inject(CharacterService);
@@ -37,6 +37,9 @@ export class SessionPanelComponent {
   addNpcLoading = signal(false);
   addingNpcId = signal<number | null>(null);
 
+  private pollSub: Subscription | null = null;
+  private readonly POLL_INTERVAL_MS = 60_000;
+
   isOwner = computed(() => {
     const detail = this.sessionDetail();
     const user = this.authService.currentUser();
@@ -55,8 +58,27 @@ export class SessionPanelComponent {
       untracked(() => {
         if (!sessionId) return;
         this.fetchSession(sessionId);
+        this.startPolling(sessionId);
       });
     });
+  }
+
+  ngOnDestroy() {
+    this.stopPolling();
+  }
+
+  private startPolling(sessionId: string) {
+    this.stopPolling();
+    this.pollSub = interval(this.POLL_INTERVAL_MS).subscribe(() => {
+      if (!this.refreshing()) {
+        this.fetchSession(sessionId);
+      }
+    });
+  }
+
+  private stopPolling() {
+    this.pollSub?.unsubscribe();
+    this.pollSub = null;
   }
 
   private fetchSession(sessionId: string) {
