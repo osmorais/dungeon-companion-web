@@ -63,7 +63,8 @@
                   <div class="mobile-hp">
                     <div class="mobile-hp-bar">
                       <div class="mobile-hp-fill"
-                        [style.width.%]="hpPercent(editedHp(player), player.character.max_hit_points)">
+                        [style.width.%]="hpPercent(editedHp(player), player.character.max_hit_points)"
+                        [style.background-color]="hpColor(editedHp(player), player.character.max_hit_points)">
                       </div>
                     </div>
                     <span class="mobile-hp-value">
@@ -169,7 +170,8 @@
                   </div>
                   <div class="mobile-monster-hp-bar">
                     <div class="mobile-monster-hp-fill"
-                      [style.width.%]="hpPercent(monster.hp_current, monster.hp_max)">
+                      [style.width.%]="hpPercent(monster.hp_current, monster.hp_max)"
+                      [style.background-color]="hpColor(monster.hp_current, monster.hp_max)">
                     </div>
                   </div>
                 </div>
@@ -242,7 +244,8 @@
                   <div class="hp-section">
                     <div class="hp-bar">
                       <div class="hp-fill"
-                        [style.width.%]="hpPercent(editedHp(player), player.character.max_hit_points)">
+                        [style.width.%]="hpPercent(editedHp(player), player.character.max_hit_points)"
+                        [style.background-color]="hpColor(editedHp(player), player.character.max_hit_points)">
                       </div>
                     </div>
                     <span class="hp-text">
@@ -301,7 +304,8 @@
                     <div class="npc-hp-bar-wrap">
                       <div class="npc-hp-bar">
                         <div class="npc-hp-fill"
-                          [style.width.%]="hpPercent(editedNpcHp(npc), npc.character.max_hit_points)">
+                          [style.width.%]="hpPercent(editedNpcHp(npc), npc.character.max_hit_points)"
+                          [style.background-color]="hpColor(editedNpcHp(npc), npc.character.max_hit_points)">
                         </div>
                       </div>
                       <span class="npc-hp-text">❤ {{ editedNpcHp(npc) }}/{{ npc.character.max_hit_points }}</span>
@@ -365,7 +369,8 @@
                   <td class="monster-hp-cell">
                     <div class="monster-hp-bar">
                       <div class="monster-hp-fill"
-                        [style.width.%]="hpPercent(monster.hp_current, monster.hp_max)">
+                        [style.width.%]="hpPercent(monster.hp_current, monster.hp_max)"
+                        [style.background-color]="hpColor(monster.hp_current, monster.hp_max)">
                       </div>
                     </div>
                     <span class="monster-hp-text">{{ monster.hp_current }}/{{ monster.hp_max }}</span>

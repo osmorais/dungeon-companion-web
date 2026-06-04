@@ -170,7 +170,7 @@
 
 .hp-fill {
   height: 100%;
-  background-color: #4caf50;
+  background-color: #4caf50; /* fallback; sobrescrito pelo binding hpColor() */
   transition: width 0.3s;
 }
 
@@ -323,7 +323,7 @@
 
 .npc-hp-fill {
   height: 100%;
-  background-color: #4caf50;
+  background-color: #4caf50; /* fallback; sobrescrito pelo binding hpColor() */
   transition: width 0.3s;
 }
 
@@ -542,7 +542,7 @@
 
 .monster-hp-fill {
   height: 100%;
-  background-color: #e53935;
+  background-color: #e53935; /* fallback; sobrescrito pelo binding hpColor() */
   transition: width 0.3s;
 }
 
@@ -732,7 +732,7 @@
 
 .mobile-hp-fill {
   height: 100%;
-  background-color: #4caf50;
+  background-color: #4caf50; /* fallback; sobrescrito pelo binding hpColor() */
   transition: width 0.3s;
 }
 
@@ -920,7 +920,7 @@
 
   .mobile-monster-hp-fill {
     height: 100%;
-    background-color: #e53935;
+    background-color: #e53935; /* fallback; sobrescrito pelo binding hpColor() */
     transition: width 0.3s;
   }
 }
