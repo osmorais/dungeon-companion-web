@@ -38,6 +38,9 @@ export class CharacterSheetComponent {
   notesText = signal('');
   savingNotes = signal(false);
   notesSaved = signal(false);
+  savingHp = signal(false);
+  hpSaved = signal(false);
+  printingSheet = signal(false);
 
   @HostListener('window:resize')
   onResize() {
@@ -95,6 +98,24 @@ export class CharacterSheetComponent {
     });
   }
 
+  printSheet(): void {
+    const id = this.sheetData()?.character_sheet.id_character;
+    if (!id) return;
+
+    this.printingSheet.set(true);
+    this.charService.printCharacter(id).subscribe({
+      next: html => {
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const win = window.open(url, '_blank');
+        setTimeout(() => URL.revokeObjectURL(url), 30000);
+        if (!win) alert('Permita pop-ups para abrir a ficha de impressão.');
+        this.printingSheet.set(false);
+      },
+      error: () => this.printingSheet.set(false),
+    });
+  }
+
   goBack() {
     this.router.navigate(['/characters']);
   }
@@ -113,6 +134,23 @@ export class CharacterSheetComponent {
           hit_points: { ...hp, current: next },
         },
       },
+    });
+  }
+
+  saveHp(): void {
+    const sheet = this.sheetData();
+    const id = sheet?.character_sheet.id_character;
+    if (!sheet || !id) return;
+    const currentHp = sheet.character_sheet.combat_stats.hit_points.current;
+
+    this.savingHp.set(true);
+    this.charService.updateHp(id, currentHp).subscribe({
+      next: () => {
+        this.savingHp.set(false);
+        this.hpSaved.set(true);
+        setTimeout(() => this.hpSaved.set(false), 3000);
+      },
+      error: () => this.savingHp.set(false),
     });
   }
 

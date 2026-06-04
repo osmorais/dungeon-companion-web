@@ -46,19 +46,42 @@
       </div>
     </fieldset>
 
-    <fieldset class="mobile-panel mobile-panel--disabled">
+    <fieldset class="mobile-panel">
       <legend>CRIATURAS E ALIADOS</legend>
 
-      <button class="mobile-catalog-btn" disabled>
-        <span class="mobile-catalog-icon">🧙</span>
-        <span class="mobile-catalog-text">
-          <span class="mobile-catalog-title">SELECIONAR NPCs</span>
-          <span class="mobile-catalog-desc">Em breve...</span>
-        </span>
-      </button>
+      <!-- NPCs -->
+      <div class="mobile-section-label">
+        🧙 NPCS
+        @if (selectedNpcIds().size > 0) {
+          <span class="mobile-npc-count">{{ selectedNpcIds().size }} selecionado(s)</span>
+        }
+      </div>
 
+      @if (loadingNpcs()) {
+        <p class="mobile-loading-msg">Carregando personagens...</p>
+      } @else if (availableNpcs().length === 0) {
+        <p class="mobile-loading-msg">Nenhum personagem criado ainda.</p>
+      } @else {
+        <div class="mobile-npc-picker">
+          @for (char of availableNpcs(); track char.id_character) {
+            <div
+              class="mobile-npc-item"
+              [class.mobile-npc-item--selected]="isNpcSelected(char.id_character)"
+              (click)="toggleNpc(char.id_character)"
+            >
+              <div class="mobile-npc-check">{{ isNpcSelected(char.id_character) ? '✓' : '' }}</div>
+              <div class="mobile-npc-details">
+                <span class="mobile-npc-name">{{ char.name }}</span>
+                <span class="mobile-npc-meta">{{ char.class }} · {{ char.race }} · NV {{ char.level }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Monstros (em breve) -->
+      <div class="mobile-section-label mobile-section-label--mt">🐉 MONSTROS</div>
       <button class="mobile-catalog-btn" disabled>
-        <span class="mobile-catalog-icon">🐉</span>
         <span class="mobile-catalog-text">
           <span class="mobile-catalog-title">SELECIONAR MONSTROS</span>
           <span class="mobile-catalog-desc">Em breve...</span>
@@ -144,21 +167,51 @@
       </div>
     </fieldset>
 
-    <fieldset class="retro-panel panel--disabled">
+    <fieldset class="retro-panel">
       <legend>CRIATURAS E ALIADOS</legend>
 
       <div class="catalog-row">
-        <button class="catalog-btn" disabled>
-          <span class="catalog-icon">🧙</span>
-          <span class="catalog-title">SELECIONAR NPCs</span>
-          <span class="catalog-desc">Em breve...</span>
-        </button>
 
+        <!-- NPCs -->
+        <div class="npc-picker-panel">
+          <div class="npc-picker-header">
+            <span class="catalog-icon">🧙</span>
+            <span class="catalog-title">NPCS</span>
+            @if (selectedNpcIds().size > 0) {
+              <span class="npc-selected-badge">{{ selectedNpcIds().size }} selecionado(s)</span>
+            }
+          </div>
+
+          @if (loadingNpcs()) {
+            <p class="npc-picker-empty">Carregando personagens...</p>
+          } @else if (availableNpcs().length === 0) {
+            <p class="npc-picker-empty">Nenhum personagem criado ainda.</p>
+          } @else {
+            <div class="npc-picker-list">
+              @for (char of availableNpcs(); track char.id_character) {
+                <div
+                  class="npc-picker-item"
+                  [class.npc-picker-item--selected]="isNpcSelected(char.id_character)"
+                  (click)="toggleNpc(char.id_character)"
+                >
+                  <span class="npc-picker-check">{{ isNpcSelected(char.id_character) ? '✓' : '' }}</span>
+                  <div class="npc-picker-info">
+                    <span class="npc-picker-name">{{ char.name }}</span>
+                    <span class="npc-picker-meta">{{ char.class }} — {{ char.race }} — NV {{ char.level }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Monstros (em breve) -->
         <button class="catalog-btn" disabled>
           <span class="catalog-icon">🐉</span>
           <span class="catalog-title">SELECIONAR MONSTROS</span>
           <span class="catalog-desc">Em breve...</span>
         </button>
+
       </div>
     </fieldset>
 

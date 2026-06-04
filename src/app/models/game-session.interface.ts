@@ -59,6 +59,7 @@ export interface NpcSession {
   id_npc_session: string;
   id_game_session: string;
   id_character: number;
+  character?: PlayerCharacterSummary | null;
 }
 
 export interface MonsterSession {

@@ -48,4 +48,17 @@ export class CharacterService {
   updateNotes(input: CharacterBackground): Observable<object> {
     return this.http.post<object>(`${this.baseUrl}/api/character-sheet/update-notes`, input);
   }
+
+  updateHp(id: number, currentHitPoints: number): Observable<{ success: boolean }> {
+    return this.http.patch<{ success: boolean }>(
+      `${this.baseUrl}/api/character-sheet/${id}/hp`,
+      { current_hit_points: currentHitPoints },
+    );
+  }
+
+  printCharacter(id: number): Observable<string> {
+    return this.http.get(`${this.baseUrl}/api/character-sheet/${id}/print`, {
+      responseType: 'text',
+    });
+  }
 }

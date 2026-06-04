@@ -31,14 +31,11 @@
   color: var(--label-title-color);
 }
 
-.panel--disabled {
-  opacity: 0.5;
-}
-
 .catalog-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
+  align-items: start;
 }
 
 .catalog-btn {
@@ -53,7 +50,7 @@
   font-family: 'Press Start 2P', monospace;
   cursor: not-allowed;
   text-align: center;
-  opacity: 1;
+  opacity: 0.5;
 }
 
 .catalog-icon {
@@ -67,6 +64,92 @@
 
 .catalog-desc {
   font-size: 7px;
+  color: var(--label-title-color);
+}
+
+/* NPC picker — desktop */
+.npc-picker-panel {
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+  display: flex;
+  flex-direction: column;
+}
+
+.npc-picker-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.npc-selected-badge {
+  margin-left: auto;
+  font-size: 7px;
+  color: var(--accent-color);
+  border: 1px solid var(--accent-color);
+  padding: 2px 6px;
+}
+
+.npc-picker-empty {
+  font-size: 7px;
+  color: var(--label-title-color);
+  text-align: center;
+  padding: 20px 14px;
+  margin: 0;
+}
+
+.npc-picker-list {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.npc-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.1s;
+
+  &:last-child { border-bottom: none; }
+
+  &:hover { background-color: var(--bg-color); }
+
+  &--selected {
+    background-color: rgba(163, 44, 23, 0.12);
+
+    &:hover { background-color: rgba(163, 44, 23, 0.18); }
+  }
+}
+
+.npc-picker-check {
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  color: var(--accent-color);
+  flex-shrink: 0;
+  background-color: var(--bg-color);
+}
+
+.npc-picker-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.npc-picker-name {
+  font-size: 8px;
+  color: var(--accent-color);
+}
+
+.npc-picker-meta {
+  font-size: 6px;
   color: var(--label-title-color);
 }
 
@@ -242,11 +325,7 @@
   font-family: 'Press Start 2P', monospace;
   cursor: not-allowed;
   text-align: left;
-  margin-bottom: 10px;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
+  opacity: 0.5;
 }
 
 .mobile-catalog-icon {
@@ -266,6 +345,87 @@
 }
 
 .mobile-catalog-desc {
+  font-size: 6px;
+  color: var(--label-title-color);
+}
+
+/* NPC picker — mobile */
+.mobile-section-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 8px;
+  color: var(--label-title-color);
+  margin-bottom: 10px;
+
+  &--mt { margin-top: 16px; }
+}
+
+.mobile-npc-count {
+  margin-left: auto;
+  font-size: 6px;
+  color: var(--accent-color);
+  border: 1px solid var(--accent-color);
+  padding: 2px 5px;
+}
+
+.mobile-loading-msg {
+  font-size: 7px;
+  color: var(--label-title-color);
+  text-align: center;
+  padding: 12px 0;
+  margin: 0 0 10px;
+}
+
+.mobile-npc-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 240px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+}
+
+.mobile-npc-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-color);
+  cursor: pointer;
+
+  &--selected {
+    border-color: var(--accent-color);
+    background-color: rgba(163, 44, 23, 0.1);
+  }
+}
+
+.mobile-npc-check {
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  color: var(--accent-color);
+  flex-shrink: 0;
+  background-color: var(--bg-color);
+}
+
+.mobile-npc-details {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mobile-npc-name {
+  font-size: 7px;
+  color: var(--accent-color);
+}
+
+.mobile-npc-meta {
   font-size: 6px;
   color: var(--label-title-color);
 }

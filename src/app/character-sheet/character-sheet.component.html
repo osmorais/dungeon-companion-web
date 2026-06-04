@@ -26,7 +26,19 @@
             <button class="hp-btn" (click)="changeHp(1)">+</button>
           </div>
           <small>PV</small>
+          @if (hpSaved()) {
+            <span class="hp-saved-msg">HP SALVO!</span>
+          }
+          <button class="retro-btn mobile-hp-save-btn" (click)="saveHp()" [disabled]="savingHp()">
+            {{ savingHp() ? '...' : 'SALVAR HP' }}
+          </button>
         </div>
+      </div>
+
+      <div class="mobile-sheet-toolbar">
+        <button class="retro-btn mobile-print-btn" (click)="printSheet()" [disabled]="printingSheet()">
+          {{ printingSheet() ? '...' : '🖨 IMPRIMIR' }}
+        </button>
       </div>
 
       <div class="mobile-tabs">
@@ -310,6 +322,14 @@
                 <h3>{{ data.character_sheet.combat_stats.hit_points.current }} / {{ data.character_sheet.combat_stats.hit_points.max }}</h3>
                 <button class="hp-btn" (click)="changeHp(1)">+</button>
               </div>
+              <div class="hp-save-row">
+                @if (hpSaved()) {
+                  <span class="hp-saved-msg">HP SALVO!</span>
+                }
+                <button class="retro-btn hp-save-btn" (click)="saveHp()" [disabled]="savingHp()">
+                  {{ savingHp() ? 'SALVANDO...' : 'SALVAR HP' }}
+                </button>
+              </div>
               <small>Dado de Vida: {{ data.character_sheet.combat_stats.hit_dice }}</small>
             </div>
             <div class="passive-box">
@@ -433,6 +453,9 @@
 
       <div class="sheet-actions">
         <button class="retro-btn" (click)="goBack()">VOLTAR</button>
+        <button class="retro-btn print-btn" (click)="printSheet()" [disabled]="printingSheet()">
+          {{ printingSheet() ? 'CARREGANDO...' : '🖨 IMPRIMIR / PDF' }}
+        </button>
       </div>
 
       } <!-- end @if desktopPage === 'sheet' -->

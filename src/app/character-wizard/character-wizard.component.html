@@ -26,6 +26,16 @@
                 }
               </select>
             </label>
+            @if (availableSubraces.length > 0) {
+              <label>SUB-RAÇA
+                <select [(ngModel)]="characterData.core_build.subrace">
+                  <option value="">Selecione...</option>
+                  @for (sub of availableSubraces; track sub.key) {
+                    <option [value]="sub.key">{{ sub.name }}</option>
+                  }
+                </select>
+              </label>
+            }
             <label>CLASSE
               <select [(ngModel)]="characterData.core_build.id_class" (ngModelChange)="onClassChange()">
                 @for (cls of availableClasses; track cls.id_class) {
@@ -325,6 +335,16 @@
                 }
               </select>
             </label>
+            @if (availableSubraces.length > 0) {
+              <label>SUB-RAÇA
+                <select [(ngModel)]="characterData.core_build.subrace">
+                  <option value="">Selecione...</option>
+                  @for (sub of availableSubraces; track sub.key) {
+                    <option [value]="sub.key">{{ sub.name }}</option>
+                  }
+                </select>
+              </label>
+            }
             <label>CLASSE
               <select [(ngModel)]="characterData.core_build.id_class" (ngModelChange)="onClassChange()">
                 @for (cls of availableClasses; track cls.id_class) {

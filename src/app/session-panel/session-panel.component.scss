@@ -60,6 +60,19 @@
   color: var(--label-title-color);
 }
 
+.refresh-btn {
+  float: none;
+  font-size: 7px;
+  padding: 5px 10px;
+  margin-top: 4px;
+  align-self: flex-end;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
 /* Grid vertical de players */
 .players-grid {
   display: grid;
@@ -160,6 +173,62 @@
   color: var(--text-color);
 }
 
+.hp-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 2px;
+}
+
+.hp-btn {
+  background: none;
+  border: 1px solid var(--accent-color);
+  color: var(--accent-color);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: background-color 0.15s;
+
+  &:hover:not(:disabled) {
+    background-color: var(--accent-color);
+    color: var(--bg-color);
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+}
+
+.hp-edit-value {
+  font-size: 9px;
+  color: var(--accent-color);
+  min-width: 22px;
+  text-align: center;
+}
+
+.hp-save-btn {
+  float: none;
+  margin-top: 2px;
+  font-size: 6px;
+  padding: 5px 8px;
+  width: 100%;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
 .sheet-btn {
   float: none;
   margin-top: 4px;
@@ -182,6 +251,299 @@
   margin-top: 4px;
   font-size: 8px;
   padding: 8px 14px;
+}
+
+/* NPC list — desktop */
+.npc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.npc-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 12px 10px 40px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-color);
+}
+
+.npc-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.npc-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.npc-name {
+  font-size: 9px;
+  color: var(--accent-color);
+}
+
+.npc-meta {
+  font-size: 7px;
+  color: var(--label-title-color);
+}
+
+.npc-level {
+  font-size: 7px;
+  color: var(--label-title-color);
+}
+
+.npc-hp-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.npc-hp-bar {
+  flex: 1;
+  height: 5px;
+  background-color: var(--panel-bg);
+  border: 1px solid var(--border-color);
+}
+
+.npc-hp-fill {
+  height: 100%;
+  background-color: #4caf50;
+  transition: width 0.3s;
+}
+
+.npc-hp-text {
+  font-size: 7px;
+  color: var(--text-color);
+  white-space: nowrap;
+}
+
+.npc-sheet-btn {
+  float: none;
+  font-size: 7px;
+  padding: 6px 10px;
+  flex-shrink: 0;
+}
+
+.npc-add-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-color);
+}
+
+.npc-add-btn {
+  float: none;
+  font-size: 7px;
+  padding: 6px 12px;
+}
+
+/* Modal de adição de NPC */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.npc-add-modal {
+  position: relative;
+  width: 440px;
+  max-width: 92vw;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 20px 20px;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover { background-color: var(--panel-bg); }
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 11px;
+  color: var(--accent-color);
+}
+
+.modal-empty {
+  font-size: 8px;
+  color: var(--label-title-color);
+  text-align: center;
+  padding: 16px 0;
+  margin: 0;
+}
+
+.npc-modal-list {
+  overflow-y: auto;
+  max-height: 52vh;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--border-color);
+}
+
+.npc-modal-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: background-color 0.12s;
+
+  &:last-child { border-bottom: none; }
+  &:hover { background-color: var(--panel-bg); }
+
+  &--loading {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+}
+
+.npc-modal-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.npc-modal-name {
+  font-size: 8px;
+  color: var(--accent-color);
+}
+
+.npc-modal-meta {
+  font-size: 6px;
+  color: var(--label-title-color);
+}
+
+.npc-modal-action {
+  font-size: 14px;
+  color: var(--accent-color);
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+}
+
+.npc-hp-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.npc-hp-save-btn {
+  float: none;
+  font-size: 6px;
+  padding: 4px 8px;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+/* Monster table — desktop */
+.monster-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 8px;
+
+  th {
+    text-align: left;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--label-title-color);
+    font-size: 7px;
+    letter-spacing: 0.05em;
+  }
+
+  td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+
+    &:last-child { border-bottom-color: transparent; }
+  }
+
+  tr:last-child td { border-bottom: none; }
+}
+
+.text-center { text-align: center; }
+
+.monster-name-cell {
+  color: var(--accent-color);
+  font-size: 8px;
+  white-space: nowrap;
+}
+
+.monster-icon {
+  margin-right: 6px;
+  opacity: 0.7;
+}
+
+.monster-ac {
+  font-size: 10px;
+  color: var(--text-color);
+  font-weight: bold;
+}
+
+.monster-hp-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 140px;
+}
+
+.monster-hp-bar {
+  flex: 1;
+  height: 6px;
+  background-color: var(--panel-bg);
+  border: 1px solid var(--border-color);
+}
+
+.monster-hp-fill {
+  height: 100%;
+  background-color: #e53935;
+  transition: width 0.3s;
+}
+
+.monster-hp-text {
+  font-size: 7px;
+  color: var(--text-color);
+  white-space: nowrap;
 }
 
 /* ===== MOBILE ===== */
@@ -212,6 +574,23 @@
   padding: 4px 10px;
   cursor: pointer;
   line-height: 1;
+}
+
+.mobile-refresh-btn {
+  margin-left: auto;
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--accent-color);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 14px;
+  padding: 4px 10px;
+  cursor: pointer;
+  line-height: 1;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
 }
 
 .mobile-title {
@@ -350,6 +729,11 @@
   color: var(--text-color);
 }
 
+.mobile-hp-save-btn {
+  font-size: 5px;
+  padding: 5px 6px;
+}
+
 .mobile-sheet-btn {
   float: none;
   margin-top: 4px;
@@ -395,5 +779,136 @@
 
   &--inner {
     padding: 8px 0;
+  }
+}
+
+/* NPC list — mobile */
+.mobile-npc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mobile-npc-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px 8px 36px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-color);
+}
+
+.mobile-npc-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.mobile-npc-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.mobile-npc-name {
+  font-size: 7px;
+  color: var(--accent-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobile-npc-meta {
+  font-size: 6px;
+  color: var(--label-title-color);
+}
+
+.mobile-npc-hp {
+  font-size: 6px;
+  color: var(--text-color);
+}
+
+.mobile-npc-btn {
+  float: none;
+  font-size: 5px;
+  padding: 5px 6px;
+  flex-shrink: 0;
+}
+
+.mobile-npc-add-btn {
+  float: none;
+  width: 100%;
+  text-align: center;
+  font-size: 7px;
+  padding: 8px;
+  margin-top: 10px;
+}
+
+/* Monster list — mobile */
+.mobile-monster-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mobile-monster-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-color);
+}
+
+.mobile-monster-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  opacity: 0.7;
+  width: 32px;
+  text-align: center;
+}
+
+.mobile-monster-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.mobile-monster-name {
+  font-size: 7px;
+  color: var(--accent-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobile-monster-stats {
+  display: flex;
+  gap: 10px;
+}
+
+.mobile-monster-stat {
+  font-size: 6px;
+  color: var(--text-color);
+}
+
+.mobile-monster-hp-bar {
+  width: 100%;
+  height: 4px;
+  background-color: var(--panel-bg);
+  border: 1px solid var(--border-color);
+
+  .mobile-monster-hp-fill {
+    height: 100%;
+    background-color: #e53935;
+    transition: width 0.3s;
   }
 }

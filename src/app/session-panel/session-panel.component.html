@@ -5,6 +5,9 @@
     <div class="mobile-header">
       <button class="mobile-back-btn" (click)="goBack()">&#8592;</button>
       <span class="mobile-title">PAINEL DA SESSÃO</span>
+      <button class="mobile-refresh-btn" (click)="refreshSession()" [disabled]="refreshing()" title="Atualizar sessão">
+        {{ refreshing() ? '...' : '↻' }}
+      </button>
     </div>
 
     @if (error()) {
@@ -59,12 +62,24 @@
                   <div class="mobile-hp">
                     <div class="mobile-hp-bar">
                       <div class="mobile-hp-fill"
-                        [style.width.%]="hpPercent(player.character.current_hit_points, player.character.max_hit_points)">
+                        [style.width.%]="hpPercent(editedHp(player), player.character.max_hit_points)">
                       </div>
                     </div>
                     <span class="mobile-hp-value">
-                      ❤ {{ player.character.current_hit_points }}/{{ player.character.max_hit_points }}
+                      ❤ {{ editedHp(player) }}/{{ player.character.max_hit_points }}
                     </span>
+                    @if (canEditHp(player)) {
+                      <div class="hp-controls">
+                        <button class="hp-btn" (click)="decrementHp(player)" [disabled]="editedHp(player) <= 0">−</button>
+                        <span class="hp-edit-value">{{ editedHp(player) }}</span>
+                        <button class="hp-btn" (click)="incrementHp(player)" [disabled]="editedHp(player) >= player.character.max_hit_points">+</button>
+                      </div>
+                      <button class="retro-btn hp-save-btn mobile-hp-save-btn"
+                        (click)="saveHp(player)"
+                        [disabled]="savingHp().has(player.id_player_session) || !hasHpChange(player)">
+                        {{ savingHp().has(player.id_player_session) ? '...' : 'SALVAR HP' }}
+                      </button>
+                    }
                   </div>
 
                   @if (canViewSheet(player)) {
@@ -81,6 +96,87 @@
           </div>
         }
       </fieldset>
+
+      <!-- Lista de NPCs -->
+      @if (sessionDetail()!.npcs.length > 0 || isOwner()) {
+        <fieldset class="mobile-panel">
+          <legend>NPCS</legend>
+          @if (sessionDetail()!.npcs.length === 0) {
+            <p class="mobile-empty-msg mobile-empty-msg--inner">NENHUM NPC ADICIONADO À SESSÃO.</p>
+          } @else {
+          <div class="mobile-npc-list">
+            @for (npc of sessionDetail()!.npcs; track npc.id_npc_session) {
+              <div class="mobile-npc-row">
+                @if (isOwner()) {
+                  <button class="delete-btn" title="Remover NPC" (click)="deleteNpc(npc.id_npc_session)">✕</button>
+                }
+                <div class="mobile-npc-avatar">
+                  <app-avatar-display [preset]="npc.character?.avatar_preset ?? null" />
+                </div>
+                <div class="mobile-npc-info">
+                  @if (npc.character) {
+                    <span class="mobile-npc-name">{{ npc.character.name }}</span>
+                    <span class="mobile-npc-meta">{{ npc.character.class }} · {{ npc.character.race }} · NV {{ npc.character.level }}</span>
+                    <span class="mobile-npc-hp">❤ {{ editedNpcHp(npc) }}/{{ npc.character.max_hit_points }}</span>
+                    @if (isOwner()) {
+                      <div class="hp-controls">
+                        <button class="hp-btn" (click)="decrementNpcHp(npc)" [disabled]="editedNpcHp(npc) <= 0">−</button>
+                        <span class="hp-edit-value">{{ editedNpcHp(npc) }}</span>
+                        <button class="hp-btn" (click)="incrementNpcHp(npc)" [disabled]="editedNpcHp(npc) >= npc.character.max_hit_points">+</button>
+                      </div>
+                      <button class="retro-btn hp-save-btn mobile-hp-save-btn"
+                        (click)="saveNpcHp(npc)"
+                        [disabled]="savingNpcHp().has(npc.id_npc_session) || !hasNpcHpChange(npc)">
+                        {{ savingNpcHp().has(npc.id_npc_session) ? '...' : 'SALVAR HP' }}
+                      </button>
+                    }
+                  } @else {
+                    <span class="mobile-npc-name">NPC #{{ npc.id_character }}</span>
+                    <span class="mobile-npc-meta">PERSONAGEM {{ npc.id_character }}</span>
+                  }
+                </div>
+                @if (isOwner()) {
+                  <button class="retro-btn mobile-npc-btn" (click)="viewCharacterSheet(npc.id_character)">
+                    VER FICHA
+                  </button>
+                }
+              </div>
+            }
+          </div>
+          }
+          @if (isOwner()) {
+            <button class="retro-btn mobile-npc-add-btn" (click)="openAddNpcModal()">
+              + ADICIONAR NPC
+            </button>
+          }
+        </fieldset>
+      }
+
+      <!-- Lista de Monstros -->
+      @if (sessionDetail()!.monsters.length > 0) {
+        <fieldset class="mobile-panel">
+          <legend>MONSTROS</legend>
+          <div class="mobile-monster-list">
+            @for (monster of sessionDetail()!.monsters; track monster.id_monster_session) {
+              <div class="mobile-monster-row">
+                <div class="mobile-monster-icon">☠</div>
+                <div class="mobile-monster-info">
+                  <span class="mobile-monster-name">{{ monsterDisplayName(monster) }}</span>
+                  <div class="mobile-monster-stats">
+                    <span class="mobile-monster-stat">CA {{ monster.ac }}</span>
+                    <span class="mobile-monster-stat">❤ {{ monster.hp_current }}/{{ monster.hp_max }}</span>
+                  </div>
+                  <div class="mobile-monster-hp-bar">
+                    <div class="mobile-monster-hp-fill"
+                      [style.width.%]="hpPercent(monster.hp_current, monster.hp_max)">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </fieldset>
+      }
     }
 
   </div>
@@ -111,6 +207,9 @@
             <span class="session-players-count">
               {{ sessionDetail()!.players.length }}/{{ sessionDetail()!.game_session.max_player_quantity }} JOGADORES
             </span>
+            <button class="retro-btn refresh-btn" (click)="refreshSession()" [disabled]="refreshing()">
+              {{ refreshing() ? 'ATUALIZANDO...' : '↻ ATUALIZAR' }}
+            </button>
           </div>
         </div>
       </fieldset>
@@ -141,12 +240,24 @@
                   <div class="hp-section">
                     <div class="hp-bar">
                       <div class="hp-fill"
-                        [style.width.%]="hpPercent(player.character.current_hit_points, player.character.max_hit_points)">
+                        [style.width.%]="hpPercent(editedHp(player), player.character.max_hit_points)">
                       </div>
                     </div>
                     <span class="hp-text">
-                      ❤ {{ player.character.current_hit_points }}/{{ player.character.max_hit_points }}
+                      ❤ {{ editedHp(player) }}/{{ player.character.max_hit_points }}
                     </span>
+                    @if (canEditHp(player)) {
+                      <div class="hp-controls">
+                        <button class="hp-btn" (click)="decrementHp(player)" [disabled]="editedHp(player) <= 0">−</button>
+                        <span class="hp-edit-value">{{ editedHp(player) }}</span>
+                        <button class="hp-btn" (click)="incrementHp(player)" [disabled]="editedHp(player) >= player.character.max_hit_points">+</button>
+                      </div>
+                      <button class="retro-btn hp-save-btn"
+                        (click)="saveHp(player)"
+                        [disabled]="savingHp().has(player.id_player_session) || !hasHpChange(player)">
+                        {{ savingHp().has(player.id_player_session) ? '...' : 'SALVAR HP' }}
+                      </button>
+                    }
                   </div>
 
                   @if (canViewSheet(player)) {
@@ -164,8 +275,142 @@
         }
       </fieldset>
 
+      <!-- Lista de NPCs -->
+      @if (sessionDetail()!.npcs.length > 0 || isOwner()) {
+        <fieldset class="retro-panel">
+          <legend>NPCS</legend>
+          @if (sessionDetail()!.npcs.length === 0) {
+            <p class="empty-msg">NENHUM NPC ADICIONADO À SESSÃO.</p>
+          } @else {
+          <div class="npc-list">
+            @for (npc of sessionDetail()!.npcs; track npc.id_npc_session) {
+              <div class="npc-row">
+                @if (isOwner()) {
+                  <button class="delete-btn" title="Remover NPC" (click)="deleteNpc(npc.id_npc_session)">✕</button>
+                }
+                <div class="npc-avatar">
+                  <app-avatar-display [preset]="npc.character?.avatar_preset ?? null" />
+                </div>
+                <div class="npc-info">
+                  @if (npc.character) {
+                    <span class="npc-name">{{ npc.character.name }}</span>
+                    <span class="npc-meta">{{ npc.character.class }} &mdash; {{ npc.character.race }}</span>
+                    <span class="npc-level">NÍVEL {{ npc.character.level }}</span>
+                    <div class="npc-hp-bar-wrap">
+                      <div class="npc-hp-bar">
+                        <div class="npc-hp-fill"
+                          [style.width.%]="hpPercent(editedNpcHp(npc), npc.character.max_hit_points)">
+                        </div>
+                      </div>
+                      <span class="npc-hp-text">❤ {{ editedNpcHp(npc) }}/{{ npc.character.max_hit_points }}</span>
+                    </div>
+                    @if (isOwner()) {
+                      <div class="npc-hp-controls">
+                        <button class="hp-btn" (click)="decrementNpcHp(npc)" [disabled]="editedNpcHp(npc) <= 0">−</button>
+                        <span class="hp-edit-value">{{ editedNpcHp(npc) }}</span>
+                        <button class="hp-btn" (click)="incrementNpcHp(npc)" [disabled]="editedNpcHp(npc) >= npc.character.max_hit_points">+</button>
+                        <button class="retro-btn npc-hp-save-btn"
+                          (click)="saveNpcHp(npc)"
+                          [disabled]="savingNpcHp().has(npc.id_npc_session) || !hasNpcHpChange(npc)">
+                          {{ savingNpcHp().has(npc.id_npc_session) ? '...' : 'SALVAR HP' }}
+                        </button>
+                      </div>
+                    }
+                  } @else {
+                    <span class="npc-name">NPC #{{ npc.id_character }}</span>
+                    <span class="npc-meta">PERSONAGEM {{ npc.id_character }}</span>
+                  }
+                </div>
+                @if (isOwner()) {
+                  <button class="retro-btn npc-sheet-btn" (click)="viewCharacterSheet(npc.id_character)">
+                    VER FICHA ▶
+                  </button>
+                }
+              </div>
+            }
+          </div>
+          }
+          @if (isOwner()) {
+            <div class="npc-add-row">
+              <button class="retro-btn npc-add-btn" (click)="openAddNpcModal()">
+                + ADICIONAR NPC
+              </button>
+            </div>
+          }
+        </fieldset>
+      }
+
+      <!-- Lista de Monstros -->
+      @if (sessionDetail()!.monsters.length > 0) {
+        <fieldset class="retro-panel">
+          <legend>MONSTROS</legend>
+          <table class="monster-table">
+            <thead>
+              <tr>
+                <th>NOME</th>
+                <th class="text-center">CA</th>
+                <th>PONTOS DE VIDA</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (monster of sessionDetail()!.monsters; track monster.id_monster_session) {
+                <tr>
+                  <td class="monster-name-cell">
+                    <span class="monster-icon">☠</span>
+                    {{ monsterDisplayName(monster) }}
+                  </td>
+                  <td class="text-center monster-ac">{{ monster.ac }}</td>
+                  <td class="monster-hp-cell">
+                    <div class="monster-hp-bar">
+                      <div class="monster-hp-fill"
+                        [style.width.%]="hpPercent(monster.hp_current, monster.hp_max)">
+                      </div>
+                    </div>
+                    <span class="monster-hp-text">{{ monster.hp_current }}/{{ monster.hp_max }}</span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </fieldset>
+      }
+
       <button class="retro-btn back-btn" (click)="goBack()">← VOLTAR</button>
     }
 
+  </div>
+}
+
+<!-- ===== MODAL: ADICIONAR NPC ===== -->
+@if (addNpcOpen()) {
+  <div class="overlay modal-overlay" (click)="closeAddNpcModal()">
+    <div class="retro-panel npc-add-modal" (click)="$event.stopPropagation()">
+      <button class="modal-close-btn" (click)="closeAddNpcModal()">✕</button>
+      <h3 class="modal-title">ADICIONAR NPC</h3>
+
+      @if (addNpcLoading()) {
+        <p class="modal-empty">Carregando personagens...</p>
+      } @else if (availableToAdd.length === 0) {
+        <p class="modal-empty">Todos os personagens já foram adicionados à sessão.</p>
+      } @else {
+        <div class="npc-modal-list">
+          @for (char of availableToAdd; track char.id_character) {
+            <div
+              class="npc-modal-item"
+              [class.npc-modal-item--loading]="addingNpcId() === char.id_character"
+              (click)="addNpc(char)"
+            >
+              <div class="npc-modal-info">
+                <span class="npc-modal-name">{{ char.name }}</span>
+                <span class="npc-modal-meta">{{ char.class }} &mdash; {{ char.race }} &mdash; NV {{ char.level }}</span>
+              </div>
+              <span class="npc-modal-action">
+                {{ addingNpcId() === char.id_character ? '...' : '+' }}
+              </span>
+            </div>
+          }
+        </div>
+      }
+    </div>
   </div>
 }

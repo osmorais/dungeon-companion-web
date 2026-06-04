@@ -45,4 +45,29 @@ export class GameSessionService {
   deletePlayer(idPlayerSession: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/api/game-session/player/${idPlayerSession}`);
   }
+
+  updatePlayerHp(idPlayerSession: string, currentHitPoints: number): Observable<void> {
+    return this.http.patch<void>(
+      `${this.baseUrl}/api/game-session/player/${idPlayerSession}/hp`,
+      { current_hit_points: currentHitPoints },
+    );
+  }
+
+  updateNpcHp(idNpcSession: string, currentHitPoints: number): Observable<void> {
+    return this.http.patch<void>(
+      `${this.baseUrl}/api/game-session/npc/${idNpcSession}/hp`,
+      { current_hit_points: currentHitPoints },
+    );
+  }
+
+  deleteNpc(idNpcSession: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/api/game-session/npc/${idNpcSession}`);
+  }
+
+  addNpcToSession(sessionId: string, idCharacter: number): Observable<{ id_npc_session: string; id_game_session: string; id_character: number }> {
+    return this.http.post<{ id_npc_session: string; id_game_session: string; id_character: number }>(
+      `${this.baseUrl}/api/game-session/${sessionId}/npc`,
+      { id_character: idCharacter },
+    );
+  }
 }

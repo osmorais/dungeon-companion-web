@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CharacterSheetData } from '../models/character.interface';
-import { Alignment, Armour, AttributeType, Background, CharacterClass, CharacterOptions, Race, Skill, Spell, WeaponRow } from '../models/character-options.interface';
+import { Alignment, Armour, AttributeType, Background, CharacterClass, CharacterOptions, Race, Skill, Spell, Subrace, WeaponRow } from '../models/character-options.interface';
 import { DragonAnimationComponent } from '../dragon-animation/dragon-animation.component';
 import { LoadingOverlayComponent } from '../loading-overlay/loading-overlay.component';
 import { LoadingOverlayService } from '../loading-overlay/loading-overlay.service';
@@ -73,7 +73,7 @@ export class CharacterWizardComponent implements OnInit {
   };
 
   characterData: CharacterSheetData = {
-    core_build: { level: 1, id_race: 0, race: '', id_class: 0, class: '', id_background: 0, background: '', subrace: '' },
+    core_build: { level: 1, id_race: 0, race: '', id_class: 0, class: '', id_background: 0, background: '' },
     character_details: { name: '', id_alignment: 0, alignment: '', age: 20 },
     attributes: {
       generation_method: 'standard_array',
@@ -129,6 +129,10 @@ export class CharacterWizardComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
+  get availableSubraces(): Subrace[] {
+    return this.availableRaces.find(r => +r.id_race === +this.characterData.core_build.id_race)?.subraces ?? [];
+  }
+
   private isCurrentStepValid(): boolean {
     switch (this.currentStep) {
       case 1:
@@ -137,7 +141,8 @@ export class CharacterWizardComponent implements OnInit {
           +this.characterData.core_build.id_class !== 0 &&
           +this.characterData.core_build.id_background !== 0 &&
           this.characterData.character_details.name.trim() !== '' &&
-          +this.characterData.character_details.id_alignment !== 0
+          +this.characterData.character_details.id_alignment !== 0 &&
+          (this.availableSubraces.length === 0 || !!this.characterData.core_build.subrace)
         );
       case 2:
         if (this.characterData.attributes.generation_method === 'point_buy') return true;
@@ -227,6 +232,7 @@ export class CharacterWizardComponent implements OnInit {
   onRaceChange(): void {
     const race = this.availableRaces.find(r => +r.id_race === +this.characterData.core_build.id_race);
     this.characterData.core_build.race = race?.name ?? '';
+    this.characterData.core_build.subrace = this.availableSubraces.length > 0 ? '' : undefined;
     this.resetAllChoices();
 
     if (this.characterData.avatar_preset) {

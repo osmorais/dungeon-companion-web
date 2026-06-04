@@ -1,7 +1,9 @@
-import { Component, HostListener, inject, signal } from '@angular/core';
+import { Component, HostListener, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { GameSessionService } from '../services/game-session.service';
+import { CharacterService } from '../services/character.service';
+import { CharacterSummary } from '../models/character-summary.interface';
 
 @Component({
   selector: 'app-session-create',
@@ -10,9 +12,10 @@ import { GameSessionService } from '../services/game-session.service';
   templateUrl: './session-create.component.html',
   styleUrls: ['./session-create.component.scss'],
 })
-export class SessionCreateComponent {
+export class SessionCreateComponent implements OnInit {
   private router = inject(Router);
   private gameSessionService = inject(GameSessionService);
+  private charService = inject(CharacterService);
 
   isMobile = signal(typeof window !== 'undefined' && window.innerWidth < 768);
 
@@ -22,9 +25,36 @@ export class SessionCreateComponent {
   sessionCode = signal('');
   saveError = signal('');
 
+  availableNpcs = signal<CharacterSummary[]>([]);
+  loadingNpcs = signal(false);
+  selectedNpcIds = signal<Set<number>>(new Set());
+
   @HostListener('window:resize')
   onResize() {
     this.isMobile.set(window.innerWidth < 768);
+  }
+
+  ngOnInit(): void {
+    this.loadingNpcs.set(true);
+    this.charService.getCharacters(1, 100).subscribe({
+      next: res => {
+        this.availableNpcs.set(res.CharacterPagedList ?? []);
+        this.loadingNpcs.set(false);
+      },
+      error: () => this.loadingNpcs.set(false),
+    });
+  }
+
+  isNpcSelected(id: number): boolean {
+    return this.selectedNpcIds().has(id);
+  }
+
+  toggleNpc(id: number): void {
+    this.selectedNpcIds.update(set => {
+      const next = new Set(set);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
   }
 
   generateCode() {
@@ -52,13 +82,15 @@ export class SessionCreateComponent {
     if (!this.canSave()) return;
     this.saveError.set('');
 
+    const npcs = Array.from(this.selectedNpcIds()).map(id => ({ id_character: id }));
+
     this.gameSessionService
       .createSession({
         session_name: this.sessionName().trim(),
         session_code: this.sessionCode(),
         max_player_quantity: this.maxPlayers()!,
         dm_name: this.masterName().trim(),
-        npcs: [],
+        npcs,
         monsters: [],
       })
       .subscribe({

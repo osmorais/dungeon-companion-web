@@ -174,6 +174,32 @@
   &:active { background: rgba(0, 255, 0, 0.2); }
 }
 
+.hp-save-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.hp-saved-msg {
+  font-size: 7px;
+  color: #4caf50;
+  letter-spacing: 0.1em;
+  animation: fadeIn 0.3s ease;
+}
+
+.hp-save-btn {
+  float: none !important;
+  font-size: 7px;
+  padding: 5px 8px;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
 .passive-box {
   margin-top: 10px;
   text-align: center;
@@ -559,6 +585,19 @@ ul {
     width: 28px;
     height: 28px;
     font-size: 16px;
+  }
+}
+
+.mobile-hp-save-btn {
+  float: none !important;
+  font-size: 5px;
+  padding: 4px 6px;
+  margin-top: 4px;
+  width: 100%;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
   }
 }
 
@@ -1017,6 +1056,32 @@ ul {
 
 .notes-save-btn {
   float: none !important;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.print-btn {
+  float: none !important;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.mobile-sheet-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 4px 0 8px;
+}
+
+.mobile-print-btn {
+  float: none !important;
+  font-size: 7px;
+  padding: 6px 10px;
 
   &:disabled {
     opacity: 0.4;
