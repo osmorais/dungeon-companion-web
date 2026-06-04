@@ -1,0 +1,171 @@
+@if (isMobile()) {
+  <!-- ===== MOBILE LAYOUT ===== -->
+  <div class="mobile-container">
+
+    <div class="mobile-header">
+      <button class="mobile-back-btn" (click)="goBack()">&#8592;</button>
+      <span class="mobile-title">PAINEL DA SESSÃO</span>
+    </div>
+
+    @if (error()) {
+      <p class="mobile-empty-msg">ERRO AO CARREGAR A SESSÃO.</p>
+    } @else if (!sessionDetail()) {
+      <p class="mobile-empty-msg">CARREGANDO...</p>
+    } @else {
+      <!-- Cabeçalho da sessão -->
+      <fieldset class="mobile-panel">
+        <legend>AVENTURA</legend>
+        <p class="mobile-session-name">{{ sessionDetail()!.game_session.session_name }}</p>
+        <div class="mobile-session-meta">
+          <span class="mobile-meta-label">CÓDIGO:</span>
+          <span class="mobile-code">{{ sessionDetail()!.game_session.session_code }}</span>
+        </div>
+        <div class="mobile-session-meta">
+          <span class="mobile-meta-label">MESTRE:</span>
+          <span class="mobile-meta-value">{{ sessionDetail()!.game_session.dm_name }}</span>
+        </div>
+        <div class="mobile-session-meta">
+          <span class="mobile-meta-label">JOGADORES:</span>
+          <span class="mobile-meta-value">
+            {{ sessionDetail()!.players.length }} / {{ sessionDetail()!.game_session.max_player_quantity }}
+          </span>
+        </div>
+      </fieldset>
+
+      <!-- Cards dos players -->
+      <fieldset class="mobile-panel">
+        <legend>AVENTUREIROS</legend>
+
+        @if (sessionDetail()!.players.length === 0) {
+          <p class="mobile-empty-msg mobile-empty-msg--inner">NENHUM JOGADOR NA SESSÃO.</p>
+        } @else {
+          <div class="mobile-players-grid">
+            @for (player of sessionDetail()!.players; track player.id_player_session) {
+              <div class="mobile-player-card">
+                @if (isOwner()) {
+                  <button class="delete-btn" title="Remover jogador" (click)="deletePlayer(player.id_player_session)">✕</button>
+                }
+
+                <div class="mobile-avatar-circle">
+                  <app-avatar-display [preset]="player.character?.avatar_preset ?? null" />
+                </div>
+
+                @if (player.character) {
+                  <span class="mobile-char-name">{{ player.character.name }}</span>
+                  <span class="mobile-char-meta">{{ player.character.class }}</span>
+                  <span class="mobile-char-meta">{{ player.character.race }}</span>
+                  <span class="mobile-char-level">NV {{ player.character.level }}</span>
+
+                  <div class="mobile-hp">
+                    <div class="mobile-hp-bar">
+                      <div class="mobile-hp-fill"
+                        [style.width.%]="hpPercent(player.character.current_hit_points, player.character.max_hit_points)">
+                      </div>
+                    </div>
+                    <span class="mobile-hp-value">
+                      ❤ {{ player.character.current_hit_points }}/{{ player.character.max_hit_points }}
+                    </span>
+                  </div>
+
+                  @if (canViewSheet(player)) {
+                    <button class="retro-btn mobile-sheet-btn" (click)="viewCharacterSheet(player.id_character)">
+                      VER FICHA
+                    </button>
+                  }
+                } @else {
+                  <span class="mobile-char-name">{{ player.player_name }}</span>
+                  <span class="mobile-char-meta no-char">SEM PERSONAGEM</span>
+                }
+              </div>
+            }
+          </div>
+        }
+      </fieldset>
+    }
+
+  </div>
+} @else {
+  <!-- ===== DESKTOP LAYOUT ===== -->
+  <div class="container">
+
+    @if (error()) {
+      <fieldset class="retro-panel">
+        <p class="empty-msg">ERRO AO CARREGAR A SESSÃO.</p>
+      </fieldset>
+    } @else if (!sessionDetail()) {
+      <fieldset class="retro-panel">
+        <p class="empty-msg">CARREGANDO...</p>
+      </fieldset>
+    } @else {
+      <!-- Cabeçalho da sessão -->
+      <fieldset class="retro-panel session-header-panel">
+        <legend>PAINEL DA SESSÃO</legend>
+        <div class="session-header">
+          <div class="session-title-block">
+            <h2 class="session-name">{{ sessionDetail()!.game_session.session_name }}</h2>
+            <span class="session-dm">MESTRE: {{ sessionDetail()!.game_session.dm_name }}</span>
+          </div>
+          <div class="session-code-block">
+            <span class="session-code-label">CÓDIGO DA SESSÃO</span>
+            <span class="session-code">{{ sessionDetail()!.game_session.session_code }}</span>
+            <span class="session-players-count">
+              {{ sessionDetail()!.players.length }}/{{ sessionDetail()!.game_session.max_player_quantity }} JOGADORES
+            </span>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Grid de players -->
+      <fieldset class="retro-panel">
+        <legend>AVENTUREIROS</legend>
+
+        @if (sessionDetail()!.players.length === 0) {
+          <p class="empty-msg">NENHUM JOGADOR NA SESSÃO AINDA.</p>
+        } @else {
+          <div class="players-grid">
+            @for (player of sessionDetail()!.players; track player.id_player_session) {
+              <div class="player-card">
+                @if (isOwner()) {
+                  <button class="delete-btn" title="Remover jogador" (click)="deletePlayer(player.id_player_session)">✕</button>
+                }
+
+                <div class="avatar-circle">
+                  <app-avatar-display [preset]="player.character?.avatar_preset ?? null" />
+                </div>
+
+                @if (player.character) {
+                  <span class="char-name">{{ player.character.name }}</span>
+                  <span class="char-meta">{{ player.character.class }} — {{ player.character.race }}</span>
+                  <span class="char-level">NÍVEL {{ player.character.level }}</span>
+
+                  <div class="hp-section">
+                    <div class="hp-bar">
+                      <div class="hp-fill"
+                        [style.width.%]="hpPercent(player.character.current_hit_points, player.character.max_hit_points)">
+                      </div>
+                    </div>
+                    <span class="hp-text">
+                      ❤ {{ player.character.current_hit_points }}/{{ player.character.max_hit_points }}
+                    </span>
+                  </div>
+
+                  @if (canViewSheet(player)) {
+                    <button class="retro-btn sheet-btn" (click)="viewCharacterSheet(player.id_character)">
+                      VER FICHA ▶
+                    </button>
+                  }
+                } @else {
+                  <span class="char-name">{{ player.player_name }}</span>
+                  <span class="char-meta no-char">SEM PERSONAGEM VINCULADO</span>
+                }
+              </div>
+            }
+          </div>
+        }
+      </fieldset>
+
+      <button class="retro-btn back-btn" (click)="goBack()">← VOLTAR</button>
+    }
+
+  </div>
+}

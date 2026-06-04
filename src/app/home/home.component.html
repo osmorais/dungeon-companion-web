@@ -54,7 +54,7 @@
             </span>
           </button>
 
-          <button class="mobile-retro-card mobile-retro-card--disabled" disabled>
+          <button class="mobile-retro-card" (click)="joinSession()">
             <span class="mobile-card-icon">🧭</span>
             <span class="mobile-card-text">
               <span class="mobile-card-title">ENTRAR EM UMA AVENTURA</span>
@@ -62,7 +62,7 @@
             </span>
           </button>
 
-          <button class="mobile-retro-card mobile-retro-card--disabled" disabled>
+          <button class="mobile-retro-card" (click)="mySessions()">
             <span class="mobile-card-icon">⭐</span>
             <span class="mobile-card-text">
               <span class="mobile-card-title">MINHAS AVENTURAS</span>
@@ -87,7 +87,7 @@
             </span>
           </button>
 
-          <button class="mobile-retro-card" disabled>
+          <button class="mobile-retro-card" (click)="listSessions()">
             <span class="mobile-card-icon">📖</span>
             <span class="mobile-card-text">
               <span class="mobile-card-title">SESSÕES CRIADAS</span>
@@ -115,12 +115,6 @@
         <button class="retro-btn mobile-back-btn" (click)="goBack()">← VOLTAR</button>
       }
 
-      <div class="mobile-logout-row">
-        @if (authService.currentUser()) {
-          <span class="mobile-user-email">{{ authService.currentUser()!.email }}</span>
-        }
-        <button class="retro-btn mobile-logout-btn" (click)="logout()">SAIR</button>
-      </div>
     </fieldset>
 
   </div>
@@ -172,13 +166,13 @@
             <span class="card-desc">Acesse as fichas dos seus aventureiros</span>
           </button>
 
-          <button class="retro-card retro-card--disabled" disabled>
+          <button class="retro-card" (click)="joinSession()">
             <span class="card-icon">🧭</span>
             <span class="card-title">ENTRAR EM UMA AVENTURA</span>
             <span class="card-desc">Junte-se a uma sessão</span>
           </button>
 
-          <button class="retro-card retro-card--disabled" disabled>
+          <button class="retro-card" (click)="mySessions()">
             <span class="card-icon">⭐</span>
             <span class="card-title">MINHAS AVENTURAS</span>
             <span class="card-desc">Veja suas campanhas ativas</span>
@@ -201,7 +195,7 @@
             <span class="card-desc">Inicie uma nova aventura</span>
           </button>
 
-          <button class="retro-card retro-card--disabled" disabled>
+          <button class="retro-card" (click)="listSessions()">
             <span class="card-icon">📖</span>
             <span class="card-title">SESSÕES CRIADAS</span>
             <span class="card-desc">Gerencie suas campanhas</span>
@@ -225,12 +219,6 @@
         </div>
       }
 
-      <div class="logout-row">
-        @if (authService.currentUser()) {
-          <span class="user-email">{{ authService.currentUser()!.email }}</span>
-        }
-        <button class="retro-btn logout-btn" (click)="logout()">SAIR</button>
-      </div>
     </fieldset>
 
   </div>

@@ -1,0 +1,165 @@
+@if (isMobile()) {
+  <!-- ===== MOBILE LAYOUT ===== -->
+  <div class="mobile-container">
+
+    <div class="mobile-header">
+      <button class="mobile-back-btn" (click)="goBack()">&#8592;</button>
+      <span class="mobile-title">ENTRAR EM AVENTURA</span>
+    </div>
+
+    <!-- Código + nome do jogador -->
+    <fieldset class="mobile-panel">
+      <legend>DADOS DE ENTRADA</legend>
+
+      <label class="mobile-label">CÓDIGO DA SESSÃO</label>
+      <input
+        type="text"
+        class="mobile-code-input"
+        placeholder="ex: AB3C9"
+        maxlength="5"
+        [ngModel]="sessionCode()"
+        (ngModelChange)="onCodeInput($event)"
+      />
+      <span class="mobile-code-hint">{{ sessionCode().length }}/5</span>
+
+      <label class="mobile-label mobile-label--spaced">SEU NOME DE JOGADOR</label>
+      <input
+        type="text"
+        class="mobile-input"
+        placeholder="Como quer ser chamado?"
+        [ngModel]="playerName()"
+        (ngModelChange)="playerName.set($event)"
+      />
+    </fieldset>
+
+    <!-- Seleção de personagem -->
+    <fieldset class="mobile-panel">
+      <legend>SELECIONE SEU PERSONAGEM</legend>
+
+      @if (loadError()) {
+        <p class="mobile-empty-msg">ERRO AO CARREGAR PERSONAGENS.</p>
+      } @else if (characters().length === 0) {
+        <p class="mobile-empty-msg">NENHUM PERSONAGEM ENCONTRADO.</p>
+      } @else {
+        <div class="mobile-char-list">
+          @for (char of characters(); track char.id_character) {
+            <button
+              class="mobile-char-card"
+              [class.mobile-char-card--selected]="isSelected(char)"
+              (click)="selectCharacter(char)"
+            >
+              <div class="mobile-char-info">
+                <span class="mobile-char-name">{{ char.name }}</span>
+                <span class="mobile-char-meta">{{ char.class }} — {{ char.race }}</span>
+                <span class="mobile-char-level">NÍVEL {{ char.level }}</span>
+              </div>
+              @if (isSelected(char)) {
+                <span class="mobile-selected-mark">✔</span>
+              }
+            </button>
+          }
+        </div>
+      }
+    </fieldset>
+
+    @if (joinError()) {
+      <p class="mobile-error-msg">{{ joinError() }}</p>
+    }
+
+    <button
+      class="retro-btn mobile-join-btn"
+      [disabled]="!canJoin()"
+      (click)="join()"
+    >
+      ENTRAR NA AVENTURA
+    </button>
+
+  </div>
+} @else {
+  <!-- ===== DESKTOP LAYOUT ===== -->
+  <div class="container">
+
+    <fieldset class="retro-panel title-panel">
+      <legend>ENTRAR EM UMA AVENTURA</legend>
+    </fieldset>
+
+    <!-- Código + nome do jogador -->
+    <fieldset class="retro-panel">
+      <legend>DADOS DE ENTRADA</legend>
+      <div class="entry-grid">
+        <div class="field">
+          <label class="field-label">CÓDIGO DA SESSÃO</label>
+          <div class="code-input-wrap">
+            <input
+              type="text"
+              class="code-input"
+              placeholder="ex: AB3C9"
+              maxlength="5"
+              [ngModel]="sessionCode()"
+              (ngModelChange)="onCodeInput($event)"
+            />
+            <span class="code-counter" [class.code-counter--ready]="sessionCode().length === 5">
+              {{ sessionCode().length }}/5
+            </span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">SEU NOME DE JOGADOR</label>
+          <input
+            type="text"
+            placeholder="Como quer ser chamado?"
+            [ngModel]="playerName()"
+            (ngModelChange)="playerName.set($event)"
+          />
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- Seleção de personagem -->
+    <fieldset class="retro-panel">
+      <legend>SELECIONE SEU PERSONAGEM</legend>
+
+      @if (loadError()) {
+        <p class="empty-msg">ERRO AO CARREGAR PERSONAGENS.</p>
+      } @else if (characters().length === 0) {
+        <p class="empty-msg">NENHUM PERSONAGEM ENCONTRADO. CRIE UM PERSONAGEM PRIMEIRO.</p>
+      } @else {
+        <div class="char-grid">
+          @for (char of characters(); track char.id_character) {
+            <button
+              class="char-card"
+              [class.char-card--selected]="isSelected(char)"
+              (click)="selectCharacter(char)"
+            >
+              <div class="char-card-top">
+                <span class="char-name">{{ char.name }}</span>
+                @if (isSelected(char)) {
+                  <span class="selected-mark">✔</span>
+                }
+              </div>
+              <span class="char-meta">{{ char.class }} — {{ char.race }}</span>
+              <span class="char-level">NÍVEL {{ char.level }}</span>
+            </button>
+          }
+        </div>
+      }
+    </fieldset>
+
+    @if (joinError()) {
+      <p class="error-msg">{{ joinError() }}</p>
+    }
+
+    <div class="action-row">
+      <button class="retro-btn back-btn" (click)="goBack()">← VOLTAR</button>
+      <button
+        class="retro-btn join-btn"
+        [disabled]="!canJoin()"
+        (click)="join()"
+      >
+        ENTRAR NA AVENTURA
+      </button>
+    </div>
+
+  </div>
+}

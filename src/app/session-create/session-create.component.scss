@@ -109,6 +109,13 @@
   background-color: var(--bg-color);
 }
 
+.error-msg {
+  font-size: 7px;
+  color: #ff6b6b;
+  text-align: right;
+  margin: 8px 0 0;
+}
+
 .action-row {
   display: flex;
   justify-content: space-between;
@@ -297,6 +304,13 @@
   border: 2px solid var(--accent-color);
   padding: 8px 16px;
   background-color: var(--bg-color);
+}
+
+.mobile-error-msg {
+  font-size: 7px;
+  color: #ff6b6b;
+  text-align: center;
+  margin: 0 0 10px;
 }
 
 .mobile-create-btn {

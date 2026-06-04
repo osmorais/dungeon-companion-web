@@ -1,6 +1,7 @@
 import { Component, HostListener, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { GameSessionService } from '../services/game-session.service';
 
 @Component({
   selector: 'app-session-create',
@@ -11,6 +12,7 @@ import { Router } from '@angular/router';
 })
 export class SessionCreateComponent {
   private router = inject(Router);
+  private gameSessionService = inject(GameSessionService);
 
   isMobile = signal(typeof window !== 'undefined' && window.innerWidth < 768);
 
@@ -18,6 +20,7 @@ export class SessionCreateComponent {
   maxPlayers = signal<number | null>(null);
   masterName = signal('');
   sessionCode = signal('');
+  saveError = signal('');
 
   @HostListener('window:resize')
   onResize() {
@@ -39,6 +42,29 @@ export class SessionCreateComponent {
       (this.maxPlayers() ?? 0) > 0 &&
       this.masterName().trim().length > 0
     );
+  }
+
+  canSave(): boolean {
+    return this.canGenerate() && this.sessionCode().length > 0;
+  }
+
+  saveSession() {
+    if (!this.canSave()) return;
+    this.saveError.set('');
+
+    this.gameSessionService
+      .createSession({
+        session_name: this.sessionName().trim(),
+        session_code: this.sessionCode(),
+        max_player_quantity: this.maxPlayers()!,
+        dm_name: this.masterName().trim(),
+        npcs: [],
+        monsters: [],
+      })
+      .subscribe({
+        next: res => this.router.navigate(['/session', res.game_session.id_game_session]),
+        error: () => this.saveError.set('ERRO AO SALVAR AVENTURA. TENTE NOVAMENTE.'),
+      });
   }
 
   goBack() {

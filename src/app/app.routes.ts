@@ -65,6 +65,30 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./session-create/session-create.component').then(m => m.SessionCreateComponent),
   },
+  {
+    path: 'session-join',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./session-join/session-join.component').then(m => m.SessionJoinComponent),
+  },
+  {
+    path: 'my-sessions',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./my-sessions/my-sessions.component').then(m => m.MySessionsComponent),
+  },
+  {
+    path: 'sessions',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./session-list/session-list.component').then(m => m.SessionListComponent),
+  },
+  {
+    path: 'session/:id',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./session-panel/session-panel.component').then(m => m.SessionPanelComponent),
+  },
 
   { path: '**', redirectTo: '' },
 ];

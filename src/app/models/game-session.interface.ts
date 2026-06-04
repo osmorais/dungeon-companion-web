@@ -1,0 +1,103 @@
+export interface NpcRef {
+  id_character: number;
+}
+
+export interface MonsterRef {
+  monster_api_slug: string;
+  custom_name?: string;
+  hp_current: number;
+  hp_max: number;
+  ac: number;
+  data_snapshot?: Record<string, unknown>;
+}
+
+export interface CreateGameSessionPayload {
+  session_name: string;
+  session_code: string;
+  max_player_quantity: number;
+  dm_name: string;
+  npcs: NpcRef[];
+  monsters: MonsterRef[];
+}
+
+export interface GameSessionResponse {
+  game_session: GameSession;
+  npcs: NpcSession[];
+  monsters: MonsterSession[];
+}
+
+export interface GameSession {
+  id_game_session: string;
+  session_name: string;
+  session_code: string;
+  max_player_quantity: number;
+  dm_name: string;
+  created_at?: Date;
+  user_id: string;
+}
+
+export interface PlayerCharacterSummary {
+  name: string;
+  class: string;
+  race: string;
+  level: number;
+  max_hit_points: number;
+  current_hit_points: number;
+  avatar_preset?: import('./avatar-preset.interface').AvatarPreset | null;
+}
+
+export interface PlayerSession {
+  id_player_session: string;
+  id_game_session: string;
+  id_character: number;
+  player_name: string;
+  user_id: string;
+  character: PlayerCharacterSummary | null;
+}
+
+export interface NpcSession {
+  id_npc_session: string;
+  id_game_session: string;
+  id_character: number;
+}
+
+export interface MonsterSession {
+  id_monster_session: string;
+  id_game_session: string;
+  monster_api_slug: string;
+  custom_name?: string;
+  hp_current: number;
+  hp_max: number;
+  ac: number;
+  data_snapshot: Record<string, unknown>;
+}
+
+export interface GameSessionDetail {
+  game_session: GameSession;
+  players: PlayerSession[];
+  npcs: NpcSession[];
+  monsters: MonsterSession[];
+}
+
+export interface JoinSessionPayload {
+  session_code: string;
+  player_name: string;
+  id_character: number;
+}
+
+export interface GameSessionSummary {
+  id_game_session: string;
+  session_name: string;
+  session_code: string;
+  max_player_quantity: number;
+  dm_name: string;
+  created_at: Date;
+  total_count: number;
+}
+
+export interface GameSessionPagedList {
+  GameSessionPagedList: GameSessionSummary[];
+  page: number;
+  pageSize: number;
+  total_count: number;
+}

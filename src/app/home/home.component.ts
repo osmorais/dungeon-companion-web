@@ -1,7 +1,6 @@
 import { Component, HostListener, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { CharacterService } from '../services/character.service';
-import { AuthService } from '../services/auth.service';
 
 type HomeView = 'select' | 'player' | 'master';
 
@@ -14,7 +13,6 @@ type HomeView = 'select' | 'player' | 'master';
 export class HomeComponent {
   private router = inject(Router);
   private charService = inject(CharacterService);
-  protected authService = inject(AuthService);
 
   isMobile = signal(typeof window !== 'undefined' && window.innerWidth < 768);
   view = signal<HomeView>('select');
@@ -36,6 +34,18 @@ export class HomeComponent {
     this.router.navigate(['/session-create']);
   }
 
+  listSessions() {
+    this.router.navigate(['/sessions']);
+  }
+
+  joinSession() {
+    this.router.navigate(['/session-join']);
+  }
+
+  mySessions() {
+    this.router.navigate(['/my-sessions']);
+  }
+
   goBack() {
     this.view.set('select');
   }
@@ -52,9 +62,5 @@ export class HomeComponent {
 
   listCharacters() {
     this.router.navigate(['/characters']);
-  }
-
-  logout() {
-    this.authService.logout().subscribe();
   }
 }

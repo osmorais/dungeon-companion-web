@@ -85,8 +85,16 @@
       }
     </fieldset>
 
-    <button class="retro-btn mobile-create-btn" disabled>
-      CRIAR SESSÃO
+    @if (saveError()) {
+      <p class="mobile-error-msg">{{ saveError() }}</p>
+    }
+
+    <button
+      class="retro-btn mobile-create-btn"
+      [disabled]="!canSave()"
+      (click)="saveSession()"
+    >
+      SALVAR AVENTURA
     </button>
 
   </div>
@@ -175,9 +183,19 @@
       </div>
     </fieldset>
 
+    @if (saveError()) {
+      <p class="error-msg">{{ saveError() }}</p>
+    }
+
     <div class="action-row">
       <button class="retro-btn back-btn" (click)="goBack()">← VOLTAR</button>
-      <button class="retro-btn create-btn" disabled>CRIAR SESSÃO</button>
+      <button
+        class="retro-btn create-btn"
+        [disabled]="!canSave()"
+        (click)="saveSession()"
+      >
+        SALVAR AVENTURA
+      </button>
     </div>
 
   </div>

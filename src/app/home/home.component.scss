@@ -117,25 +117,6 @@
   padding: 8px 14px;
 }
 
-.logout-row {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 12px;
-  margin-top: 20px;
-}
-
-.user-email {
-  font-size: 7px;
-  color: var(--label-title-color);
-}
-
-.logout-btn {
-  float: none;
-  margin-top: 0;
-  font-size: 8px;
-  padding: 8px 14px;
-}
 
 /* ===== MOBILE LAYOUT ===== */
 
@@ -254,20 +235,3 @@
   text-align: left;
 }
 
-.mobile-logout-row {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 12px;
-  margin-top: 14px;
-}
-
-.mobile-user-email {
-  font-size: 6px;
-  color: var(--label-title-color);
-}
-
-.mobile-logout-btn {
-  font-size: 7px;
-  padding: 7px 12px;
-}
