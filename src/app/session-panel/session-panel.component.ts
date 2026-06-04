@@ -90,6 +90,9 @@ export class SessionPanelComponent implements OnDestroy {
         this.npcHpEdits.set({});
         this.error.set(false);
         this.refreshing.set(false);
+        setTimeout(() => {
+          document.getElementById('players-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
       },
       error: () => {
         this.error.set(true);
