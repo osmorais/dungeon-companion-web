@@ -54,6 +54,7 @@
                 </div>
 
                 @if (player.character) {
+                  <span class="mobile-player-label">{{ player.player_name }}</span>
                   <span class="mobile-char-name">{{ player.character.name }}</span>
                   <span class="mobile-char-meta">{{ player.character.class }}</span>
                   <span class="mobile-char-meta">{{ player.character.race }}</span>
@@ -233,6 +234,7 @@
                 </div>
 
                 @if (player.character) {
+                  <span class="player-label">{{ player.player_name }}</span>
                   <span class="char-name">{{ player.character.name }}</span>
                   <span class="char-meta">{{ player.character.class }} — {{ player.character.race }}</span>
                   <span class="char-level">NÍVEL {{ player.character.level }}</span>

@@ -126,6 +126,12 @@
   flex-shrink: 0;
 }
 
+.player-label {
+  font-size: 6px;
+  color: var(--label-title-color);
+  letter-spacing: 0.05em;
+}
+
 .char-name {
   font-size: 9px;
   color: var(--accent-color);
@@ -679,6 +685,12 @@
   overflow: hidden;
   border: 2px solid var(--border-color);
   flex-shrink: 0;
+}
+
+.mobile-player-label {
+  font-size: 5px;
+  color: var(--label-title-color);
+  letter-spacing: 0.05em;
 }
 
 .mobile-char-name {
