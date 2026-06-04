@@ -4,6 +4,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  transition: width 0.2s;
+
+  &--wide {
+    width: 700px;
+  }
 }
 
 .title-panel {
@@ -11,13 +16,6 @@
   text-align: center;
   margin-bottom: 30px;
   padding: 5%;
-}
-
-.subtitle {
-  margin: 0;
-  color: var(--label-title-color);
-  font-size: 9px;
-  line-height: 2;
 }
 
 .logo-container {
@@ -32,11 +30,24 @@
   height: auto;
 }
 
+.role-subtitle {
+  font-size: 8px;
+  color: var(--label-title-color);
+  margin: 0 0 18px;
+  letter-spacing: 2px;
+}
+
 .menu-options {
   display: flex;
   flex-direction: column;
   gap: 20px;
   width: 100%;
+
+  &--grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
 }
 
 .retro-card {
@@ -62,6 +73,20 @@
   &:active {
     transform: translateY(1px);
   }
+
+  &--highlight {
+    border-color: var(--accent-color);
+  }
+
+  &--disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+
+    &:hover {
+      background-color: var(--panel-bg);
+      border-color: var(--border-color);
+    }
+  }
 }
 
 .card-icon {
@@ -79,25 +104,19 @@
   line-height: 1.8;
 }
 
-.logout-row {
+.back-row {
   display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 12px;
-  margin-top: 20px;
+  justify-content: flex-start;
+  margin-top: 16px;
 }
 
-.user-email {
-  font-size: 7px;
-  color: var(--label-title-color);
-}
-
-.logout-btn {
+.back-btn {
   float: none;
   margin-top: 0;
   font-size: 8px;
   padding: 8px 14px;
 }
+
 
 /* ===== MOBILE LAYOUT ===== */
 
@@ -132,6 +151,13 @@
   height: auto;
 }
 
+.mobile-role-subtitle {
+  font-size: 7px;
+  color: var(--label-title-color);
+  margin: 0 0 12px;
+  letter-spacing: 2px;
+}
+
 .mobile-menu-options {
   display: flex;
   flex-direction: column;
@@ -162,6 +188,20 @@
   &:active {
     transform: translateY(1px);
   }
+
+  &--highlight {
+    border-color: var(--accent-color);
+  }
+
+  &--disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+
+    &:hover {
+      background-color: var(--panel-bg);
+      border-color: var(--border-color);
+    }
+  }
 }
 
 .mobile-card-icon {
@@ -186,20 +226,12 @@
   line-height: 1.8;
 }
 
-.mobile-logout-row {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 12px;
-  margin-top: 14px;
-}
-
-.mobile-user-email {
-  font-size: 6px;
-  color: var(--label-title-color);
-}
-
-.mobile-logout-btn {
+.mobile-back-btn {
+  float: none;
+  margin-top: 12px;
   font-size: 7px;
   padding: 7px 12px;
+  display: block;
+  text-align: left;
 }
+

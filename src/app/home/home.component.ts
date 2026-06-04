@@ -1,7 +1,8 @@
 import { Component, HostListener, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { CharacterService } from '../services/character.service';
-import { AuthService } from '../services/auth.service';
+
+type HomeView = 'select' | 'player' | 'master';
 
 @Component({
   selector: 'app-home',
@@ -12,13 +13,41 @@ import { AuthService } from '../services/auth.service';
 export class HomeComponent {
   private router = inject(Router);
   private charService = inject(CharacterService);
-  protected authService = inject(AuthService);
 
   isMobile = signal(typeof window !== 'undefined' && window.innerWidth < 768);
+  view = signal<HomeView>('select');
 
   @HostListener('window:resize')
   onResize() {
     this.isMobile.set(window.innerWidth < 768);
+  }
+
+  selectPlayer() {
+    this.view.set('player');
+  }
+
+  selectMaster() {
+    this.view.set('master');
+  }
+
+  createSession() {
+    this.router.navigate(['/session-create']);
+  }
+
+  listSessions() {
+    this.router.navigate(['/sessions']);
+  }
+
+  joinSession() {
+    this.router.navigate(['/session-join']);
+  }
+
+  mySessions() {
+    this.router.navigate(['/my-sessions']);
+  }
+
+  goBack() {
+    this.view.set('select');
   }
 
   createCharacter() {
@@ -33,9 +62,5 @@ export class HomeComponent {
 
   listCharacters() {
     this.router.navigate(['/characters']);
-  }
-
-  logout() {
-    this.authService.logout().subscribe();
   }
 }

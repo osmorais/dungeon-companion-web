@@ -1,0 +1,202 @@
+@if (isMobile()) {
+  <!-- ===== MOBILE LAYOUT ===== -->
+  <div class="mobile-container">
+
+    <div class="mobile-header">
+      <button class="mobile-back-btn" (click)="goBack()">&#8592;</button>
+      <span class="mobile-title">CRIAR SESSÃO</span>
+    </div>
+
+    <fieldset class="mobile-panel">
+      <legend>DADOS DA SESSÃO</legend>
+
+      <div class="mobile-field">
+        <label class="mobile-label">NOME DA SESSÃO</label>
+        <input
+          type="text"
+          class="mobile-input"
+          placeholder="Ex: A Maldição de Strahd"
+          [ngModel]="sessionName()"
+          (ngModelChange)="sessionName.set($event)"
+        />
+      </div>
+
+      <div class="mobile-field">
+        <label class="mobile-label">Nº MÁXIMO DE JOGADORES</label>
+        <input
+          type="number"
+          class="mobile-input"
+          placeholder="Ex: 4"
+          min="1"
+          max="20"
+          [ngModel]="maxPlayers()"
+          (ngModelChange)="maxPlayers.set($event)"
+        />
+      </div>
+
+      <div class="mobile-field">
+        <label class="mobile-label">NOME DO MESTRE</label>
+        <input
+          type="text"
+          class="mobile-input"
+          placeholder="Seu nome"
+          [ngModel]="masterName()"
+          (ngModelChange)="masterName.set($event)"
+        />
+      </div>
+    </fieldset>
+
+    <fieldset class="mobile-panel mobile-panel--disabled">
+      <legend>CRIATURAS E ALIADOS</legend>
+
+      <button class="mobile-catalog-btn" disabled>
+        <span class="mobile-catalog-icon">🧙</span>
+        <span class="mobile-catalog-text">
+          <span class="mobile-catalog-title">SELECIONAR NPCs</span>
+          <span class="mobile-catalog-desc">Em breve...</span>
+        </span>
+      </button>
+
+      <button class="mobile-catalog-btn" disabled>
+        <span class="mobile-catalog-icon">🐉</span>
+        <span class="mobile-catalog-text">
+          <span class="mobile-catalog-title">SELECIONAR MONSTROS</span>
+          <span class="mobile-catalog-desc">Em breve...</span>
+        </span>
+      </button>
+    </fieldset>
+
+    <fieldset class="mobile-panel">
+      <legend>CÓDIGO DA SESSÃO</legend>
+
+      <button
+        class="retro-btn mobile-generate-btn"
+        [disabled]="!canGenerate()"
+        (click)="generateCode()"
+      >
+        ⚙ GERAR CÓDIGO
+      </button>
+
+      @if (sessionCode()) {
+        <div class="mobile-code-display">
+          <span class="mobile-code-label">CÓDIGO GERADO:</span>
+          <span class="mobile-code-value">{{ sessionCode() }}</span>
+        </div>
+      }
+    </fieldset>
+
+    @if (saveError()) {
+      <p class="mobile-error-msg">{{ saveError() }}</p>
+    }
+
+    <button
+      class="retro-btn mobile-create-btn"
+      [disabled]="!canSave()"
+      (click)="saveSession()"
+    >
+      SALVAR AVENTURA
+    </button>
+
+  </div>
+} @else {
+  <!-- ===== DESKTOP LAYOUT ===== -->
+  <div class="container">
+
+    <fieldset class="retro-panel title-panel">
+      <legend>CRIAR NOVA SESSÃO</legend>
+    </fieldset>
+
+    <fieldset class="retro-panel">
+      <legend>DADOS DA SESSÃO</legend>
+
+      <div class="fields-grid">
+        <div class="field">
+          <label class="field-label">NOME DA SESSÃO</label>
+          <input
+            type="text"
+            placeholder="Ex: A Maldição de Strahd"
+            [ngModel]="sessionName()"
+            (ngModelChange)="sessionName.set($event)"
+          />
+        </div>
+
+        <div class="field">
+          <label class="field-label">Nº MÁXIMO DE JOGADORES</label>
+          <input
+            type="number"
+            placeholder="Ex: 4"
+            min="1"
+            max="20"
+            [ngModel]="maxPlayers()"
+            (ngModelChange)="maxPlayers.set($event)"
+          />
+        </div>
+
+        <div class="field field--full">
+          <label class="field-label">NOME DO MESTRE</label>
+          <input
+            type="text"
+            placeholder="Seu nome"
+            [ngModel]="masterName()"
+            (ngModelChange)="masterName.set($event)"
+          />
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="retro-panel panel--disabled">
+      <legend>CRIATURAS E ALIADOS</legend>
+
+      <div class="catalog-row">
+        <button class="catalog-btn" disabled>
+          <span class="catalog-icon">🧙</span>
+          <span class="catalog-title">SELECIONAR NPCs</span>
+          <span class="catalog-desc">Em breve...</span>
+        </button>
+
+        <button class="catalog-btn" disabled>
+          <span class="catalog-icon">🐉</span>
+          <span class="catalog-title">SELECIONAR MONSTROS</span>
+          <span class="catalog-desc">Em breve...</span>
+        </button>
+      </div>
+    </fieldset>
+
+    <fieldset class="retro-panel">
+      <legend>CÓDIGO DA SESSÃO</legend>
+
+      <div class="code-row">
+        <button
+          class="retro-btn generate-btn"
+          [disabled]="!canGenerate()"
+          (click)="generateCode()"
+        >
+          ⚙ GERAR CÓDIGO
+        </button>
+
+        @if (sessionCode()) {
+          <div class="code-display">
+            <span class="code-label">CÓDIGO GERADO:</span>
+            <span class="code-value">{{ sessionCode() }}</span>
+          </div>
+        }
+      </div>
+    </fieldset>
+
+    @if (saveError()) {
+      <p class="error-msg">{{ saveError() }}</p>
+    }
+
+    <div class="action-row">
+      <button class="retro-btn back-btn" (click)="goBack()">← VOLTAR</button>
+      <button
+        class="retro-btn create-btn"
+        [disabled]="!canSave()"
+        (click)="saveSession()"
+      >
+        SALVAR AVENTURA
+      </button>
+    </div>
+
+  </div>
+}
