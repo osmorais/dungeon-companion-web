@@ -38,9 +38,13 @@ export class GameSessionService {
     });
   }
 
-  getMySessions(page: number, pageSize: number): Observable<GameSessionPagedList> {
+  getMySessions(page: number, pageSize: number, role?: 'dm' | 'player'): Observable<GameSessionPagedList> {
     return this.http.get<GameSessionPagedList>(`${this.baseUrl}/api/game-session/my-sessions`, {
-      params: { page: page.toString(), pageSize: pageSize.toString() },
+      params: {
+        page: page.toString(),
+        pageSize: pageSize.toString(),
+        ...(role ? { role } : {}),
+      },
     });
   }
 

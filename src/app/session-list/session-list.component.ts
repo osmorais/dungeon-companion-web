@@ -38,7 +38,7 @@ export class SessionListComponent implements OnInit {
 
   loadPage() {
     this.error.set(false);
-    this.gameSessionService.getSessions(this.page(), this.pageSize).subscribe({
+    this.gameSessionService.getMySessions(this.page(), this.pageSize, 'dm').subscribe({
       next: res => {
         this.sessions.set(res.GameSessionPagedList);
         this.totalCount.set(res.total_count);
