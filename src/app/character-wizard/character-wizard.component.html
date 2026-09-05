@@ -283,7 +283,9 @@
           <div class="mobile-checklist">
             @for (weapon of pagedWeapons; track weapon.name) {
               <label class="mobile-check-row">
-                <input type="checkbox" class="retro-checkbox" (change)="toggleArrayItem('weapons', weapon, $event)">
+                <input type="checkbox" class="retro-checkbox"
+                       [checked]="isWeaponSelected(weapon)"
+                       (change)="toggleArrayItem('weapons', weapon, $event)">
                 <span class="mobile-item-info">
                   <span>{{ weapon.name }}</span>
                   <span class="item-hint details-link" (click)="openWeaponModal(weapon); $event.stopPropagation(); $event.preventDefault()">Detalhes</span>
