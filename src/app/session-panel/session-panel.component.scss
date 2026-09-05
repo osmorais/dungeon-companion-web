@@ -1,3 +1,8 @@
+:host {
+  /* Evita o zoom por duplo toque no mobile, sem desabilitar o pinça-pra-zoom. */
+  touch-action: manipulation;
+}
+
 /* ===== DESKTOP ===== */
 
 .container {
