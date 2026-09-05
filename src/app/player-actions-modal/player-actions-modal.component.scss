@@ -64,8 +64,13 @@
   font-size: 9px;
   cursor: pointer;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background-color: var(--btn-color-hover);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
   }
 }
 
@@ -87,6 +92,47 @@
 .pa-prepared-count {
   font-size: 7px;
   color: var(--accent-color);
+}
+
+.pa-hit-dice-count {
+  font-size: 7px;
+  color: #efeeeb;
+}
+
+.pa-hit-dice-pips {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.pa-hit-dice-pip {
+  width: 9px;
+  height: 9px;
+  border: 1px solid #00ff00;
+  background-color: #00ff00;
+
+  &.spent {
+    background-color: transparent;
+    border-color: #555;
+  }
+}
+
+.pa-hit-die-result {
+  margin: 0;
+  font-size: 7px;
+  color: #00ff00;
+}
+
+.pa-rest-buttons-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+
+  .pa-freeform-btn {
+    flex: 1;
+    padding: 8px 10px;
+    font-size: 8px;
+  }
 }
 
 .pa-row-list {
@@ -169,27 +215,6 @@
   color: var(--text-color);
   margin-left: auto;
   flex-shrink: 0;
-}
-
-.pa-rest-btn {
-  align-self: center;
-  background-color: var(--btn-color);
-  color: var(--text-color);
-  border: 2px solid var(--border-color);
-  padding: 6px 10px;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 7px;
-  cursor: pointer;
-  margin-top: 4px;
-
-  &:hover:not(:disabled) {
-    background-color: var(--btn-color-hover);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: default;
-  }
 }
 
 .pa-spell-list {

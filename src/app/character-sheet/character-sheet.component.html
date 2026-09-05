@@ -85,6 +85,33 @@
               <span>Dado de Vida:</span>
               <strong>{{ data.character_sheet.combat_stats.hit_dice }}</strong>
             </div>
+
+            <div class="hit-dice-box">
+              <p class="hit-dice-title">
+                DADOS DE VIDA
+                <span class="hit-dice-count">{{ hitDiceAvailable() }}/{{ hitDiceTotal() }}</span>
+              </p>
+              <div class="hit-dice-pips">
+                @for (i of hitDicePips(); track i) {
+                  <span class="hit-dice-pip" [class.spent]="i >= hitDiceAvailable()"></span>
+                }
+              </div>
+              <div class="rest-buttons-row">
+                <button class="retro-btn hit-die-btn"
+                        [disabled]="rollingHitDie() || hitDiceAvailable() === 0 || isAtMaxHp()"
+                        (click)="rollHitDieNow()">
+                  {{ rollingHitDie() ? '...' : '🎲 DESCANSO CURTO' }}
+                </button>
+                <button class="retro-btn spell-rest-btn" [disabled]="restingLong()" (click)="longRestNow()">
+                  {{ restingLong() ? '...' : '🌙 DESCANSO LONGO' }}
+                </button>
+              </div>
+              @if (lastHitDieResult(); as hd) {
+                <p class="hit-die-result">
+                  {{ hd.roll }} {{ formatMod(hd.con_mod) }} = curou {{ hd.healed }} PV
+                </p>
+              }
+            </div>
           }
 
           @case ('attrs') {
@@ -106,7 +133,7 @@
 
           @case ('skills') {
             <ul class="mobile-skills-list">
-              @for (skill of data.character_sheet.skills; track skill.id_skill) {
+              @for (skill of sortedSkills(); track skill.id_skill) {
                 <li [class.trained]="skill.is_trained">
                   <span class="prof-dot">{{ skill.is_trained ? '●' : '○' }}</span>
                   <span class="skill-mod">{{ formatMod(skill.total_skill_value) }}</span>
@@ -189,9 +216,6 @@
                     <span class="spell-slot-count">{{ slotsAvailable(key) }}/{{ slotsTotal(key) }}</span>
                   </div>
                 }
-                <button class="retro-btn spell-rest-btn" [disabled]="restingLong()" (click)="longRestNow()">
-                  {{ restingLong() ? '...' : '🌙 DESCANSO LONGO' }}
-                </button>
               </div>
             }
             <div class="mobile-spell-cards">
@@ -360,6 +384,34 @@
               </div>
               <small>Dado de Vida: {{ data.character_sheet.combat_stats.hit_dice }}</small>
             </div>
+
+            <div class="hit-dice-box">
+              <p class="hit-dice-title">
+                DADOS DE VIDA
+                <span class="hit-dice-count">{{ hitDiceAvailable() }}/{{ hitDiceTotal() }}</span>
+              </p>
+              <div class="hit-dice-pips">
+                @for (i of hitDicePips(); track i) {
+                  <span class="hit-dice-pip" [class.spent]="i >= hitDiceAvailable()"></span>
+                }
+              </div>
+              <div class="rest-buttons-row">
+                <button class="retro-btn hit-die-btn"
+                        [disabled]="rollingHitDie() || hitDiceAvailable() === 0 || isAtMaxHp()"
+                        (click)="rollHitDieNow()">
+                  {{ rollingHitDie() ? '...' : '🎲 DESCANSO CURTO' }}
+                </button>
+                <button class="retro-btn spell-rest-btn" [disabled]="restingLong()" (click)="longRestNow()">
+                  {{ restingLong() ? '...' : '🌙 DESCANSO LONGO' }}
+                </button>
+              </div>
+              @if (lastHitDieResult(); as hd) {
+                <p class="hit-die-result">
+                  {{ hd.roll }} {{ formatMod(hd.con_mod) }} = curou {{ hd.healed }} PV
+                </p>
+              }
+            </div>
+
             <div class="passive-box">
               <p>Percepção Passiva: {{ data.character_sheet.combat_stats.passive_perception }}</p>
             </div>
@@ -368,7 +420,7 @@
           <fieldset class="retro-panel skills-panel">
             <legend>PERÍCIAS</legend>
             <ul>
-              @for (skill of data.character_sheet.skills; track skill.id_skill) {
+              @for (skill of sortedSkills(); track skill.id_skill) {
                 <li [class.trained]="skill.is_trained">
                   <span class="prof-dot">{{ skill.is_trained ? '●' : '○' }}</span>
                   {{ formatMod(skill.total_skill_value) }} {{ skill.name }} <span class="skill-attribute">({{ skill.attribute_name }})</span>
@@ -467,9 +519,6 @@
                     <span class="spell-slot-count">{{ slotsAvailable(key) }}/{{ slotsTotal(key) }}</span>
                   </div>
                 }
-                <button class="retro-btn spell-rest-btn" [disabled]="restingLong()" (click)="longRestNow()">
-                  {{ restingLong() ? '...' : '🌙 DESCANSO LONGO' }}
-                </button>
               </div>
             }
             <table class="weapons-table spells-table">
@@ -507,10 +556,10 @@
 
       <div class="sheet-actions">
         <button class="retro-btn" (click)="goBack()">VOLTAR</button>
-        <button class="retro-btn" (click)="openFreeformRoll()">🎲 ROLAR DADO</button>
         <button class="retro-btn print-btn" (click)="printSheet()" [disabled]="printingSheet()">
           {{ printingSheet() ? 'CARREGANDO...' : '🖨 IMPRIMIR / PDF' }}
         </button>
+        <button class="retro-btn" (click)="openFreeformRoll()">🎲 ROLAR DADO</button>
       </div>
 
       } <!-- end @if desktopPage === 'sheet' -->

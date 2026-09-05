@@ -25,6 +25,9 @@ export interface CharacterSheetResponse {
       speed: string;
       hit_points: { max: number; current: number; temporary: number };
       hit_dice: string;
+      hit_dice_total: number;
+      hit_dice_spent: number;
+      hit_die_size: number;
       passive_perception: number;
     };
     attributes_and_saves: Record<string, {

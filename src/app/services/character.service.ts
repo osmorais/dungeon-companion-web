@@ -8,6 +8,22 @@ import { CharacterOptions } from '../models/character-options.interface';
 import { CharacterSummary, CharacterPagedList } from '../models/character-summary.interface';
 import { environment } from '../../environments/environment';
 
+export interface LongRestResult {
+  slots_expended: Record<string, number>;
+  current_hit_points: number;
+  hit_dice_spent: number;
+}
+
+export interface HitDieRollResult {
+  roll: number;
+  con_mod: number;
+  healed: number;
+  current_hit_points: number;
+  hit_dice_spent: number;
+  hit_dice_total: number;
+  die_size: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -69,11 +85,12 @@ export class CharacterService {
     );
   }
 
-  longRest(id: number): Observable<{ slots_expended: Record<string, number> }> {
-    return this.http.post<{ slots_expended: Record<string, number> }>(
-      `${this.baseUrl}/api/character-sheet/${id}/long-rest`,
-      {},
-    );
+  longRest(id: number): Observable<LongRestResult> {
+    return this.http.post<LongRestResult>(`${this.baseUrl}/api/character-sheet/${id}/long-rest`, {});
+  }
+
+  rollHitDie(id: number): Observable<HitDieRollResult> {
+    return this.http.post<HitDieRollResult>(`${this.baseUrl}/api/character-sheet/${id}/short-rest/hit-die`, {});
   }
 
   setSpellPrepared(id: number, idSpell: number, isPrepared: boolean): Observable<{ success: boolean }> {

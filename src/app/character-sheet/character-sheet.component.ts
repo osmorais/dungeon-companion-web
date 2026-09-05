@@ -3,7 +3,7 @@ import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { CommonModule, KeyValuePipe } from '@angular/common';
 import { Router } from '@angular/router';
-import { CharacterService } from '../services/character.service';
+import { CharacterService, HitDieRollResult } from '../services/character.service';
 import { Skill, Spell, WeaponRow } from '../models/character-options.interface';
 import { CharacterSheetResponse } from '../models/character-response.interface';
 import { AvatarPreset } from '../models/avatar-preset.interface';
@@ -162,6 +162,12 @@ export class CharacterSheetComponent {
     return value >= 0 ? `+${value}` : `${value}`;
   }
 
+  sortedSkills(): Skill[] {
+    return [...(this.sheetData()?.character_sheet.skills ?? [])].sort((a, b) =>
+      a.name.localeCompare(b.name, 'pt-BR'),
+    );
+  }
+
   spellComponents(spell: Spell): string {
     return [spell.is_verbal ? 'V' : '', spell.is_somatic ? 'S' : '', spell.is_material ? 'M' : '']
       .filter(Boolean)
@@ -235,8 +241,10 @@ export class CharacterSheetComponent {
     if (!id || this.restingLong()) return;
     this.restingLong.set(true);
     this.charService.longRest(id).subscribe({
-      next: ({ slots_expended }) => {
+      next: ({ slots_expended, current_hit_points, hit_dice_spent }) => {
         this.patchSpellcastingInfo({ slots_expended });
+        this.patchCombatStats({ hit_dice_spent }, current_hit_points);
+        this.lastHitDieResult.set(null);
         this.restingLong.set(false);
       },
       error: () => this.restingLong.set(false),
@@ -254,6 +262,64 @@ export class CharacterSheetComponent {
         ...sheet.character_sheet,
         spellcasting_info: { ...sheet.character_sheet.spellcasting_info, ...patch },
       },
+    });
+  }
+
+  private patchCombatStats(
+    patch: Partial<CharacterSheetResponse['character_sheet']['combat_stats']>,
+    currentHp?: number,
+  ): void {
+    const sheet = this.sheetData();
+    if (!sheet) return;
+    const combat = sheet.character_sheet.combat_stats;
+    this.charService.currentCharacter.set({
+      ...sheet,
+      character_sheet: {
+        ...sheet.character_sheet,
+        combat_stats: {
+          ...combat,
+          ...patch,
+          hit_points: currentHp !== undefined ? { ...combat.hit_points, current: currentHp } : combat.hit_points,
+        },
+      },
+    });
+  }
+
+  /** ========================= DESCANSO CURTO (DADOS DE VIDA) ========================= */
+
+  rollingHitDie = signal(false);
+  lastHitDieResult = signal<HitDieRollResult | null>(null);
+
+  hitDiceTotal(): number {
+    return this.sheetData()?.character_sheet.combat_stats.hit_dice_total ?? 0;
+  }
+
+  hitDiceAvailable(): number {
+    const stats = this.sheetData()?.character_sheet.combat_stats;
+    if (!stats) return 0;
+    return Math.max(0, stats.hit_dice_total - stats.hit_dice_spent);
+  }
+
+  hitDicePips(): number[] {
+    return Array.from({ length: this.hitDiceTotal() }, (_, i) => i);
+  }
+
+  isAtMaxHp(): boolean {
+    const hp = this.sheetData()?.character_sheet.combat_stats.hit_points;
+    return !!hp && hp.current >= hp.max;
+  }
+
+  rollHitDieNow(): void {
+    const id = this.sheetData()?.character_sheet.id_character;
+    if (!id || this.rollingHitDie()) return;
+    this.rollingHitDie.set(true);
+    this.charService.rollHitDie(id).subscribe({
+      next: result => {
+        this.lastHitDieResult.set(result);
+        this.patchCombatStats({ hit_dice_spent: result.hit_dice_spent }, result.current_hit_points);
+        this.rollingHitDie.set(false);
+      },
+      error: () => this.rollingHitDie.set(false),
     });
   }
 

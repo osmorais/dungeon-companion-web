@@ -294,6 +294,72 @@ ul {
   }
 }
 
+.hit-dice-box {
+  border: 1px solid var(--border-color);
+  padding: 10px 12px;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.hit-dice-title {
+  margin: 0 0 6px;
+  font-size: 8px;
+  color: var(--label-title-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.hit-dice-count {
+  color: #efeeeb;
+}
+
+.hit-dice-pips {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-bottom: 8px;
+}
+
+.hit-dice-pip {
+  width: 10px;
+  height: 10px;
+  border: 1px solid #00ff00;
+  background-color: #00ff00;
+
+  &.spent {
+    background-color: transparent;
+    border-color: #555;
+  }
+}
+
+.rest-buttons-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.hit-die-btn,
+.rest-buttons-row .spell-rest-btn {
+  float: none !important;
+  font-size: 8px;
+  margin-top: 0;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.hit-die-result {
+  margin: 8px 0 0;
+  font-size: 7px;
+  color: #00ff00;
+}
+
 .spell-slots-bar {
   border: 1px solid var(--border-color);
   padding: 10px 12px;
@@ -478,7 +544,15 @@ ul {
 
 .sheet-actions {
   margin-top: 30px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  .retro-btn {
+    float: none;
+    margin-top: 0;
+  }
 }
 
 .modal-overlay {

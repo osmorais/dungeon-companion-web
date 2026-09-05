@@ -13,6 +13,35 @@
       <button class="pa-freeform-btn" (click)="openFreeformRoll()">🎲 ROLAR DADO</button>
 
       <div class="pa-section">
+        <h4 class="pa-section-title">
+          DESCANSOS
+          <span class="pa-hit-dice-count">DV {{ hitDiceAvailable() }}/{{ hitDiceTotal() }}</span>
+        </h4>
+        <div class="pa-hit-dice-pips">
+          @for (i of hitDicePips(); track i) {
+            <span class="pa-hit-dice-pip" [class.spent]="i >= hitDiceAvailable()"></span>
+          }
+        </div>
+        <div class="pa-rest-buttons-row">
+          <button
+            class="pa-freeform-btn"
+            [disabled]="rollingHitDie() || hitDiceAvailable() === 0 || isAtMaxHp()"
+            (click)="rollHitDieNow()"
+          >
+            {{ rollingHitDie() ? '...' : '🎲 DESCANSO CURTO' }}
+          </button>
+          <button class="pa-freeform-btn" [disabled]="restingLong()" (click)="longRestNow()">
+            {{ restingLong() ? '...' : '🌙 DESCANSO LONGO' }}
+          </button>
+        </div>
+        @if (lastHitDieResult(); as hd) {
+          <p class="pa-hit-die-result">
+            {{ hd.roll }} {{ formatMod(hd.con_mod) }} = curou {{ hd.healed }} PV
+          </p>
+        }
+      </div>
+
+      <div class="pa-section">
         <h4 class="pa-section-title">RESISTÊNCIAS</h4>
         <div class="pa-row-list">
           @for (attr of data.character_sheet.attributes_and_saves | keyvalue; track attr.key) {
@@ -27,7 +56,7 @@
       <div class="pa-section">
         <h4 class="pa-section-title">PERÍCIAS</h4>
         <div class="pa-row-list pa-row-list--scroll">
-          @for (skill of data.character_sheet.skills; track skill.id_skill) {
+          @for (skill of sortedSkills(); track skill.id_skill) {
             <button class="pa-action-row" (click)="rollSkill(skill)">
               <span>{{ skill.name }}</span>
               <span class="pa-action-value">{{ formatMod(skill.total_skill_value) }}</span>
@@ -74,9 +103,6 @@
                   <span class="pa-slot-count">{{ slotsAvailable(key) }}/{{ slotsTotal(key) }}</span>
                 </div>
               }
-              <button class="pa-rest-btn" [disabled]="restingLong()" (click)="longRestNow()">
-                {{ restingLong() ? '...' : '🌙 DESCANSO LONGO' }}
-              </button>
             </div>
           }
 

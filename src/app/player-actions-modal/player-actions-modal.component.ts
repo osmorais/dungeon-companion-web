@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output, inject, signal } from '@angular/core';
 import { CommonModule, KeyValuePipe } from '@angular/common';
-import { CharacterService } from '../services/character.service';
+import { CharacterService, HitDieRollResult } from '../services/character.service';
 import { CharacterSheetResponse } from '../models/character-response.interface';
 import { Skill, Spell, WeaponRow } from '../models/character-options.interface';
 import {
@@ -97,6 +97,12 @@ export class PlayerActionsModalComponent implements OnInit {
     return value >= 0 ? `+${value}` : `${value}`;
   }
 
+  sortedSkills(): Skill[] {
+    return [...(this.sheet()?.character_sheet.skills ?? [])].sort((a, b) =>
+      a.name.localeCompare(b.name, 'pt-BR'),
+    );
+  }
+
   /** ========================= ESPAÇOS DE MAGIA ========================= */
 
   slotLevels(): string[] {
@@ -139,8 +145,10 @@ export class PlayerActionsModalComponent implements OnInit {
     if (this.restingLong()) return;
     this.restingLong.set(true);
     this.charService.longRest(this.idCharacter).subscribe({
-      next: ({ slots_expended }) => {
+      next: ({ slots_expended, current_hit_points, hit_dice_spent }) => {
         this.patchSpellcasting({ slots_expended });
+        this.patchCombatStats({ hit_dice_spent }, current_hit_points);
+        this.lastHitDieResult.set(null);
         this.restingLong.set(false);
       },
       error: () => this.restingLong.set(false),
@@ -158,6 +166,66 @@ export class PlayerActionsModalComponent implements OnInit {
         ...sheet.character_sheet,
         spellcasting_info: { ...sheet.character_sheet.spellcasting_info, ...patch },
       },
+    });
+  }
+
+  private patchCombatStats(
+    patch: Partial<CharacterSheetResponse['character_sheet']['combat_stats']>,
+    currentHp?: number,
+  ): void {
+    const sheet = this.sheet();
+    if (!sheet) return;
+    const combat = sheet.character_sheet.combat_stats;
+    this.sheet.set({
+      ...sheet,
+      character_sheet: {
+        ...sheet.character_sheet,
+        combat_stats: {
+          ...combat,
+          ...patch,
+          hit_points:
+            currentHp !== undefined
+              ? { ...combat.hit_points, current: currentHp }
+              : combat.hit_points,
+        },
+      },
+    });
+  }
+
+  /** ========================= DESCANSO CURTO (DADOS DE VIDA) ========================= */
+
+  rollingHitDie = signal(false);
+  lastHitDieResult = signal<HitDieRollResult | null>(null);
+
+  hitDiceTotal(): number {
+    return this.sheet()?.character_sheet.combat_stats.hit_dice_total ?? 0;
+  }
+
+  hitDiceAvailable(): number {
+    const stats = this.sheet()?.character_sheet.combat_stats;
+    if (!stats) return 0;
+    return Math.max(0, stats.hit_dice_total - stats.hit_dice_spent);
+  }
+
+  hitDicePips(): number[] {
+    return Array.from({ length: this.hitDiceTotal() }, (_, i) => i);
+  }
+
+  isAtMaxHp(): boolean {
+    const hp = this.sheet()?.character_sheet.combat_stats.hit_points;
+    return !!hp && hp.current >= hp.max;
+  }
+
+  rollHitDieNow(): void {
+    if (this.rollingHitDie()) return;
+    this.rollingHitDie.set(true);
+    this.charService.rollHitDie(this.idCharacter).subscribe({
+      next: (result) => {
+        this.lastHitDieResult.set(result);
+        this.patchCombatStats({ hit_dice_spent: result.hit_dice_spent }, result.current_hit_points);
+        this.rollingHitDie.set(false);
+      },
+      error: () => this.rollingHitDie.set(false),
     });
   }
 
