@@ -10,6 +10,10 @@
     } @else {
       @let data = sheet()!;
 
+      @if (actionError(); as err) {
+        <p class="pa-action-error">{{ err }}</p>
+      }
+
       <button class="pa-freeform-btn" (click)="openFreeformRoll()">🎲 ROLAR DADO</button>
 
       <div class="pa-section">

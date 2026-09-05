@@ -31,6 +31,7 @@ export class PlayerActionsModalComponent implements OnInit {
 
   expendingSlot = signal(false);
   restingLong = signal(false);
+  actionError = signal<string | null>(null);
 
   ngOnInit(): void {
     this.charService.getCharacterById(this.idCharacter).subscribe({
@@ -51,6 +52,15 @@ export class PlayerActionsModalComponent implements OnInit {
 
   close(): void {
     this.closed.emit();
+  }
+
+  private handleActionError(err: unknown): void {
+    const status = (err as { status?: number } | null)?.status;
+    this.actionError.set(
+      status === 403
+        ? 'Você não tem permissão para fazer isso neste personagem.'
+        : 'Não foi possível concluir a ação. Tente novamente.',
+    );
   }
 
   /** ========================= ROLAGENS ========================= */
@@ -138,19 +148,24 @@ export class PlayerActionsModalComponent implements OnInit {
   expendSlot(level: number, delta: number): void {
     if (this.expendingSlot()) return;
     this.expendingSlot.set(true);
+    this.actionError.set(null);
     this.charService.updateSpellSlots(this.idCharacter, level, delta).subscribe({
       next: ({ slots_expended }) => {
         this.patchSpellcasting({ slots_expended });
         this.expendingSlot.set(false);
         this.closed.emit();
       },
-      error: () => this.expendingSlot.set(false),
+      error: (err) => {
+        this.expendingSlot.set(false);
+        this.handleActionError(err);
+      },
     });
   }
 
   longRestNow(): void {
     if (this.restingLong()) return;
     this.restingLong.set(true);
+    this.actionError.set(null);
     this.charService.longRest(this.idCharacter).subscribe({
       next: ({ slots_expended, current_hit_points, hit_dice_spent }) => {
         this.patchSpellcasting({ slots_expended });
@@ -159,7 +174,10 @@ export class PlayerActionsModalComponent implements OnInit {
         this.restingLong.set(false);
         this.closed.emit();
       },
-      error: () => this.restingLong.set(false),
+      error: (err) => {
+        this.restingLong.set(false);
+        this.handleActionError(err);
+      },
     });
   }
 
@@ -227,6 +245,7 @@ export class PlayerActionsModalComponent implements OnInit {
   rollHitDieNow(): void {
     if (this.rollingHitDie()) return;
     this.rollingHitDie.set(true);
+    this.actionError.set(null);
     this.charService.rollHitDie(this.idCharacter).subscribe({
       next: (result) => {
         this.lastHitDieResult.set(result);
@@ -234,7 +253,10 @@ export class PlayerActionsModalComponent implements OnInit {
         this.rollingHitDie.set(false);
         this.closed.emit();
       },
-      error: () => this.rollingHitDie.set(false),
+      error: (err) => {
+        this.rollingHitDie.set(false);
+        this.handleActionError(err);
+      },
     });
   }
 
@@ -255,8 +277,10 @@ export class PlayerActionsModalComponent implements OnInit {
   togglePrepared(spell: Spell): void {
     const next = !spell.is_prepared;
     if (next && !this.canPrepareMore()) return;
+    this.actionError.set(null);
     this.charService.setSpellPrepared(this.idCharacter, spell.id_spell, next).subscribe({
       next: () => this.applyPreparedLocally(spell.id_spell, next),
+      error: (err) => this.handleActionError(err),
     });
   }
 

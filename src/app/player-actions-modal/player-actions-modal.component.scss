@@ -55,6 +55,15 @@
   color: var(--label-title-color);
 }
 
+.pa-action-error {
+  text-align: center;
+  font-size: 8px;
+  color: #ff6b6b;
+  border: 1px solid #ff6b6b;
+  padding: 8px;
+  margin: 0;
+}
+
 .pa-freeform-btn {
   background-color: var(--btn-color);
   color: var(--text-color);
