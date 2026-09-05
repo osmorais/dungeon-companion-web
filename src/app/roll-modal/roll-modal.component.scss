@@ -1,0 +1,206 @@
+.roll-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 200;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.roll-modal {
+  position: relative;
+  width: 380px;
+  max-width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.roll-modal-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: var(--text-color);
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+
+  &:hover {
+    color: var(--accent-color);
+  }
+}
+
+.roll-modal-title {
+  font-size: 11px;
+  color: var(--accent-color);
+  margin: 0;
+  text-align: center;
+  padding-right: 16px;
+}
+
+.roll-toggle-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.roll-toggle-btn {
+  background-color: var(--btn-color);
+  color: var(--text-color);
+  border: 2px solid var(--border-color);
+  padding: 8px 10px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background-color: var(--btn-color-hover);
+  }
+
+  &.active {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    background-color: var(--btn-color-hover);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.roll-freeform-config {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.roll-config-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.roll-config-label {
+  font-size: 8px;
+  color: var(--label-title-color);
+  width: 34px;
+  flex-shrink: 0;
+}
+
+.roll-die-options {
+  justify-content: flex-start;
+}
+
+.roll-stepper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 10px;
+
+  span {
+    min-width: 28px;
+    text-align: center;
+  }
+}
+
+.roll-stepper-btn {
+  background-color: var(--btn-color);
+  color: var(--text-color);
+  border: 2px solid var(--border-color);
+  width: 26px;
+  height: 26px;
+  font-size: 12px;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background-color: var(--btn-color-hover);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.roll-dice-display {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-height: 60px;
+  padding: 6px 0;
+}
+
+.roll-result {
+  text-align: center;
+}
+
+.roll-modifier-line {
+  margin: 0 0 6px;
+  font-size: 8px;
+  color: var(--label-title-color);
+}
+
+.roll-total {
+  margin: 0;
+  font-size: 16px;
+  color: var(--accent-color);
+}
+
+.roll-post-error {
+  margin: 10px 0 0;
+  font-size: 7px;
+  color: var(--label-title-color);
+}
+
+.roll-modal-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.roll-btn-primary,
+.roll-btn-secondary {
+  flex: 1;
+  border: 2px solid var(--border-color);
+  padding: 10px 12px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  cursor: pointer;
+}
+
+.roll-btn-primary {
+  background-color: var(--btn-color);
+  color: var(--text-color);
+
+  &:hover:not(:disabled) {
+    background-color: var(--btn-color-hover);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.roll-btn-secondary {
+  background-color: transparent;
+  color: var(--label-title-color);
+
+  &:hover {
+    color: var(--text-color);
+  }
+}

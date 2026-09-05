@@ -106,6 +106,10 @@
     }
 
     .save-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
       font-size: 8px;
       border-top: 1px dashed #555;
       padding-top: 4px;
@@ -288,6 +292,116 @@ ul {
     font-size: 14px;
     color: #efeeeb;
   }
+}
+
+.spell-slots-bar {
+  border: 1px solid var(--border-color);
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.spell-slot-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spell-slot-label {
+  font-size: 8px;
+  color: var(--label-title-color);
+  width: 26px;
+  flex-shrink: 0;
+}
+
+.spell-slot-pips {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.spell-slot-pip {
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--accent-color);
+  background-color: var(--accent-color);
+
+  &.spent {
+    background-color: transparent;
+    border-color: #555;
+  }
+}
+
+.spell-slot-count {
+  font-size: 8px;
+  color: #efeeeb;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.spell-rest-btn {
+  float: none !important;
+  align-self: center;
+  font-size: 8px;
+  margin-top: 6px;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.spell-prepare-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 8px;
+  color: var(--text-color);
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+  cursor: pointer;
+}
+
+.spell-cast-section {
+  margin-top: 12px;
+}
+
+.spell-cast-label {
+  font-size: 8px;
+  color: var(--label-title-color);
+  margin: 0 0 8px;
+}
+
+.spell-slot-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.spell-slot-btn {
+  float: none !important;
+  font-size: 8px;
+  margin-top: 0;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.spell-no-slots {
+  font-size: 8px;
+  color: var(--label-title-color);
+  margin: 0;
+}
+
+.prepared-dot {
+  color: var(--accent-color);
+  font-size: 8px;
+  margin-left: 4px;
 }
 
 .spells-table td, .spells-table th {
@@ -739,6 +853,10 @@ ul {
   }
 
   .attr-save {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
     font-size: 7px;
     color: #888;
     border-top: 1px dashed #444;
@@ -854,6 +972,9 @@ ul {
   &:active { background: rgba(255, 255, 255, 0.03); }
 
   .weapon-card-name {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     font-size: 11px;
     color: #efeeeb;
     margin-bottom: 8px;
@@ -1075,10 +1196,12 @@ ul {
 .mobile-sheet-toolbar {
   display: flex;
   justify-content: flex-end;
+  gap: 8px;
   padding: 4px 0 8px;
 }
 
-.mobile-print-btn {
+.mobile-print-btn,
+.mobile-roll-btn {
   float: none !important;
   font-size: 7px;
   padding: 6px 10px;
@@ -1087,6 +1210,34 @@ ul {
     opacity: 0.4;
     cursor: not-allowed;
   }
+}
+
+.roll-trigger-btn {
+  flex-shrink: 0;
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  font-size: 10px;
+  width: 20px;
+  height: 20px;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    border-color: var(--accent-color);
+    background: rgba(255, 170, 0, 0.12);
+  }
+}
+
+.item-modal-roll-btn {
+  width: 100%;
+  margin-top: 16px;
+  float: none !important;
 }
 
 @keyframes fadeIn {

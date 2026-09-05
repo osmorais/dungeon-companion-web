@@ -4,10 +4,12 @@ import { catchError } from 'rxjs/operators';
 import { CommonModule, KeyValuePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { CharacterService } from '../services/character.service';
-import { Spell, WeaponRow } from '../models/character-options.interface';
+import { Skill, Spell, WeaponRow } from '../models/character-options.interface';
+import { CharacterSheetResponse } from '../models/character-response.interface';
 import { AvatarPreset } from '../models/avatar-preset.interface';
 import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
 import { AvatarCustomizerComponent } from '../avatar-customizer/avatar-customizer.component';
+import { AbilityRollConfig, RollConfig, RollModalComponent } from '../roll-modal/roll-modal.component';
 
 type MobileTab = 'combat' | 'attrs' | 'skills' | 'traits' | 'equipment' | 'spells' | 'notes';
 type DesktopPage = 'sheet' | 'notes';
@@ -17,7 +19,7 @@ const NOTES_SEPARATOR = '\n\n[ANOTAÇÕES]\n\n';
 @Component({
   selector: 'app-character-sheet',
   standalone: true,
-  imports: [CommonModule, KeyValuePipe, AvatarDisplayComponent, AvatarCustomizerComponent],
+  imports: [CommonModule, KeyValuePipe, AvatarDisplayComponent, AvatarCustomizerComponent, RollModalComponent],
   templateUrl: './character-sheet.component.html',
   styleUrls: ['./character-sheet.component.scss'],
 })
@@ -26,6 +28,8 @@ export class CharacterSheetComponent {
   private router = inject(Router);
 
   id = input<string>();
+  /** Id da sessão ativa (opcional, vem via ?session=... quando aberto a partir do painel de sessão). */
+  session = input<string>();
 
   sheetData = this.charService.currentCharacter;
   avatarUrl = this.charService.avatarUrl;
@@ -184,6 +188,136 @@ export class CharacterSheetComponent {
     this.selectedWeapon = null;
   }
 
+  /** ========================= ESPAÇOS DE MAGIA ========================= */
+
+  expendingSlot = signal(false);
+  restingLong = signal(false);
+
+  slotLevels(): string[] {
+    const slots = this.sheetData()?.character_sheet.spellcasting_info?.slots_total;
+    return slots ? Object.keys(slots).sort() : [];
+  }
+
+  slotLevelNumber(key: string): number {
+    return parseInt(key.replace('level_', ''), 10);
+  }
+
+  slotsTotal(key: string): number {
+    return this.sheetData()?.character_sheet.spellcasting_info?.slots_total?.[key] ?? 0;
+  }
+
+  slotsAvailable(key: string): number {
+    const info = this.sheetData()?.character_sheet.spellcasting_info;
+    const total = info?.slots_total?.[key] ?? 0;
+    const expended = info?.slots_expended?.[key] ?? 0;
+    return Math.max(0, total - expended);
+  }
+
+  pipsFor(key: string): number[] {
+    return Array.from({ length: this.slotsTotal(key) }, (_, i) => i);
+  }
+
+  expendSlot(level: number, delta: number): void {
+    const id = this.sheetData()?.character_sheet.id_character;
+    if (!id || this.expendingSlot()) return;
+    this.expendingSlot.set(true);
+    this.charService.updateSpellSlots(id, level, delta).subscribe({
+      next: ({ slots_expended }) => {
+        this.patchSpellcastingInfo({ slots_expended });
+        this.expendingSlot.set(false);
+      },
+      error: () => this.expendingSlot.set(false),
+    });
+  }
+
+  longRestNow(): void {
+    const id = this.sheetData()?.character_sheet.id_character;
+    if (!id || this.restingLong()) return;
+    this.restingLong.set(true);
+    this.charService.longRest(id).subscribe({
+      next: ({ slots_expended }) => {
+        this.patchSpellcastingInfo({ slots_expended });
+        this.restingLong.set(false);
+      },
+      error: () => this.restingLong.set(false),
+    });
+  }
+
+  private patchSpellcastingInfo(
+    patch: Partial<NonNullable<CharacterSheetResponse['character_sheet']['spellcasting_info']>>,
+  ): void {
+    const sheet = this.sheetData();
+    if (!sheet?.character_sheet.spellcasting_info) return;
+    this.charService.currentCharacter.set({
+      ...sheet,
+      character_sheet: {
+        ...sheet.character_sheet,
+        spellcasting_info: { ...sheet.character_sheet.spellcasting_info, ...patch },
+      },
+    });
+  }
+
+  /** ========================= PREPARAR / CONJURAR MAGIAS ========================= */
+
+  preparedCount(): number {
+    return (this.sheetData()?.character_sheet.spells ?? []).filter(s => s.is_prepared).length;
+  }
+
+  maxPrepared(): number {
+    return this.sheetData()?.character_sheet.spellcasting_info?.max_prepared_spells ?? 0;
+  }
+
+  canPrepareMore(): boolean {
+    return this.preparedCount() < this.maxPrepared();
+  }
+
+  togglePrepared(spell: Spell): void {
+    const id = this.sheetData()?.character_sheet.id_character;
+    if (!id) return;
+    const next = !spell.is_prepared;
+    if (next && !this.canPrepareMore()) return;
+
+    this.charService.setSpellPrepared(id, spell.id_spell, next).subscribe({
+      next: () => this.applySpellPreparedLocally(spell.id_spell, next),
+    });
+  }
+
+  private applySpellPreparedLocally(idSpell: number, isPrepared: boolean): void {
+    const sheet = this.sheetData();
+    if (!sheet) return;
+    this.charService.currentCharacter.set({
+      ...sheet,
+      character_sheet: {
+        ...sheet.character_sheet,
+        spells: (sheet.character_sheet.spells ?? []).map(s =>
+          s.id_spell === idSpell ? { ...s, is_prepared: isPrepared } : s,
+        ),
+      },
+    });
+    if (this.selectedSpell?.id_spell === idSpell) {
+      this.selectedSpell = { ...this.selectedSpell, is_prepared: isPrepared };
+    }
+  }
+
+  isCastable(spell: Spell): boolean {
+    if (spell.spellLevel === 0) return false;
+    const prepares = this.sheetData()?.character_sheet.spellcasting_info?.prepares_spells;
+    return !prepares || !!spell.is_prepared;
+  }
+
+  availableSlotLevelsFor(spell: Spell): number[] {
+    const info = this.sheetData()?.character_sheet.spellcasting_info;
+    if (!info?.slots_total) return [];
+    return Object.keys(info.slots_total)
+      .map(k => this.slotLevelNumber(k))
+      .filter(lvl => lvl >= spell.spellLevel && this.slotsAvailable(`level_${lvl}`) > 0)
+      .sort((a, b) => a - b);
+  }
+
+  castSpell(spell: Spell, slotLevel: number): void {
+    this.expendSlot(slotLevel, 1);
+  }
+
   /** ========================= AVATAR EDITOR ========================= */
 
   showAvatarEditor = signal(false);
@@ -226,5 +360,55 @@ export class CharacterSheetComponent {
   closeAvatarEditor(): void {
     this.showAvatarEditor.set(false);
     this.editingPreset.set(null);
+  }
+
+  /** ========================= ROLAGENS ========================= */
+
+  activeRoll = signal<RollConfig | null>(null);
+
+  get actorName(): string {
+    return this.sheetData()?.character_sheet.header.name ?? 'Aventureiro';
+  }
+
+  get idCharacterForRoll(): number | null {
+    return this.sheetData()?.character_sheet.id_character ?? null;
+  }
+
+  rollSkill(skill: Skill): void {
+    const config: AbilityRollConfig = {
+      mode: 'ability',
+      rollType: 'skill',
+      label: `Perícia: ${skill.name}`,
+      modifier: skill.total_skill_value,
+    };
+    this.activeRoll.set(config);
+  }
+
+  rollSave(attrKey: string, save: number): void {
+    const config: AbilityRollConfig = {
+      mode: 'ability',
+      rollType: 'save',
+      label: `Resistência: ${attrKey}`,
+      modifier: save,
+    };
+    this.activeRoll.set(config);
+  }
+
+  rollAttack(weapon: WeaponRow): void {
+    const config: AbilityRollConfig = {
+      mode: 'ability',
+      rollType: 'attack',
+      label: `Ataque: ${weapon.name}`,
+      modifier: weapon.attack_bonus,
+    };
+    this.activeRoll.set(config);
+  }
+
+  openFreeformRoll(): void {
+    this.activeRoll.set({ mode: 'freeform' });
+  }
+
+  closeRoll(): void {
+    this.activeRoll.set(null);
   }
 }

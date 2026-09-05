@@ -61,4 +61,25 @@ export class CharacterService {
       responseType: 'text',
     });
   }
+
+  updateSpellSlots(id: number, level: number, delta: number): Observable<{ slots_expended: Record<string, number> }> {
+    return this.http.patch<{ slots_expended: Record<string, number> }>(
+      `${this.baseUrl}/api/character-sheet/${id}/spell-slots`,
+      { level, delta },
+    );
+  }
+
+  longRest(id: number): Observable<{ slots_expended: Record<string, number> }> {
+    return this.http.post<{ slots_expended: Record<string, number> }>(
+      `${this.baseUrl}/api/character-sheet/${id}/long-rest`,
+      {},
+    );
+  }
+
+  setSpellPrepared(id: number, idSpell: number, isPrepared: boolean): Observable<{ success: boolean }> {
+    return this.http.patch<{ success: boolean }>(
+      `${this.baseUrl}/api/character-sheet/${id}/spells/${idSpell}/prepared`,
+      { is_prepared: isPrepared },
+    );
+  }
 }

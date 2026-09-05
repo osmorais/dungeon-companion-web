@@ -9,6 +9,8 @@ import {
   GameSessionResponse,
   JoinSessionPayload,
   PlayerSession,
+  RollLogEntry,
+  RollLogPayload,
 } from '../models/game-session.interface';
 
 @Injectable({
@@ -69,5 +71,9 @@ export class GameSessionService {
       `${this.baseUrl}/api/game-session/${sessionId}/npc`,
       { id_character: idCharacter },
     );
+  }
+
+  postRoll(sessionId: string, payload: RollLogPayload): Observable<RollLogEntry> {
+    return this.http.post<RollLogEntry>(`${this.baseUrl}/api/game-session/${sessionId}/roll`, payload);
   }
 }

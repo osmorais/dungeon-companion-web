@@ -1,0 +1,143 @@
+<div class="roll-modal-backdrop" (click)="close()">
+  <div class="roll-modal" (click)="$event.stopPropagation()">
+    <button class="roll-modal-close" (click)="close()">✕</button>
+    <h3 class="roll-modal-title">{{ title }}</h3>
+
+    @if (isAbility) {
+      <div class="roll-toggle-row">
+        <button
+          class="roll-toggle-btn"
+          [class.active]="advantageState() === 'normal'"
+          [disabled]="isRolling()"
+          (click)="setAdvantage('normal')"
+        >
+          NORMAL
+        </button>
+        <button
+          class="roll-toggle-btn"
+          [class.active]="advantageState() === 'advantage'"
+          [disabled]="isRolling()"
+          (click)="setAdvantage('advantage')"
+        >
+          VANTAGEM
+        </button>
+        <button
+          class="roll-toggle-btn"
+          [class.active]="advantageState() === 'disadvantage'"
+          [disabled]="isRolling()"
+          (click)="setAdvantage('disadvantage')"
+        >
+          DESVANTAGEM
+        </button>
+      </div>
+    } @else {
+      <div class="roll-freeform-config">
+        <div class="roll-config-row">
+          <span class="roll-config-label">DADO</span>
+          <div class="roll-toggle-row roll-die-options">
+            @for (d of dieOptions; track d) {
+              <button
+                class="roll-toggle-btn"
+                [class.active]="freeformSides() === d"
+                [disabled]="isRolling()"
+                (click)="setFreeformSides(d)"
+              >
+                d{{ d }}
+              </button>
+            }
+          </div>
+        </div>
+        <div class="roll-config-row">
+          <span class="roll-config-label">QTD</span>
+          <div class="roll-stepper">
+            <button
+              class="roll-stepper-btn"
+              [disabled]="isRolling()"
+              (click)="changeFreeformCount(-1)"
+            >
+              −
+            </button>
+            <span>{{ freeformCount() }}</span>
+            <button
+              class="roll-stepper-btn"
+              [disabled]="isRolling()"
+              (click)="changeFreeformCount(1)"
+            >
+              +
+            </button>
+          </div>
+        </div>
+        <div class="roll-config-row">
+          <span class="roll-config-label">MOD</span>
+          <div class="roll-stepper">
+            <button
+              class="roll-stepper-btn"
+              [disabled]="isRolling()"
+              (click)="changeFreeformModifier(-1)"
+            >
+              −
+            </button>
+            <span>{{ formatMod(freeformModifier()) }}</span>
+            <button
+              class="roll-stepper-btn"
+              [disabled]="isRolling()"
+              (click)="changeFreeformModifier(1)"
+            >
+              +
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <div class="roll-dice-display">
+      @if (isRolling()) {
+        @for (v of displayValues(); track $index) {
+          @if (sides === 6) {
+            <app-pixel-die [face]="v" [rolling]="true" />
+          } @else {
+            <app-pixel-numeric-die [sides]="sides" [rolling]="true" />
+          }
+        }
+      } @else if (result(); as res) {
+        @for (v of res.rolls; track $index) {
+          @if (sides === 6) {
+            <app-pixel-die [face]="v" [dropped]="isDropped(v)" />
+          } @else {
+            <app-pixel-numeric-die
+              [sides]="sides"
+              [value]="v"
+              [critical]="criticalFor(v)"
+              [dropped]="isDropped(v)"
+            />
+          }
+        }
+      } @else {
+        @for (i of placeholderIndexes(); track i) {
+          @if (sides === 6) {
+            <app-pixel-die [face]="1" />
+          } @else {
+            <app-pixel-numeric-die [sides]="sides" [value]="null" />
+          }
+        }
+      }
+    </div>
+
+    @if (result(); as res) {
+      <div class="roll-result">
+        <p class="roll-modifier-line">{{ formatMod(modifier) }} (modificador)</p>
+        <p class="roll-total">TOTAL: {{ res.total }}</p>
+        @if (postFailed()) {
+          <p class="roll-post-error">Não foi possível registrar na sessão.</p>
+        }
+      </div>
+    }
+
+    <div class="roll-modal-actions">
+      <button class="roll-btn-primary" [disabled]="isRolling()" (click)="roll()">
+        {{ isRolling() ? 'ROLANDO...' : result() ? 'ROLAR NOVAMENTE' : 'ROLAR' }}
+      </button>
+      <button class="roll-btn-secondary" (click)="close()">FECHAR</button>
+    </div>
+  </div>
+</div>

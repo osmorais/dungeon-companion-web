@@ -4,14 +4,17 @@ import { Subscription, finalize, interval } from 'rxjs';
 import { GameSessionService } from '../services/game-session.service';
 import { CharacterService } from '../services/character.service';
 import { AuthService } from '../services/auth.service';
-import { GameSessionDetail, MonsterSession, NpcSession, PlayerSession } from '../models/game-session.interface';
+import { GameSessionDetail, MonsterSession, NpcSession, PlayerSession, RollLogEntry } from '../models/game-session.interface';
 import { CharacterSummary } from '../models/character-summary.interface';
 import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
+import { PixelDieComponent } from '../pixel-die/pixel-die.component';
+import { PixelNumericDieComponent } from '../pixel-numeric-die/pixel-numeric-die.component';
+import { PlayerActionsModalComponent } from '../player-actions-modal/player-actions-modal.component';
 
 @Component({
   selector: 'app-session-panel',
   standalone: true,
-  imports: [AvatarDisplayComponent],
+  imports: [AvatarDisplayComponent, PixelDieComponent, PixelNumericDieComponent, PlayerActionsModalComponent],
   templateUrl: './session-panel.component.html',
   styleUrls: ['./session-panel.component.scss'],
 })
@@ -38,7 +41,8 @@ export class SessionPanelComponent implements OnDestroy {
   addingNpcId = signal<number | null>(null);
 
   private pollSub: Subscription | null = null;
-  private readonly POLL_INTERVAL_MS = 60_000;
+  /** Curto o suficiente pra rolagens da mesa aparecerem quase em tempo real. */
+  private readonly POLL_INTERVAL_MS = 8_000;
 
   isOwner = computed(() => {
     const detail = this.sessionDetail();
@@ -172,8 +176,24 @@ export class SessionPanelComponent implements OnDestroy {
     });
   }
 
+  /** ========================= AÇÕES DO PERSONAGEM ========================= */
+
+  activeActionsCharacter = signal<{ id: number; name: string } | null>(null);
+
+  openPlayerActions(idCharacter: number, name: string) {
+    this.activeActionsCharacter.set({ id: idCharacter, name });
+  }
+
+  closePlayerActions() {
+    this.activeActionsCharacter.set(null);
+  }
+
   viewCharacterSheet(idCharacter: number) {
-    this.router.navigate(['/character-sheet', idCharacter]);
+    const sessionId = this.id();
+    this.router.navigate(
+      ['/character-sheet', idCharacter],
+      sessionId ? { queryParams: { session: sessionId } } : {},
+    );
   }
 
   canEditHp(player: PlayerSession): boolean {
@@ -320,5 +340,33 @@ export class SessionPanelComponent implements OnDestroy {
 
   goBack() {
     this.router.navigate(['/']);
+  }
+
+  /** ========================= ROLAGENS ========================= */
+
+  rollSides(roll: RollLogEntry): number {
+    const match = roll.dice_notation.match(/d(\d+)/);
+    return match ? parseInt(match[1], 10) : 20;
+  }
+
+  isD6(roll: RollLogEntry): boolean {
+    return this.rollSides(roll) === 6;
+  }
+
+  /** Marca o dado que não foi escolhido numa rolagem com vantagem/desvantagem. */
+  isRollValueDropped(roll: RollLogEntry, value: number): boolean {
+    if (roll.roll_type === 'dice' || roll.rolls.length < 2) return false;
+    const chosen = roll.total - roll.modifier;
+    return value !== chosen;
+  }
+
+  advantageSuffix(roll: RollLogEntry): string {
+    if (roll.advantage_state === 'advantage') return ' (VANT)';
+    if (roll.advantage_state === 'disadvantage') return ' (DESV)';
+    return '';
+  }
+
+  formatMod(value: number): string {
+    return value >= 0 ? `+${value}` : `${value}`;
   }
 }

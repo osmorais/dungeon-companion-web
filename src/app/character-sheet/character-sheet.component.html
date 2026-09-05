@@ -36,6 +36,7 @@
       </div>
 
       <div class="mobile-sheet-toolbar">
+        <button class="retro-btn mobile-roll-btn" (click)="openFreeformRoll()">🎲 ROLAR DADO</button>
         <button class="retro-btn mobile-print-btn" (click)="printSheet()" [disabled]="printingSheet()">
           {{ printingSheet() ? '...' : '🖨 IMPRIMIR' }}
         </button>
@@ -96,6 +97,7 @@
                   <div class="attr-save">
                     <span class="prof-dot">{{ attr.value.save_proficiency ? '●' : '○' }}</span>
                     Save: {{ formatMod(attr.value.save) }}
+                    <button class="roll-trigger-btn" (click)="rollSave(attr.key, attr.value.save)">🎲</button>
                   </div>
                 </div>
               }
@@ -110,6 +112,7 @@
                   <span class="skill-mod">{{ formatMod(skill.total_skill_value) }}</span>
                   <span class="skill-name">{{ skill.name }}</span>
                   <span class="skill-attr">({{ skill.attribute_name }})</span>
+                  <button class="roll-trigger-btn" (click)="rollSkill(skill)">🎲</button>
                 </li>
               }
             </ul>
@@ -137,7 +140,10 @@
               <div class="mobile-weapon-cards">
                 @for (weapon of data.character_sheet.weapons; track weapon.id_weapon) {
                   <div class="mobile-weapon-card" (click)="openWeaponModal(weapon)">
-                    <div class="weapon-card-name">{{ weapon.name }}</div>
+                    <div class="weapon-card-name">
+                      {{ weapon.name }}
+                      <button class="roll-trigger-btn" (click)="rollAttack(weapon); $event.stopPropagation()">🎲</button>
+                    </div>
                     <div class="weapon-card-stats">
                       <span><strong>ATAQUE</strong>{{ formatMod(weapon.attack_bonus) }}</span>
                       <span><strong>DANO</strong>{{ weapon.damage_die ?? '—' }} {{ weapon.damage_type ?? '' }}</span>
@@ -170,11 +176,32 @@
                 </div>
               </div>
             }
+            @if (slotLevels().length > 0) {
+              <div class="spell-slots-bar">
+                @for (key of slotLevels(); track key) {
+                  <div class="spell-slot-row">
+                    <span class="spell-slot-label">NV{{ slotLevelNumber(key) }}</span>
+                    <div class="spell-slot-pips">
+                      @for (i of pipsFor(key); track i) {
+                        <span class="spell-slot-pip" [class.spent]="i >= slotsAvailable(key)"></span>
+                      }
+                    </div>
+                    <span class="spell-slot-count">{{ slotsAvailable(key) }}/{{ slotsTotal(key) }}</span>
+                  </div>
+                }
+                <button class="retro-btn spell-rest-btn" [disabled]="restingLong()" (click)="longRestNow()">
+                  {{ restingLong() ? '...' : '🌙 DESCANSO LONGO' }}
+                </button>
+              </div>
+            }
             <div class="mobile-spell-cards">
               @for (spell of data.character_sheet.spells; track spell.id_spell) {
                 <div class="mobile-spell-card" (click)="openSpellModal(spell)">
                   <div class="spell-card-left">
-                    <div class="spell-card-name">{{ spell.name }}</div>
+                    <div class="spell-card-name">
+                      {{ spell.name }}
+                      @if (spell.is_prepared) { <span class="prepared-dot" title="Preparada">●</span> }
+                    </div>
                     <div class="spell-card-meta">{{ spell.school ?? '' }}{{ spell.casting_time ? ' · ' + spell.casting_time : '' }}</div>
                   </div>
                   <div class="spell-card-level">{{ spell.spellLevel === 0 ? 'T' : spell.spellLevel }}</div>
@@ -298,6 +325,7 @@
                   <div class="save-box">
                     <span class="prof-dot">{{ attr.value.save_proficiency ? '●' : '○' }}</span>
                     Save: {{ formatMod(attr.value.save) }}
+                    <button class="roll-trigger-btn" (click)="rollSave(attr.key, attr.value.save)">🎲</button>
                   </div>
                 </div>
               }
@@ -344,6 +372,7 @@
                 <li [class.trained]="skill.is_trained">
                   <span class="prof-dot">{{ skill.is_trained ? '●' : '○' }}</span>
                   {{ formatMod(skill.total_skill_value) }} {{ skill.name }} <span class="skill-attribute">({{ skill.attribute_name }})</span>
+                  <button class="roll-trigger-btn" (click)="rollSkill(skill)">🎲</button>
                 </li>
               }
             </ul>
@@ -384,6 +413,7 @@
                   <th>ATAQUE</th>
                   <th>DANO</th>
                   <th>PROPRIEDADES</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -393,6 +423,9 @@
                     <td class="text-center">{{ formatMod(weapon.attack_bonus) }}</td>
                     <td>{{ weapon.damage_die ?? '—' }} {{ weapon.damage_type ?? '' }}</td>
                     <td class="props-cell">{{ weapon.properties || '—' }}</td>
+                    <td class="text-center">
+                      <button class="roll-trigger-btn" (click)="rollAttack(weapon); $event.stopPropagation()">🎲</button>
+                    </td>
                   </tr>
                 }
               </tbody>
@@ -421,6 +454,24 @@
                 </div>
               </div>
             }
+            @if (slotLevels().length > 0) {
+              <div class="spell-slots-bar">
+                @for (key of slotLevels(); track key) {
+                  <div class="spell-slot-row">
+                    <span class="spell-slot-label">NV{{ slotLevelNumber(key) }}</span>
+                    <div class="spell-slot-pips">
+                      @for (i of pipsFor(key); track i) {
+                        <span class="spell-slot-pip" [class.spent]="i >= slotsAvailable(key)"></span>
+                      }
+                    </div>
+                    <span class="spell-slot-count">{{ slotsAvailable(key) }}/{{ slotsTotal(key) }}</span>
+                  </div>
+                }
+                <button class="retro-btn spell-rest-btn" [disabled]="restingLong()" (click)="longRestNow()">
+                  {{ restingLong() ? '...' : '🌙 DESCANSO LONGO' }}
+                </button>
+              </div>
+            }
             <table class="weapons-table spells-table">
               <thead>
                 <tr>
@@ -436,7 +487,10 @@
               <tbody>
                 @for (spell of data.character_sheet.spells; track spell.id_spell) {
                   <tr class="clickable-row" (click)="openSpellModal(spell)">
-                    <td>{{ spell.name }}</td>
+                    <td>
+                      {{ spell.name }}
+                      @if (spell.is_prepared) { <span class="prepared-dot" title="Preparada">●</span> }
+                    </td>
                     <td class="text-center">{{ spell.spellLevel === 0 ? 'T' : spell.spellLevel }}</td>
                     <td>{{ spell.casting_time ?? '—' }}</td>
                     <td>{{ spell.range_distance != null ? spell.range_distance + 'm' : '—' }}</td>
@@ -453,6 +507,7 @@
 
       <div class="sheet-actions">
         <button class="retro-btn" (click)="goBack()">VOLTAR</button>
+        <button class="retro-btn" (click)="openFreeformRoll()">🎲 ROLAR DADO</button>
         <button class="retro-btn print-btn" (click)="printSheet()" [disabled]="printingSheet()">
           {{ printingSheet() ? 'CARREGANDO...' : '🖨 IMPRIMIR / PDF' }}
         </button>
@@ -495,6 +550,9 @@
             </div>
           }
         </div>
+        <button class="retro-btn item-modal-roll-btn" (click)="rollAttack(selectedWeapon); closeWeaponModal()">
+          🎲 ATACAR
+        </button>
       </div>
     </div>
   }
@@ -530,6 +588,34 @@
             <div class="spell-description">{{ selectedSpell.description }}</div>
           }
         </div>
+
+        @if (selectedSpell.spellLevel > 0) {
+          @if (data.character_sheet.spellcasting_info?.prepares_spells) {
+            <label class="spell-prepare-toggle">
+              <input type="checkbox" class="retro-checkbox"
+                     [checked]="selectedSpell.is_prepared"
+                     [disabled]="!selectedSpell.is_prepared && !canPrepareMore()"
+                     (change)="togglePrepared(selectedSpell)">
+              PREPARADA ({{ preparedCount() }}/{{ maxPrepared() }})
+            </label>
+          }
+          @if (isCastable(selectedSpell)) {
+            <div class="spell-cast-section">
+              <p class="spell-cast-label">CONJURAR USANDO ESPAÇO</p>
+              <div class="spell-slot-options">
+                @for (lvl of availableSlotLevelsFor(selectedSpell); track lvl) {
+                  <button class="retro-btn spell-slot-btn" [disabled]="expendingSlot()"
+                          (click)="castSpell(selectedSpell, lvl); closeSpellModal()">
+                    NÍVEL {{ lvl }} ({{ slotsAvailable('level_' + lvl) }})
+                  </button>
+                }
+                @if (availableSlotLevelsFor(selectedSpell).length === 0) {
+                  <p class="spell-no-slots">Sem espaços disponíveis.</p>
+                }
+              </div>
+            </div>
+          }
+        }
       </div>
     </div>
   }
@@ -552,6 +638,15 @@
       </div>
     </div>
   </div>
+}
+
+@if (activeRoll(); as roll) {
+  <app-roll-modal
+    [config]="roll"
+    [idCharacter]="idCharacterForRoll"
+    [actorName]="actorName"
+    [sessionId]="session()"
+    (closed)="closeRoll()" />
 }
 
 } @else if (!loading()) {

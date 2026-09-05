@@ -243,6 +243,14 @@
   width: 100%;
 }
 
+.actions-btn {
+  float: none;
+  margin-top: 4px;
+  font-size: 7px;
+  padding: 7px 12px;
+  width: 100%;
+}
+
 .empty-msg {
   font-size: 9px;
   color: var(--label-title-color);
@@ -334,6 +342,13 @@
 }
 
 .npc-sheet-btn {
+  float: none;
+  font-size: 7px;
+  padding: 6px 10px;
+  flex-shrink: 0;
+}
+
+.npc-actions-btn {
   float: none;
   font-size: 7px;
   padding: 6px 10px;
@@ -754,6 +769,14 @@
   width: 100%;
 }
 
+.mobile-actions-btn {
+  float: none;
+  margin-top: 4px;
+  font-size: 6px;
+  padding: 6px 8px;
+  width: 100%;
+}
+
 .mobile-card-actions {
   display: flex;
   flex-direction: column;
@@ -853,6 +876,13 @@
   flex-shrink: 0;
 }
 
+.mobile-npc-actions-btn {
+  float: none;
+  font-size: 5px;
+  padding: 5px 6px;
+  flex-shrink: 0;
+}
+
 .mobile-npc-add-btn {
   float: none;
   width: 100%;
@@ -923,4 +953,57 @@
     background-color: #e53935; /* fallback; sobrescrito pelo binding hpColor() */
     transition: width 0.3s;
   }
+}
+
+/* ===== ROLAGENS RECENTES ===== */
+
+.roll-log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.roll-log-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-color);
+}
+
+.roll-log-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.roll-log-actor {
+  font-size: 8px;
+  color: var(--accent-color);
+}
+
+.roll-log-label {
+  font-size: 7px;
+  color: var(--label-title-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roll-log-dice {
+  display: flex;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.roll-log-total {
+  font-size: 9px;
+  color: var(--text-color);
+  flex-shrink: 0;
+  white-space: nowrap;
 }

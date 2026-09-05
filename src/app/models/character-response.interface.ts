@@ -50,6 +50,11 @@ export interface CharacterSheetResponse {
       spellcasting_ability: string;
       spell_save_dc: number;
       spell_attack_bonus: number;
+      slots_total?: Record<string, number>;
+      slots_expended?: Record<string, number>;
+      spells_known?: Record<string, string[]>;
+      prepares_spells?: boolean;
+      max_prepared_spells?: number;
     };
     spells?: Spell[];
     avatar_preset?: AvatarPreset | null;

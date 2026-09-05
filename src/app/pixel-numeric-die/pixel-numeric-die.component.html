@@ -1,0 +1,15 @@
+<div
+  class="pixel-numeric-die"
+  [class.pixel-numeric-die--mini]="mini"
+  [class.pixel-numeric-die--rolling]="rolling"
+  [class.pixel-numeric-die--crit-high]="!rolling && critical === 'high'"
+  [class.pixel-numeric-die--crit-low]="!rolling && critical === 'low'"
+  [class.pixel-numeric-die--dropped]="!rolling && dropped"
+>
+  <div class="pixel-numeric-die__inner">
+    <span class="pixel-numeric-die__value">{{ rolling || value === null ? '?' : value }}</span>
+    @if (!mini) {
+      <span class="pixel-numeric-die__sides">d{{ sides }}</span>
+    }
+  </div>
+</div>

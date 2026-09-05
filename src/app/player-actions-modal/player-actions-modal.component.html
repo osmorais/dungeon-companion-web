@@ -1,0 +1,138 @@
+<div class="pa-modal-backdrop" (click)="close()">
+  <div class="pa-modal" (click)="$event.stopPropagation()">
+    <button class="pa-modal-close" (click)="close()">✕</button>
+    <h3 class="pa-modal-title">{{ actorName }}</h3>
+
+    @if (loading()) {
+      <p class="pa-modal-status">CARREGANDO...</p>
+    } @else if (error() || !sheet()) {
+      <p class="pa-modal-status">ERRO AO CARREGAR A FICHA.</p>
+    } @else {
+      @let data = sheet()!;
+
+      <button class="pa-freeform-btn" (click)="openFreeformRoll()">🎲 ROLAR DADO</button>
+
+      <div class="pa-section">
+        <h4 class="pa-section-title">RESISTÊNCIAS</h4>
+        <div class="pa-row-list">
+          @for (attr of data.character_sheet.attributes_and_saves | keyvalue; track attr.key) {
+            <button class="pa-action-row" (click)="rollSave(attr.key, attr.value.save)">
+              <span>{{ attr.key }}</span>
+              <span class="pa-action-value">{{ formatMod(attr.value.save) }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="pa-section">
+        <h4 class="pa-section-title">PERÍCIAS</h4>
+        <div class="pa-row-list pa-row-list--scroll">
+          @for (skill of data.character_sheet.skills; track skill.id_skill) {
+            <button class="pa-action-row" (click)="rollSkill(skill)">
+              <span>{{ skill.name }}</span>
+              <span class="pa-action-value">{{ formatMod(skill.total_skill_value) }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      @if (data.character_sheet.weapons.length) {
+        <div class="pa-section">
+          <h4 class="pa-section-title">ARMAS</h4>
+          <div class="pa-row-list">
+            @for (weapon of data.character_sheet.weapons; track weapon.id_weapon) {
+              <button class="pa-action-row" (click)="rollAttack(weapon)">
+                <span>{{ weapon.name }}</span>
+                <span class="pa-action-value">{{ formatMod(weapon.attack_bonus) }}</span>
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      @if (data.character_sheet.spellcasting_info; as spellInfo) {
+        <div class="pa-section">
+          <h4 class="pa-section-title">
+            MAGIAS
+            @if (spellInfo.prepares_spells) {
+              <span class="pa-prepared-count"
+                >{{ preparedCount() }}/{{ maxPrepared() }} PREPARADAS</span
+              >
+            }
+          </h4>
+
+          @if (slotLevels().length > 0) {
+            <div class="pa-slots-bar">
+              @for (key of slotLevels(); track key) {
+                <div class="pa-slot-row">
+                  <span class="pa-slot-label">NV{{ slotLevelNumber(key) }}</span>
+                  <div class="pa-slot-pips">
+                    @for (i of pipsFor(key); track i) {
+                      <span class="pa-slot-pip" [class.spent]="i >= slotsAvailable(key)"></span>
+                    }
+                  </div>
+                  <span class="pa-slot-count">{{ slotsAvailable(key) }}/{{ slotsTotal(key) }}</span>
+                </div>
+              }
+              <button class="pa-rest-btn" [disabled]="restingLong()" (click)="longRestNow()">
+                {{ restingLong() ? '...' : '🌙 DESCANSO LONGO' }}
+              </button>
+            </div>
+          }
+
+          <div class="pa-spell-list">
+            @for (spell of data.character_sheet.spells; track spell.id_spell) {
+              <div class="pa-spell-row">
+                <div class="pa-spell-head">
+                  <span class="pa-spell-name">
+                    {{ spell.name }}
+                    <span class="pa-spell-level">{{
+                      spell.spellLevel === 0 ? 'T' : 'N' + spell.spellLevel
+                    }}</span>
+                  </span>
+                  @if (spell.spellLevel > 0 && spellInfo.prepares_spells) {
+                    <label class="pa-prepare-toggle" title="Preparada">
+                      <input
+                        type="checkbox"
+                        class="retro-checkbox"
+                        [checked]="spell.is_prepared"
+                        [disabled]="!spell.is_prepared && !canPrepareMore()"
+                        (change)="togglePrepared(spell)"
+                      />
+                    </label>
+                  }
+                </div>
+                @if (isCastable(spell)) {
+                  <div class="pa-cast-options">
+                    @for (lvl of availableSlotLevelsFor(spell); track lvl) {
+                      <button
+                        class="pa-cast-btn"
+                        [disabled]="expendingSlot()"
+                        (click)="castSpell(spell, lvl)"
+                      >
+                        NV{{ lvl }} ({{ slotsAvailable('level_' + lvl) }})
+                      </button>
+                    }
+                    @if (availableSlotLevelsFor(spell).length === 0) {
+                      <span class="pa-no-slots">sem espaços</span>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>
+
+@if (activeRoll(); as roll) {
+  <app-roll-modal
+    [config]="roll"
+    [idCharacter]="idCharacter"
+    [actorName]="actorName"
+    [sessionId]="sessionId"
+    (closed)="closeRoll()"
+  />
+}

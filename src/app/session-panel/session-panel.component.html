@@ -35,6 +35,35 @@
         </div>
       </fieldset>
 
+      <!-- Rolagens recentes -->
+      <fieldset class="mobile-panel">
+        <legend>ROLAGENS</legend>
+        @if (sessionDetail()!.recent_rolls.length === 0) {
+          <p class="mobile-empty-msg mobile-empty-msg--inner">NENHUMA ROLAGEM AINDA.</p>
+        } @else {
+          <div class="roll-log-list">
+            @for (roll of sessionDetail()!.recent_rolls; track roll.id_roll) {
+              <div class="roll-log-row">
+                <div class="roll-log-info">
+                  <span class="roll-log-actor">{{ roll.actor_name }}</span>
+                  <span class="roll-log-label">{{ roll.label }}{{ advantageSuffix(roll) }}</span>
+                </div>
+                <div class="roll-log-dice">
+                  @for (v of roll.rolls; track $index) {
+                    @if (isD6(roll)) {
+                      <app-pixel-die [face]="v" [mini]="true" [dropped]="isRollValueDropped(roll, v)" />
+                    } @else {
+                      <app-pixel-numeric-die [sides]="rollSides(roll)" [value]="v" [mini]="true" [dropped]="isRollValueDropped(roll, v)" />
+                    }
+                  }
+                </div>
+                <span class="roll-log-total">{{ formatMod(roll.modifier) }} = {{ roll.total }}</span>
+              </div>
+            }
+          </div>
+        }
+      </fieldset>
+
       <!-- Cards dos players -->
       <fieldset id="players-section" class="mobile-panel">
         <legend>AVENTUREIROS</legend>
@@ -85,6 +114,9 @@
                   </div>
 
                   @if (canViewSheet(player)) {
+                    <button class="retro-btn mobile-actions-btn" (click)="openPlayerActions(player.id_character, player.character.name)">
+                      🎲 AÇÕES
+                    </button>
                     <button class="retro-btn mobile-sheet-btn" (click)="viewCharacterSheet(player.id_character)">
                       VER FICHA
                     </button>
@@ -138,6 +170,9 @@
                   }
                 </div>
                 @if (isOwner()) {
+                  <button class="retro-btn mobile-npc-actions-btn" (click)="openPlayerActions(npc.id_character, npc.character?.name ?? ('NPC #' + npc.id_character))">
+                    🎲 AÇÕES
+                  </button>
                   <button class="retro-btn mobile-npc-btn" (click)="viewCharacterSheet(npc.id_character)">
                     VER FICHA
                   </button>
@@ -217,6 +252,35 @@
         </div>
       </fieldset>
 
+      <!-- Rolagens recentes -->
+      <fieldset class="retro-panel">
+        <legend>ROLAGENS RECENTES</legend>
+        @if (sessionDetail()!.recent_rolls.length === 0) {
+          <p class="empty-msg">NENHUMA ROLAGEM AINDA.</p>
+        } @else {
+          <div class="roll-log-list">
+            @for (roll of sessionDetail()!.recent_rolls; track roll.id_roll) {
+              <div class="roll-log-row">
+                <div class="roll-log-info">
+                  <span class="roll-log-actor">{{ roll.actor_name }}</span>
+                  <span class="roll-log-label">{{ roll.label }}{{ advantageSuffix(roll) }}</span>
+                </div>
+                <div class="roll-log-dice">
+                  @for (v of roll.rolls; track $index) {
+                    @if (isD6(roll)) {
+                      <app-pixel-die [face]="v" [mini]="true" [dropped]="isRollValueDropped(roll, v)" />
+                    } @else {
+                      <app-pixel-numeric-die [sides]="rollSides(roll)" [value]="v" [mini]="true" [dropped]="isRollValueDropped(roll, v)" />
+                    }
+                  }
+                </div>
+                <span class="roll-log-total">{{ formatMod(roll.modifier) }} = {{ roll.total }}</span>
+              </div>
+            }
+          </div>
+        }
+      </fieldset>
+
       <!-- Grid de players -->
       <fieldset id="players-section" class="retro-panel">
         <legend>AVENTUREIROS</legend>
@@ -266,6 +330,9 @@
                   </div>
 
                   @if (canViewSheet(player)) {
+                    <button class="retro-btn actions-btn" (click)="openPlayerActions(player.id_character, player.character.name)">
+                      🎲 AÇÕES
+                    </button>
                     <button class="retro-btn sheet-btn" (click)="viewCharacterSheet(player.id_character)">
                       VER FICHA ▶
                     </button>
@@ -328,6 +395,9 @@
                   }
                 </div>
                 @if (isOwner()) {
+                  <button class="retro-btn npc-actions-btn" (click)="openPlayerActions(npc.id_character, npc.character?.name ?? ('NPC #' + npc.id_character))">
+                    🎲 AÇÕES
+                  </button>
                   <button class="retro-btn npc-sheet-btn" (click)="viewCharacterSheet(npc.id_character)">
                     VER FICHA ▶
                   </button>
@@ -386,6 +456,15 @@
     }
 
   </div>
+}
+
+<!-- ===== MODAL: AÇÕES DO PERSONAGEM ===== -->
+@if (activeActionsCharacter(); as actionsChar) {
+  <app-player-actions-modal
+    [idCharacter]="actionsChar.id"
+    [fallbackName]="actionsChar.name"
+    [sessionId]="id()"
+    (closed)="closePlayerActions()" />
 }
 
 <!-- ===== MODAL: ADICIONAR NPC ===== -->
