@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { SKIP_LOADING_OVERLAY } from '../loading-overlay/loading.interceptor';
 import {
   CreateGameSessionPayload,
   GameSessionDetail,
@@ -24,8 +25,11 @@ export class GameSessionService {
     return this.http.post<GameSessionResponse>(`${this.baseUrl}/api/game-session`, payload);
   }
 
-  getSessionById(id: string): Observable<GameSessionDetail> {
-    return this.http.get<GameSessionDetail>(`${this.baseUrl}/api/game-session/${id}`);
+  /** `silent` evita o overlay de carregamento em tela cheia — usado no polling em segundo plano. */
+  getSessionById(id: string, silent = false): Observable<GameSessionDetail> {
+    return this.http.get<GameSessionDetail>(`${this.baseUrl}/api/game-session/${id}`, {
+      context: silent ? new HttpContext().set(SKIP_LOADING_OVERLAY, true) : undefined,
+    });
   }
 
   getSessions(page: number, pageSize: number): Observable<GameSessionPagedList> {

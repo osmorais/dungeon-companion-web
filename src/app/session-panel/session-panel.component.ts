@@ -71,11 +71,14 @@ export class SessionPanelComponent implements OnDestroy {
     this.stopPolling();
   }
 
+  /** Guarda o polling silencioso (independente de `refreshing`, que é só pro botão/estado visível). */
+  private pollInFlight = false;
+
   private startPolling(sessionId: string) {
     this.stopPolling();
     this.pollSub = interval(this.POLL_INTERVAL_MS).subscribe(() => {
-      if (!this.refreshing()) {
-        this.fetchSession(sessionId);
+      if (!this.pollInFlight) {
+        this.fetchSession(sessionId, true);
       }
     });
   }
@@ -85,14 +88,27 @@ export class SessionPanelComponent implements OnDestroy {
     this.pollSub = null;
   }
 
-  private fetchSession(sessionId: string) {
-    this.refreshing.set(true);
-    this.gameSessionService.getSessionById(sessionId).subscribe({
+  /**
+   * `silent` é usado pelo polling em segundo plano: não aciona o overlay de carregamento em
+   * tela cheia, não rola a página de volta pra seção de jogadores, e não descarta edições de HP
+   * que o usuário esteja digitando no momento.
+   */
+  private fetchSession(sessionId: string, silent = false) {
+    if (silent) this.pollInFlight = true;
+    else this.refreshing.set(true);
+
+    this.gameSessionService.getSessionById(sessionId, silent).subscribe({
       next: detail => {
         this.sessionDetail.set(detail);
+        this.error.set(false);
+
+        if (silent) {
+          this.pollInFlight = false;
+          return;
+        }
+
         this.hpEdits.set({});
         this.npcHpEdits.set({});
-        this.error.set(false);
         this.refreshing.set(false);
         setTimeout(() => {
           document.getElementById('players-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -100,7 +116,8 @@ export class SessionPanelComponent implements OnDestroy {
       },
       error: () => {
         this.error.set(true);
-        this.refreshing.set(false);
+        if (silent) this.pollInFlight = false;
+        else this.refreshing.set(false);
       },
     });
   }
