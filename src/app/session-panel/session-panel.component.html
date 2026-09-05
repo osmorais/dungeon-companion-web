@@ -281,29 +281,10 @@
         <p class="empty-msg">CARREGANDO...</p>
       </fieldset>
     } @else {
-      <!-- Cabeçalho da sessão -->
-      <fieldset class="retro-panel session-header-panel">
-        <legend>PAINEL DA SESSÃO</legend>
-        <div class="session-header">
-          <div class="session-title-block">
-            <h2 class="session-name">{{ sessionDetail()!.game_session.session_name }}</h2>
-            <span class="session-dm">MESTRE: {{ sessionDetail()!.game_session.dm_name }}</span>
-          </div>
-          <div class="session-code-block">
-            <span class="session-code-label">CÓDIGO DA SESSÃO</span>
-            <span class="session-code">{{ sessionDetail()!.game_session.session_code }}</span>
-            <span class="session-players-count">
-              {{ sessionDetail()!.players.length }}/{{ sessionDetail()!.game_session.max_player_quantity }} JOGADORES
-            </span>
-            <button class="retro-btn refresh-btn" (click)="refreshSession()" [disabled]="refreshing()">
-              {{ refreshing() ? 'ATUALIZANDO...' : '↻ ATUALIZAR' }}
-            </button>
-          </div>
-        </div>
-      </fieldset>
+      <div class="layout">
 
       <!-- Combate -->
-      <fieldset class="retro-panel combat-panel">
+      <fieldset class="retro-panel combat-panel combat-sidebar">
         <legend>COMBATE</legend>
         @if (!combat()) {
           @if (isOwner()) {
@@ -342,33 +323,26 @@
         }
       </fieldset>
 
-      <!-- Rolagens recentes -->
-      <fieldset class="retro-panel">
-        <legend>ROLAGENS RECENTES</legend>
-        @if (sessionDetail()!.recent_rolls.length === 0) {
-          <p class="empty-msg">NENHUMA ROLAGEM AINDA.</p>
-        } @else {
-          <div class="roll-log-list">
-            @for (roll of sessionDetail()!.recent_rolls; track roll.id_roll) {
-              <div class="roll-log-row">
-                <div class="roll-log-info">
-                  <span class="roll-log-actor">{{ roll.actor_name }}</span>
-                  <span class="roll-log-label">{{ roll.label }}{{ advantageSuffix(roll) }}</span>
-                </div>
-                <div class="roll-log-dice">
-                  @for (v of roll.rolls; track $index) {
-                    @if (isD6(roll)) {
-                      <app-pixel-die [face]="v" [mini]="true" [dropped]="isRollValueDropped(roll, v)" />
-                    } @else {
-                      <app-pixel-numeric-die [sides]="rollSides(roll)" [value]="v" [mini]="true" [dropped]="isRollValueDropped(roll, v)" />
-                    }
-                  }
-                </div>
-                <span class="roll-log-total">{{ formatMod(roll.modifier) }} = {{ roll.total }}</span>
-              </div>
-            }
+      <div class="main-column">
+      <!-- Cabeçalho da sessão -->
+      <fieldset class="retro-panel session-header-panel">
+        <legend>PAINEL DA SESSÃO</legend>
+        <div class="session-header">
+          <div class="session-title-block">
+            <h2 class="session-name">{{ sessionDetail()!.game_session.session_name }}</h2>
+            <span class="session-dm">MESTRE: {{ sessionDetail()!.game_session.dm_name }}</span>
           </div>
-        }
+          <div class="session-code-block">
+            <span class="session-code-label">CÓDIGO DA SESSÃO</span>
+            <span class="session-code">{{ sessionDetail()!.game_session.session_code }}</span>
+            <span class="session-players-count">
+              {{ sessionDetail()!.players.length }}/{{ sessionDetail()!.game_session.max_player_quantity }} JOGADORES
+            </span>
+            <button class="retro-btn refresh-btn" (click)="refreshSession()" [disabled]="refreshing()">
+              {{ refreshing() ? 'ATUALIZANDO...' : '↻ ATUALIZAR' }}
+            </button>
+          </div>
+        </div>
       </fieldset>
 
       <!-- Grid de players -->
@@ -515,6 +489,37 @@
           }
         </fieldset>
       }
+      </div>
+
+      <!-- Rolagens recentes -->
+      <fieldset class="retro-panel rolls-sidebar">
+        <legend>ROLAGENS RECENTES</legend>
+        @if (sessionDetail()!.recent_rolls.length === 0) {
+          <p class="empty-msg">NENHUMA ROLAGEM AINDA.</p>
+        } @else {
+          <div class="roll-log-list">
+            @for (roll of sessionDetail()!.recent_rolls; track roll.id_roll) {
+              <div class="roll-log-row">
+                <div class="roll-log-info">
+                  <span class="roll-log-actor">{{ roll.actor_name }}</span>
+                  <span class="roll-log-label">{{ roll.label }}{{ advantageSuffix(roll) }}</span>
+                </div>
+                <div class="roll-log-dice">
+                  @for (v of roll.rolls; track $index) {
+                    @if (isD6(roll)) {
+                      <app-pixel-die [face]="v" [mini]="true" [dropped]="isRollValueDropped(roll, v)" />
+                    } @else {
+                      <app-pixel-numeric-die [sides]="rollSides(roll)" [value]="v" [mini]="true" [dropped]="isRollValueDropped(roll, v)" />
+                    }
+                  }
+                </div>
+                <span class="roll-log-total">{{ formatMod(roll.modifier) }} = {{ roll.total }}</span>
+              </div>
+            }
+          </div>
+        }
+      </fieldset>
+      </div>
 
       <!-- Lista de Monstros -->
       @if (sessionDetail()!.monsters.length > 0) {
