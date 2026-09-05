@@ -66,11 +66,6 @@
           </div>
 
           <div class="combat-actions">
-            @if (c.encounter.status === 'active' && canEndCurrentTurn()) {
-              <button class="retro-btn" [disabled]="endingTurn()" (click)="endTurn()">
-                {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
-              </button>
-            }
             @if (isOwner()) {
               <button class="retro-btn combat-end-btn" [disabled]="endingCombat()" (click)="endCombat()">
                 {{ endingCombat() ? '...' : 'ENCERRAR COMBATE' }}
@@ -162,6 +157,11 @@
                     <button class="retro-btn mobile-actions-btn" (click)="openPlayerActions(player.id_character, player.character.name)">
                       🎲 AÇÕES
                     </button>
+                    @if (isPlayerCurrentTurn(player) && canEndCurrentTurn()) {
+                      <button class="retro-btn turn-end-btn" [disabled]="endingTurn()" (click)="endTurn()">
+                        {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
+                      </button>
+                    }
                     <button class="retro-btn mobile-sheet-btn" (click)="viewCharacterSheet(player.id_character)">
                       VER FICHA
                     </button>
@@ -218,6 +218,11 @@
                   <button class="retro-btn mobile-npc-actions-btn" (click)="openPlayerActions(npc.id_character, npc.character?.name ?? ('NPC #' + npc.id_character))">
                     🎲 AÇÕES
                   </button>
+                  @if (isNpcCurrentTurn(npc) && canEndCurrentTurn()) {
+                    <button class="retro-btn turn-end-btn" [disabled]="endingTurn()" (click)="endTurn()">
+                      {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
+                    </button>
+                  }
                   <button class="retro-btn mobile-npc-btn" (click)="viewCharacterSheet(npc.id_character)">
                     VER FICHA
                   </button>
@@ -328,11 +333,6 @@
           </div>
 
           <div class="combat-actions">
-            @if (c.encounter.status === 'active' && canEndCurrentTurn()) {
-              <button class="retro-btn" [disabled]="endingTurn()" (click)="endTurn()">
-                {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
-              </button>
-            }
             @if (isOwner()) {
               <button class="retro-btn combat-end-btn" [disabled]="endingCombat()" (click)="endCombat()">
                 {{ endingCombat() ? '...' : 'ENCERRAR COMBATE' }}
@@ -423,6 +423,11 @@
                     <button class="retro-btn actions-btn" (click)="openPlayerActions(player.id_character, player.character.name)">
                       🎲 AÇÕES
                     </button>
+                    @if (isPlayerCurrentTurn(player) && canEndCurrentTurn()) {
+                      <button class="retro-btn turn-end-btn" [disabled]="endingTurn()" (click)="endTurn()">
+                        {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
+                      </button>
+                    }
                     <button class="retro-btn sheet-btn" (click)="viewCharacterSheet(player.id_character)">
                       VER FICHA ▶
                     </button>
@@ -488,6 +493,11 @@
                   <button class="retro-btn npc-actions-btn" (click)="openPlayerActions(npc.id_character, npc.character?.name ?? ('NPC #' + npc.id_character))">
                     🎲 AÇÕES
                   </button>
+                  @if (isNpcCurrentTurn(npc) && canEndCurrentTurn()) {
+                    <button class="retro-btn turn-end-btn" [disabled]="endingTurn()" (click)="endTurn()">
+                      {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
+                    </button>
+                  }
                   <button class="retro-btn npc-sheet-btn" (click)="viewCharacterSheet(npc.id_character)">
                     VER FICHA ▶
                   </button>

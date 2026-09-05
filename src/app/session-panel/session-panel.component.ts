@@ -229,11 +229,7 @@ export class SessionPanelComponent implements OnDestroy {
   }
 
   viewCharacterSheet(idCharacter: number) {
-    const sessionId = this.id();
-    this.router.navigate(
-      ['/character-sheet', idCharacter],
-      sessionId ? { queryParams: { session: sessionId } } : {},
-    );
+    this.router.navigate(['/character-sheet', idCharacter]);
   }
 
   canEditHp(player: PlayerSession): boolean {
@@ -421,6 +417,12 @@ export class SessionPanelComponent implements OnDestroy {
     actorName: string;
     config: AbilityRollConfig;
   } | null>(null);
+  /**
+   * Participantes cuja iniciativa já foi enviada por este cliente. Existe pra evitar que o
+   * banner "a batalha vai começar" reapareça no intervalo entre enviar a rolagem e o SSE
+   * trazer o sessionDetail atualizado — sem isso dava pra rolar de novo nessa janela.
+   */
+  private initiativeSubmitted = signal<Set<string>>(new Set());
 
   combat = computed(() => this.sessionDetail()?.combat ?? null);
 
@@ -431,11 +433,13 @@ export class SessionPanelComponent implements OnDestroy {
     const user = this.authService.currentUser();
     if (!combat || combat.encounter.status !== 'rolling_initiative' || !detail || !user) return null;
 
+    const submitted = this.initiativeSubmitted();
     return (
       combat.participants.find(
         (p) =>
           p.participant_type === 'player' &&
           p.initiative_total === null &&
+          !submitted.has(p.id_combat_participant) &&
           detail.players.some((pl) => pl.id_player_session === p.id_player_session && pl.user_id === user.id),
       ) ?? null
     );
@@ -523,7 +527,18 @@ export class SessionPanelComponent implements OnDestroy {
   }
 
   onInitiativeRolled(idCombatParticipant: string, result: { rolls: number[]; modifier: number; total: number }): void {
-    this.gameSessionService.submitInitiative(idCombatParticipant, result).subscribe();
+    this.initiativeSubmitted.update((set) => new Set(set).add(idCombatParticipant));
+    this.gameSessionService.submitInitiative(idCombatParticipant, result).subscribe({
+      error: () => {
+        // Falhou de verdade (rede etc.) — libera pra tentar de novo. Se o erro for porque já
+        // tinha rolado antes, não tem problema nenhum manter marcado como enviado.
+        this.initiativeSubmitted.update((set) => {
+          const next = new Set(set);
+          next.delete(idCombatParticipant);
+          return next;
+        });
+      },
+    });
   }
 
   endTurn(): void {

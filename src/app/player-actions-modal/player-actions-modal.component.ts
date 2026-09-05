@@ -93,6 +93,12 @@ export class PlayerActionsModalComponent implements OnInit {
     this.activeRoll.set(null);
   }
 
+  /** Ao executar a rolagem (ação concluída), fecha a rolagem e a própria tela de ações. */
+  onRolled(): void {
+    this.activeRoll.set(null);
+    this.closed.emit();
+  }
+
   formatMod(value: number): string {
     return value >= 0 ? `+${value}` : `${value}`;
   }
@@ -136,6 +142,7 @@ export class PlayerActionsModalComponent implements OnInit {
       next: ({ slots_expended }) => {
         this.patchSpellcasting({ slots_expended });
         this.expendingSlot.set(false);
+        this.closed.emit();
       },
       error: () => this.expendingSlot.set(false),
     });
@@ -150,6 +157,7 @@ export class PlayerActionsModalComponent implements OnInit {
         this.patchCombatStats({ hit_dice_spent }, current_hit_points);
         this.lastHitDieResult.set(null);
         this.restingLong.set(false);
+        this.closed.emit();
       },
       error: () => this.restingLong.set(false),
     });
@@ -224,6 +232,7 @@ export class PlayerActionsModalComponent implements OnInit {
         this.lastHitDieResult.set(result);
         this.patchCombatStats({ hit_dice_spent: result.hit_dice_spent }, result.current_hit_points);
         this.rollingHitDie.set(false);
+        this.closed.emit();
       },
       error: () => this.rollingHitDie.set(false),
     });

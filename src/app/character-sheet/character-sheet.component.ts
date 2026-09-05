@@ -28,8 +28,6 @@ export class CharacterSheetComponent {
   private router = inject(Router);
 
   id = input<string>();
-  /** Id da sessão ativa (opcional, vem via ?session=... quando aberto a partir do painel de sessão). */
-  session = input<string>();
 
   sheetData = this.charService.currentCharacter;
   avatarUrl = this.charService.avatarUrl;

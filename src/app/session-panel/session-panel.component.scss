@@ -1093,6 +1093,15 @@
   border-color: #ff6b6b;
 }
 
+.turn-end-btn {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+
+  &:hover:not(:disabled) {
+    background-color: var(--btn-color-hover);
+  }
+}
+
 .player-card--current-turn,
 .mobile-player-card--current-turn,
 .npc-row--current-turn,
