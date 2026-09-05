@@ -4,17 +4,33 @@ import { Subscription, finalize, interval } from 'rxjs';
 import { GameSessionService } from '../services/game-session.service';
 import { CharacterService } from '../services/character.service';
 import { AuthService } from '../services/auth.service';
-import { GameSessionDetail, MonsterSession, NpcSession, PlayerSession, RollLogEntry } from '../models/game-session.interface';
+import {
+  CombatParticipant,
+  GameSessionDetail,
+  MonsterSession,
+  NpcSession,
+  PlayerSession,
+  RollLogEntry,
+} from '../models/game-session.interface';
 import { CharacterSummary } from '../models/character-summary.interface';
 import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
 import { PixelDieComponent } from '../pixel-die/pixel-die.component';
 import { PixelNumericDieComponent } from '../pixel-numeric-die/pixel-numeric-die.component';
 import { PlayerActionsModalComponent } from '../player-actions-modal/player-actions-modal.component';
+import { StartFightModalComponent } from '../start-fight-modal/start-fight-modal.component';
+import { AbilityRollConfig, RollModalComponent } from '../roll-modal/roll-modal.component';
 
 @Component({
   selector: 'app-session-panel',
   standalone: true,
-  imports: [AvatarDisplayComponent, PixelDieComponent, PixelNumericDieComponent, PlayerActionsModalComponent],
+  imports: [
+    AvatarDisplayComponent,
+    PixelDieComponent,
+    PixelNumericDieComponent,
+    PlayerActionsModalComponent,
+    StartFightModalComponent,
+    RollModalComponent,
+  ],
   templateUrl: './session-panel.component.html',
   styleUrls: ['./session-panel.component.scss'],
 })
@@ -40,9 +56,13 @@ export class SessionPanelComponent implements OnDestroy {
   addNpcLoading = signal(false);
   addingNpcId = signal<number | null>(null);
 
-  private pollSub: Subscription | null = null;
-  /** Curto o suficiente pra rolagens da mesa aparecerem quase em tempo real. */
-  private readonly POLL_INTERVAL_MS = 8_000;
+  private eventsSub: Subscription | null = null;
+  private safetyNetSub: Subscription | null = null;
+  /**
+   * O painel é sincronizado via SSE (GameSessionService.connectEvents) — esse intervalo é só
+   * uma rede de segurança caso a conexão de eventos caia silenciosamente (proxy, sono do Render).
+   */
+  private readonly SAFETY_NET_MS = 30_000;
 
   isOwner = computed(() => {
     const detail = this.sessionDetail();
@@ -62,30 +82,33 @@ export class SessionPanelComponent implements OnDestroy {
       untracked(() => {
         if (!sessionId) return;
         this.fetchSession(sessionId);
-        this.startPolling(sessionId);
+        this.connectRealtime(sessionId);
       });
     });
   }
 
   ngOnDestroy() {
-    this.stopPolling();
+    this.disconnectRealtime();
   }
 
-  /** Guarda o polling silencioso (independente de `refreshing`, que é só pro botão/estado visível). */
+  /** Guarda a busca silenciosa (independente de `refreshing`, que é só pro botão/estado visível). */
   private pollInFlight = false;
 
-  private startPolling(sessionId: string) {
-    this.stopPolling();
-    this.pollSub = interval(this.POLL_INTERVAL_MS).subscribe(() => {
-      if (!this.pollInFlight) {
-        this.fetchSession(sessionId, true);
-      }
+  private connectRealtime(sessionId: string) {
+    this.disconnectRealtime();
+    this.eventsSub = this.gameSessionService.connectEvents(sessionId).subscribe(() => {
+      if (!this.pollInFlight) this.fetchSession(sessionId, true);
+    });
+    this.safetyNetSub = interval(this.SAFETY_NET_MS).subscribe(() => {
+      if (!this.pollInFlight) this.fetchSession(sessionId, true);
     });
   }
 
-  private stopPolling() {
-    this.pollSub?.unsubscribe();
-    this.pollSub = null;
+  private disconnectRealtime() {
+    this.eventsSub?.unsubscribe();
+    this.eventsSub = null;
+    this.safetyNetSub?.unsubscribe();
+    this.safetyNetSub = null;
   }
 
   /**
@@ -385,5 +408,141 @@ export class SessionPanelComponent implements OnDestroy {
 
   formatMod(value: number): string {
     return value >= 0 ? `+${value}` : `${value}`;
+  }
+
+  /** ========================= COMBATE / TURNOS ========================= */
+
+  combatStartOpen = signal(false);
+  endingTurn = signal(false);
+  endingCombat = signal(false);
+  activeInitiativeRoll = signal<{
+    idCombatParticipant: string;
+    idCharacter: number;
+    actorName: string;
+    config: AbilityRollConfig;
+  } | null>(null);
+
+  combat = computed(() => this.sessionDetail()?.combat ?? null);
+
+  /** Participante (jogador) do usuário atual que ainda não rolou iniciativa nessa luta. */
+  myPendingInitiativeParticipant = computed<CombatParticipant | null>(() => {
+    const combat = this.combat();
+    const detail = this.sessionDetail();
+    const user = this.authService.currentUser();
+    if (!combat || combat.encounter.status !== 'rolling_initiative' || !detail || !user) return null;
+
+    return (
+      combat.participants.find(
+        (p) =>
+          p.participant_type === 'player' &&
+          p.initiative_total === null &&
+          detail.players.some((pl) => pl.id_player_session === p.id_player_session && pl.user_id === user.id),
+      ) ?? null
+    );
+  });
+
+  currentTurnParticipant = computed<CombatParticipant | null>(() => {
+    const combat = this.combat();
+    if (!combat || combat.encounter.status !== 'active') return null;
+    return combat.participants.find((p) => p.is_current_turn) ?? null;
+  });
+
+  canEndCurrentTurn = computed(() => {
+    const current = this.currentTurnParticipant();
+    if (!current) return false;
+    if (this.isOwner()) return true;
+    if (current.participant_type !== 'player') return false;
+    const user = this.authService.currentUser();
+    const detail = this.sessionDetail();
+    return (
+      !!user &&
+      !!detail &&
+      detail.players.some((pl) => pl.id_player_session === current.id_player_session && pl.user_id === user.id)
+    );
+  });
+
+  openStartFightModal(): void {
+    this.combatStartOpen.set(true);
+  }
+
+  closeStartFightModal(): void {
+    this.combatStartOpen.set(false);
+    this.refreshSession();
+  }
+
+  isPlayerCurrentTurn(player: PlayerSession): boolean {
+    const current = this.currentTurnParticipant();
+    return !!current && current.participant_type === 'player' && current.id_player_session === player.id_player_session;
+  }
+
+  isNpcCurrentTurn(npc: NpcSession): boolean {
+    const current = this.currentTurnParticipant();
+    return !!current && current.participant_type === 'npc' && current.id_npc_session === npc.id_npc_session;
+  }
+
+  combatParticipantName(p: CombatParticipant): string {
+    const detail = this.sessionDetail();
+    if (!detail) return '???';
+    if (p.participant_type === 'player') {
+      const player = detail.players.find((pl) => pl.id_player_session === p.id_player_session);
+      return player?.character?.name ?? player?.player_name ?? 'Jogador';
+    }
+    const npc = detail.npcs.find((n) => n.id_npc_session === p.id_npc_session);
+    return npc?.character?.name ?? 'NPC';
+  }
+
+  turnBannerText(current: CombatParticipant): string {
+    const name = this.combatParticipantName(current);
+    if (current.participant_type === 'npc') {
+      return this.isOwner() ? `🎲 TURNO DE ${name} — AJA PELO NPC!` : `AGUARDANDO O MESTRE (${name})...`;
+    }
+    const user = this.authService.currentUser();
+    const detail = this.sessionDetail();
+    const isMe =
+      !!user &&
+      !!detail &&
+      detail.players.some((pl) => pl.id_player_session === current.id_player_session && pl.user_id === user.id);
+    return isMe ? `🎲 É A SUA VEZ, ${name}!` : `AGUARDANDO ${name}...`;
+  }
+
+  openInitiativeRoll(pending: CombatParticipant): void {
+    const detail = this.sessionDetail();
+    const player = detail?.players.find((pl) => pl.id_player_session === pending.id_player_session);
+    if (!player?.character) return;
+
+    this.activeInitiativeRoll.set({
+      idCombatParticipant: pending.id_combat_participant,
+      idCharacter: player.id_character,
+      actorName: player.character.name,
+      config: { mode: 'ability', rollType: 'initiative', label: 'Iniciativa', modifier: pending.dex_modifier },
+    });
+  }
+
+  closeInitiativeRoll(): void {
+    this.activeInitiativeRoll.set(null);
+  }
+
+  onInitiativeRolled(idCombatParticipant: string, result: { rolls: number[]; modifier: number; total: number }): void {
+    this.gameSessionService.submitInitiative(idCombatParticipant, result).subscribe();
+  }
+
+  endTurn(): void {
+    const combat = this.combat();
+    if (!combat || this.endingTurn()) return;
+    this.endingTurn.set(true);
+    this.gameSessionService
+      .endTurn(combat.encounter.id_combat_encounter)
+      .pipe(finalize(() => this.endingTurn.set(false)))
+      .subscribe({ next: () => this.refreshSession() });
+  }
+
+  endCombat(): void {
+    const combat = this.combat();
+    if (!combat || this.endingCombat()) return;
+    this.endingCombat.set(true);
+    this.gameSessionService
+      .endEncounter(combat.encounter.id_combat_encounter)
+      .pipe(finalize(() => this.endingCombat.set(false)))
+      .subscribe({ next: () => this.refreshSession() });
   }
 }

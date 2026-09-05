@@ -1,0 +1,170 @@
+.sf-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 150;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.sf-modal {
+  position: relative;
+  width: 420px;
+  max-width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sf-modal-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: var(--text-color);
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+
+  &:hover {
+    color: var(--accent-color);
+  }
+}
+
+.sf-modal-title {
+  font-size: 11px;
+  color: var(--accent-color);
+  margin: 0;
+  text-align: center;
+  padding-right: 16px;
+}
+
+.sf-hint {
+  margin: 0;
+  font-size: 8px;
+  color: var(--label-title-color);
+  text-align: center;
+}
+
+.sf-empty {
+  margin: 0;
+  font-size: 8px;
+  color: var(--label-title-color);
+  text-align: center;
+}
+
+.sf-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sf-group-label {
+  font-size: 8px;
+  color: var(--label-title-color);
+}
+
+.sf-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 2px solid var(--border-color);
+  padding: 8px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--btn-color-hover);
+  }
+
+  input[type='checkbox'] {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+}
+
+.sf-avatar {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--border-color);
+}
+
+.sf-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sf-name {
+  font-size: 9px;
+  color: var(--text-color);
+}
+
+.sf-meta {
+  font-size: 7px;
+  color: var(--label-title-color);
+}
+
+.sf-error {
+  margin: 0;
+  font-size: 7px;
+  color: var(--accent-color);
+  text-align: center;
+}
+
+.sf-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.sf-btn-primary,
+.sf-btn-secondary {
+  flex: 1;
+  border: 2px solid var(--border-color);
+  padding: 10px 12px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  cursor: pointer;
+}
+
+.sf-btn-primary {
+  background-color: var(--btn-color);
+  color: var(--text-color);
+
+  &:hover:not(:disabled) {
+    background-color: var(--btn-color-hover);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.sf-btn-secondary {
+  background-color: transparent;
+  color: var(--label-title-color);
+
+  &:hover:not(:disabled) {
+    color: var(--text-color);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}

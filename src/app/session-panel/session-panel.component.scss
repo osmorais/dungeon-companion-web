@@ -1012,3 +1012,100 @@
   flex-shrink: 0;
   white-space: nowrap;
 }
+
+/* ===== COMBATE / TURNOS ===== */
+
+.combat-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.combat-start-btn {
+  background-color: var(--btn-color);
+  color: var(--text-color);
+  border: 2px solid var(--accent-color);
+  padding: 10px 12px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--btn-color-hover);
+  }
+}
+
+.combat-status-label {
+  margin: 0;
+  font-size: 9px;
+  color: var(--label-title-color);
+  text-align: center;
+}
+
+.combat-turn-banner {
+  margin: 0;
+  font-size: 9px;
+  color: var(--accent-color);
+  text-align: center;
+}
+
+.combat-order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.combat-order-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  border: 2px solid var(--border-color);
+  background-color: var(--bg-color);
+  font-size: 8px;
+  color: var(--text-color);
+}
+
+.combat-order-item--current {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 6px var(--accent-color);
+}
+
+.combat-order-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.combat-order-initiative {
+  flex-shrink: 0;
+  color: var(--accent-color);
+}
+
+.combat-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.combat-end-btn {
+  color: #ff6b6b;
+  border-color: #ff6b6b;
+}
+
+.player-card--current-turn,
+.mobile-player-card--current-turn,
+.npc-row--current-turn,
+.mobile-npc-row--current-turn {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 10px var(--accent-color);
+}
+
+.battle-start-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  text-align: center;
+}

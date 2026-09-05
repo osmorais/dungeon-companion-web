@@ -35,6 +35,51 @@
         </div>
       </fieldset>
 
+      <!-- Combate -->
+      <fieldset class="mobile-panel combat-panel">
+        <legend>COMBATE</legend>
+        @if (!combat()) {
+          @if (isOwner()) {
+            <button class="retro-btn combat-start-btn" (click)="openStartFightModal()">⚔ INICIAR LUTA</button>
+          } @else {
+            <p class="mobile-empty-msg mobile-empty-msg--inner">NENHUM COMBATE EM ANDAMENTO.</p>
+          }
+        } @else {
+          @let c = combat()!;
+
+          @if (c.encounter.status === 'rolling_initiative') {
+            <p class="combat-status-label">AGUARDANDO ROLAGENS DE INICIATIVA...</p>
+          } @else if (c.encounter.status === 'active') {
+            <p class="combat-status-label">RONDA {{ c.encounter.round_number }}</p>
+            @if (currentTurnParticipant(); as current) {
+              <p class="combat-turn-banner">{{ turnBannerText(current) }}</p>
+            }
+          }
+
+          <div class="combat-order-list">
+            @for (p of c.participants; track p.id_combat_participant) {
+              <div class="combat-order-item" [class.combat-order-item--current]="p.is_current_turn">
+                <span class="combat-order-name">{{ combatParticipantName(p) }}</span>
+                <span class="combat-order-initiative">{{ p.initiative_total === null ? '...' : p.initiative_total }}</span>
+              </div>
+            }
+          </div>
+
+          <div class="combat-actions">
+            @if (c.encounter.status === 'active' && canEndCurrentTurn()) {
+              <button class="retro-btn" [disabled]="endingTurn()" (click)="endTurn()">
+                {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
+              </button>
+            }
+            @if (isOwner()) {
+              <button class="retro-btn combat-end-btn" [disabled]="endingCombat()" (click)="endCombat()">
+                {{ endingCombat() ? '...' : 'ENCERRAR COMBATE' }}
+              </button>
+            }
+          </div>
+        }
+      </fieldset>
+
       <!-- Rolagens recentes -->
       <fieldset class="mobile-panel">
         <legend>ROLAGENS</legend>
@@ -73,7 +118,7 @@
         } @else {
           <div class="mobile-players-grid">
             @for (player of sessionDetail()!.players; track player.id_player_session) {
-              <div class="mobile-player-card">
+              <div class="mobile-player-card" [class.mobile-player-card--current-turn]="isPlayerCurrentTurn(player)">
                 @if (isOwner()) {
                   <button class="delete-btn" title="Remover jogador" (click)="deletePlayer(player.id_player_session)">✕</button>
                 }
@@ -140,7 +185,7 @@
           } @else {
           <div class="mobile-npc-list">
             @for (npc of sessionDetail()!.npcs; track npc.id_npc_session) {
-              <div class="mobile-npc-row">
+              <div class="mobile-npc-row" [class.mobile-npc-row--current-turn]="isNpcCurrentTurn(npc)">
                 @if (isOwner()) {
                   <button class="delete-btn" title="Remover NPC" (click)="deleteNpc(npc.id_npc_session)">✕</button>
                 }
@@ -252,6 +297,51 @@
         </div>
       </fieldset>
 
+      <!-- Combate -->
+      <fieldset class="retro-panel combat-panel">
+        <legend>COMBATE</legend>
+        @if (!combat()) {
+          @if (isOwner()) {
+            <button class="retro-btn combat-start-btn" (click)="openStartFightModal()">⚔ INICIAR LUTA</button>
+          } @else {
+            <p class="empty-msg">NENHUM COMBATE EM ANDAMENTO.</p>
+          }
+        } @else {
+          @let c = combat()!;
+
+          @if (c.encounter.status === 'rolling_initiative') {
+            <p class="combat-status-label">AGUARDANDO ROLAGENS DE INICIATIVA...</p>
+          } @else if (c.encounter.status === 'active') {
+            <p class="combat-status-label">RONDA {{ c.encounter.round_number }}</p>
+            @if (currentTurnParticipant(); as current) {
+              <p class="combat-turn-banner">{{ turnBannerText(current) }}</p>
+            }
+          }
+
+          <div class="combat-order-list">
+            @for (p of c.participants; track p.id_combat_participant) {
+              <div class="combat-order-item" [class.combat-order-item--current]="p.is_current_turn">
+                <span class="combat-order-name">{{ combatParticipantName(p) }}</span>
+                <span class="combat-order-initiative">{{ p.initiative_total === null ? '...' : p.initiative_total }}</span>
+              </div>
+            }
+          </div>
+
+          <div class="combat-actions">
+            @if (c.encounter.status === 'active' && canEndCurrentTurn()) {
+              <button class="retro-btn" [disabled]="endingTurn()" (click)="endTurn()">
+                {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
+              </button>
+            }
+            @if (isOwner()) {
+              <button class="retro-btn combat-end-btn" [disabled]="endingCombat()" (click)="endCombat()">
+                {{ endingCombat() ? '...' : 'ENCERRAR COMBATE' }}
+              </button>
+            }
+          </div>
+        }
+      </fieldset>
+
       <!-- Rolagens recentes -->
       <fieldset class="retro-panel">
         <legend>ROLAGENS RECENTES</legend>
@@ -290,7 +380,7 @@
         } @else {
           <div class="players-grid">
             @for (player of sessionDetail()!.players; track player.id_player_session) {
-              <div class="player-card">
+              <div class="player-card" [class.player-card--current-turn]="isPlayerCurrentTurn(player)">
                 @if (isOwner()) {
                   <button class="delete-btn" title="Remover jogador" (click)="deletePlayer(player.id_player_session)">✕</button>
                 }
@@ -356,7 +446,7 @@
           } @else {
           <div class="npc-list">
             @for (npc of sessionDetail()!.npcs; track npc.id_npc_session) {
-              <div class="npc-row">
+              <div class="npc-row" [class.npc-row--current-turn]="isNpcCurrentTurn(npc)">
                 @if (isOwner()) {
                   <button class="delete-btn" title="Remover NPC" (click)="deleteNpc(npc.id_npc_session)">✕</button>
                 }
@@ -499,4 +589,38 @@
       }
     </div>
   </div>
+}
+
+<!-- ===== MODAL: INICIAR LUTA ===== -->
+@if (combatStartOpen() && sessionDetail(); as detail) {
+  <app-start-fight-modal
+    [sessionId]="id()!"
+    [players]="detail.players"
+    [npcs]="detail.npcs"
+    (closed)="closeStartFightModal()"
+  />
+}
+
+<!-- ===== BANNER: A BATALHA VAI COMEÇAR (aguardando rolagem de iniciativa) ===== -->
+@if (myPendingInitiativeParticipant(); as pending) {
+  @if (!activeInitiativeRoll()) {
+    <div class="overlay modal-overlay">
+      <div class="retro-panel battle-start-panel">
+        <h3 class="modal-title">⚔ A BATALHA VAI COMEÇAR!</h3>
+        <button class="retro-btn" (click)="openInitiativeRoll(pending)">ROLAR INICIATIVA</button>
+      </div>
+    </div>
+  }
+}
+
+<!-- ===== MODAL: ROLAGEM DE INICIATIVA ===== -->
+@if (activeInitiativeRoll(); as ir) {
+  <app-roll-modal
+    [config]="ir.config"
+    [idCharacter]="ir.idCharacter"
+    [actorName]="ir.actorName"
+    [sessionId]="id()"
+    (rolled)="onInitiativeRolled(ir.idCombatParticipant, $event)"
+    (closed)="closeInitiativeRoll()"
+  />
 }

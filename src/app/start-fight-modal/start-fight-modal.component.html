@@ -1,0 +1,74 @@
+<div class="sf-modal-backdrop" (click)="close()">
+  <div class="sf-modal" (click)="$event.stopPropagation()">
+    <button class="sf-modal-close" (click)="close()">✕</button>
+    <h3 class="sf-modal-title">INICIAR LUTA</h3>
+    <p class="sf-hint">Selecione quem vai participar do combate:</p>
+
+    @if (eligiblePlayers.length === 0 && eligibleNpcs.length === 0) {
+      <p class="sf-empty">Nenhum jogador ou NPC com personagem na sessão.</p>
+    } @else {
+      @if (eligiblePlayers.length > 0) {
+        <div class="sf-group">
+          <span class="sf-group-label">JOGADORES</span>
+          @for (player of eligiblePlayers; track player.id_player_session) {
+            <label class="sf-item">
+              <input
+                type="checkbox"
+                [checked]="selectedPlayers().has(player.id_player_session)"
+                (change)="togglePlayer(player.id_player_session)"
+              />
+              <div class="sf-avatar">
+                <app-avatar-display [preset]="player.character?.avatar_preset ?? null" />
+              </div>
+              <div class="sf-info">
+                <span class="sf-name">{{ player.character?.name }}</span>
+                <span class="sf-meta"
+                  >{{ player.character?.class }} &mdash; NV {{ player.character?.level }}</span
+                >
+              </div>
+            </label>
+          }
+        </div>
+      }
+
+      @if (eligibleNpcs.length > 0) {
+        <div class="sf-group">
+          <span class="sf-group-label">NPCS</span>
+          @for (npc of eligibleNpcs; track npc.id_npc_session) {
+            <label class="sf-item">
+              <input
+                type="checkbox"
+                [checked]="selectedNpcs().has(npc.id_npc_session)"
+                (change)="toggleNpc(npc.id_npc_session)"
+              />
+              <div class="sf-avatar">
+                <app-avatar-display [preset]="npc.character?.avatar_preset ?? null" />
+              </div>
+              <div class="sf-info">
+                <span class="sf-name">{{ npc.character?.name }}</span>
+                <span class="sf-meta"
+                  >{{ npc.character?.class }} &mdash; NV {{ npc.character?.level }}</span
+                >
+              </div>
+            </label>
+          }
+        </div>
+      }
+    }
+
+    @if (error(); as err) {
+      <p class="sf-error">{{ err }}</p>
+    }
+
+    <div class="sf-actions">
+      <button
+        class="sf-btn-primary"
+        [disabled]="!hasSelection || starting()"
+        (click)="startBattle()"
+      >
+        {{ starting() ? 'INICIANDO...' : 'INICIAR BATALHA' }}
+      </button>
+      <button class="sf-btn-secondary" [disabled]="starting()" (click)="close()">CANCELAR</button>
+    </div>
+  </div>
+</div>

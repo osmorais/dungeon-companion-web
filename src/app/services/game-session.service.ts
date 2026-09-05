@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { SKIP_LOADING_OVERLAY } from '../loading-overlay/loading.interceptor';
 import {
+  CombatEncounterDetail,
   CreateGameSessionPayload,
   GameSessionDetail,
   GameSessionPagedList,
@@ -12,6 +13,8 @@ import {
   PlayerSession,
   RollLogEntry,
   RollLogPayload,
+  StartEncounterParticipantInput,
+  SubmitInitiativePayload,
 } from '../models/game-session.interface';
 
 @Injectable({
@@ -83,5 +86,46 @@ export class GameSessionService {
 
   postRoll(sessionId: string, payload: RollLogPayload): Observable<RollLogEntry> {
     return this.http.post<RollLogEntry>(`${this.baseUrl}/api/game-session/${sessionId}/roll`, payload);
+  }
+
+  /** ========================= COMBATE / TURNOS ========================= */
+
+  startEncounter(sessionId: string, participants: StartEncounterParticipantInput[]): Observable<CombatEncounterDetail> {
+    return this.http.post<CombatEncounterDetail>(
+      `${this.baseUrl}/api/game-session/${sessionId}/combat/start`,
+      { participants },
+    );
+  }
+
+  submitInitiative(idCombatParticipant: string, payload: SubmitInitiativePayload): Observable<void> {
+    return this.http.post<void>(
+      `${this.baseUrl}/api/game-session/combat-participant/${idCombatParticipant}/initiative`,
+      payload,
+    );
+  }
+
+  endTurn(idCombatEncounter: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/api/game-session/combat/${idCombatEncounter}/end-turn`, {});
+  }
+
+  endEncounter(idCombatEncounter: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/api/game-session/combat/${idCombatEncounter}/end`, {});
+  }
+
+  /**
+   * Canal de eventos em tempo real da sessão (substitui o polling). Emite sempre que o
+   * estado da sessão muda no servidor; o assinante deve refazer um GET da sessão.
+   */
+  connectEvents(sessionId: string): Observable<void> {
+    return new Observable<void>(subscriber => {
+      const es = new EventSource(`${this.baseUrl}/api/game-session/${sessionId}/events`, {
+        withCredentials: true,
+      });
+      es.addEventListener('update', () => subscriber.next());
+      es.onerror = () => {
+        // EventSource tenta reconectar sozinho; não é um erro fatal para o Observable.
+      };
+      return () => es.close();
+    });
   }
 }

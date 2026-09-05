@@ -6,7 +6,7 @@ import { PixelNumericDieComponent } from '../pixel-numeric-die/pixel-numeric-die
 
 export interface AbilityRollConfig {
   mode: 'ability';
-  rollType: 'attack' | 'skill' | 'save';
+  rollType: 'attack' | 'skill' | 'save' | 'initiative';
   label: string;
   modifier: number;
 }
@@ -42,6 +42,8 @@ export class RollModalComponent {
   @Input() actorName = 'Aventureiro';
   @Input() sessionId: string | undefined;
   @Output() closed = new EventEmitter<void>();
+  /** Emite o resultado bruto assim que a rolagem termina, independente de ser postada na sessão. */
+  @Output() rolled = new EventEmitter<{ rolls: number[]; modifier: number; total: number }>();
 
   readonly dieOptions = DIE_OPTIONS;
 
@@ -169,6 +171,7 @@ export class RollModalComponent {
     const total = chosen.reduce((sum, r) => sum + r, 0) + this.modifier;
     this.isRolling.set(false);
     this.result.set({ rolls, chosen, total });
+    this.rolled.emit({ rolls, modifier: this.modifier, total });
     this.postRoll(rolls, total);
   }
 
