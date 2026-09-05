@@ -166,6 +166,12 @@
               {{ circleName(currentSpellCircle) }}
               <span class="skill-counter">{{ selected }}/{{ limit }}</span>
             </p>
+            @if (hasSharedSpellPool && currentSpellCircle !== 0) {
+              <p class="mobile-panel-subtitle">
+                {{ isWizard ? 'GRIMÓRIO' : 'MAGIAS CONHECIDAS' }}
+                <span class="skill-counter">{{ selectedNonCantripSpellCount }}/{{ nonCantripSpellPoolSize }}</span>
+              </p>
+            }
             <div class="mobile-checklist spell-circle-list">
               @for (spell of spells; track spell.id_spell) {
                 <label class="mobile-check-row"
@@ -473,6 +479,12 @@
             {{ circleName(currentSpellCircle) }}
             <span class="skill-counter">{{ selected }}/{{ limit }}</span>
           </p>
+          @if (hasSharedSpellPool && currentSpellCircle !== 0) {
+            <p class="panel-subtitle">
+              {{ isWizard ? 'GRIMÓRIO' : 'MAGIAS CONHECIDAS' }}
+              <span class="skill-counter">{{ selectedNonCantripSpellCount }}/{{ nonCantripSpellPoolSize }}</span>
+            </p>
+          }
           <div class="grid-2-col checkboxes spell-circle-list">
             @for (spell of spells; track spell.id_spell) {
               <label [class.skill-unavailable]="isSpellCheckboxDisabled(spell) && !isSpellSelected(spell)">

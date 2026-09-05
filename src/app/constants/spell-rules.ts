@@ -99,6 +99,25 @@ const CANTRIPS_KNOWN: Record<number, number[]> = {
   12: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], // Patrulheiro
 };
 
+// ─── Spells known per class (conjuradores de lista fixa) ─────────────────────
+// Total de magias com nível (exclui truques) que a classe conhece — livremente
+// distribuídas entre os círculos disponíveis, ao contrário dos espaços de
+// magia (que são apenas usos diários). Não se aplica a Clérigo/Druida/
+// Paladino/Mago, que preparam/conhecem a partir da lista completa da classe.
+export const KNOWN_CASTER_CLASS_IDS = new Set([2, 3, 6, 12]);
+
+const SPELLS_KNOWN: Record<number, number[]> = {
+  2:  [4,5,6,7,8,9,10,11,12,14,15,15,16,18,19,19,20,22,22,22],  // Bardo
+  3:  [2,3,4,5,6,7,8,9,10,10,11,11,12,12,13,13,14,14,15,15],    // Bruxo
+  6:  [2,3,4,5,6,7,8,9,10,11,12,12,13,13,14,14,15,15,16,16],    // Feiticeiro
+  12: [0,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11],            // Patrulheiro
+};
+
+export function getKnownSpellCount(classId: number, level: number): number {
+  const idx = Math.min(Math.max(level - 1, 0), 19);
+  return SPELLS_KNOWN[classId]?.[idx] ?? 0;
+}
+
 // ─── Spell slots per class (points to shared tables) ─────────────────────────
 
 const SPELL_SLOTS: Record<number, number[][]> = {
@@ -314,6 +333,17 @@ export const CLASS_SPELLS: Record<number, number[]> = {
     7, 72, 82, 92, 354,
   ],
 };
+
+// ─── Mago: magias conhecidas (grimório) ──────────────────────────────────────
+// O mago começa com 6 magias de 1º círculo no grimório e aprende +2 a cada
+// nível (independente dos espaços de magia disponíveis). Não confundir com o
+// número de magias que ele consegue preparar por dia (mod. de INT + nível).
+export const WIZARD_CLASS_ID = 9;
+
+export function getWizardSpellbookSize(level: number): number {
+  const lvl = Math.min(Math.max(level, 1), 20);
+  return 6 + 2 * (lvl - 1);
+}
 
 // ─── Public helper ────────────────────────────────────────────────────────────
 

@@ -17,7 +17,15 @@ import {
   CLASS_NAME_TO_AVATAR,
 } from '../models/avatar-preset.interface';
 import { CLASS_SKILL_RULES, RACE_SKILL_RULES } from '../constants/skill-rules';
-import { CLASS_SPELLS, getSpellLimits, SpellLimits } from '../constants/spell-rules';
+import {
+  CLASS_SPELLS,
+  getKnownSpellCount,
+  getSpellLimits,
+  getWizardSpellbookSize,
+  KNOWN_CASTER_CLASS_IDS,
+  SpellLimits,
+  WIZARD_CLASS_ID,
+} from '../constants/spell-rules';
 import { CLASS_ARMOUR_RULES } from '../constants/armour-rules';
 
 type AttributeKey = 'FOR' | 'DES' | 'CON' | 'INT' | 'SAB' | 'CAR';
@@ -69,7 +77,8 @@ export class CharacterWizardComponent implements OnInit {
 
   pointCosts: Record<number, number> = {
     8: 0, 9: 1, 10: 2, 11: 3,
-    12: 4, 13: 5, 14: 7, 15: 9
+    12: 4, 13: 5, 14: 7, 15: 9,
+    16: 11, 17: 13, 18: 15
   };
 
   characterData: CharacterSheetData = {
@@ -149,6 +158,14 @@ export class CharacterWizardComponent implements OnInit {
         return this.attributesList.every(attr => this.characterData.attributes.base_values[attr] !== 0);
       case 3: {
         const circle = this.currentSpellCircle;
+
+        if (this.hasSharedSpellPool && circle !== 0) {
+          const isLastCircle = this.spellCircleStep === this.accessibleCircles.length - 1;
+          if (!isLastCircle) return true;
+          const target = Math.min(this.nonCantripSpellPoolSize, this.availableNonCantripSpells);
+          return this.selectedNonCantripSpellCount >= target;
+        }
+
         const limit = this.spellLimitForCircle(circle);
         const available = (this.spellsByCircle.get(circle) ?? []).length;
         return this.selectedSpellCountByCircle(circle) >= Math.min(limit, available);
@@ -356,6 +373,42 @@ export class CharacterWizardComponent implements OnInit {
     return magicClasses.includes(this.characterData.core_build.id_class.toString());
   }
 
+  get isWizard(): boolean {
+    return +this.characterData.core_build.id_class === WIZARD_CLASS_ID;
+  }
+
+  /** Bardo, Bruxo, Feiticeiro, Patrulheiro — magias conhecidas por tabela fixa, não por espaços. */
+  get isKnownCaster(): boolean {
+    return KNOWN_CASTER_CLASS_IDS.has(+this.characterData.core_build.id_class);
+  }
+
+  /** Mago (grimório) e conjuradores de lista fixa compartilham um pool livre entre círculos. */
+  get hasSharedSpellPool(): boolean {
+    return this.isWizard || this.isKnownCaster;
+  }
+
+  /** Total de magias com nível (exclui truques) que a classe conhece, independente dos espaços de magia. */
+  get nonCantripSpellPoolSize(): number {
+    if (this.isWizard) return getWizardSpellbookSize(+this.characterData.core_build.level);
+    if (this.isKnownCaster) {
+      return getKnownSpellCount(
+        +this.characterData.core_build.id_class,
+        +this.characterData.core_build.level
+      );
+    }
+    return 0;
+  }
+
+  get selectedNonCantripSpellCount(): number {
+    return this.characterData.choices.spells.filter(s => s.spellLevel > 0).length;
+  }
+
+  get availableNonCantripSpells(): number {
+    return this.accessibleCircles
+      .filter(circle => circle > 0)
+      .reduce((sum, circle) => sum + (this.spellsByCircle.get(circle) ?? []).length, 0);
+  }
+
   /** ========================= SPELL STATE ========================= */
 
   get currentSpellLimits(): SpellLimits {
@@ -400,9 +453,17 @@ export class CharacterWizardComponent implements OnInit {
   }
 
   spellLimitForCircle(circle: number): number {
-    return circle === 0
-      ? this.currentSpellLimits.cantrips
-      : (this.currentSpellLimits.byCircle[circle] ?? 0);
+    if (circle === 0) return this.currentSpellLimits.cantrips;
+
+    if (this.hasSharedSpellPool) {
+      const availableInCircle = (this.spellsByCircle.get(circle) ?? []).length;
+      const selectedInOtherCircles =
+        this.selectedNonCantripSpellCount - this.selectedSpellCountByCircle(circle);
+      const remainingPool = Math.max(0, this.nonCantripSpellPoolSize - selectedInOtherCircles);
+      return Math.min(availableInCircle, remainingPool);
+    }
+
+    return this.currentSpellLimits.byCircle[circle] ?? 0;
   }
 
   isSpellAvailable(spell: Spell): boolean {
@@ -618,7 +679,7 @@ export class CharacterWizardComponent implements OnInit {
     const current = this.characterData.attributes.base_values[stat];
     const next = current + 1;
 
-    if (next > 15) return;
+    if (next > 18) return;
 
     const cost = this.pointCosts[next] - this.pointCosts[current];
 
