@@ -89,7 +89,7 @@
             </select>
           </label>
 
-          @if (characterData.attributes.generation_method !== 'point_buy') {
+          @if (characterData.attributes.generation_method === 'standard_array') {
             <p class="mobile-tap-hint">
               @if (mobileSelectedValue !== null) {
                 Valor <strong>{{ mobileSelectedValue }}</strong> selecionado — toque num atributo
@@ -100,7 +100,7 @@
             <div class="mobile-drag-container">
               <p class="mobile-pool-label">Valores disponíveis</p>
               <div class="mobile-pool-grid">
-                @for (value of (isRolling ? displayPool : pool); track $index) {
+                @for (value of pool; track $index) {
                   <div class="mobile-pool-item"
                        [class.mobile-item-selected]="mobileSelectedValue === value && !mobileSelectedFromStat"
                        (click)="mobileTapPool(value)">
@@ -117,6 +117,84 @@
                     <span class="mobile-stat-label">{{ stat }}</span>
                     @if (characterData.attributes.base_values[stat] !== 0) {
                       <span class="mobile-stat-value">{{ characterData.attributes.base_values[stat] }}</span>
+                    } @else {
+                      <span class="mobile-empty-slot">
+                        {{ mobileSelectedValue !== null ? '↓ TAP' : '---' }}
+                      </span>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          @if (characterData.attributes.generation_method === 'dice_roll') {
+            <div class="dice-roll-header">
+              <p class="dice-hint">4d6, descarta o menor</p>
+              <button
+                type="button"
+                class="retro-btn dice-reroll-btn"
+                [disabled]="isRolling"
+                (click)="rollPool()"
+              >
+                ROLAR NOVAMENTE
+              </button>
+            </div>
+            <p class="mobile-tap-hint">
+              @if (mobileSelectedValue !== null) {
+                Valor <strong>{{ mobileSelectedValue }}</strong> selecionado — toque num atributo
+              } @else {
+                Toque num valor e depois num atributo para atribuir
+              }
+            </p>
+            <div class="mobile-drag-container">
+              <p class="mobile-pool-label">Valores disponíveis</p>
+              <div class="dice-pool-grid">
+                @if (isRolling) {
+                  @for (dice of rollingDice; track $index) {
+                    <div class="dice-card is-rolling">
+                      <div class="dice-row">
+                        @for (face of dice; track $index) {
+                          <app-pixel-die [face]="face" [rolling]="true" />
+                        }
+                      </div>
+                    </div>
+                  }
+                } @else {
+                  @for (value of pool; track $index) {
+                    @let breakdown = breakdownFor(value);
+                    <div class="dice-card"
+                         [class.mobile-item-selected]="mobileSelectedValue === value && !mobileSelectedFromStat"
+                         (click)="mobileTapPool(value)">
+                      @if (breakdown) {
+                        <div class="dice-row">
+                          @for (face of breakdown.rolls; track $index) {
+                            <app-pixel-die [face]="face" [dropped]="$index === breakdown.dropped" />
+                          }
+                        </div>
+                      }
+                      <div class="dice-total">{{ value }}</div>
+                    </div>
+                  }
+                }
+              </div>
+              <div class="mobile-stats-list">
+                @for (stat of attributesList; track stat) {
+                  <div class="mobile-stat-row"
+                       [class.mobile-stat-selected]="mobileSelectedFromStat === stat"
+                       [class.mobile-stat-droppable]="mobileSelectedValue !== null && mobileSelectedFromStat !== stat"
+                       (click)="mobileTapStat(stat)">
+                    <span class="mobile-stat-label">{{ stat }}</span>
+                    @if (characterData.attributes.base_values[stat] !== 0) {
+                      <span class="mobile-stat-value">{{ characterData.attributes.base_values[stat] }}</span>
+                      @let assigned = breakdownFor(characterData.attributes.base_values[stat]);
+                      @if (assigned) {
+                        <div class="dice-row dice-row--mini">
+                          @for (face of assigned.rolls; track $index) {
+                            <app-pixel-die [face]="face" [dropped]="$index === assigned.dropped" [mini]="true" />
+                          }
+                        </div>
+                      }
                     } @else {
                       <span class="mobile-empty-slot">
                         {{ mobileSelectedValue !== null ? '↓ TAP' : '---' }}
@@ -403,8 +481,8 @@
             </select>
           </label>
 
-          <!-- ================= DRAG MODE ================= -->
-          @if (characterData.attributes.generation_method !== 'point_buy') {
+          <!-- ================= MATRIZ PADRÃO (DRAG) ================= -->
+          @if (characterData.attributes.generation_method === 'standard_array') {
 
           <div class="drag-container">
 
@@ -412,7 +490,7 @@
             <div class="pool">
               <p>Valores</p>
 
-              @for (value of (isRolling ? displayPool : pool); track value) {
+              @for (value of pool; track value) {
               <div class="drag-item" draggable="true" (dragstart)="onDragStart(value)">
                 {{ value }}
               </div>
@@ -430,6 +508,86 @@
                 <div class="drag-item" draggable="true" (dragstart)="onDragFromStat(stat)">
                   {{ characterData.attributes.base_values[stat] }}
                 </div>
+                } @else {
+                <div class="empty-slot">---</div>
+                }
+
+              </div>
+              }
+            </div>
+
+          </div>
+          }
+
+          <!-- ================= ROLAGEM DE DADOS ================= -->
+          @if (characterData.attributes.generation_method === 'dice_roll') {
+
+          <div class="dice-roll-header">
+            <p class="dice-hint">4d6, descarta o menor</p>
+            <button
+              type="button"
+              class="retro-btn dice-reroll-btn"
+              [disabled]="isRolling"
+              (click)="rollPool()"
+            >
+              ROLAR NOVAMENTE
+            </button>
+          </div>
+
+          <div class="drag-container">
+
+            <!-- POOL DE DADOS -->
+            <div class="pool dice-pool">
+              <p>Valores</p>
+
+              <div class="dice-pool-grid">
+                @if (isRolling) {
+                  @for (dice of rollingDice; track $index) {
+                    <div class="dice-card is-rolling">
+                      <div class="dice-row">
+                        @for (face of dice; track $index) {
+                          <app-pixel-die [face]="face" [rolling]="true" />
+                        }
+                      </div>
+                    </div>
+                  }
+                } @else {
+                  @for (value of pool; track value) {
+                    @let breakdown = breakdownFor(value);
+                    <div class="dice-card" draggable="true" (dragstart)="onDragStart(value)">
+                      @if (breakdown) {
+                        <div class="dice-row">
+                          @for (face of breakdown.rolls; track $index) {
+                            <app-pixel-die [face]="face" [dropped]="$index === breakdown.dropped" />
+                          }
+                        </div>
+                      }
+                      <div class="dice-total">{{ value }}</div>
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+
+            <!-- ATRIBUTOS -->
+            <div class="attributes">
+              @for (stat of attributesList; track stat) {
+              <div class="stat-box stat-box--dice" (dragover)="allowDrop($event)" (drop)="onDrop(stat)">
+
+                <label>{{ stat }}</label>
+
+                @if (characterData.attributes.base_values[stat] !== 0) {
+                <div class="drag-item" draggable="true" (dragstart)="onDragFromStat(stat)">
+                  {{ characterData.attributes.base_values[stat] }}
+                </div>
+                @let assigned = breakdownFor(characterData.attributes.base_values[stat]);
+                @if (assigned) {
+                  <div class="dice-row dice-row--mini">
+                    @for (face of assigned.rolls; track $index) {
+                      <app-pixel-die [face]="face" [dropped]="$index === assigned.dropped" [mini]="true" />
+                    }
+                  </div>
+                }
                 } @else {
                 <div class="empty-slot">---</div>
                 }

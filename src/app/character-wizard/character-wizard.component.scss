@@ -141,6 +141,105 @@
   }
 }
 
+/* ===== ROLAGEM DE DADOS ===== */
+
+.dice-roll-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.dice-hint {
+  margin: 0;
+  font-size: 8px;
+  color: var(--label-title-color);
+}
+
+.dice-reroll-btn {
+  float: none;
+  font-size: 8px;
+  margin-top: 0;
+  padding: 8px 12px;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+.dice-pool {
+  width: 340px;
+  min-height: 0;
+  border: none;
+  padding: 0;
+}
+
+.dice-pool-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+/* No desktop o pool tem largura fixa (.dice-pool), então cabem 3 colunas confortavelmente */
+.dice-pool .dice-pool-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.dice-card {
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: grab;
+  user-select: none;
+  animation: dice-settle 0.25s ease-out;
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  &.is-rolling {
+    cursor: default;
+    animation: none;
+  }
+}
+
+.dice-row {
+  display: flex;
+  gap: 3px;
+
+  &--mini {
+    gap: 2px;
+    margin-top: 4px;
+  }
+}
+
+.dice-total {
+  font-size: 13px;
+  color: var(--accent-color);
+}
+
+@keyframes dice-settle {
+  from { transform: scale(1.12); }
+  to { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dice-card {
+    animation: none;
+  }
+}
+
+.stat-box--dice {
+  min-height: 116px;
+}
+
 .sheet-layout {
   display: flex;
   gap: 20px;
@@ -490,6 +589,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   border: 1px solid var(--border-color);
   padding: 8px 12px;
   cursor: pointer;
@@ -497,6 +597,11 @@
   user-select: none;
 
   &:active { opacity: 0.7; }
+
+  .dice-row--mini {
+    flex-basis: 100%;
+    justify-content: flex-end;
+  }
 }
 
 .mobile-stat-selected {

@@ -27,13 +27,21 @@ import {
   WIZARD_CLASS_ID,
 } from '../constants/spell-rules';
 import { CLASS_ARMOUR_RULES } from '../constants/armour-rules';
+import { PixelDieComponent } from '../pixel-die/pixel-die.component';
 
 type AttributeKey = 'FOR' | 'DES' | 'CON' | 'INT' | 'SAB' | 'CAR';
+
+/** Resultado de uma rolagem de 4d6, descartando o menor valor. */
+interface DiceBreakdown {
+  rolls: number[];
+  dropped: number;
+  total: number;
+}
 
 @Component({
   selector: 'app-character-wizard',
   standalone: true,
-  imports: [CommonModule, FormsModule, DragonAnimationComponent, LoadingOverlayComponent, AvatarPickerModalComponent, AvatarCustomizerComponent],
+  imports: [CommonModule, FormsModule, DragonAnimationComponent, LoadingOverlayComponent, AvatarPickerModalComponent, AvatarCustomizerComponent, PixelDieComponent],
   templateUrl: './character-wizard.component.html',
   styleUrls: ['./character-wizard.component.scss']
 })
@@ -703,27 +711,48 @@ export class CharacterWizardComponent implements OnInit {
 
   /** ========================= DICE ========================= */
   isRolling = false;
-  displayPool: number[] = [];
+  /** Faces exibidas durante a animação de rolagem (6 rolagens x 4 dados). */
+  rollingDice: number[][] = [];
+  /** Detalhamento (4d6, descarta o menor) de cada valor em `pool`. */
+  rollBreakdowns: DiceBreakdown[] = [];
 
-  rollStat(): number {
+  rollSingleStat(): DiceBreakdown {
     const rolls = Array.from({ length: 4 }, () =>
       Math.floor(Math.random() * 6) + 1
     );
 
-    rolls.sort((a, b) => b - a);
-    return rolls[0] + rolls[1] + rolls[2];
+    const dropped = rolls.indexOf(Math.min(...rolls));
+    const total = rolls.reduce((sum, roll, i) => (i === dropped ? sum : sum + roll), 0);
+
+    return { rolls, dropped, total };
+  }
+
+  /** Encontra o detalhamento de dados que gerou um valor rolado (para exibir os 4d6 por trás do total). */
+  breakdownFor(value: number): DiceBreakdown | undefined {
+    return this.rollBreakdowns.find(breakdown => breakdown.total === value);
   }
 
   rollPool() {
+    const prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+    if (prefersReducedMotion) {
+      this.rollBreakdowns = Array.from({ length: 6 }, () => this.rollSingleStat());
+      this.pool = this.rollBreakdowns.map(breakdown => breakdown.total);
+      this.isRolling = false;
+      return;
+    }
+
     this.isRolling = true;
-    this.displayPool = [0, 0, 0, 0, 0, 0];
+    this.rollingDice = Array.from({ length: 6 }, () => [1, 1, 1, 1]);
 
     let ticks = 0;
 
     const interval = setInterval(() => {
-      // gera números fake enquanto "rola"
-      this.displayPool = Array.from({ length: 6 }, () =>
-        Math.floor(Math.random() * 20) + 1
+      // faces aleatórias enquanto os dados "chacoalham"
+      this.rollingDice = this.rollingDice.map(() =>
+        Array.from({ length: 4 }, () => Math.floor(Math.random() * 6) + 1)
       );
 
       ticks++;
@@ -732,14 +761,13 @@ export class CharacterWizardComponent implements OnInit {
         clearInterval(interval);
 
         // valores reais
-        this.pool = [];
-        for (let i = 0; i < 6; i++) {
-          this.pool.push(this.rollStat());
-        }
-
-        this.displayPool = [...this.pool];
+        this.rollBreakdowns = Array.from({ length: 6 }, () => this.rollSingleStat());
+        this.pool = this.rollBreakdowns.map(breakdown => breakdown.total);
         this.isRolling = false;
       }
+
+      // setInterval roda fora da detecção de mudanças do Angular (app zoneless) — força o repaint a cada tick.
+      this.cdr.detectChanges();
     }, 80);
   }
 
