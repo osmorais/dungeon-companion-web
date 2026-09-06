@@ -58,11 +58,16 @@ export class SessionPanelComponent implements OnDestroy {
 
   private eventsSub: Subscription | null = null;
   private safetyNetSub: Subscription | null = null;
+  private pollingSub: Subscription | null = null;
   /**
    * O painel é sincronizado via SSE (GameSessionService.connectEvents) — esse intervalo é só
    * uma rede de segurança caso a conexão de eventos caia silenciosamente (proxy, sono do Render).
    */
   private readonly SAFETY_NET_MS = 30_000;
+  private readonly POLLING_MS = 6_000;
+
+  /** Quando ligado, desliga o SSE e usa polling a cada 6s pra atualizar a sessão. */
+  pollingEnabled = signal(false);
 
   isOwner = computed(() => {
     const detail = this.sessionDetail();
@@ -82,20 +87,31 @@ export class SessionPanelComponent implements OnDestroy {
       untracked(() => {
         if (!sessionId) return;
         this.fetchSession(sessionId);
-        this.connectRealtime(sessionId);
+      });
+    });
+
+    effect(() => {
+      const sessionId = this.id();
+      const polling = this.pollingEnabled();
+      untracked(() => {
+        this.disconnectRealtime();
+        this.stopPolling();
+        if (!sessionId) return;
+        if (polling) this.startPolling(sessionId);
+        else this.connectRealtime(sessionId);
       });
     });
   }
 
   ngOnDestroy() {
     this.disconnectRealtime();
+    this.stopPolling();
   }
 
   /** Guarda a busca silenciosa (independente de `refreshing`, que é só pro botão/estado visível). */
   private pollInFlight = false;
 
   private connectRealtime(sessionId: string) {
-    this.disconnectRealtime();
     this.eventsSub = this.gameSessionService.connectEvents(sessionId).subscribe(() => {
       if (!this.pollInFlight) this.fetchSession(sessionId, true);
     });
@@ -111,16 +127,32 @@ export class SessionPanelComponent implements OnDestroy {
     this.safetyNetSub = null;
   }
 
+  private startPolling(sessionId: string) {
+    this.pollingSub = interval(this.POLLING_MS).subscribe(() => {
+      if (!this.pollInFlight) this.fetchSession(sessionId, true);
+    });
+  }
+
+  private stopPolling() {
+    this.pollingSub?.unsubscribe();
+    this.pollingSub = null;
+  }
+
+  togglePolling() {
+    this.pollingEnabled.update(v => !v);
+  }
+
   /**
-   * `silent` é usado pelo polling em segundo plano: não aciona o overlay de carregamento em
-   * tela cheia, não rola a página de volta pra seção de jogadores, e não descarta edições de HP
-   * que o usuário esteja digitando no momento.
+   * `silent` marca uma busca em segundo plano (polling/SSE): não rola a página de volta pra
+   * seção de jogadores e não descarta edições de HP que o usuário esteja digitando. O overlay
+   * de carregamento em tela cheia é sempre pulado nesse painel — o feedback visual fica no
+   * próprio botão de atualizar.
    */
   private fetchSession(sessionId: string, silent = false) {
     if (silent) this.pollInFlight = true;
     else this.refreshing.set(true);
 
-    this.gameSessionService.getSessionById(sessionId, silent).subscribe({
+    this.gameSessionService.getSessionById(sessionId, true).subscribe({
       next: detail => {
         this.sessionDetail.set(detail);
         this.error.set(false);

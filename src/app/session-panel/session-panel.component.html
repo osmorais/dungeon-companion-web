@@ -5,6 +5,14 @@
     <div class="mobile-header">
       <button class="mobile-back-btn" (click)="goBack()">&#8592;</button>
       <span class="mobile-title">PAINEL DA SESSÃO</span>
+      <button
+        class="mobile-polling-btn"
+        [class.mobile-polling-btn--on]="pollingEnabled()"
+        (click)="togglePolling()"
+        [title]="pollingEnabled() ? 'Polling ativo (6s) — clique para usar WebSocket' : 'WebSocket ativo — clique para usar polling (6s)'"
+      >
+        POLL {{ pollingEnabled() ? 'ON' : 'OFF' }}
+      </button>
       <button class="mobile-refresh-btn" (click)="refreshSession()" [disabled]="refreshing()" title="Atualizar sessão">
         {{ refreshing() ? '...' : '↻' }}
       </button>
@@ -338,6 +346,14 @@
             <span class="session-players-count">
               {{ sessionDetail()!.players.length }}/{{ sessionDetail()!.game_session.max_player_quantity }} JOGADORES
             </span>
+            <button
+              class="retro-btn polling-btn"
+              [class.polling-btn--on]="pollingEnabled()"
+              (click)="togglePolling()"
+              [title]="pollingEnabled() ? 'Polling ativo (6s) — clique para usar WebSocket' : 'WebSocket ativo — clique para usar polling (6s)'"
+            >
+              POLLING: {{ pollingEnabled() ? 'ON' : 'OFF' }}
+            </button>
             <button class="retro-btn refresh-btn" (click)="refreshSession()" [disabled]="refreshing()">
               {{ refreshing() ? 'ATUALIZANDO...' : '↻ ATUALIZAR' }}
             </button>

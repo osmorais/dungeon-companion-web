@@ -121,6 +121,18 @@
   margin-top: 0;
 }
 
+.polling-btn {
+  float: none;
+  font-size: 7px;
+  padding: 5px 8px;
+  margin-top: 0;
+
+  &--on {
+    color: #4caf50;
+    border-color: #4caf50;
+  }
+}
+
 /* Grid vertical de players */
 .players-grid {
   display: grid;
@@ -646,7 +658,6 @@
 }
 
 .mobile-refresh-btn {
-  margin-left: auto;
   background: none;
   border: 1px solid var(--border-color);
   color: var(--accent-color);
@@ -659,6 +670,23 @@
   &:disabled {
     opacity: 0.4;
     cursor: not-allowed;
+  }
+}
+
+.mobile-polling-btn {
+  margin-left: auto;
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--accent-color);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  padding: 5px 8px;
+  cursor: pointer;
+  line-height: 1;
+
+  &--on {
+    color: #4caf50;
+    border-color: #4caf50;
   }
 }
 

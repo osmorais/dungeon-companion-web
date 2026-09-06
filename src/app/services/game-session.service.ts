@@ -56,13 +56,16 @@ export class GameSessionService {
   }
 
   deletePlayer(idPlayerSession: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/api/game-session/player/${idPlayerSession}`);
+    return this.http.delete<void>(`${this.baseUrl}/api/game-session/player/${idPlayerSession}`, {
+      context: this.silentContext(),
+    });
   }
 
   updatePlayerHp(idPlayerSession: string, currentHitPoints: number): Observable<void> {
     return this.http.patch<void>(
       `${this.baseUrl}/api/game-session/player/${idPlayerSession}/hp`,
       { current_hit_points: currentHitPoints },
+      { context: this.silentContext() },
     );
   }
 
@@ -70,17 +73,21 @@ export class GameSessionService {
     return this.http.patch<void>(
       `${this.baseUrl}/api/game-session/npc/${idNpcSession}/hp`,
       { current_hit_points: currentHitPoints },
+      { context: this.silentContext() },
     );
   }
 
   deleteNpc(idNpcSession: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/api/game-session/npc/${idNpcSession}`);
+    return this.http.delete<void>(`${this.baseUrl}/api/game-session/npc/${idNpcSession}`, {
+      context: this.silentContext(),
+    });
   }
 
   addNpcToSession(sessionId: string, idCharacter: number): Observable<{ id_npc_session: string; id_game_session: string; id_character: number }> {
     return this.http.post<{ id_npc_session: string; id_game_session: string; id_character: number }>(
       `${this.baseUrl}/api/game-session/${sessionId}/npc`,
       { id_character: idCharacter },
+      { context: this.silentContext() },
     );
   }
 
@@ -101,15 +108,28 @@ export class GameSessionService {
     return this.http.post<void>(
       `${this.baseUrl}/api/game-session/combat-participant/${idCombatParticipant}/initiative`,
       payload,
+      { context: this.silentContext() },
     );
   }
 
   endTurn(idCombatEncounter: string): Observable<void> {
-    return this.http.post<void>(`${this.baseUrl}/api/game-session/combat/${idCombatEncounter}/end-turn`, {});
+    return this.http.post<void>(
+      `${this.baseUrl}/api/game-session/combat/${idCombatEncounter}/end-turn`,
+      {},
+      { context: this.silentContext() },
+    );
   }
 
   endEncounter(idCombatEncounter: string): Observable<void> {
-    return this.http.post<void>(`${this.baseUrl}/api/game-session/combat/${idCombatEncounter}/end`, {});
+    return this.http.post<void>(
+      `${this.baseUrl}/api/game-session/combat/${idCombatEncounter}/end`,
+      {},
+      { context: this.silentContext() },
+    );
+  }
+
+  private silentContext(): HttpContext {
+    return new HttpContext().set(SKIP_LOADING_OVERLAY, true);
   }
 
   /**
