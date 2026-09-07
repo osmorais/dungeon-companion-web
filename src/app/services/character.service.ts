@@ -57,6 +57,10 @@ export class CharacterService {
     });
   }
 
+  deleteCharacter(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/api/character-sheet/${id}`);
+  }
+
   getCharacterBackground(id: number): Observable<CharacterBackground> {
     return this.http.get<CharacterBackground>(`${this.baseUrl}/api/character-sheet/${id}/background`);
   }

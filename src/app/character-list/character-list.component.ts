@@ -28,6 +28,10 @@ export class CharacterListComponent implements OnInit {
   totalCount = signal(0);
   pageSize = PAGE_SIZE;
 
+  deleteTarget = signal<CharacterSummary | null>(null);
+  deleting = signal(false);
+  deleteError = signal<string | null>(null);
+
   totalPages = computed(() => Math.ceil(this.totalCount() / this.pageSize) || 1);
   hasPrev = computed(() => this.page() > 1);
   hasNext = computed(() => this.page() < this.totalPages());
@@ -67,5 +71,39 @@ export class CharacterListComponent implements OnInit {
 
   goBack() {
     this.router.navigate(['/']);
+  }
+
+  requestDelete(char: CharacterSummary, event: Event) {
+    event.stopPropagation();
+    this.deleteError.set(null);
+    this.deleteTarget.set(char);
+  }
+
+  cancelDelete() {
+    if (this.deleting()) return;
+    this.deleteTarget.set(null);
+  }
+
+  confirmDelete() {
+    const target = this.deleteTarget();
+    if (!target || this.deleting()) return;
+    this.deleting.set(true);
+    this.deleteError.set(null);
+    this.charService.deleteCharacter(target.id_character).subscribe({
+      next: () => {
+        this.deleting.set(false);
+        this.deleteTarget.set(null);
+        // Se era o único personagem da página atual e ainda existem páginas anteriores,
+        // volta uma página em vez de recarregar uma página vazia.
+        if (this.characters().length === 1 && this.hasPrev()) {
+          this.page.update(p => p - 1);
+        }
+        this.loadPage();
+      },
+      error: () => {
+        this.deleting.set(false);
+        this.deleteError.set('Não foi possível remover o personagem. Tente novamente.');
+      },
+    });
   }
 }

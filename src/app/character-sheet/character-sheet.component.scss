@@ -565,6 +565,11 @@ ul {
 }
 
 .item-modal {
+  /* "fieldset.retro-panel" (styles.scss) só vale pra <fieldset> — como este painel é uma
+     <div>, precisa repetir fundo/borda aqui. */
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+
   position: relative;
   width: 480px;
   max-width: 92vw;
@@ -1346,6 +1351,11 @@ ul {
 /* ===== AVATAR EDITOR MODAL ===== */
 
 .avatar-editor-modal {
+  /* "fieldset.retro-panel" (styles.scss) só vale pra <fieldset> — como este painel é uma
+     <div>, precisa repetir fundo/borda aqui. */
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+
   width: 560px;
   max-width: 95vw;
   max-height: 90vh;

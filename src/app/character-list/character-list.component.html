@@ -15,6 +15,7 @@
       <ul class="mobile-character-list">
         @for (char of characters(); track char.id_character) {
           <li class="mobile-character-card" (click)="openSheet(char.id_character)">
+            <button class="mobile-delete-btn" title="Remover personagem" (click)="requestDelete(char, $event)">✕</button>
             <span class="mobile-char-name">{{ char.name }}</span>
             <span class="mobile-char-meta">{{ char.class }} &mdash; {{ char.race }}</span>
             <span class="mobile-char-level">Nível {{ char.level }}</span>
@@ -57,6 +58,7 @@
             <li class="character-row" (click)="openSheet(char.id_character)">
               <span class="char-name">{{ char.name }}</span>
               <span class="char-meta">{{ char.class }} &mdash; {{ char.race }} &mdash; Nível {{ char.level }}</span>
+              <button class="delete-btn" title="Remover personagem" (click)="requestDelete(char, $event)">✕</button>
               <span class="char-arrow">&#9658;</span>
             </li>
           }
@@ -74,5 +76,26 @@
 
     <button class="retro-btn back-btn" (click)="goBack()">VOLTAR</button>
 
+  </div>
+}
+
+<!-- ===== MODAL: CONFIRMAR REMOÇÃO ===== -->
+@if (deleteTarget(); as target) {
+  <div class="overlay modal-overlay" (click)="cancelDelete()">
+    <div class="retro-panel delete-modal" (click)="$event.stopPropagation()">
+      <h3 class="modal-title">REMOVER PERSONAGEM</h3>
+      <p class="delete-modal-text">
+        Tem certeza que deseja remover <strong>{{ target.name }}</strong>? Essa ação não pode ser desfeita.
+      </p>
+      @if (deleteError()) {
+        <p class="delete-modal-error">{{ deleteError() }}</p>
+      }
+      <div class="delete-modal-actions">
+        <button class="retro-btn" [disabled]="deleting()" (click)="cancelDelete()">CANCELAR</button>
+        <button class="retro-btn delete-confirm-btn" [disabled]="deleting()" (click)="confirmDelete()">
+          {{ deleting() ? 'REMOVENDO...' : 'REMOVER' }}
+        </button>
+      </div>
+    </div>
   </div>
 }
