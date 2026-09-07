@@ -1395,9 +1395,23 @@
 .player-card--current-turn,
 .mobile-player-card--current-turn,
 .npc-row--current-turn,
-.mobile-npc-row--current-turn {
+.mobile-npc-row--current-turn,
+.mobile-monster-row--current-turn {
   border-color: var(--accent-color);
   box-shadow: 0 0 10px var(--accent-color);
+}
+
+/* box-shadow/border-color não renderiza em <tr> (display: table-row) — usa
+   outline e um fundo sutil pra destacar a linha do monstro na vez dele. */
+.monster-row--current-turn {
+  outline: 2px solid var(--accent-color);
+  outline-offset: -2px;
+  background-color: var(--btn-color);
+}
+
+.mobile-monster-row .turn-end-btn {
+  font-size: 6px;
+  padding: 6px 8px;
 }
 
 /* ===== TOAST: NOVA ROLAGEM (broadcast) ===== */

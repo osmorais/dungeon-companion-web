@@ -268,7 +268,7 @@
           } @else {
           <div class="mobile-monster-list">
             @for (monster of sessionDetail()!.monsters; track monster.id_monster_session) {
-              <div class="mobile-monster-row" (click)="openMonsterDetail(monster)">
+              <div class="mobile-monster-row" (click)="openMonsterDetail(monster)" [class.mobile-monster-row--current-turn]="isMonsterCurrentTurn(monster)">
                 <div class="mobile-monster-icon">☠</div>
                 <div class="mobile-monster-info">
                   <span class="mobile-monster-name">{{ monsterDisplayName(monster) }}</span>
@@ -293,6 +293,12 @@
                       [disabled]="savingMonsterHp().has(monster.id_monster_session) || !hasMonsterHpChange(monster)">
                       {{ savingMonsterHp().has(monster.id_monster_session) ? '...' : 'SALVAR HP' }}
                     </button>
+                    @if (isMonsterCurrentTurn(monster) && canEndCurrentTurn()) {
+                      <button class="retro-btn turn-end-btn" [disabled]="endingTurn()"
+                        (click)="$event.stopPropagation(); endTurn()">
+                        {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
+                      </button>
+                    }
                   }
                 </div>
                 <button
@@ -580,7 +586,7 @@
             </thead>
             <tbody>
               @for (monster of sessionDetail()!.monsters; track monster.id_monster_session) {
-                <tr (click)="openMonsterDetail(monster)">
+                <tr (click)="openMonsterDetail(monster)" [class.monster-row--current-turn]="isMonsterCurrentTurn(monster)">
                   <td class="monster-name-cell">
                     <span class="monster-icon">☠</span>
                     {{ monsterDisplayName(monster) }}
@@ -607,6 +613,12 @@
                           {{ savingMonsterHp().has(monster.id_monster_session) ? '...' : 'SALVAR HP' }}
                         </button>
                       </div>
+                      @if (isMonsterCurrentTurn(monster) && canEndCurrentTurn()) {
+                        <button class="retro-btn turn-end-btn" [disabled]="endingTurn()"
+                          (click)="$event.stopPropagation(); endTurn()">
+                          {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
+                        </button>
+                      }
                     }
                   </td>
                   <td class="text-center">

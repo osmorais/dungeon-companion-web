@@ -695,6 +695,15 @@ export class SessionPanelComponent implements OnDestroy {
     return !!current && current.participant_type === 'npc' && current.id_npc_session === npc.id_npc_session;
   }
 
+  isMonsterCurrentTurn(monster: MonsterSession): boolean {
+    const current = this.currentTurnParticipant();
+    return (
+      !!current &&
+      current.participant_type === 'monster' &&
+      current.id_monster_session === monster.id_monster_session
+    );
+  }
+
   combatParticipantName(p: CombatParticipant): string {
     const detail = this.sessionDetail();
     if (!detail) return '???';
