@@ -1,0 +1,208 @@
+@if (isMobile()) {
+  <!-- ===== MOBILE LAYOUT ===== -->
+  <div class="mobile-create-container">
+
+    <div class="mobile-header">
+      <button class="mobile-back-btn" (click)="goBack()">&#8592;</button>
+      <span class="mobile-title">CATALOGAR MONSTRO</span>
+    </div>
+
+    <fieldset class="mobile-panel">
+      <legend>BUSCAR NO SRD</legend>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Buscar monstro..."
+        [ngModel]="searchText()"
+        (ngModelChange)="searchText.set($event)"
+      />
+      @if (loadingList()) {
+        <p class="mobile-empty-msg mobile-empty-msg--inner">CARREGANDO...</p>
+      } @else if (listError()) {
+        <p class="mobile-empty-msg mobile-empty-msg--inner">ERRO AO CARREGAR O SRD.</p>
+      } @else {
+        <ul class="srd-list">
+          @for (m of filteredMonsters(); track m.index) {
+            <li class="srd-row" [class.srd-row--active]="selectedSlug() === m.index" (click)="selectMonster(m)">
+              {{ m.name }}
+            </li>
+          }
+          @if (filteredMonsters().length === 0) {
+            <p class="mobile-empty-msg mobile-empty-msg--inner">NENHUM MONSTRO ENCONTRADO.</p>
+          }
+        </ul>
+      }
+    </fieldset>
+
+    @if (selectedSlug()) {
+      <fieldset class="mobile-panel">
+        <legend>PRÉ-VISUALIZAÇÃO</legend>
+        @if (loadingDetail()) {
+          <p class="mobile-empty-msg mobile-empty-msg--inner">CARREGANDO...</p>
+        } @else if (detailError()) {
+          <p class="mobile-empty-msg mobile-empty-msg--inner">ERRO AO CARREGAR O MONSTRO.</p>
+        } @else if (selectedDetail(); as detail) {
+          <div class="stat-block">
+            <h3 class="stat-name">{{ detail.name }}</h3>
+            <p class="stat-meta">{{ detail.size }} {{ detail.type }}, {{ detail.alignment }}</p>
+
+            <div class="stat-row"><span class="stat-label">CA</span><span>{{ acValue(detail) }}</span></div>
+            <div class="stat-row"><span class="stat-label">PV</span><span>{{ detail.hit_points }} ({{ detail.hit_dice }})</span></div>
+            <div class="stat-row"><span class="stat-label">DESLOC.</span><span>{{ speedText(detail) }}</span></div>
+
+            <div class="stat-abilities">
+              <div class="stat-ability"><span class="stat-ability-key">FOR</span>{{ detail.strength }}</div>
+              <div class="stat-ability"><span class="stat-ability-key">DES</span>{{ detail.dexterity }}</div>
+              <div class="stat-ability"><span class="stat-ability-key">CON</span>{{ detail.constitution }}</div>
+              <div class="stat-ability"><span class="stat-ability-key">INT</span>{{ detail.intelligence }}</div>
+              <div class="stat-ability"><span class="stat-ability-key">SAB</span>{{ detail.wisdom }}</div>
+              <div class="stat-ability"><span class="stat-ability-key">CAR</span>{{ detail.charisma }}</div>
+            </div>
+
+            <div class="stat-row"><span class="stat-label">ND</span><span>{{ detail.challenge_rating }} ({{ detail.xp }} XP)</span></div>
+
+            @if (detail.special_abilities?.length) {
+              <div class="stat-section">
+                <h4>HABILIDADES</h4>
+                @for (a of detail.special_abilities; track a.name) {
+                  <p class="stat-feature"><strong>{{ a.name }}.</strong> {{ a.desc }}</p>
+                }
+              </div>
+            }
+            @if (detail.actions?.length) {
+              <div class="stat-section">
+                <h4>AÇÕES</h4>
+                @for (a of detail.actions; track a.name) {
+                  <p class="stat-feature"><strong>{{ a.name }}.</strong> {{ a.desc }}</p>
+                }
+              </div>
+            }
+
+            <div class="catalog-form">
+              <label class="catalog-label">NOME CUSTOMIZADO (OPCIONAL)</label>
+              <input
+                type="text"
+                [placeholder]="detail.name"
+                [ngModel]="customName()"
+                (ngModelChange)="customName.set($event)"
+              />
+              @if (catalogError()) {
+                <p class="catalog-error">{{ catalogError() }}</p>
+              }
+              <button class="retro-btn catalog-confirm-btn" [disabled]="cataloging()" (click)="confirmCatalog()">
+                {{ cataloging() ? 'CATALOGANDO...' : '📖 CATALOGAR ESTE MONSTRO' }}
+              </button>
+            </div>
+          </div>
+        }
+      </fieldset>
+    }
+
+  </div>
+} @else {
+  <!-- ===== DESKTOP LAYOUT ===== -->
+  <div class="create-container">
+
+    <fieldset class="retro-panel title-panel">
+      <legend>CATALOGAR NOVO MONSTRO</legend>
+    </fieldset>
+
+    <div class="create-layout">
+
+      <fieldset class="retro-panel search-panel">
+        <legend>BUSCAR NO SRD</legend>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Buscar monstro..."
+          [ngModel]="searchText()"
+          (ngModelChange)="searchText.set($event)"
+        />
+        @if (loadingList()) {
+          <p class="empty-msg">CARREGANDO...</p>
+        } @else if (listError()) {
+          <p class="empty-msg">ERRO AO CARREGAR O SRD.</p>
+        } @else {
+          <ul class="srd-list">
+            @for (m of filteredMonsters(); track m.index) {
+              <li class="srd-row" [class.srd-row--active]="selectedSlug() === m.index" (click)="selectMonster(m)">
+                {{ m.name }}
+              </li>
+            }
+            @if (filteredMonsters().length === 0) {
+              <p class="empty-msg">NENHUM MONSTRO ENCONTRADO.</p>
+            }
+          </ul>
+        }
+      </fieldset>
+
+      <fieldset class="retro-panel preview-panel">
+        <legend>PRÉ-VISUALIZAÇÃO</legend>
+        @if (!selectedSlug()) {
+          <p class="empty-msg">SELECIONE UM MONSTRO NA LISTA AO LADO.</p>
+        } @else if (loadingDetail()) {
+          <p class="empty-msg">CARREGANDO...</p>
+        } @else if (detailError()) {
+          <p class="empty-msg">ERRO AO CARREGAR O MONSTRO.</p>
+        } @else if (selectedDetail(); as detail) {
+          <div class="stat-block">
+            <h3 class="stat-name">{{ detail.name }}</h3>
+            <p class="stat-meta">{{ detail.size }} {{ detail.type }}, {{ detail.alignment }}</p>
+
+            <div class="stat-row"><span class="stat-label">CA</span><span>{{ acValue(detail) }}</span></div>
+            <div class="stat-row"><span class="stat-label">PV</span><span>{{ detail.hit_points }} ({{ detail.hit_dice }})</span></div>
+            <div class="stat-row"><span class="stat-label">DESLOC.</span><span>{{ speedText(detail) }}</span></div>
+
+            <div class="stat-abilities">
+              <div class="stat-ability"><span class="stat-ability-key">FOR</span>{{ detail.strength }}</div>
+              <div class="stat-ability"><span class="stat-ability-key">DES</span>{{ detail.dexterity }}</div>
+              <div class="stat-ability"><span class="stat-ability-key">CON</span>{{ detail.constitution }}</div>
+              <div class="stat-ability"><span class="stat-ability-key">INT</span>{{ detail.intelligence }}</div>
+              <div class="stat-ability"><span class="stat-ability-key">SAB</span>{{ detail.wisdom }}</div>
+              <div class="stat-ability"><span class="stat-ability-key">CAR</span>{{ detail.charisma }}</div>
+            </div>
+
+            <div class="stat-row"><span class="stat-label">ND</span><span>{{ detail.challenge_rating }} ({{ detail.xp }} XP)</span></div>
+
+            @if (detail.special_abilities?.length) {
+              <div class="stat-section">
+                <h4>HABILIDADES</h4>
+                @for (a of detail.special_abilities; track a.name) {
+                  <p class="stat-feature"><strong>{{ a.name }}.</strong> {{ a.desc }}</p>
+                }
+              </div>
+            }
+            @if (detail.actions?.length) {
+              <div class="stat-section">
+                <h4>AÇÕES</h4>
+                @for (a of detail.actions; track a.name) {
+                  <p class="stat-feature"><strong>{{ a.name }}.</strong> {{ a.desc }}</p>
+                }
+              </div>
+            }
+
+            <div class="catalog-form">
+              <label class="catalog-label">NOME CUSTOMIZADO (OPCIONAL)</label>
+              <input
+                type="text"
+                [placeholder]="detail.name"
+                [ngModel]="customName()"
+                (ngModelChange)="customName.set($event)"
+              />
+              @if (catalogError()) {
+                <p class="catalog-error">{{ catalogError() }}</p>
+              }
+              <button class="retro-btn catalog-confirm-btn" [disabled]="cataloging()" (click)="confirmCatalog()">
+                {{ cataloging() ? 'CATALOGANDO...' : '📖 CATALOGAR ESTE MONSTRO' }}
+              </button>
+            </div>
+          </div>
+        }
+      </fieldset>
+
+    </div>
+
+    <button class="retro-btn back-btn" (click)="goBack()">← VOLTAR</button>
+
+  </div>
+}

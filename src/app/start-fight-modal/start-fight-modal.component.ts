@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, Output, inject, signal } from '@angular
 import { GameSessionService } from '../services/game-session.service';
 import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
 import {
+  MonsterSession,
   NpcSession,
   PlayerSession,
   StartEncounterParticipantInput,
@@ -20,10 +21,12 @@ export class StartFightModalComponent {
   @Input({ required: true }) sessionId!: string;
   @Input() players: PlayerSession[] = [];
   @Input() npcs: NpcSession[] = [];
+  @Input() monsters: MonsterSession[] = [];
   @Output() closed = new EventEmitter<void>();
 
   selectedPlayers = signal<Set<string>>(new Set());
   selectedNpcs = signal<Set<string>>(new Set());
+  selectedMonsters = signal<Set<string>>(new Set());
   starting = signal(false);
   error = signal<string | null>(null);
 
@@ -36,7 +39,11 @@ export class StartFightModalComponent {
   }
 
   get hasSelection(): boolean {
-    return this.selectedPlayers().size > 0 || this.selectedNpcs().size > 0;
+    return (
+      this.selectedPlayers().size > 0 ||
+      this.selectedNpcs().size > 0 ||
+      this.selectedMonsters().size > 0
+    );
   }
 
   togglePlayer(id: string): void {
@@ -57,6 +64,19 @@ export class StartFightModalComponent {
     });
   }
 
+  toggleMonster(id: string): void {
+    this.selectedMonsters.update((set) => {
+      const next = new Set(set);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  monsterName(monster: MonsterSession): string {
+    return monster.custom_name ?? monster.data_snapshot.name;
+  }
+
   close(): void {
     if (this.starting()) return;
     this.closed.emit();
@@ -71,6 +91,10 @@ export class StartFightModalComponent {
         id,
       })),
       ...Array.from(this.selectedNpcs()).map((id) => ({ participant_type: 'npc' as const, id })),
+      ...Array.from(this.selectedMonsters()).map((id) => ({
+        participant_type: 'monster' as const,
+        id,
+      })),
     ];
 
     this.starting.set(true);

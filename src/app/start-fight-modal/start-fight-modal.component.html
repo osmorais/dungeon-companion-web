@@ -4,8 +4,8 @@
     <h3 class="sf-modal-title">INICIAR LUTA</h3>
     <p class="sf-hint">Selecione quem vai participar do combate:</p>
 
-    @if (eligiblePlayers.length === 0 && eligibleNpcs.length === 0) {
-      <p class="sf-empty">Nenhum jogador ou NPC com personagem na sessão.</p>
+    @if (eligiblePlayers.length === 0 && eligibleNpcs.length === 0 && monsters.length === 0) {
+      <p class="sf-empty">Nenhum jogador, NPC ou monstro disponível na sessão.</p>
     } @else {
       @if (eligiblePlayers.length > 0) {
         <div class="sf-group">
@@ -49,6 +49,26 @@
                 <span class="sf-meta"
                   >{{ npc.character?.class }} &mdash; NV {{ npc.character?.level }}</span
                 >
+              </div>
+            </label>
+          }
+        </div>
+      }
+
+      @if (monsters.length > 0) {
+        <div class="sf-group">
+          <span class="sf-group-label">MONSTROS</span>
+          @for (monster of monsters; track monster.id_monster_session) {
+            <label class="sf-item">
+              <input
+                type="checkbox"
+                [checked]="selectedMonsters().has(monster.id_monster_session)"
+                (change)="toggleMonster(monster.id_monster_session)"
+              />
+              <div class="sf-avatar sf-avatar--monster">☠</div>
+              <div class="sf-info">
+                <span class="sf-name">{{ monsterName(monster) }}</span>
+                <span class="sf-meta">CA {{ monster.ac }} &mdash; PV {{ monster.hp_current }}/{{ monster.hp_max }}</span>
               </div>
             </label>
           }

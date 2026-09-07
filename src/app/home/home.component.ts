@@ -63,4 +63,8 @@ export class HomeComponent {
   listCharacters() {
     this.router.navigate(['/characters']);
   }
+
+  catalogMonsters() {
+    this.router.navigate(['/monster-catalog']);
+  }
 }

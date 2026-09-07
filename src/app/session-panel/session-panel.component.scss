@@ -10,26 +10,56 @@
   max-width: 96vw;
 }
 
+/* A coluna do meio (.main-column) é quem dita a altura da linha: ela é a única
+   que fica no fluxo normal dentro de .layout. Os quadros laterais (combate e
+   rolagens) são posicionados como position: absolute, presos do topo até a
+   base de .layout — ou seja, sempre com a MESMA altura da coluna do meio,
+   nunca o contrário. Se usássemos align-items: stretch aqui, seria o item
+   mais alto dos três que ditaria a altura da linha (podendo ser um dos
+   laterais quando não há NPCS/MONSTROS na coluna do meio), esticando a coluna
+   do meio para baixo em vez de alinhar os laterais a ela. */
 .layout {
+  position: relative;
   display: flex;
-  /* stretch (padrão) faz a lateral acompanhar a altura da coluna principal —
-     hoje isso termina exatamente no fim do quadro de NPCS. */
-  align-items: stretch;
   gap: 20px;
 }
 
 .main-column {
   flex: 1;
   min-width: 0;
+  margin-left: 320px; /* largura do combat-sidebar (300px) + gap (20px) */
+  margin-right: 320px; /* largura do rolls-sidebar (300px) + gap (20px) */
   display: flex;
   flex-direction: column;
 }
 
 .rolls-sidebar {
-  flex: 0 0 300px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 300px;
+  /* width já inclui padding/borda do .retro-panel — sem isso a caixa real
+     fica maior que 300px e invade a margem reservada em .main-column. */
+  box-sizing: border-box;
+  /* <fieldset> tem min-width: min-content por padrão do browser — sem zerar
+     isso, uma linha de rolagem com texto/dados longos (que não quebram linha)
+     empurra o quadro para além dos 300px, sobrepondo a coluna do meio. */
+  min-width: 0;
   display: flex;
   flex-direction: column;
   margin-bottom: 0;
+
+  /* Wrapper interno pra evitar overflow: hidden no <fieldset> (que cortaria a legend).
+     Ele que absorve o excesso e permite scroll interno na lista, mantendo a altura
+     do quadro presa entre top: 0 e bottom: 0. */
+  .rolls-sidebar-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
 
   .roll-log-list {
     flex: 1;
@@ -40,10 +70,54 @@
 }
 
 .combat-sidebar {
-  flex: 0 0 300px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 300px;
+  /* width já inclui padding/borda do .retro-panel — sem isso a caixa real
+     fica maior que 300px e invade a margem reservada em .main-column. */
+  box-sizing: border-box;
+  /* Mesma correção do .rolls-sidebar — <fieldset> tem min-width: min-content
+     por padrão do browser. */
+  min-width: 0;
   display: flex;
   flex-direction: column;
   margin-bottom: 0;
+
+  /* Mesmo truque do .rolls-sidebar-body: evita overflow: hidden direto no
+     <fieldset> (que cortaria a legend) e permite que a lista de combatentes
+     role internamente em vez de esticar o quadro além da altura da coluna
+     do meio. */
+  .combat-sidebar-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: hidden;
+  }
+
+  /* Com um monstro revelado, o quadro do combate divide sua altura ao meio: a metade de
+     cima mantém a ordem de turnos (rolando internamente), a de baixo mostra o monstro. */
+  .combat-sidebar-body--split {
+    .combat-top {
+      flex: 0 0 50%;
+    }
+
+    .combat-bottom {
+      flex: 0 0 50%;
+    }
+  }
+
+  .combat-top {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: hidden;
+  }
 
   .combat-order-list {
     flex: 1;
@@ -441,6 +515,11 @@
 }
 
 .npc-add-modal {
+  /* "fieldset.retro-panel" (styles.scss) só vale pra <fieldset> — como este painel é uma
+     <div>, precisa repetir fundo/borda aqui. */
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+
   position: relative;
   width: 440px;
   max-width: 92vw;
@@ -580,6 +659,13 @@
   }
 
   tr:last-child td { border-bottom: none; }
+
+  tbody tr {
+    cursor: pointer;
+    transition: background-color 0.12s;
+
+    &:hover { background-color: var(--btn-color); }
+  }
 }
 
 .text-center { text-align: center; }
@@ -603,9 +689,15 @@
 
 .monster-hp-cell {
   display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 180px;
+}
+
+.monster-hp-bar-wrap {
+  display: flex;
   align-items: center;
   gap: 8px;
-  min-width: 140px;
 }
 
 .monster-hp-bar {
@@ -625,6 +717,51 @@
   font-size: 7px;
   color: var(--text-color);
   white-space: nowrap;
+}
+
+.monster-hp-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.monster-hp-save-btn {
+  float: none;
+  font-size: 6px;
+  padding: 4px 8px;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.reveal-toggle-btn {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  font-size: 12px;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+
+  &:hover:not(:disabled) {
+    background-color: var(--btn-color);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  &--on {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 4px var(--accent-color);
+  }
 }
 
 /* ===== MOBILE ===== */
@@ -982,6 +1119,11 @@
   padding: 8px 10px;
   border: 1px solid var(--border-color);
   background-color: var(--bg-color);
+  cursor: pointer;
+
+  &:active {
+    background-color: var(--btn-color);
+  }
 }
 
 .mobile-monster-icon {
@@ -1090,6 +1232,55 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+/* Mobile: sem altura fixa pra dividir de verdade, então limitamos a metade de cima e
+   deixamos ela rolar internamente — a de baixo (monstro revelado) fica sempre visível. */
+.combat-panel--split .combat-top {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.combat-top {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.combat-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 2px solid var(--border-color);
+  padding-top: 10px;
+  margin-top: 4px;
+}
+
+.revealed-monster-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 2px solid var(--accent-color);
+  background-color: var(--bg-color);
+}
+
+.revealed-monster-image {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  border: 2px solid var(--border-color);
+  border-radius: 50%;
+  background-color: var(--panel-bg);
+}
+
+.revealed-monster-name {
+  font-size: 9px;
+  color: var(--accent-color);
 }
 
 .combat-start-btn {
@@ -1209,11 +1400,216 @@
   box-shadow: 0 0 10px var(--accent-color);
 }
 
+/* ===== TOAST: NOVA ROLAGEM (broadcast) ===== */
+
+.roll-toast-overlay {
+  /* Acima dos demais overlays (ex: modal de adicionar NPC), já que é um aviso global. */
+  z-index: 1100;
+}
+
+.roll-toast-panel {
+  /* "fieldset.retro-panel" (styles.scss) só vale pra <fieldset> — como este painel é uma
+     <div>, precisa repetir fundo/borda aqui. */
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 44px 56px 30px;
+  min-width: 380px;
+  max-width: 92vw;
+  text-align: center;
+  animation: roll-toast-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.roll-toast-avatar-circle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+@keyframes roll-toast-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.6) translateY(20px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.05) translateY(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.roll-toast-actor {
+  font-size: 14px;
+  color: var(--accent-color);
+}
+
+.roll-toast-label {
+  font-size: 9px;
+  color: var(--label-title-color);
+}
+
+.roll-toast-dice {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.roll-toast-modifier {
+  font-size: 8px;
+  color: var(--label-title-color);
+}
+
+.roll-toast-total {
+  font-size: 44px;
+  color: var(--accent-color);
+  line-height: 1;
+  text-shadow: 0 0 16px var(--accent-color);
+}
+
+.roll-toast-timer-bar {
+  width: 100%;
+  height: 6px;
+  margin-top: 6px;
+  background-color: var(--panel-bg);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.roll-toast-timer-fill {
+  height: 100%;
+  width: 100%;
+  background-color: var(--accent-color);
+  transform-origin: left;
+  animation-name: roll-toast-countdown;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes roll-toast-countdown {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+
 .battle-start-panel {
+  /* "fieldset.retro-panel" (styles.scss) só vale pra <fieldset> — como este painel é uma
+     <div>, precisa repetir fundo/borda aqui. */
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16px;
   padding: 24px;
   text-align: center;
+}
+
+/* ===== MODAL: DETALHE DO MONSTRO ===== */
+
+.monster-detail-modal {
+  /* "fieldset.retro-panel" (styles.scss) só vale pra <fieldset> — como este painel é uma
+     <div>, precisa repetir fundo/borda aqui. */
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+
+  position: relative;
+  width: 500px;
+  max-width: 92vw;
+  max-height: 82vh;
+  overflow-y: auto;
+  padding: 24px 20px 20px;
+}
+
+.stat-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stat-name {
+  margin: 0;
+  font-size: 12px;
+  color: var(--accent-color);
+}
+
+.stat-original-name {
+  margin: -4px 0 0;
+  font-size: 7px;
+  color: var(--label-title-color);
+  font-style: italic;
+}
+
+.stat-meta {
+  margin: 0;
+  font-size: 8px;
+  color: var(--label-title-color);
+  text-transform: capitalize;
+}
+
+.stat-row {
+  display: flex;
+  gap: 8px;
+  font-size: 8px;
+  color: var(--text-color);
+}
+
+.stat-label {
+  color: var(--label-title-color);
+  min-width: 60px;
+}
+
+.stat-abilities {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin: 6px 0;
+}
+
+.stat-ability {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 4px;
+  border: 1px solid var(--border-color);
+  font-size: 9px;
+  color: var(--text-color);
+}
+
+.stat-ability-key {
+  font-size: 6px;
+  color: var(--label-title-color);
+}
+
+.stat-section {
+  margin-top: 6px;
+
+  h4 {
+    margin: 0 0 6px;
+    font-size: 8px;
+    color: var(--accent-color);
+  }
+}
+
+.stat-feature {
+  margin: 0 0 8px;
+  font-size: 7px;
+  line-height: 1.7;
+  color: var(--text-color);
+
+  strong {
+    color: var(--accent-color);
+  }
 }

@@ -10,12 +10,19 @@ import {
   GameSessionPagedList,
   GameSessionResponse,
   JoinSessionPayload,
+  MonsterSession,
   PlayerSession,
   RollLogEntry,
   RollLogPayload,
   StartEncounterParticipantInput,
   SubmitInitiativePayload,
 } from '../models/game-session.interface';
+
+export interface AddMonsterToSessionInput {
+  id_monster_catalog?: string;
+  monster_api_slug?: string;
+  custom_name?: string;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -87,6 +94,38 @@ export class GameSessionService {
     return this.http.post<{ id_npc_session: string; id_game_session: string; id_character: number }>(
       `${this.baseUrl}/api/game-session/${sessionId}/npc`,
       { id_character: idCharacter },
+      { context: this.silentContext() },
+    );
+  }
+
+  addMonsterToSession(sessionId: string, input: AddMonsterToSessionInput): Observable<MonsterSession> {
+    return this.http.post<MonsterSession>(
+      `${this.baseUrl}/api/game-session/${sessionId}/monster`,
+      input,
+      { context: this.silentContext() },
+    );
+  }
+
+  updateMonsterHp(idMonsterSession: string, hpCurrent: number): Observable<void> {
+    return this.http.patch<void>(
+      `${this.baseUrl}/api/game-session/monster-session/${idMonsterSession}/hp`,
+      { hp_current: hpCurrent },
+      { context: this.silentContext() },
+    );
+  }
+
+  revealMonster(idMonsterSession: string): Observable<void> {
+    return this.http.post<void>(
+      `${this.baseUrl}/api/game-session/monster-session/${idMonsterSession}/reveal`,
+      {},
+      { context: this.silentContext() },
+    );
+  }
+
+  hideMonster(idMonsterSession: string): Observable<void> {
+    return this.http.post<void>(
+      `${this.baseUrl}/api/game-session/monster-session/${idMonsterSession}/hide`,
+      {},
       { context: this.silentContext() },
     );
   }

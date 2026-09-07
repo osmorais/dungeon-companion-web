@@ -13,12 +13,14 @@ import {
   RollLogEntry,
 } from '../models/game-session.interface';
 import { CharacterSummary } from '../models/character-summary.interface';
+import { AvatarPreset } from '../models/avatar-preset.interface';
 import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
 import { PixelDieComponent } from '../pixel-die/pixel-die.component';
 import { PixelNumericDieComponent } from '../pixel-numeric-die/pixel-numeric-die.component';
 import { PlayerActionsModalComponent } from '../player-actions-modal/player-actions-modal.component';
 import { StartFightModalComponent } from '../start-fight-modal/start-fight-modal.component';
 import { AbilityRollConfig, RollModalComponent } from '../roll-modal/roll-modal.component';
+import { AddMonsterModalComponent } from '../add-monster-modal/add-monster-modal.component';
 
 @Component({
   selector: 'app-session-panel',
@@ -30,6 +32,7 @@ import { AbilityRollConfig, RollModalComponent } from '../roll-modal/roll-modal.
     PlayerActionsModalComponent,
     StartFightModalComponent,
     RollModalComponent,
+    AddMonsterModalComponent,
   ],
   templateUrl: './session-panel.component.html',
   styleUrls: ['./session-panel.component.scss'],
@@ -50,10 +53,14 @@ export class SessionPanelComponent implements OnDestroy {
   savingHp = signal<Set<string>>(new Set());
   npcHpEdits = signal<Record<string, number>>({});
   savingNpcHp = signal<Set<string>>(new Set());
+  monsterHpEdits = signal<Record<string, number>>({});
+  savingMonsterHp = signal<Set<string>>(new Set());
 
   addNpcOpen = signal(false);
   addNpcChars = signal<CharacterSummary[]>([]);
   addNpcLoading = signal(false);
+
+  addMonsterOpen = signal(false);
   addingNpcId = signal<number | null>(null);
 
   private eventsSub: Subscription | null = null;
@@ -101,11 +108,17 @@ export class SessionPanelComponent implements OnDestroy {
         else this.connectRealtime(sessionId);
       });
     });
+
+    effect(() => {
+      const detail = this.sessionDetail();
+      untracked(() => this.checkForNewRolls(detail));
+    });
   }
 
   ngOnDestroy() {
     this.disconnectRealtime();
     this.stopPolling();
+    if (this.rollToastTimer) clearTimeout(this.rollToastTimer);
   }
 
   /** Guarda a busca silenciosa (independente de `refreshing`, que é só pro botão/estado visível). */
@@ -164,6 +177,7 @@ export class SessionPanelComponent implements OnDestroy {
 
         this.hpEdits.set({});
         this.npcHpEdits.set({});
+        this.monsterHpEdits.set({});
         this.refreshing.set(false);
         setTimeout(() => {
           document.getElementById('players-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -203,6 +217,15 @@ export class SessionPanelComponent implements OnDestroy {
 
   closeAddNpcModal() {
     this.addNpcOpen.set(false);
+  }
+
+  openAddMonsterModal() {
+    this.addMonsterOpen.set(true);
+  }
+
+  closeAddMonsterModal() {
+    this.addMonsterOpen.set(false);
+    this.refreshSession();
   }
 
   addNpc(char: CharacterSummary) {
@@ -382,6 +405,96 @@ export class SessionPanelComponent implements OnDestroy {
       .join(' ');
   }
 
+  /** ========================= PV DOS MONSTROS ========================= */
+
+  editedMonsterHp(monster: MonsterSession): number {
+    return this.monsterHpEdits()[monster.id_monster_session] ?? monster.hp_current;
+  }
+
+  hasMonsterHpChange(monster: MonsterSession): boolean {
+    const id = monster.id_monster_session;
+    const edits = this.monsterHpEdits();
+    if (!(id in edits)) return false;
+    return edits[id] !== monster.hp_current;
+  }
+
+  decrementMonsterHp(monster: MonsterSession) {
+    const current = this.editedMonsterHp(monster);
+    if (current <= 0) return;
+    this.monsterHpEdits.update(edits => ({ ...edits, [monster.id_monster_session]: current - 1 }));
+  }
+
+  incrementMonsterHp(monster: MonsterSession) {
+    const current = this.editedMonsterHp(monster);
+    if (current >= monster.hp_max) return;
+    this.monsterHpEdits.update(edits => ({ ...edits, [monster.id_monster_session]: current + 1 }));
+  }
+
+  saveMonsterHp(monster: MonsterSession) {
+    const newHp = this.editedMonsterHp(monster);
+    const id = monster.id_monster_session;
+    this.savingMonsterHp.update(s => { const n = new Set(s); n.add(id); return n; });
+    this.gameSessionService.updateMonsterHp(id, newHp).pipe(
+      finalize(() => this.savingMonsterHp.update(s => { const n = new Set(s); n.delete(id); return n; })),
+    ).subscribe({
+      next: () => {
+        this.sessionDetail.update(detail => {
+          if (!detail) return detail;
+          return {
+            ...detail,
+            monsters: detail.monsters.map(m =>
+              m.id_monster_session === id ? { ...m, hp_current: newHp } : m,
+            ),
+          };
+        });
+        this.monsterHpEdits.update(edits => {
+          const n = { ...edits };
+          delete n[id];
+          return n;
+        });
+      },
+    });
+  }
+
+  /** ========================= REVELAÇÃO DE MONSTROS ========================= */
+
+  revealedMonsters = computed(() => this.sessionDetail()?.revealed_monsters ?? []);
+  revealingMonsterId = signal<string | null>(null);
+
+  toggleMonsterReveal(monster: MonsterSession, event: Event): void {
+    event.stopPropagation();
+    if (this.revealingMonsterId()) return;
+    this.revealingMonsterId.set(monster.id_monster_session);
+    const action$ = monster.is_revealed
+      ? this.gameSessionService.hideMonster(monster.id_monster_session)
+      : this.gameSessionService.revealMonster(monster.id_monster_session);
+    action$
+      .pipe(finalize(() => this.revealingMonsterId.set(null)))
+      .subscribe({ next: () => this.refreshSession() });
+  }
+
+  /** ========================= DETALHE DO MONSTRO (modal) ========================= */
+
+  activeMonsterDetail = signal<MonsterSession | null>(null);
+
+  openMonsterDetail(monster: MonsterSession) {
+    this.activeMonsterDetail.set(monster);
+  }
+
+  closeMonsterDetail() {
+    this.activeMonsterDetail.set(null);
+  }
+
+  monsterAcValue(monster: MonsterSession): number | null {
+    return monster.data_snapshot.armor_class?.[0]?.value ?? null;
+  }
+
+  monsterSpeedText(monster: MonsterSession): string {
+    return Object.entries(monster.data_snapshot.speed ?? {})
+      .map(([key, value]) => `${key}: ${value}`)
+      .join(', ');
+  }
+
   hpPercent(current: number, max: number): number {
     if (max <= 0) return 0;
     return Math.max(0, Math.min(100, Math.round((current / max) * 100)));
@@ -436,6 +549,72 @@ export class SessionPanelComponent implements OnDestroy {
 
   formatMod(value: number): string {
     return value >= 0 ? `+${value}` : `${value}`;
+  }
+
+  /** ========================= TOAST DE ROLAGEM (broadcast) ========================= */
+
+  readonly ROLL_TOAST_MS = 10_000;
+
+  activeRollToast = signal<RollLogEntry | null>(null);
+  private seenRollIds = new Set<string>();
+  private rollToastFirstLoad = true;
+  private rollToastQueue: RollLogEntry[] = [];
+  private rollToastTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /**
+   * Detecta rolagens que chegaram desde a última atualização da sessão (de qualquer jogador) e
+   * as enfileira pra exibir em tela cheia por alguns segundos. No primeiro carregamento só marca
+   * o histórico existente como "visto", sem disparar o modal pra rolagens antigas.
+   */
+  private checkForNewRolls(detail: GameSessionDetail | null): void {
+    if (!detail) return;
+    const rolls = detail.recent_rolls;
+
+    if (this.rollToastFirstLoad) {
+      this.rollToastFirstLoad = false;
+      rolls.forEach((r) => this.seenRollIds.add(r.id_roll));
+      return;
+    }
+
+    const newRolls = rolls
+      .filter((r) => !this.seenRollIds.has(r.id_roll))
+      .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    if (newRolls.length === 0) return;
+    newRolls.forEach((r) => this.seenRollIds.add(r.id_roll));
+
+    // Enquanto o próprio jogador está rolando (ação ou iniciativa), ele já vê a animação no
+    // roll-modal correspondente — evita empilhar o toast de tela cheia por cima disso.
+    if (this.activeActionsCharacter() || this.activeInitiativeRoll()) return;
+
+    this.rollToastQueue.push(...newRolls);
+    if (!this.activeRollToast()) this.playNextRollToast();
+  }
+
+  private playNextRollToast(): void {
+    if (this.rollToastTimer) {
+      clearTimeout(this.rollToastTimer);
+      this.rollToastTimer = null;
+    }
+    const next = this.rollToastQueue.shift();
+    this.activeRollToast.set(next ?? null);
+    if (next) {
+      this.rollToastTimer = setTimeout(() => this.playNextRollToast(), this.ROLL_TOAST_MS);
+    }
+  }
+
+  closeRollToast(): void {
+    this.playNextRollToast();
+  }
+
+  /** Avatar de quem rolou, buscando entre jogadores e NPCs da sessão pelo id_character da rolagem. */
+  rollToastAvatarPreset(roll: RollLogEntry): AvatarPreset | null {
+    if (roll.id_character === null) return null;
+    const detail = this.sessionDetail();
+    if (!detail) return null;
+    const player = detail.players.find((p) => p.id_character === roll.id_character);
+    if (player) return player.character?.avatar_preset ?? null;
+    const npc = detail.npcs.find((n) => n.id_character === roll.id_character);
+    return npc?.character?.avatar_preset ?? null;
   }
 
   /** ========================= COMBATE / TURNOS ========================= */
@@ -523,14 +702,23 @@ export class SessionPanelComponent implements OnDestroy {
       const player = detail.players.find((pl) => pl.id_player_session === p.id_player_session);
       return player?.character?.name ?? player?.player_name ?? 'Jogador';
     }
+    if (p.participant_type === 'monster') {
+      if (this.isOwner()) {
+        const monster = detail.monsters.find((m) => m.id_monster_session === p.id_monster_session);
+        return monster ? this.monsterDisplayName(monster) : 'Monstro';
+      }
+      const revealed = detail.revealed_monsters.find((m) => m.id_monster_session === p.id_monster_session);
+      return revealed?.name ?? 'Monstro misterioso';
+    }
     const npc = detail.npcs.find((n) => n.id_npc_session === p.id_npc_session);
     return npc?.character?.name ?? 'NPC';
   }
 
   turnBannerText(current: CombatParticipant): string {
     const name = this.combatParticipantName(current);
-    if (current.participant_type === 'npc') {
-      return this.isOwner() ? `🎲 TURNO DE ${name} — AJA PELO NPC!` : `AGUARDANDO O MESTRE (${name})...`;
+    if (current.participant_type === 'npc' || current.participant_type === 'monster') {
+      const label = current.participant_type === 'monster' ? 'MONSTRO' : 'NPC';
+      return this.isOwner() ? `🎲 TURNO DE ${name} — AJA PELO ${label}!` : `AGUARDANDO O MESTRE (${name})...`;
     }
     const user = this.authService.currentUser();
     const detail = this.sessionDetail();

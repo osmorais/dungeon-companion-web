@@ -1,0 +1,103 @@
+<div class="overlay modal-overlay" (click)="close()">
+  <div class="retro-panel add-monster-modal" (click)="$event.stopPropagation()">
+    <button class="modal-close-btn" (click)="close()">✕</button>
+    <h3 class="modal-title">ADICIONAR MONSTRO</h3>
+
+    <div class="mode-tabs">
+      <button class="mode-tab" [class.mode-tab--active]="mode() === 'catalog'" (click)="setMode('catalog')">
+        BESTIÁRIO
+      </button>
+      <button class="mode-tab" [class.mode-tab--active]="mode() === 'new'" (click)="setMode('new')">
+        CATALOGAR AGORA
+      </button>
+    </div>
+
+    @if (mode() === 'catalog') {
+      @if (loadingCatalog()) {
+        <p class="modal-empty">Carregando bestiário...</p>
+      } @else if (catalogError()) {
+        <p class="modal-empty">Erro ao carregar o bestiário.</p>
+      } @else if (catalog().length === 0) {
+        <p class="modal-empty">Nenhum monstro catalogado ainda. Use a aba "CATALOGAR AGORA".</p>
+      } @else {
+        <div class="monster-modal-list">
+          @for (monster of catalog(); track monster.id_monster_catalog) {
+            <div
+              class="monster-modal-item"
+              [class.monster-modal-item--loading]="addingCatalogId() === monster.id_monster_catalog"
+              (click)="addFromCatalog(monster)"
+            >
+              <div class="monster-modal-info">
+                <span class="monster-modal-name">{{ monsterName(monster) }}</span>
+                <span class="monster-modal-meta">
+                  {{ monster.data_snapshot.size }} &mdash; {{ monster.data_snapshot.type }} &mdash;
+                  CA {{ monster.ac }} &mdash; PV {{ monster.hp_max }}
+                </span>
+              </div>
+              <span class="monster-modal-action">
+                {{ addingCatalogId() === monster.id_monster_catalog ? '...' : '+' }}
+              </span>
+            </div>
+          }
+        </div>
+      }
+    } @else {
+      <div class="new-monster-layout">
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Buscar monstro no SRD..."
+          [ngModel]="searchText()"
+          (ngModelChange)="searchText.set($event)"
+        />
+
+        @if (loadingSrdList()) {
+          <p class="modal-empty">Carregando SRD...</p>
+        } @else if (srdListError()) {
+          <p class="modal-empty">Erro ao carregar o SRD.</p>
+        } @else {
+          <ul class="srd-list">
+            @for (m of filteredSrdMonsters(); track m.index) {
+              <li class="srd-row" [class.srd-row--active]="selectedSlug() === m.index" (click)="selectSrdMonster(m)">
+                {{ m.name }}
+              </li>
+            }
+            @if (filteredSrdMonsters().length === 0) {
+              <p class="modal-empty">Nenhum monstro encontrado.</p>
+            }
+          </ul>
+        }
+
+        @if (selectedSlug()) {
+          <div class="preview-box">
+            @if (loadingDetail()) {
+              <p class="modal-empty">Carregando...</p>
+            } @else if (detailError()) {
+              <p class="modal-empty">Erro ao carregar o monstro.</p>
+            } @else if (selectedDetail(); as detail) {
+              <div class="preview-summary">
+                <span class="preview-name">{{ detail.name }}</span>
+                <span class="preview-meta">
+                  CA {{ acValue(detail) }} &mdash; PV {{ detail.hit_points }} &mdash; ND {{ detail.challenge_rating }}
+                </span>
+              </div>
+              <input
+                type="text"
+                class="custom-name-input"
+                [placeholder]="'Nome customizado (opcional): ' + detail.name"
+                [ngModel]="customName()"
+                (ngModelChange)="customName.set($event)"
+              />
+              @if (submitError()) {
+                <p class="modal-error">{{ submitError() }}</p>
+              }
+              <button class="retro-btn confirm-btn" [disabled]="submitting()" (click)="confirmNew()">
+                {{ submitting() ? 'ADICIONANDO...' : '+ CATALOGAR E ADICIONAR' }}
+              </button>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

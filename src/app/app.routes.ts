@@ -89,6 +89,30 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./session-panel/session-panel.component').then(m => m.SessionPanelComponent),
   },
+  {
+    path: 'monster-catalog',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./monster-catalog-list/monster-catalog-list.component').then(
+        m => m.MonsterCatalogListComponent,
+      ),
+  },
+  {
+    path: 'monster-catalog/new',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./monster-catalog-create/monster-catalog-create.component').then(
+        m => m.MonsterCatalogCreateComponent,
+      ),
+  },
+  {
+    path: 'monster-catalog/:id',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./monster-catalog-detail/monster-catalog-detail.component').then(
+        m => m.MonsterCatalogDetailComponent,
+      ),
+  },
 
   { path: '**', redirectTo: '' },
 ];

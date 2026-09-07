@@ -44,8 +44,9 @@
       </fieldset>
 
       <!-- Combate -->
-      <fieldset class="mobile-panel combat-panel">
+      <fieldset class="mobile-panel combat-panel" [class.combat-panel--split]="revealedMonsters().length > 0">
         <legend>COMBATE</legend>
+        <div class="combat-top">
         @if (!combat()) {
           @if (isOwner()) {
             <button class="retro-btn combat-start-btn" (click)="openStartFightModal()">⚔ INICIAR LUTA</button>
@@ -78,6 +79,17 @@
               <button class="retro-btn combat-end-btn" [disabled]="endingCombat()" (click)="endCombat()">
                 {{ endingCombat() ? '...' : 'ENCERRAR COMBATE' }}
               </button>
+            }
+          </div>
+        }
+        </div>
+        @if (revealedMonsters().length > 0) {
+          <div class="combat-bottom">
+            @for (m of revealedMonsters(); track m.id_monster_session) {
+              <div class="revealed-monster-card">
+                <div class="revealed-monster-image">🐉</div>
+                <span class="revealed-monster-name">{{ m.name }}</span>
+              </div>
             }
           </div>
         }
@@ -248,12 +260,15 @@
       }
 
       <!-- Lista de Monstros -->
-      @if (sessionDetail()!.monsters.length > 0) {
+      @if (sessionDetail()!.monsters.length > 0 || isOwner()) {
         <fieldset class="mobile-panel">
           <legend>MONSTROS</legend>
+          @if (sessionDetail()!.monsters.length === 0) {
+            <p class="mobile-empty-msg mobile-empty-msg--inner">NENHUM MONSTRO ADICIONADO À SESSÃO.</p>
+          } @else {
           <div class="mobile-monster-list">
             @for (monster of sessionDetail()!.monsters; track monster.id_monster_session) {
-              <div class="mobile-monster-row">
+              <div class="mobile-monster-row" (click)="openMonsterDetail(monster)">
                 <div class="mobile-monster-icon">☠</div>
                 <div class="mobile-monster-info">
                   <span class="mobile-monster-name">{{ monsterDisplayName(monster) }}</span>
@@ -267,10 +282,37 @@
                       [style.background-color]="hpColor(monster.hp_current, monster.hp_max)">
                     </div>
                   </div>
+                  @if (isOwner()) {
+                    <div class="hp-controls" (click)="$event.stopPropagation()">
+                      <button class="hp-btn" (click)="decrementMonsterHp(monster)" [disabled]="editedMonsterHp(monster) <= 0">−</button>
+                      <span class="hp-edit-value">{{ editedMonsterHp(monster) }}</span>
+                      <button class="hp-btn" (click)="incrementMonsterHp(monster)" [disabled]="editedMonsterHp(monster) >= monster.hp_max">+</button>
+                    </div>
+                    <button class="retro-btn hp-save-btn mobile-hp-save-btn"
+                      (click)="$event.stopPropagation(); saveMonsterHp(monster)"
+                      [disabled]="savingMonsterHp().has(monster.id_monster_session) || !hasMonsterHpChange(monster)">
+                      {{ savingMonsterHp().has(monster.id_monster_session) ? '...' : 'SALVAR HP' }}
+                    </button>
+                  }
                 </div>
+                <button
+                  class="reveal-toggle-btn"
+                  [class.reveal-toggle-btn--on]="monster.is_revealed"
+                  [disabled]="revealingMonsterId() === monster.id_monster_session"
+                  [title]="monster.is_revealed ? 'Esconder monstro dos jogadores' : 'Revelar monstro aos jogadores'"
+                  (click)="toggleMonsterReveal(monster, $event)"
+                >
+                  {{ monster.is_revealed ? '👁' : '🙈' }}
+                </button>
               </div>
             }
           </div>
+          }
+          @if (isOwner()) {
+            <button class="retro-btn mobile-npc-add-btn" (click)="openAddMonsterModal()">
+              + ADICIONAR MONSTRO
+            </button>
+          }
         </fieldset>
       }
     }
@@ -294,6 +336,8 @@
       <!-- Combate -->
       <fieldset class="retro-panel combat-panel combat-sidebar">
         <legend>COMBATE</legend>
+        <div class="combat-sidebar-body" [class.combat-sidebar-body--split]="revealedMonsters().length > 0">
+        <div class="combat-top">
         @if (!combat()) {
           @if (isOwner()) {
             <button class="retro-btn combat-start-btn" (click)="openStartFightModal()">⚔ INICIAR LUTA</button>
@@ -329,6 +373,18 @@
             }
           </div>
         }
+        </div>
+        @if (revealedMonsters().length > 0) {
+          <div class="combat-bottom">
+            @for (m of revealedMonsters(); track m.id_monster_session) {
+              <div class="revealed-monster-card">
+                <div class="revealed-monster-image">🐉</div>
+                <span class="revealed-monster-name">{{ m.name }}</span>
+              </div>
+            }
+          </div>
+        }
+        </div>
       </fieldset>
 
       <div class="main-column">
@@ -505,11 +561,85 @@
           }
         </fieldset>
       }
+
+      <!-- Lista de Monstros -->
+      @if (sessionDetail()!.monsters.length > 0 || isOwner()) {
+        <fieldset class="retro-panel">
+          <legend>MONSTROS</legend>
+          @if (sessionDetail()!.monsters.length === 0) {
+            <p class="empty-msg">NENHUM MONSTRO ADICIONADO À SESSÃO.</p>
+          } @else {
+          <table class="monster-table">
+            <thead>
+              <tr>
+                <th>NOME</th>
+                <th class="text-center">CA</th>
+                <th>PONTOS DE VIDA</th>
+                <th class="text-center">REVELAR</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (monster of sessionDetail()!.monsters; track monster.id_monster_session) {
+                <tr (click)="openMonsterDetail(monster)">
+                  <td class="monster-name-cell">
+                    <span class="monster-icon">☠</span>
+                    {{ monsterDisplayName(monster) }}
+                  </td>
+                  <td class="text-center monster-ac">{{ monster.ac }}</td>
+                  <td class="monster-hp-cell">
+                    <div class="monster-hp-bar-wrap">
+                      <div class="monster-hp-bar">
+                        <div class="monster-hp-fill"
+                          [style.width.%]="hpPercent(monster.hp_current, monster.hp_max)"
+                          [style.background-color]="hpColor(monster.hp_current, monster.hp_max)">
+                        </div>
+                      </div>
+                      <span class="monster-hp-text">{{ monster.hp_current }}/{{ monster.hp_max }}</span>
+                    </div>
+                    @if (isOwner()) {
+                      <div class="monster-hp-controls" (click)="$event.stopPropagation()">
+                        <button class="hp-btn" (click)="decrementMonsterHp(monster)" [disabled]="editedMonsterHp(monster) <= 0">−</button>
+                        <span class="hp-edit-value">{{ editedMonsterHp(monster) }}</span>
+                        <button class="hp-btn" (click)="incrementMonsterHp(monster)" [disabled]="editedMonsterHp(monster) >= monster.hp_max">+</button>
+                        <button class="retro-btn monster-hp-save-btn"
+                          (click)="saveMonsterHp(monster)"
+                          [disabled]="savingMonsterHp().has(monster.id_monster_session) || !hasMonsterHpChange(monster)">
+                          {{ savingMonsterHp().has(monster.id_monster_session) ? '...' : 'SALVAR HP' }}
+                        </button>
+                      </div>
+                    }
+                  </td>
+                  <td class="text-center">
+                    <button
+                      class="reveal-toggle-btn"
+                      [class.reveal-toggle-btn--on]="monster.is_revealed"
+                      [disabled]="revealingMonsterId() === monster.id_monster_session"
+                      [title]="monster.is_revealed ? 'Esconder monstro dos jogadores' : 'Revelar monstro aos jogadores'"
+                      (click)="toggleMonsterReveal(monster, $event)"
+                    >
+                      {{ monster.is_revealed ? '👁' : '🙈' }}
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          }
+          @if (isOwner()) {
+            <div class="npc-add-row">
+              <button class="retro-btn npc-add-btn" (click)="openAddMonsterModal()">
+                + ADICIONAR MONSTRO
+              </button>
+            </div>
+          }
+        </fieldset>
+      }
       </div>
 
       <!-- Rolagens recentes -->
       <fieldset class="retro-panel rolls-sidebar">
         <legend>ROLAGENS RECENTES</legend>
+        <div class="rolls-sidebar-body">
         @if (sessionDetail()!.recent_rolls.length === 0) {
           <p class="empty-msg">NENHUMA ROLAGEM AINDA.</p>
         } @else {
@@ -534,44 +664,9 @@
             }
           </div>
         }
+        </div>
       </fieldset>
       </div>
-
-      <!-- Lista de Monstros -->
-      @if (sessionDetail()!.monsters.length > 0) {
-        <fieldset class="retro-panel">
-          <legend>MONSTROS</legend>
-          <table class="monster-table">
-            <thead>
-              <tr>
-                <th>NOME</th>
-                <th class="text-center">CA</th>
-                <th>PONTOS DE VIDA</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (monster of sessionDetail()!.monsters; track monster.id_monster_session) {
-                <tr>
-                  <td class="monster-name-cell">
-                    <span class="monster-icon">☠</span>
-                    {{ monsterDisplayName(monster) }}
-                  </td>
-                  <td class="text-center monster-ac">{{ monster.ac }}</td>
-                  <td class="monster-hp-cell">
-                    <div class="monster-hp-bar">
-                      <div class="monster-hp-fill"
-                        [style.width.%]="hpPercent(monster.hp_current, monster.hp_max)"
-                        [style.background-color]="hpColor(monster.hp_current, monster.hp_max)">
-                      </div>
-                    </div>
-                    <span class="monster-hp-text">{{ monster.hp_current }}/{{ monster.hp_max }}</span>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </fieldset>
-      }
 
       <button class="retro-btn back-btn" (click)="goBack()">← VOLTAR</button>
     }
@@ -622,12 +717,18 @@
   </div>
 }
 
+<!-- ===== MODAL: ADICIONAR MONSTRO ===== -->
+@if (addMonsterOpen()) {
+  <app-add-monster-modal [sessionId]="id()!" (closed)="closeAddMonsterModal()" />
+}
+
 <!-- ===== MODAL: INICIAR LUTA ===== -->
 @if (combatStartOpen() && sessionDetail(); as detail) {
   <app-start-fight-modal
     [sessionId]="id()!"
     [players]="detail.players"
     [npcs]="detail.npcs"
+    [monsters]="detail.monsters"
     (closed)="closeStartFightModal()"
   />
 }
@@ -654,4 +755,80 @@
     (rolled)="onInitiativeRolled(ir.idCombatParticipant, $event)"
     (closed)="closeInitiativeRoll()"
   />
+}
+
+<!-- ===== TOAST: NOVA ROLAGEM (broadcast pra todos na sessão) ===== -->
+@if (activeRollToast(); as rollToast) {
+  <div class="overlay roll-toast-overlay" (click)="closeRollToast()">
+    <div class="retro-panel roll-toast-panel" (click)="$event.stopPropagation()">
+      <button class="modal-close-btn" (click)="closeRollToast()">✕</button>
+      <div class="roll-toast-avatar-circle">
+        <app-avatar-display [preset]="rollToastAvatarPreset(rollToast)" />
+      </div>
+      <span class="roll-toast-actor">{{ rollToast.actor_name }}</span>
+      <span class="roll-toast-label">{{ rollToast.label }}{{ advantageSuffix(rollToast) }}</span>
+      <div class="roll-toast-dice">
+        @for (v of rollToast.rolls; track $index) {
+          @if (isD6(rollToast)) {
+            <app-pixel-die [face]="v" [dropped]="isRollValueDropped(rollToast, v)" />
+          } @else {
+            <app-pixel-numeric-die [sides]="rollSides(rollToast)" [value]="v" [dropped]="isRollValueDropped(rollToast, v)" />
+          }
+        }
+      </div>
+      <span class="roll-toast-modifier">{{ formatMod(rollToast.modifier) }} (modificador)</span>
+      <span class="roll-toast-total">{{ rollToast.total }}</span>
+      <div class="roll-toast-timer-bar">
+        <div class="roll-toast-timer-fill" [style.animation-duration.ms]="ROLL_TOAST_MS"></div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ===== MODAL: DETALHE DO MONSTRO ===== -->
+@if (activeMonsterDetail(); as monster) {
+  <div class="overlay modal-overlay" (click)="closeMonsterDetail()">
+    <div class="retro-panel monster-detail-modal" (click)="$event.stopPropagation()">
+      <button class="modal-close-btn" (click)="closeMonsterDetail()">✕</button>
+      <div class="stat-block">
+        <h3 class="stat-name">{{ monsterDisplayName(monster) }}</h3>
+        @if (monster.custom_name) {
+          <p class="stat-original-name">({{ monster.data_snapshot.name }})</p>
+        }
+        <p class="stat-meta">{{ monster.data_snapshot.size }} {{ monster.data_snapshot.type }}, {{ monster.data_snapshot.alignment }}</p>
+
+        <div class="stat-row"><span class="stat-label">CA</span><span>{{ monster.ac }}</span></div>
+        <div class="stat-row"><span class="stat-label">PV</span><span>{{ monster.hp_current }}/{{ monster.hp_max }} ({{ monster.data_snapshot.hit_dice }})</span></div>
+        <div class="stat-row"><span class="stat-label">DESLOC.</span><span>{{ monsterSpeedText(monster) }}</span></div>
+
+        <div class="stat-abilities">
+          <div class="stat-ability"><span class="stat-ability-key">FOR</span>{{ monster.data_snapshot.strength }}</div>
+          <div class="stat-ability"><span class="stat-ability-key">DES</span>{{ monster.data_snapshot.dexterity }}</div>
+          <div class="stat-ability"><span class="stat-ability-key">CON</span>{{ monster.data_snapshot.constitution }}</div>
+          <div class="stat-ability"><span class="stat-ability-key">INT</span>{{ monster.data_snapshot.intelligence }}</div>
+          <div class="stat-ability"><span class="stat-ability-key">SAB</span>{{ monster.data_snapshot.wisdom }}</div>
+          <div class="stat-ability"><span class="stat-ability-key">CAR</span>{{ monster.data_snapshot.charisma }}</div>
+        </div>
+
+        <div class="stat-row"><span class="stat-label">ND</span><span>{{ monster.data_snapshot.challenge_rating }} ({{ monster.data_snapshot.xp }} XP)</span></div>
+
+        @if (monster.data_snapshot.special_abilities?.length) {
+          <div class="stat-section">
+            <h4>HABILIDADES</h4>
+            @for (a of monster.data_snapshot.special_abilities; track a.name) {
+              <p class="stat-feature"><strong>{{ a.name }}.</strong> {{ a.desc }}</p>
+            }
+          </div>
+        }
+        @if (monster.data_snapshot.actions?.length) {
+          <div class="stat-section">
+            <h4>AÇÕES</h4>
+            @for (a of monster.data_snapshot.actions; track a.name) {
+              <p class="stat-feature"><strong>{{ a.name }}.</strong> {{ a.desc }}</p>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
 }

@@ -1,3 +1,5 @@
+import { SrdMonsterDetail } from './monster-catalog.interface';
+
 export interface NpcRef {
   id_character: number;
 }
@@ -70,14 +72,21 @@ export interface MonsterSession {
   hp_current: number;
   hp_max: number;
   ac: number;
-  data_snapshot: Record<string, unknown>;
+  data_snapshot: SrdMonsterDetail;
+  is_revealed: boolean;
+}
+
+/** Versão pública de um monstro revelado — só o que os jogadores podem ver: nome, sem status/PV. */
+export interface RevealedMonster {
+  id_monster_session: string;
+  name: string;
 }
 
 export type RollType = 'dice' | 'attack' | 'skill' | 'save' | 'spell' | 'initiative';
 export type AdvantageState = 'normal' | 'advantage' | 'disadvantage';
 
 export type CombatStatus = 'rolling_initiative' | 'active' | 'finished';
-export type CombatParticipantType = 'player' | 'npc';
+export type CombatParticipantType = 'player' | 'npc' | 'monster';
 
 export interface CombatParticipant {
   id_combat_participant: string;
@@ -85,6 +94,7 @@ export interface CombatParticipant {
   participant_type: CombatParticipantType;
   id_player_session: string | null;
   id_npc_session: string | null;
+  id_monster_session: string | null;
   initiative_roll: number | null;
   initiative_total: number | null;
   dex_modifier: number;
@@ -147,7 +157,10 @@ export interface GameSessionDetail {
   game_session: GameSession;
   players: PlayerSession[];
   npcs: NpcSession[];
+  /** Só preenchido para o mestre — jogadores recebem sempre um array vazio aqui. */
   monsters: MonsterSession[];
+  /** Monstros revelados pelo mestre — visível para todos, sem status/PV. */
+  revealed_monsters: RevealedMonster[];
   recent_rolls: RollLogEntry[];
   combat: CombatEncounterDetail | null;
 }

@@ -1,0 +1,225 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.add-monster-modal {
+  /* A regra global "fieldset.retro-panel" (styles.scss) só vale pra elementos <fieldset> —
+     como este painel é uma <div>, ela nunca se aplica; repetimos fundo/borda aqui. */
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+
+  position: relative;
+  width: 480px;
+  max-width: 92vw;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 24px 20px 20px;
+  overflow-y: auto;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover {
+    background-color: var(--panel-bg);
+  }
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 11px;
+  color: var(--accent-color);
+}
+
+.mode-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.mode-tab {
+  flex: 1;
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--label-title-color);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  padding: 8px 6px;
+  cursor: pointer;
+  transition: color 0.12s, border-color 0.12s;
+
+  &--active {
+    color: var(--accent-color);
+    border-color: var(--accent-color);
+  }
+
+  &:hover:not(&--active) {
+    color: var(--text-color);
+  }
+}
+
+.modal-empty {
+  font-size: 8px;
+  color: var(--label-title-color);
+  text-align: center;
+  padding: 16px 0;
+  margin: 0;
+}
+
+.modal-error {
+  margin: 0;
+  font-size: 8px;
+  color: #ff6b6b;
+}
+
+/* ===== Modo bestiário ===== */
+
+.monster-modal-list {
+  overflow-y: auto;
+  max-height: 40vh;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--border-color);
+}
+
+.monster-modal-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: background-color 0.12s;
+
+  &:last-child { border-bottom: none; }
+  &:hover { background-color: var(--panel-bg); }
+
+  &--loading {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+}
+
+.monster-modal-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.monster-modal-name {
+  font-size: 8px;
+  color: var(--accent-color);
+}
+
+.monster-modal-meta {
+  font-size: 6px;
+  color: var(--label-title-color);
+  text-transform: capitalize;
+}
+
+.monster-modal-action {
+  font-size: 14px;
+  color: var(--accent-color);
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+}
+
+/* ===== Modo catalogar agora ===== */
+
+.new-monster-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.search-input,
+.custom-name-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.srd-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 26vh;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+}
+
+.srd-row {
+  padding: 8px 10px;
+  font-size: 8px;
+  color: var(--text-color);
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: background-color 0.12s;
+
+  &:last-child { border-bottom: none; }
+  &:hover { background-color: var(--btn-color); }
+
+  &--active {
+    color: var(--accent-color);
+    background-color: var(--btn-color);
+  }
+}
+
+.preview-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-color);
+}
+
+.preview-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.preview-name {
+  font-size: 10px;
+  color: var(--accent-color);
+}
+
+.preview-meta {
+  font-size: 7px;
+  color: var(--label-title-color);
+}
+
+.confirm-btn {
+  float: none;
+  font-size: 8px;
+  padding: 10px 14px;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}

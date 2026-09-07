@@ -1,0 +1,120 @@
+@if (isMobile()) {
+  <!-- ===== MOBILE LAYOUT ===== -->
+  <div class="mobile-detail-container">
+
+    <div class="mobile-header">
+      <button class="mobile-back-btn" (click)="goBack()">&#8592;</button>
+      <span class="mobile-title">DETALHE DO MONSTRO</span>
+    </div>
+
+    @if (loading()) {
+      <p class="mobile-empty-msg">CARREGANDO...</p>
+    } @else if (error() || !monster()) {
+      <p class="mobile-empty-msg">ERRO AO CARREGAR O MONSTRO.</p>
+    } @else if (monster(); as m) {
+      <fieldset class="mobile-panel">
+        <legend>{{ m.data_snapshot.type }}</legend>
+        <div class="stat-block">
+          <h3 class="stat-name">{{ monsterName(m) }}</h3>
+          @if (m.custom_name) {
+            <p class="stat-original-name">({{ m.data_snapshot.name }})</p>
+          }
+          <p class="stat-meta">{{ m.data_snapshot.size }} {{ m.data_snapshot.type }}, {{ m.data_snapshot.alignment }}</p>
+
+          <div class="stat-row"><span class="stat-label">CA</span><span>{{ acValue(m.data_snapshot) }}</span></div>
+          <div class="stat-row"><span class="stat-label">PV</span><span>{{ m.hp_max }} ({{ m.data_snapshot.hit_dice }})</span></div>
+          <div class="stat-row"><span class="stat-label">DESLOC.</span><span>{{ speedText(m.data_snapshot) }}</span></div>
+
+          <div class="stat-abilities">
+            <div class="stat-ability"><span class="stat-ability-key">FOR</span>{{ m.data_snapshot.strength }}</div>
+            <div class="stat-ability"><span class="stat-ability-key">DES</span>{{ m.data_snapshot.dexterity }}</div>
+            <div class="stat-ability"><span class="stat-ability-key">CON</span>{{ m.data_snapshot.constitution }}</div>
+            <div class="stat-ability"><span class="stat-ability-key">INT</span>{{ m.data_snapshot.intelligence }}</div>
+            <div class="stat-ability"><span class="stat-ability-key">SAB</span>{{ m.data_snapshot.wisdom }}</div>
+            <div class="stat-ability"><span class="stat-ability-key">CAR</span>{{ m.data_snapshot.charisma }}</div>
+          </div>
+
+          <div class="stat-row"><span class="stat-label">ND</span><span>{{ m.data_snapshot.challenge_rating }} ({{ m.data_snapshot.xp }} XP)</span></div>
+
+          @if (m.data_snapshot.special_abilities?.length) {
+            <div class="stat-section">
+              <h4>HABILIDADES</h4>
+              @for (a of m.data_snapshot.special_abilities; track a.name) {
+                <p class="stat-feature"><strong>{{ a.name }}.</strong> {{ a.desc }}</p>
+              }
+            </div>
+          }
+          @if (m.data_snapshot.actions?.length) {
+            <div class="stat-section">
+              <h4>AÇÕES</h4>
+              @for (a of m.data_snapshot.actions; track a.name) {
+                <p class="stat-feature"><strong>{{ a.name }}.</strong> {{ a.desc }}</p>
+              }
+            </div>
+          }
+        </div>
+      </fieldset>
+    }
+
+  </div>
+} @else {
+  <!-- ===== DESKTOP LAYOUT ===== -->
+  <div class="detail-container">
+
+    @if (loading()) {
+      <fieldset class="retro-panel">
+        <p class="empty-msg">CARREGANDO...</p>
+      </fieldset>
+    } @else if (error() || !monster()) {
+      <fieldset class="retro-panel">
+        <p class="empty-msg">ERRO AO CARREGAR O MONSTRO.</p>
+      </fieldset>
+    } @else if (monster(); as m) {
+      <fieldset class="retro-panel">
+        <legend>{{ monsterName(m) }}</legend>
+        <div class="stat-block">
+          <h3 class="stat-name">{{ monsterName(m) }}</h3>
+          @if (m.custom_name) {
+            <p class="stat-original-name">({{ m.data_snapshot.name }})</p>
+          }
+          <p class="stat-meta">{{ m.data_snapshot.size }} {{ m.data_snapshot.type }}, {{ m.data_snapshot.alignment }}</p>
+
+          <div class="stat-row"><span class="stat-label">CA</span><span>{{ acValue(m.data_snapshot) }}</span></div>
+          <div class="stat-row"><span class="stat-label">PV</span><span>{{ m.hp_max }} ({{ m.data_snapshot.hit_dice }})</span></div>
+          <div class="stat-row"><span class="stat-label">DESLOC.</span><span>{{ speedText(m.data_snapshot) }}</span></div>
+
+          <div class="stat-abilities">
+            <div class="stat-ability"><span class="stat-ability-key">FOR</span>{{ m.data_snapshot.strength }}</div>
+            <div class="stat-ability"><span class="stat-ability-key">DES</span>{{ m.data_snapshot.dexterity }}</div>
+            <div class="stat-ability"><span class="stat-ability-key">CON</span>{{ m.data_snapshot.constitution }}</div>
+            <div class="stat-ability"><span class="stat-ability-key">INT</span>{{ m.data_snapshot.intelligence }}</div>
+            <div class="stat-ability"><span class="stat-ability-key">SAB</span>{{ m.data_snapshot.wisdom }}</div>
+            <div class="stat-ability"><span class="stat-ability-key">CAR</span>{{ m.data_snapshot.charisma }}</div>
+          </div>
+
+          <div class="stat-row"><span class="stat-label">ND</span><span>{{ m.data_snapshot.challenge_rating }} ({{ m.data_snapshot.xp }} XP)</span></div>
+
+          @if (m.data_snapshot.special_abilities?.length) {
+            <div class="stat-section">
+              <h4>HABILIDADES</h4>
+              @for (a of m.data_snapshot.special_abilities; track a.name) {
+                <p class="stat-feature"><strong>{{ a.name }}.</strong> {{ a.desc }}</p>
+              }
+            </div>
+          }
+          @if (m.data_snapshot.actions?.length) {
+            <div class="stat-section">
+              <h4>AÇÕES</h4>
+              @for (a of m.data_snapshot.actions; track a.name) {
+                <p class="stat-feature"><strong>{{ a.name }}.</strong> {{ a.desc }}</p>
+              }
+            </div>
+          }
+        </div>
+      </fieldset>
+    }
+
+    <button class="retro-btn back-btn" (click)="goBack()">← VOLTAR</button>
+
+  </div>
+}
