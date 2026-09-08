@@ -170,21 +170,4 @@ export class GameSessionService {
   private silentContext(): HttpContext {
     return new HttpContext().set(SKIP_LOADING_OVERLAY, true);
   }
-
-  /**
-   * Canal de eventos em tempo real da sessão (substitui o polling). Emite sempre que o
-   * estado da sessão muda no servidor; o assinante deve refazer um GET da sessão.
-   */
-  connectEvents(sessionId: string): Observable<void> {
-    return new Observable<void>(subscriber => {
-      const es = new EventSource(`${this.baseUrl}/api/game-session/${sessionId}/events`, {
-        withCredentials: true,
-      });
-      es.addEventListener('update', () => subscriber.next());
-      es.onerror = () => {
-        // EventSource tenta reconectar sozinho; não é um erro fatal para o Observable.
-      };
-      return () => es.close();
-    });
-  }
 }

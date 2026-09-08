@@ -2,6 +2,7 @@ import { Component, HostListener, OnDestroy, inject, input, signal, effect, untr
 import { Router } from '@angular/router';
 import { Subscription, finalize, interval } from 'rxjs';
 import { GameSessionService } from '../services/game-session.service';
+import { SessionStateService } from '../services/session-state.service';
 import { CharacterService } from '../services/character.service';
 import { AuthService } from '../services/auth.service';
 import {
@@ -40,13 +41,14 @@ import { AddMonsterModalComponent } from '../add-monster-modal/add-monster-modal
 export class SessionPanelComponent implements OnDestroy {
   private router = inject(Router);
   private gameSessionService = inject(GameSessionService);
+  private sessionState = inject(SessionStateService);
   private charService = inject(CharacterService);
   private authService = inject(AuthService);
 
   id = input<string>();
 
   isMobile = signal(typeof window !== 'undefined' && window.innerWidth < 768);
-  sessionDetail = signal<GameSessionDetail | null>(null);
+  sessionDetail = this.sessionState.detail;
   error = signal(false);
   refreshing = signal(false);
   hpEdits = signal<Record<string, number>>({});
@@ -67,13 +69,13 @@ export class SessionPanelComponent implements OnDestroy {
   private safetyNetSub: Subscription | null = null;
   private pollingSub: Subscription | null = null;
   /**
-   * O painel é sincronizado via SSE (GameSessionService.connectEvents) — esse intervalo é só
-   * uma rede de segurança caso a conexão de eventos caia silenciosamente (proxy, sono do Render).
+   * O painel é sincronizado via socket.io (SessionStateService.connectRealtime) — esse
+   * intervalo é só uma rede de segurança caso a conexão caia silenciosamente (proxy, sono do Render).
    */
   private readonly SAFETY_NET_MS = 30_000;
   private readonly POLLING_MS = 6_000;
 
-  /** Quando ligado, desliga o SSE e usa polling a cada 6s pra atualizar a sessão. */
+  /** Quando ligado, desliga o socket e usa polling a cada 6s pra atualizar a sessão. */
   pollingEnabled = signal(false);
 
   isOwner = computed(() => {
@@ -125,8 +127,8 @@ export class SessionPanelComponent implements OnDestroy {
   private pollInFlight = false;
 
   private connectRealtime(sessionId: string) {
-    this.eventsSub = this.gameSessionService.connectEvents(sessionId).subscribe(() => {
-      if (!this.pollInFlight) this.fetchSession(sessionId, true);
+    this.eventsSub = this.sessionState.connectRealtime(sessionId).subscribe((event) => {
+      this.sessionState.applyEvent(event);
     });
     this.safetyNetSub = interval(this.SAFETY_NET_MS).subscribe(() => {
       if (!this.pollInFlight) this.fetchSession(sessionId, true);
@@ -156,7 +158,7 @@ export class SessionPanelComponent implements OnDestroy {
   }
 
   /**
-   * `silent` marca uma busca em segundo plano (polling/SSE): não rola a página de volta pra
+   * `silent` marca uma busca em segundo plano (polling/safety-net): não rola a página de volta pra
    * seção de jogadores e não descarta edições de HP que o usuário esteja digitando. O overlay
    * de carregamento em tela cheia é sempre pulado nesse painel — o feedback visual fica no
    * próprio botão de atualizar.
@@ -165,9 +167,8 @@ export class SessionPanelComponent implements OnDestroy {
     if (silent) this.pollInFlight = true;
     else this.refreshing.set(true);
 
-    this.gameSessionService.getSessionById(sessionId, true).subscribe({
-      next: detail => {
-        this.sessionDetail.set(detail);
+    this.sessionState.loadFull(sessionId).subscribe({
+      next: () => {
         this.error.set(false);
 
         if (silent) {
@@ -228,24 +229,27 @@ export class SessionPanelComponent implements OnDestroy {
     this.refreshSession();
   }
 
+  /**
+   * Sem refetch após o POST: o backend ecoa `npc_added` de volta pro próprio autor via socket
+   * (a room inclui quem disparou a ação), então esperar o evento evita um GET redundante e a
+   * corrida de outro GET desatualizado sobrescrever um update mais novo vindo do socket.
+   */
   addNpc(char: CharacterSummary) {
     const sessionId = this.id();
     if (!sessionId || this.addingNpcId() !== null) return;
     this.addingNpcId.set(char.id_character);
     this.gameSessionService.addNpcToSession(sessionId, char.id_character).pipe(
       finalize(() => this.addingNpcId.set(null)),
-    ).subscribe({
-      next: () => this.refreshSession(),
-    });
+    ).subscribe();
   }
 
   deleteNpc(idNpcSession: string) {
     this.gameSessionService.deleteNpc(idNpcSession).subscribe({
       next: () => {
-        this.sessionDetail.update(detail => {
-          if (!detail) return detail;
-          return { ...detail, npcs: detail.npcs.filter(n => n.id_npc_session !== idNpcSession) };
-        });
+        this.sessionState.patch(detail => ({
+          ...detail,
+          npcs: detail.npcs.filter(n => n.id_npc_session !== idNpcSession),
+        }));
         this.npcHpEdits.update(edits => {
           const n = { ...edits };
           delete n[idNpcSession];
@@ -263,10 +267,10 @@ export class SessionPanelComponent implements OnDestroy {
   deletePlayer(idPlayerSession: string) {
     this.gameSessionService.deletePlayer(idPlayerSession).subscribe({
       next: () => {
-        this.sessionDetail.update(detail => {
-          if (!detail) return detail;
-          return { ...detail, players: detail.players.filter(p => p.id_player_session !== idPlayerSession) };
-        });
+        this.sessionState.patch(detail => ({
+          ...detail,
+          players: detail.players.filter(p => p.id_player_session !== idPlayerSession),
+        }));
       },
     });
   }
@@ -325,17 +329,14 @@ export class SessionPanelComponent implements OnDestroy {
       finalize(() => this.savingHp.update(s => { const n = new Set(s); n.delete(id); return n; })),
     ).subscribe({
       next: () => {
-        this.sessionDetail.update(detail => {
-          if (!detail) return detail;
-          return {
-            ...detail,
-            players: detail.players.map(p =>
-              p.id_player_session === id
-                ? { ...p, character: p.character ? { ...p.character, current_hit_points: newHp } : p.character }
-                : p,
-            ),
-          };
-        });
+        this.sessionState.patch(detail => ({
+          ...detail,
+          players: detail.players.map(p =>
+            p.id_player_session === id
+              ? { ...p, character: p.character ? { ...p.character, current_hit_points: newHp } : p.character }
+              : p,
+          ),
+        }));
         this.hpEdits.update(edits => {
           const n = { ...edits };
           delete n[id];
@@ -377,17 +378,14 @@ export class SessionPanelComponent implements OnDestroy {
       finalize(() => this.savingNpcHp.update(s => { const n = new Set(s); n.delete(id); return n; })),
     ).subscribe({
       next: () => {
-        this.sessionDetail.update(detail => {
-          if (!detail) return detail;
-          return {
-            ...detail,
-            npcs: detail.npcs.map(n =>
-              n.id_npc_session === id
-                ? { ...n, character: n.character ? { ...n.character, current_hit_points: newHp } : n.character }
-                : n,
-            ),
-          };
-        });
+        this.sessionState.patch(detail => ({
+          ...detail,
+          npcs: detail.npcs.map(n =>
+            n.id_npc_session === id
+              ? { ...n, character: n.character ? { ...n.character, current_hit_points: newHp } : n.character }
+              : n,
+          ),
+        }));
         this.npcHpEdits.update(edits => {
           const n = { ...edits };
           delete n[id];
@@ -438,15 +436,12 @@ export class SessionPanelComponent implements OnDestroy {
       finalize(() => this.savingMonsterHp.update(s => { const n = new Set(s); n.delete(id); return n; })),
     ).subscribe({
       next: () => {
-        this.sessionDetail.update(detail => {
-          if (!detail) return detail;
-          return {
-            ...detail,
-            monsters: detail.monsters.map(m =>
-              m.id_monster_session === id ? { ...m, hp_current: newHp } : m,
-            ),
-          };
-        });
+        this.sessionState.patch(detail => ({
+          ...detail,
+          monsters: detail.monsters.map(m =>
+            m.id_monster_session === id ? { ...m, hp_current: newHp } : m,
+          ),
+        }));
         this.monsterHpEdits.update(edits => {
           const n = { ...edits };
           delete n[id];
@@ -461,6 +456,7 @@ export class SessionPanelComponent implements OnDestroy {
   revealedMonsters = computed(() => this.sessionDetail()?.revealed_monsters ?? []);
   revealingMonsterId = signal<string | null>(null);
 
+  /** Sem refetch — o socket ecoa `monster_revealed`/`monster_hidden` de volta (ver addNpc acima). */
   toggleMonsterReveal(monster: MonsterSession, event: Event): void {
     event.stopPropagation();
     if (this.revealingMonsterId()) return;
@@ -468,9 +464,7 @@ export class SessionPanelComponent implements OnDestroy {
     const action$ = monster.is_revealed
       ? this.gameSessionService.hideMonster(monster.id_monster_session)
       : this.gameSessionService.revealMonster(monster.id_monster_session);
-    action$
-      .pipe(finalize(() => this.revealingMonsterId.set(null)))
-      .subscribe({ next: () => this.refreshSession() });
+    action$.pipe(finalize(() => this.revealingMonsterId.set(null))).subscribe();
   }
 
   /** ========================= DETALHE DO MONSTRO (modal) ========================= */
@@ -630,7 +624,7 @@ export class SessionPanelComponent implements OnDestroy {
   } | null>(null);
   /**
    * Participantes cuja iniciativa já foi enviada por este cliente. Existe pra evitar que o
-   * banner "a batalha vai começar" reapareça no intervalo entre enviar a rolagem e o SSE
+   * banner "a batalha vai começar" reapareça no intervalo entre enviar a rolagem e o socket
    * trazer o sessionDetail atualizado — sem isso dava pra rolar de novo nessa janela.
    */
   private initiativeSubmitted = signal<Set<string>>(new Set());
@@ -770,6 +764,7 @@ export class SessionPanelComponent implements OnDestroy {
     });
   }
 
+  /** Sem refetch — o socket ecoa `turn_ended` de volta (ver addNpc acima). */
   endTurn(): void {
     const combat = this.combat();
     if (!combat || this.endingTurn()) return;
@@ -777,9 +772,10 @@ export class SessionPanelComponent implements OnDestroy {
     this.gameSessionService
       .endTurn(combat.encounter.id_combat_encounter)
       .pipe(finalize(() => this.endingTurn.set(false)))
-      .subscribe({ next: () => this.refreshSession() });
+      .subscribe();
   }
 
+  /** Sem refetch — o socket ecoa `combat_ended` de volta (ver addNpc acima). */
   endCombat(): void {
     const combat = this.combat();
     if (!combat || this.endingCombat()) return;
@@ -787,6 +783,6 @@ export class SessionPanelComponent implements OnDestroy {
     this.gameSessionService
       .endEncounter(combat.encounter.id_combat_encounter)
       .pipe(finalize(() => this.endingCombat.set(false)))
-      .subscribe({ next: () => this.refreshSession() });
+      .subscribe();
   }
 }
