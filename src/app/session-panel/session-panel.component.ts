@@ -121,6 +121,7 @@ export class SessionPanelComponent implements OnDestroy {
     this.disconnectRealtime();
     this.stopPolling();
     if (this.rollToastTimer) clearTimeout(this.rollToastTimer);
+    if (this.monsterDefeatedToastTimer) clearTimeout(this.monsterDefeatedToastTimer);
   }
 
   /** Guarda a busca silenciosa (independente de `refreshing`, que é só pro botão/estado visível). */
@@ -129,6 +130,7 @@ export class SessionPanelComponent implements OnDestroy {
   private connectRealtime(sessionId: string) {
     this.eventsSub = this.sessionState.connectRealtime(sessionId).subscribe((event) => {
       this.sessionState.applyEvent(event);
+      if (event.type === 'monster_defeated') this.showMonsterDefeatedToast(event.name);
     });
     this.safetyNetSub = interval(this.SAFETY_NET_MS).subscribe(() => {
       if (!this.pollInFlight) this.fetchSession(sessionId, true);
@@ -453,20 +455,35 @@ export class SessionPanelComponent implements OnDestroy {
 
   deleteMonster(monster: MonsterSession) {
     this.gameSessionService.deleteMonster(monster.id_monster_session).subscribe({
-      next: () => {
-        this.sessionState.patch(detail => ({
-          ...detail,
-          monsters: detail.monsters.filter(m => m.id_monster_session !== monster.id_monster_session),
-          revealed_monsters: detail.revealed_monsters.filter(
-            r => r.id_monster_session !== monster.id_monster_session,
-          ),
-        }));
-        this.monsterHpEdits.update(edits => {
-          const n = { ...edits };
-          delete n[monster.id_monster_session];
-          return n;
-        });
-      },
+      next: () => this.removeMonsterFromState(monster.id_monster_session),
+    });
+  }
+
+  defeatingMonsterId = signal<string | null>(null);
+
+  /** Remove o monstro (igual deleteMonster) e dispara a notificação de derrota pra todo mundo. */
+  defeatMonster(monster: MonsterSession) {
+    if (this.defeatingMonsterId()) return;
+    this.defeatingMonsterId.set(monster.id_monster_session);
+    this.gameSessionService.defeatMonster(monster.id_monster_session).pipe(
+      finalize(() => this.defeatingMonsterId.set(null)),
+    ).subscribe({
+      next: () => this.removeMonsterFromState(monster.id_monster_session),
+    });
+  }
+
+  private removeMonsterFromState(idMonsterSession: string): void {
+    this.sessionState.patch(detail => ({
+      ...detail,
+      monsters: detail.monsters.filter(m => m.id_monster_session !== idMonsterSession),
+      revealed_monsters: detail.revealed_monsters.filter(
+        r => r.id_monster_session !== idMonsterSession,
+      ),
+    }));
+    this.monsterHpEdits.update(edits => {
+      const n = { ...edits };
+      delete n[idMonsterSession];
+      return n;
     });
   }
 
@@ -617,6 +634,28 @@ export class SessionPanelComponent implements OnDestroy {
 
   closeRollToast(): void {
     this.playNextRollToast();
+  }
+
+  /** ========================= TOAST: MONSTRO DERROTADO (broadcast) ========================= */
+
+  readonly MONSTER_DEFEATED_TOAST_MS = 6_000;
+
+  activeMonsterDefeatedToast = signal<string | null>(null);
+  private monsterDefeatedToastTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /** Só o mestre dispara (defeatMonster), mas o evento ecoa pelo socket pra todo mundo, autor incluso. */
+  private showMonsterDefeatedToast(name: string): void {
+    if (this.monsterDefeatedToastTimer) clearTimeout(this.monsterDefeatedToastTimer);
+    this.activeMonsterDefeatedToast.set(name);
+    this.monsterDefeatedToastTimer = setTimeout(
+      () => this.activeMonsterDefeatedToast.set(null),
+      this.MONSTER_DEFEATED_TOAST_MS,
+    );
+  }
+
+  closeMonsterDefeatedToast(): void {
+    if (this.monsterDefeatedToastTimer) clearTimeout(this.monsterDefeatedToastTimer);
+    this.activeMonsterDefeatedToast.set(null);
   }
 
   /** Avatar de quem rolou, buscando entre jogadores e NPCs da sessão pelo id_character da rolagem. */

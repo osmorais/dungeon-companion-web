@@ -782,6 +782,29 @@
   }
 }
 
+.monster-defeat-btn {
+  background: none;
+  border: 1px solid var(--accent-color);
+  color: var(--accent-color);
+  font-size: 12px;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+
+  &:hover:not(:disabled) {
+    background-color: var(--accent-color);
+    color: var(--bg-color);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
 /* ===== MOBILE ===== */
 
 .mobile-container {
@@ -1532,6 +1555,44 @@
 @keyframes roll-toast-countdown {
   from { transform: scaleX(1); }
   to { transform: scaleX(0); }
+}
+
+.monster-defeated-overlay {
+  /* Acima dos demais overlays, mesmo motivo do roll-toast-overlay — é um aviso global. */
+  z-index: 1100;
+}
+
+.monster-defeated-panel {
+  border: 2px solid #ff6b6b;
+  background-color: var(--panel-bg);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 44px 56px 30px;
+  min-width: 380px;
+  max-width: 92vw;
+  text-align: center;
+  animation: roll-toast-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.monster-defeated-icon {
+  font-size: 56px;
+  color: #ff6b6b;
+  text-shadow: 0 0 16px #ff6b6b;
+}
+
+.monster-defeated-name {
+  font-size: 20px;
+  color: var(--accent-color);
+}
+
+.monster-defeated-label {
+  font-size: 12px;
+  color: var(--label-title-color);
+  margin-bottom: 6px;
 }
 
 .battle-start-panel {

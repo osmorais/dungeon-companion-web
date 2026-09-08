@@ -312,6 +312,14 @@
                 </button>
                 @if (isOwner()) {
                   <button
+                    class="monster-defeat-btn"
+                    title="Marcar monstro como derrotado"
+                    [disabled]="defeatingMonsterId() === monster.id_monster_session"
+                    (click)="$event.stopPropagation(); defeatMonster(monster)"
+                  >
+                    ⚔
+                  </button>
+                  <button
                     class="monster-delete-btn"
                     title="Remover monstro da sessão"
                     (click)="$event.stopPropagation(); deleteMonster(monster)"
@@ -591,6 +599,7 @@
                 <th class="text-center">CA</th>
                 <th>PONTOS DE VIDA</th>
                 <th class="text-center">REVELAR</th>
+                <th class="text-center">DERROTAR</th>
                 <th class="text-center">REMOVER</th>
               </tr>
             </thead>
@@ -641,6 +650,18 @@
                     >
                       {{ monster.is_revealed ? '👁' : '🙈' }}
                     </button>
+                  </td>
+                  <td class="text-center">
+                    @if (isOwner()) {
+                      <button
+                        class="monster-defeat-btn"
+                        title="Marcar monstro como derrotado"
+                        [disabled]="defeatingMonsterId() === monster.id_monster_session"
+                        (click)="$event.stopPropagation(); defeatMonster(monster)"
+                      >
+                        ⚔
+                      </button>
+                    }
                   </td>
                   <td class="text-center">
                     @if (isOwner()) {
@@ -813,6 +834,21 @@
       <span class="roll-toast-total">{{ rollToast.total }}</span>
       <div class="roll-toast-timer-bar">
         <div class="roll-toast-timer-fill" [style.animation-duration.ms]="ROLL_TOAST_MS"></div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ===== TOAST: MONSTRO DERROTADO (broadcast pra todos na sessão) ===== -->
+@if (activeMonsterDefeatedToast(); as defeatedName) {
+  <div class="overlay monster-defeated-overlay" (click)="closeMonsterDefeatedToast()">
+    <div class="retro-panel monster-defeated-panel" (click)="$event.stopPropagation()">
+      <button class="modal-close-btn" (click)="closeMonsterDefeatedToast()">✕</button>
+      <span class="monster-defeated-icon">☠</span>
+      <span class="monster-defeated-name">{{ defeatedName }}</span>
+      <span class="monster-defeated-label">FOI DERROTADO!</span>
+      <div class="roll-toast-timer-bar">
+        <div class="roll-toast-timer-fill" [style.animation-duration.ms]="MONSTER_DEFEATED_TOAST_MS"></div>
       </div>
     </div>
   </div>

@@ -34,6 +34,7 @@ export function applySessionEvent(
       return { ...detail, monsters: [...detail.monsters, event.monster] };
 
     case 'monster_removed':
+    case 'monster_defeated':
       return {
         ...detail,
         monsters: detail.monsters.filter((m) => m.id_monster_session !== event.id_monster_session),
