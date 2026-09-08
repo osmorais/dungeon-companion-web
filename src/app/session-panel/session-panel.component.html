@@ -310,6 +310,15 @@
                 >
                   {{ monster.is_revealed ? '👁' : '🙈' }}
                 </button>
+                @if (isOwner()) {
+                  <button
+                    class="monster-delete-btn"
+                    title="Remover monstro da sessão"
+                    (click)="$event.stopPropagation(); deleteMonster(monster)"
+                  >
+                    ✕
+                  </button>
+                }
               </div>
             }
           </div>
@@ -582,6 +591,7 @@
                 <th class="text-center">CA</th>
                 <th>PONTOS DE VIDA</th>
                 <th class="text-center">REVELAR</th>
+                <th class="text-center">REMOVER</th>
               </tr>
             </thead>
             <tbody>
@@ -631,6 +641,17 @@
                     >
                       {{ monster.is_revealed ? '👁' : '🙈' }}
                     </button>
+                  </td>
+                  <td class="text-center">
+                    @if (isOwner()) {
+                      <button
+                        class="monster-delete-btn"
+                        title="Remover monstro da sessão"
+                        (click)="$event.stopPropagation(); deleteMonster(monster)"
+                      >
+                        ✕
+                      </button>
+                    }
                   </td>
                 </tr>
               }

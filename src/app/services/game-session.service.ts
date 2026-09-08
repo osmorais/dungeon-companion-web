@@ -130,6 +130,13 @@ export class GameSessionService {
     );
   }
 
+  deleteMonster(idMonsterSession: string): Observable<void> {
+    return this.http.delete<void>(
+      `${this.baseUrl}/api/game-session/monster-session/${idMonsterSession}`,
+      { context: this.silentContext() },
+    );
+  }
+
   postRoll(sessionId: string, payload: RollLogPayload): Observable<RollLogEntry> {
     return this.http.post<RollLogEntry>(`${this.baseUrl}/api/game-session/${sessionId}/roll`, payload);
   }

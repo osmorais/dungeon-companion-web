@@ -764,6 +764,24 @@
   }
 }
 
+.monster-delete-btn {
+  background: none;
+  border: 1px solid #ff6b6b;
+  color: #ff6b6b;
+  font-size: 12px;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+
+  &:hover {
+    background-color: #ff6b6b;
+    color: var(--bg-color);
+  }
+}
+
 /* ===== MOBILE ===== */
 
 .mobile-container {

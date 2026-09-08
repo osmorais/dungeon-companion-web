@@ -451,6 +451,25 @@ export class SessionPanelComponent implements OnDestroy {
     });
   }
 
+  deleteMonster(monster: MonsterSession) {
+    this.gameSessionService.deleteMonster(monster.id_monster_session).subscribe({
+      next: () => {
+        this.sessionState.patch(detail => ({
+          ...detail,
+          monsters: detail.monsters.filter(m => m.id_monster_session !== monster.id_monster_session),
+          revealed_monsters: detail.revealed_monsters.filter(
+            r => r.id_monster_session !== monster.id_monster_session,
+          ),
+        }));
+        this.monsterHpEdits.update(edits => {
+          const n = { ...edits };
+          delete n[monster.id_monster_session];
+          return n;
+        });
+      },
+    });
+  }
+
   /** ========================= REVELAÇÃO DE MONSTROS ========================= */
 
   revealedMonsters = computed(() => this.sessionDetail()?.revealed_monsters ?? []);

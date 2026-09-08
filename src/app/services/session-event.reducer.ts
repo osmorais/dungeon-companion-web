@@ -33,6 +33,15 @@ export function applySessionEvent(
       // Só chega no cliente do mestre (SessionSocketGateway roteia pra room só-mestre).
       return { ...detail, monsters: [...detail.monsters, event.monster] };
 
+    case 'monster_removed':
+      return {
+        ...detail,
+        monsters: detail.monsters.filter((m) => m.id_monster_session !== event.id_monster_session),
+        revealed_monsters: detail.revealed_monsters.filter(
+          (r) => r.id_monster_session !== event.id_monster_session,
+        ),
+      };
+
     case 'player_hp_updated':
       return {
         ...detail,
