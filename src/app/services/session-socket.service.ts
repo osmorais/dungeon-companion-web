@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { io } from 'socket.io-client';
 import { environment } from '../../environments/environment';
 import { SessionEvent } from '../models/session-event.interface';
+import { AUTH_TOKEN_KEY } from './auth.service';
 
 /** Só transporte: abre um socket por sessão e emite os eventos tipados recebidos. */
 @Injectable({
@@ -14,7 +15,12 @@ export class SessionSocketService {
   connect(sessionId: string): Observable<SessionEvent> {
     return new Observable<SessionEvent>((subscriber) => {
       const socket = io(this.baseUrl, {
-        withCredentials: true,
+        // `WebSocket` nativo não manda headers customizados, e o navegador bloqueia o cookie
+        // `token` como cookie de terceiros (dungeon-companion-api é cross-site em relação ao
+        // domínio do app) mesmo com SameSite=None — confirmado direto no DevTools (nenhum
+        // `Cookie:` chega no handshake). Por isso o token vai explicitamente no payload de
+        // auth do socket.io, que viaja dentro do próprio protocolo, não como cookie/header.
+        auth: { token: localStorage.getItem(AUTH_TOKEN_KEY) },
         query: { sessionId },
         // 'websocket' primeiro, sem upgrade a partir de polling: em produção (Render) o
         // upgrade de uma conexão polling pra WS falha porque a nova conexão TCP do upgrade
