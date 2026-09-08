@@ -16,6 +16,14 @@ export class SessionSocketService {
       const socket = io(this.baseUrl, {
         withCredentials: true,
         query: { sessionId },
+        // 'websocket' primeiro, sem upgrade a partir de polling: em produção (Render) o
+        // upgrade de uma conexão polling pra WS falha porque a nova conexão TCP do upgrade
+        // pode cair numa instância diferente da que abriu a sessão original (sem sticky
+        // session), e o servidor rejeita o `sid` por não reconhecê-lo. Conectar direto via
+        // WS evita esse caminho por completo; 'polling' fica só como fallback caso WS falhe
+        // de verdade (ex: proxy corporativo bloqueando).
+        transports: ['websocket', 'polling'],
+        upgrade: false,
       });
       socket.on('session:event', (event: SessionEvent) => subscriber.next(event));
       // Reconexão automática do socket.io-client cobre quedas transitórias; o polling/safety-net
