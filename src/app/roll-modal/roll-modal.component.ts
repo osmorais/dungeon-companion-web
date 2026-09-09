@@ -60,9 +60,9 @@ export class RollModalComponent {
 
   advantageState = signal<AdvantageState>('normal');
   /** Bandeja de dados livres: quantos de cada lado (ex: {6: 3, 12: 1, ...} = 3d6 + 1d12). Começa
-   *  com todos os tipos presentes (zerados, exceto 1d6) pra sempre ter valor definido no template. */
+   *  zerada (o jogador escolhe) — todos os tipos presentes só pra ter valor definido no template. */
   freeformPool = signal<Record<number, number>>(
-    Object.fromEntries(DIE_OPTIONS.map((d) => [d, d === 6 ? 1 : 0])),
+    Object.fromEntries(DIE_OPTIONS.map((d) => [d, 0])),
   );
   freeformModifier = signal(0);
   /** Só tem efeito se canHideRoll — ver comentário no @Input. */

@@ -870,10 +870,12 @@
   border: 1px solid var(--accent-color);
   color: var(--accent-color);
   font-family: 'Press Start 2P', monospace;
-  font-size: 14px;
-  padding: 4px 10px;
+  font-size: 8px;
+  padding: 6px 8px;
   cursor: pointer;
-  line-height: 1;
+  line-height: 1.4;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .mobile-polling-btn {
@@ -897,6 +899,11 @@
   font-size: 10px;
   color: var(--accent-color);
   letter-spacing: 1px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .mobile-panel {

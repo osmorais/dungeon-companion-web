@@ -6,16 +6,8 @@
       <button class="mobile-back-btn" (click)="goBack()">&#8592;</button>
       <span class="mobile-title">PAINEL DA SESSÃO</span>
       @if (isOwner()) {
-        <button class="mobile-dm-roll-btn" (click)="openDmRoll()" title="Rolar dados (mestre)">🎲</button>
+        <button class="mobile-dm-roll-btn" (click)="openDmRoll()">🎲 ROLAR DADOS</button>
       }
-      <button
-        class="mobile-polling-btn"
-        [class.mobile-polling-btn--on]="pollingEnabled()"
-        (click)="togglePolling()"
-        [title]="pollingEnabled() ? 'Polling ativo (6s) — clique para usar WebSocket' : 'WebSocket ativo — clique para usar polling (6s)'"
-      >
-        POLL {{ pollingEnabled() ? 'ON' : 'OFF' }}
-      </button>
       <button class="mobile-refresh-btn" (click)="refreshSession()" [disabled]="refreshing()" title="Atualizar sessão">
         {{ refreshing() ? '...' : '↻' }}
       </button>
