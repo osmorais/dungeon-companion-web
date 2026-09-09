@@ -834,7 +834,7 @@
         <span class="roll-toast-label">{{ toast.label }}{{ advantageSuffix(toast) }}</span>
         <div class="roll-toast-avatar-circle">
           @if (toast.id_character === null) {
-            <div class="roll-toast-dm-icon" title="Mestre">🎭</div>
+            <img class="roll-toast-dm-icon" src="assets/dm.png" alt="Mestre" />
           } @else {
             <app-avatar-display [preset]="rollToastAvatarPreset(toast)" />
           }
