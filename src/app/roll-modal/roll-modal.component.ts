@@ -32,6 +32,7 @@ interface RollResult {
 type AttackPhase = 'attack' | 'awaiting-hit' | 'damage';
 
 const DIE_OPTIONS = [4, 6, 8, 10, 12, 20, 100];
+const MAX_PER_DIE_TYPE = 9;
 const ROLL_TICKS = 10;
 const ROLL_TICK_MS = 80;
 
@@ -56,8 +57,11 @@ export class RollModalComponent {
   readonly dieOptions = DIE_OPTIONS;
 
   advantageState = signal<AdvantageState>('normal');
-  freeformSides = signal(6);
-  freeformCount = signal(1);
+  /** Bandeja de dados livres: quantos de cada lado (ex: {6: 3, 12: 1, ...} = 3d6 + 1d12). Começa
+   *  com todos os tipos presentes (zerados, exceto 1d6) pra sempre ter valor definido no template. */
+  freeformPool = signal<Record<number, number>>(
+    Object.fromEntries(DIE_OPTIONS.map((d) => [d, d === 6 ? 1 : 0])),
+  );
   freeformModifier = signal(0);
 
   /** Fase do fluxo de ataque — só avança além de 'attack' quando config.damage existe. */
@@ -68,6 +72,10 @@ export class RollModalComponent {
   result = signal<RollResult | null>(null);
   posting = signal(false);
   postFailed = signal(false);
+
+  /** Lados de cada dado da rolagem em andamento/mais recente, na ordem — congelada no início de
+   *  cada roll() pra não mudar de baixo do resultado se o jogador mexer na bandeja depois. */
+  private rolledSides: number[] = [];
 
   private get pendingDamage() {
     if (this.config.mode !== 'ability' || this.config.rollType !== 'attack') return null;
@@ -88,22 +96,29 @@ export class RollModalComponent {
     return this.config.mode === 'ability' ? this.config.label : 'Rolagem de Dados';
   }
 
-  get sides(): number {
-    if (this.attackPhase() === 'damage' && this.pendingDamage) return this.pendingDamage.diceSides;
-    return this.config.mode === 'ability' ? 20 : this.freeformSides();
-  }
-
-  get diceCount(): number {
-    if (this.attackPhase() === 'damage' && this.pendingDamage) return this.pendingDamage.diceCount;
-    if (this.config.mode === 'ability') {
-      return this.advantageState() === 'normal' ? 1 : 2;
-    }
-    return this.freeformCount();
-  }
-
   get modifier(): number {
     if (this.attackPhase() === 'damage' && this.pendingDamage) return this.pendingDamage.modifier;
     return this.config.mode === 'ability' ? this.config.modifier : this.freeformModifier();
+  }
+
+  /** true quando não há nada selecionado pra rolar (bandeja livre vazia). */
+  get freeformPoolEmpty(): boolean {
+    return this.config.mode === 'freeform' && this.currentDiceSides().length === 0;
+  }
+
+  /** Lados de cada dado a exibir agora: enquanto rola/tem resultado usa a lista congelada da
+   *  rolagem em curso; antes de rolar, mostra a composição atual (d20/dano da arma/bandeja livre). */
+  private diceSidesForDisplay(): number[] {
+    return this.isRolling() || this.result() ? this.rolledSides : this.currentDiceSides();
+  }
+
+  /** Lados do dado na posição i — usado pelo template pra saber qual imagem/componente mostrar. */
+  sidesAt(index: number): number {
+    return this.diceSidesForDisplay()[index] ?? 20;
+  }
+
+  get diceCount(): number {
+    return this.diceSidesForDisplay().length;
   }
 
   placeholderIndexes(): number[] {
@@ -116,15 +131,14 @@ export class RollModalComponent {
     this.result.set(null);
   }
 
-  setFreeformSides(sides: number) {
+  /** Muda quantos dados de `sides` estão na bandeja livre (ex: +1 no d12). */
+  changeFreeformDieCount(sides: number, delta: number) {
     if (this.isRolling()) return;
-    this.freeformSides.set(sides);
-    this.result.set(null);
-  }
-
-  changeFreeformCount(delta: number) {
-    if (this.isRolling()) return;
-    this.freeformCount.update((c) => Math.min(4, Math.max(1, c + delta)));
+    this.freeformPool.update((pool) => {
+      const current = pool[sides] ?? 0;
+      const next = Math.min(MAX_PER_DIE_TYPE, Math.max(0, current + delta));
+      return { ...pool, [sides]: next };
+    });
     this.result.set(null);
   }
 
@@ -135,22 +149,22 @@ export class RollModalComponent {
   }
 
   roll() {
-    if (this.isRolling()) return;
+    if (this.isRolling() || this.freeformPoolEmpty) return;
     this.result.set(null);
     this.postFailed.set(false);
     this.isRolling.set(true);
 
-    const sides = this.sides;
-    const count = this.diceCount;
-    this.displayValues.set(Array.from({ length: count }, () => 1));
+    const sidesList = this.currentDiceSides();
+    this.rolledSides = sidesList;
+    this.displayValues.set(sidesList.map(() => 1));
 
     let ticks = 0;
     const interval = setInterval(() => {
-      this.displayValues.set(Array.from({ length: count }, () => this.rollDie(sides)));
+      this.displayValues.set(sidesList.map((s) => this.rollDie(s)));
       ticks++;
       if (ticks >= ROLL_TICKS) {
         clearInterval(interval);
-        this.finishRoll(sides, count);
+        this.finishRoll(sidesList);
       }
     }, ROLL_TICK_MS);
   }
@@ -169,14 +183,15 @@ export class RollModalComponent {
     this.rolled.emit({ rolls: res?.rolls ?? [], modifier: this.modifier, total: res?.total ?? 0 });
   }
 
-  isDropped(value: number): boolean {
+  isDropped(index: number): boolean {
     const res = this.result();
     if (!res || !this.isAbility || res.rolls.length < 2) return false;
-    return !res.chosen.includes(value);
+    return !res.chosen.includes(res.rolls[index]);
   }
 
-  criticalFor(value: number): 'high' | 'low' | null {
+  criticalFor(index: number): 'high' | 'low' | null {
     if (!this.isAbility) return null;
+    const value = this.result()?.rolls[index];
     if (value === 20) return 'high';
     if (value === 1) return 'low';
     return null;
@@ -190,8 +205,23 @@ export class RollModalComponent {
     this.closed.emit();
   }
 
-  private finishRoll(sides: number, count: number) {
-    const rolls = Array.from({ length: count }, () => this.rollDie(sides));
+  /** Lista de lados dos dados da rolagem atual, na ordem — d20 (1-2x pra vantagem/desvantagem),
+   *  o dado de dano da arma, ou a bandeja livre expandida (ex: {6:3,12:1} -> [6,6,6,12]). */
+  private currentDiceSides(): number[] {
+    if (this.attackPhase() === 'damage' && this.pendingDamage) {
+      const { diceCount, diceSides } = this.pendingDamage;
+      return Array.from({ length: diceCount }, () => diceSides);
+    }
+    if (this.config.mode === 'ability') {
+      const count = this.advantageState() === 'normal' ? 1 : 2;
+      return Array.from({ length: count }, () => 20);
+    }
+    const pool = this.freeformPool();
+    return this.dieOptions.flatMap((sides) => Array(pool[sides] ?? 0).fill(sides));
+  }
+
+  private finishRoll(sidesList: number[]) {
+    const rolls = sidesList.map((s) => this.rollDie(s));
     this.displayValues.set(rolls);
 
     let chosen: number[];
@@ -210,7 +240,7 @@ export class RollModalComponent {
     const total = chosen.reduce((sum, r) => sum + r, 0) + this.modifier;
     this.isRolling.set(false);
     this.result.set({ rolls, chosen, total });
-    this.postRoll(rolls, total);
+    this.postRoll(rolls, total, sidesList);
 
     if (this.pendingDamage && this.attackPhase() === 'attack') {
       // Terminou o d20 do ataque — espera a decisão do mestre antes de sinalizar
@@ -226,7 +256,15 @@ export class RollModalComponent {
     return Math.floor(Math.random() * sides) + 1;
   }
 
-  private postRoll(rolls: number[], total: number) {
+  /** Ex: [6,6,6,12] -> "3d6 + 1d12". Cada grupo de mesmo lado vira um termo. */
+  private diceNotationFor(sidesList: number[]): string {
+    if (this.isAbility) return '1d20';
+    const counts = new Map<number, number>();
+    for (const s of sidesList) counts.set(s, (counts.get(s) ?? 0) + 1);
+    return [...counts.entries()].map(([sides, count]) => `${count}d${sides}`).join(' + ');
+  }
+
+  private postRoll(rolls: number[], total: number, sidesList: number[]) {
     if (!this.sessionId) return;
 
     const rollType: RollType =
@@ -235,15 +273,13 @@ export class RollModalComponent {
         : this.config.mode === 'ability'
           ? this.config.rollType
           : 'dice';
-    const label = this.title;
-    const diceNotation = this.isAbility ? '1d20' : `${this.diceCount}d${this.sides}`;
 
     const payload: RollLogPayload = {
       id_character: this.idCharacter,
       actor_name: this.actorName,
       roll_type: rollType,
-      label,
-      dice_notation: diceNotation,
+      label: this.title,
+      dice_notation: this.diceNotationFor(sidesList),
       rolls,
       advantage_state: this.isAbility ? this.advantageState() : 'normal',
       modifier: this.modifier,

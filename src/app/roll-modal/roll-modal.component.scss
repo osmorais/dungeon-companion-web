@@ -100,8 +100,22 @@
   flex-shrink: 0;
 }
 
-.roll-die-options {
-  justify-content: flex-start;
+.roll-freeform-pool {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px 16px;
+}
+
+.roll-pool-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.roll-pool-die-label {
+  font-size: 9px;
+  color: var(--label-title-color);
 }
 
 .roll-stepper {

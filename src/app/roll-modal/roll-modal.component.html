@@ -32,40 +32,29 @@
       </div>
     } @else if (config.mode === 'freeform') {
       <div class="roll-freeform-config">
-        <div class="roll-config-row">
-          <span class="roll-config-label">DADO</span>
-          <div class="roll-toggle-row roll-die-options">
-            @for (d of dieOptions; track d) {
-              <button
-                class="roll-toggle-btn"
-                [class.active]="freeformSides() === d"
-                [disabled]="isRolling()"
-                (click)="setFreeformSides(d)"
-              >
-                d{{ d }}
-              </button>
-            }
-          </div>
-        </div>
-        <div class="roll-config-row">
-          <span class="roll-config-label">QTD</span>
-          <div class="roll-stepper">
-            <button
-              class="roll-stepper-btn"
-              [disabled]="isRolling()"
-              (click)="changeFreeformCount(-1)"
-            >
-              −
-            </button>
-            <span>{{ freeformCount() }}</span>
-            <button
-              class="roll-stepper-btn"
-              [disabled]="isRolling()"
-              (click)="changeFreeformCount(1)"
-            >
-              +
-            </button>
-          </div>
+        <div class="roll-freeform-pool">
+          @for (d of dieOptions; track d) {
+            <div class="roll-pool-row">
+              <span class="roll-pool-die-label">d{{ d }}</span>
+              <div class="roll-stepper">
+                <button
+                  class="roll-stepper-btn"
+                  [disabled]="isRolling()"
+                  (click)="changeFreeformDieCount(d, -1)"
+                >
+                  −
+                </button>
+                <span>{{ freeformPool()[d] }}</span>
+                <button
+                  class="roll-stepper-btn"
+                  [disabled]="isRolling()"
+                  (click)="changeFreeformDieCount(d, 1)"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          }
         </div>
         <div class="roll-config-row">
           <span class="roll-config-label">MOD</span>
@@ -93,31 +82,31 @@
     <div class="roll-dice-display">
       @if (isRolling()) {
         @for (v of displayValues(); track $index) {
-          @if (sides === 6) {
+          @if (sidesAt($index) === 6) {
             <app-pixel-die [face]="v" [rolling]="true" />
           } @else {
-            <app-pixel-numeric-die [sides]="sides" [rolling]="true" />
+            <app-pixel-numeric-die [sides]="sidesAt($index)" [rolling]="true" />
           }
         }
       } @else if (result(); as res) {
         @for (v of res.rolls; track $index) {
-          @if (sides === 6) {
-            <app-pixel-die [face]="v" [dropped]="isDropped(v)" />
+          @if (sidesAt($index) === 6) {
+            <app-pixel-die [face]="v" [dropped]="isDropped($index)" />
           } @else {
             <app-pixel-numeric-die
-              [sides]="sides"
+              [sides]="sidesAt($index)"
               [value]="v"
-              [critical]="criticalFor(v)"
-              [dropped]="isDropped(v)"
+              [critical]="criticalFor($index)"
+              [dropped]="isDropped($index)"
             />
           }
         }
       } @else {
         @for (i of placeholderIndexes(); track i) {
-          @if (sides === 6) {
+          @if (sidesAt(i) === 6) {
             <app-pixel-die [face]="1" />
           } @else {
-            <app-pixel-numeric-die [sides]="sides" [value]="null" />
+            <app-pixel-numeric-die [sides]="sidesAt(i)" [value]="null" />
           }
         }
       }
@@ -141,7 +130,11 @@
       </div>
     } @else {
       <div class="roll-modal-actions">
-        <button class="roll-btn-primary" [disabled]="isRolling()" (click)="roll()">
+        <button
+          class="roll-btn-primary"
+          [disabled]="isRolling() || freeformPoolEmpty"
+          (click)="roll()"
+        >
           {{ isRolling() ? 'ROLANDO...' : result() ? 'ROLAR NOVAMENTE' : 'ROLAR' }}
         </button>
         <button class="roll-btn-secondary" (click)="close()">FECHAR</button>
