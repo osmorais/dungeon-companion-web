@@ -566,7 +566,8 @@ export class SessionPanelComponent implements OnDestroy {
 
   /** Marca o dado que não foi escolhido numa rolagem com vantagem/desvantagem. */
   isRollValueDropped(roll: RollLogEntry, value: number): boolean {
-    if (roll.roll_type === 'dice' || roll.rolls.length < 2) return false;
+    // 'dice' e 'damage' sempre somam todos os dados (nunca descartam um por vantagem/desvantagem).
+    if (roll.roll_type === 'dice' || roll.roll_type === 'damage' || roll.rolls.length < 2) return false;
     const chosen = roll.total - roll.modifier;
     return value !== chosen;
   }

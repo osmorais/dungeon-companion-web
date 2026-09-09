@@ -82,7 +82,7 @@ export interface RevealedMonster {
   name: string;
 }
 
-export type RollType = 'dice' | 'attack' | 'skill' | 'save' | 'spell' | 'initiative';
+export type RollType = 'dice' | 'attack' | 'damage' | 'skill' | 'save' | 'spell' | 'initiative';
 export type AdvantageState = 'normal' | 'advantage' | 'disadvantage';
 
 export type CombatStatus = 'rolling_initiative' | 'active' | 'finished';

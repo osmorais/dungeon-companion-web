@@ -5,6 +5,7 @@ import { CharacterSheetResponse } from '../models/character-response.interface';
 import { Skill, Spell, WeaponRow } from '../models/character-options.interface';
 import {
   AbilityRollConfig,
+  DamageRollConfig,
   RollConfig,
   RollModalComponent,
 } from '../roll-modal/roll-modal.component';
@@ -28,6 +29,10 @@ export class PlayerActionsModalComponent implements OnInit {
   error = signal(false);
   sheet = signal<CharacterSheetResponse | null>(null);
   activeRoll = signal<RollConfig | null>(null);
+  /** Arma do ataque em andamento — guardada pra saber qual dado de dano rolar se o mestre confirmar que acertou. */
+  attackingWeapon = signal<WeaponRow | null>(null);
+  /** Depois do ataque, pergunta se passou da CA antes de rolar dano ou fechar. */
+  pendingDamagePrompt = signal(false);
 
   expendingSlot = signal(false);
   restingLong = signal(false);
@@ -86,6 +91,7 @@ export class PlayerActionsModalComponent implements OnInit {
   }
 
   rollAttack(weapon: WeaponRow): void {
+    this.attackingWeapon.set(weapon);
     const config: AbilityRollConfig = {
       mode: 'ability',
       rollType: 'attack',
@@ -95,17 +101,57 @@ export class PlayerActionsModalComponent implements OnInit {
     this.activeRoll.set(config);
   }
 
+  /** O mestre disse que o ataque passou da CA — rola o dado de dano da arma equipada. */
+  rollDamage(): void {
+    const weapon = this.attackingWeapon();
+    this.pendingDamagePrompt.set(false);
+    const match = weapon?.damage_die?.match(/^(\d+)d(\d+)$/i);
+    if (!weapon || !match) {
+      // Arma sem dado de dano cadastrado — não tem o que rolar, encerra a ação.
+      this.attackingWeapon.set(null);
+      this.closed.emit();
+      return;
+    }
+    const config: DamageRollConfig = {
+      mode: 'damage',
+      label: `Dano: ${weapon.name}`,
+      diceCount: parseInt(match[1], 10),
+      diceSides: parseInt(match[2], 10),
+      modifier: weapon.damage_modifier,
+    };
+    this.activeRoll.set(config);
+  }
+
+  /** O mestre disse que o ataque não passou da CA — não há dano a rolar. */
+  missedAttack(): void {
+    this.pendingDamagePrompt.set(false);
+    this.attackingWeapon.set(null);
+    this.closed.emit();
+  }
+
   openFreeformRoll(): void {
     this.activeRoll.set({ mode: 'freeform' });
   }
 
   closeRoll(): void {
     this.activeRoll.set(null);
+    this.attackingWeapon.set(null);
   }
 
-  /** Ao executar a rolagem (ação concluída), fecha a rolagem e a própria tela de ações. */
+  /**
+   * Ao executar a rolagem: se foi um teste de ataque, não fecha ainda — espera o mestre dizer
+   * se passou da CA (pendingDamagePrompt) antes de rolar dano ou encerrar a ação. Qualquer
+   * outra rolagem (perícia, resistência, dano, dado livre) fecha tudo normalmente.
+   */
   onRolled(): void {
+    const roll = this.activeRoll();
+    const wasAttack = roll?.mode === 'ability' && roll.rollType === 'attack';
     this.activeRoll.set(null);
+    if (wasAttack && this.attackingWeapon()) {
+      this.pendingDamagePrompt.set(true);
+      return;
+    }
+    this.attackingWeapon.set(null);
     this.closed.emit();
   }
 

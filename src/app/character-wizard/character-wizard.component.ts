@@ -134,6 +134,7 @@ export class CharacterWizardComponent implements OnInit {
       return {
         id_weapon: w.id_weapon,
         attack_bonus: w.attack_bonus,
+        damage_modifier: w.damage_modifier,
         name: w.name,
         damage_die: w.damage_die,
         damage_type: w.damage_type,

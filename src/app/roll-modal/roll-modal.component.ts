@@ -11,11 +11,20 @@ export interface AbilityRollConfig {
   modifier: number;
 }
 
+/** Dado de dano de uma arma — fixo (não configurável pelo jogador, ao contrário do freeform), sem vantagem/desvantagem. */
+export interface DamageRollConfig {
+  mode: 'damage';
+  label: string;
+  diceCount: number;
+  diceSides: number;
+  modifier: number;
+}
+
 export interface FreeformRollConfig {
   mode: 'freeform';
 }
 
-export type RollConfig = AbilityRollConfig | FreeformRollConfig;
+export type RollConfig = AbilityRollConfig | DamageRollConfig | FreeformRollConfig;
 
 interface RollResult {
   rolls: number[];
@@ -63,22 +72,28 @@ export class RollModalComponent {
   }
 
   get title(): string {
-    return this.config.mode === 'ability' ? this.config.label : 'Rolagem de Dados';
+    if (this.config.mode === 'ability' || this.config.mode === 'damage') return this.config.label;
+    return 'Rolagem de Dados';
   }
 
   get sides(): number {
-    return this.config.mode === 'ability' ? 20 : this.freeformSides();
+    if (this.config.mode === 'ability') return 20;
+    if (this.config.mode === 'damage') return this.config.diceSides;
+    return this.freeformSides();
   }
 
   get diceCount(): number {
     if (this.config.mode === 'ability') {
       return this.advantageState() === 'normal' ? 1 : 2;
     }
+    if (this.config.mode === 'damage') return this.config.diceCount;
     return this.freeformCount();
   }
 
   get modifier(): number {
-    return this.config.mode === 'ability' ? this.config.modifier : this.freeformModifier();
+    if (this.config.mode === 'ability' || this.config.mode === 'damage')
+      return this.config.modifier;
+    return this.freeformModifier();
   }
 
   placeholderIndexes(): number[] {
@@ -182,7 +197,12 @@ export class RollModalComponent {
   private postRoll(rolls: number[], total: number) {
     if (!this.sessionId) return;
 
-    const rollType: RollType = this.config.mode === 'ability' ? this.config.rollType : 'dice';
+    const rollType: RollType =
+      this.config.mode === 'ability'
+        ? this.config.rollType
+        : this.config.mode === 'damage'
+          ? 'damage'
+          : 'dice';
     const label = this.title;
     const diceNotation =
       this.config.mode === 'ability' ? '1d20' : `${this.diceCount}d${this.sides}`;

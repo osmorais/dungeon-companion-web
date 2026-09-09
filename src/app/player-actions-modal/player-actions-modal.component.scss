@@ -89,6 +89,51 @@
   gap: 8px;
 }
 
+.pa-damage-prompt-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* Acima do pa-modal (150) — ocupa o mesmo espaço que o roll-modal ocuparia. */
+  z-index: 200;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.pa-damage-prompt {
+  width: 340px;
+  max-width: 100%;
+  box-sizing: border-box;
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  text-align: center;
+}
+
+.pa-damage-prompt-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.pa-freeform-btn--secondary {
+  background-color: transparent;
+  border-color: #ff6b6b;
+  color: #ff6b6b;
+
+  &:hover:not(:disabled) {
+    background-color: #ff6b6b;
+    color: var(--bg-color);
+  }
+}
+
 .pa-section-title {
   margin: 0;
   font-size: 8px;
