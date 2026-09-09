@@ -1510,8 +1510,10 @@
 }
 
 .roll-toast-label {
-  font-size: 9px;
-  color: var(--label-title-color);
+  font-size: 14px;
+  color: var(--accent-color);
+  text-shadow: 0 0 8px var(--accent-color);
+  letter-spacing: 0.5px;
 }
 
 .roll-toast-dice {
