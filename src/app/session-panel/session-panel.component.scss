@@ -1510,13 +1510,17 @@
 }
 
 .roll-toast-label {
-  display: inline-block;
-  font-size: 12px;
-  color: #000000;
-  background-color: #ffffff;
-  padding: 4px 10px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #8b0000;
   letter-spacing: 0.5px;
-  border: 1px solid var(--border-color);
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000,
+    0 0 6px #ffd700,
+    0 0 10px #ffd700;
 }
 
 .roll-toast-dice {
