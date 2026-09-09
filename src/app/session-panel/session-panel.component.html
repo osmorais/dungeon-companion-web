@@ -816,11 +816,11 @@
   <div class="overlay roll-toast-overlay" (click)="closeRollToast()">
     <div class="retro-panel roll-toast-panel" (click)="$event.stopPropagation()">
       <button class="modal-close-btn" (click)="closeRollToast()">✕</button>
+      <span class="roll-toast-label">{{ rollToast.label }}{{ advantageSuffix(rollToast) }}</span>
       <div class="roll-toast-avatar-circle">
         <app-avatar-display [preset]="rollToastAvatarPreset(rollToast)" />
       </div>
       <span class="roll-toast-actor">{{ rollToast.actor_name }}</span>
-      <span class="roll-toast-label">{{ rollToast.label }}{{ advantageSuffix(rollToast) }}</span>
       <div class="roll-toast-dice">
         @for (v of rollToast.rolls; track $index) {
           @if (isD6(rollToast)) {
