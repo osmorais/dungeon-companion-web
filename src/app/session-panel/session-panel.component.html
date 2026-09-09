@@ -891,6 +891,10 @@
         }
         <p class="stat-meta">{{ monster.data_snapshot.size }} {{ monster.data_snapshot.type }}, {{ monster.data_snapshot.alignment }}</p>
 
+        @if (monster.image_url) {
+          <img class="stat-image" [src]="monster.image_url" [alt]="monsterDisplayName(monster)" />
+        }
+
         <div class="stat-row"><span class="stat-label">CA</span><span>{{ monster.ac }}</span></div>
         <div class="stat-row"><span class="stat-label">PV</span><span>{{ monster.hp_current }}/{{ monster.hp_max }} ({{ monster.data_snapshot.hit_dice }})</span></div>
         <div class="stat-row"><span class="stat-label">DESLOC.</span><span>{{ monsterSpeedText(monster) }}</span></div>

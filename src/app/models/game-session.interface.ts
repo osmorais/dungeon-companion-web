@@ -74,6 +74,7 @@ export interface MonsterSession {
   ac: number;
   data_snapshot: SrdMonsterDetail;
   is_revealed: boolean;
+  image_url: string | null;
 }
 
 /** Versão pública de um monstro revelado — só o que os jogadores podem ver: nome, sem status/PV. */

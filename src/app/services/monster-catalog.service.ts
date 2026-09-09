@@ -44,4 +44,13 @@ export class MonsterCatalogService {
   deleteCatalogEntry(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/api/monster-catalog/${id}`);
   }
+
+  uploadImage(id: string, file: File): Observable<MonsterCatalogEntry> {
+    const formData = new FormData();
+    formData.append('image', file);
+    return this.http.post<MonsterCatalogEntry>(
+      `${this.baseUrl}/api/monster-catalog/${id}/image`,
+      formData,
+    );
+  }
 }

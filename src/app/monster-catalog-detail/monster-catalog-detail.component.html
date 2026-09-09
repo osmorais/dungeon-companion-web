@@ -21,6 +21,19 @@
           }
           <p class="stat-meta">{{ m.data_snapshot.size }} {{ m.data_snapshot.type }}, {{ m.data_snapshot.alignment }}</p>
 
+          <div class="stat-image-block">
+            @if (m.image_url) {
+              <img class="stat-image" [src]="m.image_url" [alt]="monsterName(m)" />
+            }
+            <label class="retro-btn stat-image-upload-btn">
+              {{ uploadingImage() ? 'ENVIANDO...' : m.image_url ? 'TROCAR IMAGEM' : '+ ADICIONAR IMAGEM' }}
+              <input type="file" accept="image/*" hidden [disabled]="uploadingImage()" (change)="onImageSelected($event)" />
+            </label>
+            @if (imageUploadError()) {
+              <p class="stat-image-error">{{ imageUploadError() }}</p>
+            }
+          </div>
+
           <div class="stat-row"><span class="stat-label">CA</span><span>{{ acValue(m.data_snapshot) }}</span></div>
           <div class="stat-row"><span class="stat-label">PV</span><span>{{ m.hp_max }} ({{ m.data_snapshot.hit_dice }})</span></div>
           <div class="stat-row"><span class="stat-label">DESLOC.</span><span>{{ speedText(m.data_snapshot) }}</span></div>
@@ -78,6 +91,19 @@
             <p class="stat-original-name">({{ m.data_snapshot.name }})</p>
           }
           <p class="stat-meta">{{ m.data_snapshot.size }} {{ m.data_snapshot.type }}, {{ m.data_snapshot.alignment }}</p>
+
+          <div class="stat-image-block">
+            @if (m.image_url) {
+              <img class="stat-image" [src]="m.image_url" [alt]="monsterName(m)" />
+            }
+            <label class="retro-btn stat-image-upload-btn">
+              {{ uploadingImage() ? 'ENVIANDO...' : m.image_url ? 'TROCAR IMAGEM' : '+ ADICIONAR IMAGEM' }}
+              <input type="file" accept="image/*" hidden [disabled]="uploadingImage()" (change)="onImageSelected($event)" />
+            </label>
+            @if (imageUploadError()) {
+              <p class="stat-image-error">{{ imageUploadError() }}</p>
+            }
+          </div>
 
           <div class="stat-row"><span class="stat-label">CA</span><span>{{ acValue(m.data_snapshot) }}</span></div>
           <div class="stat-row"><span class="stat-label">PV</span><span>{{ m.hp_max }} ({{ m.data_snapshot.hit_dice }})</span></div>

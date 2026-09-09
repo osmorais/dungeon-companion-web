@@ -1696,6 +1696,15 @@
   text-transform: capitalize;
 }
 
+.stat-image {
+  width: 100%;
+  max-width: 260px;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border: 2px solid var(--border-color);
+  align-self: center;
+}
+
 .stat-row {
   display: flex;
   gap: 8px;

@@ -25,6 +25,9 @@ export class MonsterCatalogDetailComponent implements OnInit {
   error = signal(false);
   monster = signal<MonsterCatalogEntry | null>(null);
 
+  uploadingImage = signal(false);
+  imageUploadError = signal<string | null>(null);
+
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
@@ -56,6 +59,42 @@ export class MonsterCatalogDetailComponent implements OnInit {
     return Object.entries(detail.speed ?? {})
       .map(([key, value]) => `${key}: ${value}`)
       .join(', ');
+  }
+
+  /** ========================= IMAGEM CUSTOMIZADA ========================= */
+
+  private static readonly MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
+  onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = ''; // permite selecionar o mesmo arquivo de novo depois de um erro
+    if (!file) return;
+
+    const monster = this.monster();
+    if (!monster || this.uploadingImage()) return;
+
+    if (!file.type.startsWith('image/')) {
+      this.imageUploadError.set('O arquivo precisa ser uma imagem.');
+      return;
+    }
+    if (file.size > MonsterCatalogDetailComponent.MAX_IMAGE_BYTES) {
+      this.imageUploadError.set('Imagem muito grande — o limite é 5 MB.');
+      return;
+    }
+
+    this.imageUploadError.set(null);
+    this.uploadingImage.set(true);
+    this.monsterCatalogService.uploadImage(monster.id_monster_catalog, file).subscribe({
+      next: updated => {
+        this.monster.set(updated);
+        this.uploadingImage.set(false);
+      },
+      error: () => {
+        this.imageUploadError.set('Não foi possível enviar a imagem. Tente novamente.');
+        this.uploadingImage.set(false);
+      },
+    });
   }
 
   goBack() {

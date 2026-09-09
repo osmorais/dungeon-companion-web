@@ -37,6 +37,8 @@ export interface MonsterCatalogEntry {
   ac: number;
   data_snapshot: SrdMonsterDetail;
   created_at: string;
+  /** Arte customizada subida pelo mestre — null enquanto não subir nenhuma. */
+  image_url: string | null;
 }
 
 export interface MonsterCatalogPagedList {
