@@ -8,7 +8,7 @@
         <button
           class="roll-toggle-btn"
           [class.active]="advantageState() === 'normal'"
-          [disabled]="isRolling()"
+          [disabled]="isRolling() || isAwaitingHitDecision"
           (click)="setAdvantage('normal')"
         >
           NORMAL
@@ -16,7 +16,7 @@
         <button
           class="roll-toggle-btn"
           [class.active]="advantageState() === 'advantage'"
-          [disabled]="isRolling()"
+          [disabled]="isRolling() || isAwaitingHitDecision"
           (click)="setAdvantage('advantage')"
         >
           VANTAGEM
@@ -24,7 +24,7 @@
         <button
           class="roll-toggle-btn"
           [class.active]="advantageState() === 'disadvantage'"
-          [disabled]="isRolling()"
+          [disabled]="isRolling() || isAwaitingHitDecision"
           (click)="setAdvantage('disadvantage')"
         >
           DESVANTAGEM
