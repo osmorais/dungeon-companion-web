@@ -42,11 +42,14 @@
 }
 
 .roll-modal-title {
-  font-size: 11px;
+  font-size: 15px;
   color: var(--accent-color);
-  margin: 0;
+  text-shadow: 0 0 8px var(--accent-color);
+  letter-spacing: 0.5px;
+  margin: 0 0 4px;
+  padding: 0 16px 12px 0;
   text-align: center;
-  padding-right: 16px;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .roll-toggle-row {
