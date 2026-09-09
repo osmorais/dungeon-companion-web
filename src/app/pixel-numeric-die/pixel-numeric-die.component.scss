@@ -19,14 +19,15 @@
   &__value {
     font-size: calc(var(--die-size) * 0.34);
     font-weight: bold;
-    color: #ffffff;
+    color: #8b0000;
     line-height: 1;
     text-shadow:
       -1px -1px 0 #000,
       1px -1px 0 #000,
       -1px 1px 0 #000,
       1px 1px 0 #000,
-      0 0 6px rgba(0, 0, 0, 0.9);
+      0 0 6px #ffd700,
+      0 0 10px #ffd700;
   }
 
   &--crit-high {
