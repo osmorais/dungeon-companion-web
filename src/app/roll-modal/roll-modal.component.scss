@@ -167,6 +167,13 @@
   color: var(--label-title-color);
 }
 
+.roll-hit-question {
+  margin: 0;
+  font-size: 9px;
+  color: var(--accent-color);
+  text-align: center;
+}
+
 .roll-modal-actions {
   display: flex;
   gap: 10px;

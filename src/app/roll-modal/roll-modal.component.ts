@@ -9,28 +9,27 @@ export interface AbilityRollConfig {
   rollType: 'attack' | 'skill' | 'save' | 'initiative';
   label: string;
   modifier: number;
-}
-
-/** Dado de dano de uma arma — fixo (não configurável pelo jogador, ao contrário do freeform), sem vantagem/desvantagem. */
-export interface DamageRollConfig {
-  mode: 'damage';
-  label: string;
-  diceCount: number;
-  diceSides: number;
-  modifier: number;
+  /**
+   * Só pra rollType 'attack': dado de dano da arma equipada. Quando presente, depois do
+   * resultado do d20 o modal pergunta "passou da CA?" e, se sim, rola esse dado — tudo no
+   * mesmo modal, sem fechar e reabrir.
+   */
+  damage?: { diceCount: number; diceSides: number; modifier: number; label: string };
 }
 
 export interface FreeformRollConfig {
   mode: 'freeform';
 }
 
-export type RollConfig = AbilityRollConfig | DamageRollConfig | FreeformRollConfig;
+export type RollConfig = AbilityRollConfig | FreeformRollConfig;
 
 interface RollResult {
   rolls: number[];
   chosen: number[];
   total: number;
 }
+
+type AttackPhase = 'attack' | 'awaiting-hit' | 'damage';
 
 const DIE_OPTIONS = [4, 6, 8, 10, 12, 20, 100];
 const ROLL_TICKS = 10;
@@ -51,7 +50,7 @@ export class RollModalComponent {
   @Input() actorName = 'Aventureiro';
   @Input() sessionId: string | undefined;
   @Output() closed = new EventEmitter<void>();
-  /** Emite o resultado bruto assim que a rolagem termina, independente de ser postada na sessão. */
+  /** Emite quando a interação termina de vez (não a cada rolagem — ver finishRoll/confirmMiss). */
   @Output() rolled = new EventEmitter<{ rolls: number[]; modifier: number; total: number }>();
 
   readonly dieOptions = DIE_OPTIONS;
@@ -61,39 +60,50 @@ export class RollModalComponent {
   freeformCount = signal(1);
   freeformModifier = signal(0);
 
+  /** Fase do fluxo de ataque — só avança além de 'attack' quando config.damage existe. */
+  attackPhase = signal<AttackPhase>('attack');
+
   isRolling = signal(false);
   displayValues = signal<number[]>([]);
   result = signal<RollResult | null>(null);
   posting = signal(false);
   postFailed = signal(false);
 
+  private get pendingDamage() {
+    if (this.config.mode !== 'ability' || this.config.rollType !== 'attack') return null;
+    return this.config.damage ?? null;
+  }
+
+  get isAwaitingHitDecision(): boolean {
+    return this.attackPhase() === 'awaiting-hit';
+  }
+
+  /** true só pro d20 de teste de habilidade — falso durante a sub-rolagem de dano do ataque. */
   get isAbility(): boolean {
-    return this.config.mode === 'ability';
+    return this.config.mode === 'ability' && this.attackPhase() !== 'damage';
   }
 
   get title(): string {
-    if (this.config.mode === 'ability' || this.config.mode === 'damage') return this.config.label;
-    return 'Rolagem de Dados';
+    if (this.attackPhase() === 'damage' && this.pendingDamage) return this.pendingDamage.label;
+    return this.config.mode === 'ability' ? this.config.label : 'Rolagem de Dados';
   }
 
   get sides(): number {
-    if (this.config.mode === 'ability') return 20;
-    if (this.config.mode === 'damage') return this.config.diceSides;
-    return this.freeformSides();
+    if (this.attackPhase() === 'damage' && this.pendingDamage) return this.pendingDamage.diceSides;
+    return this.config.mode === 'ability' ? 20 : this.freeformSides();
   }
 
   get diceCount(): number {
+    if (this.attackPhase() === 'damage' && this.pendingDamage) return this.pendingDamage.diceCount;
     if (this.config.mode === 'ability') {
       return this.advantageState() === 'normal' ? 1 : 2;
     }
-    if (this.config.mode === 'damage') return this.config.diceCount;
     return this.freeformCount();
   }
 
   get modifier(): number {
-    if (this.config.mode === 'ability' || this.config.mode === 'damage')
-      return this.config.modifier;
-    return this.freeformModifier();
+    if (this.attackPhase() === 'damage' && this.pendingDamage) return this.pendingDamage.modifier;
+    return this.config.mode === 'ability' ? this.config.modifier : this.freeformModifier();
   }
 
   placeholderIndexes(): number[] {
@@ -145,6 +155,20 @@ export class RollModalComponent {
     }, ROLL_TICK_MS);
   }
 
+  /** O mestre confirmou que o ataque passou da CA — rola o dado de dano da arma, no mesmo modal. */
+  rollDamageNow(): void {
+    if (!this.pendingDamage) return;
+    this.attackPhase.set('damage');
+    this.result.set(null);
+    this.roll();
+  }
+
+  /** O mestre disse que não passou da CA — encerra sem rolar dano. */
+  confirmMiss(): void {
+    const res = this.result();
+    this.rolled.emit({ rolls: res?.rolls ?? [], modifier: this.modifier, total: res?.total ?? 0 });
+  }
+
   isDropped(value: number): boolean {
     const res = this.result();
     if (!res || !this.isAbility || res.rolls.length < 2) return false;
@@ -171,7 +195,7 @@ export class RollModalComponent {
     this.displayValues.set(rolls);
 
     let chosen: number[];
-    if (this.config.mode === 'ability') {
+    if (this.isAbility) {
       const state = this.advantageState();
       if (state === 'normal') {
         chosen = rolls;
@@ -186,8 +210,16 @@ export class RollModalComponent {
     const total = chosen.reduce((sum, r) => sum + r, 0) + this.modifier;
     this.isRolling.set(false);
     this.result.set({ rolls, chosen, total });
-    this.rolled.emit({ rolls, modifier: this.modifier, total });
     this.postRoll(rolls, total);
+
+    if (this.pendingDamage && this.attackPhase() === 'attack') {
+      // Terminou o d20 do ataque — espera a decisão do mestre antes de sinalizar
+      // "interação concluída" (rolled) pro componente pai, senão ele fecharia tudo agora.
+      this.attackPhase.set('awaiting-hit');
+      return;
+    }
+
+    this.rolled.emit({ rolls, modifier: this.modifier, total });
   }
 
   private rollDie(sides: number): number {
@@ -198,14 +230,13 @@ export class RollModalComponent {
     if (!this.sessionId) return;
 
     const rollType: RollType =
-      this.config.mode === 'ability'
-        ? this.config.rollType
-        : this.config.mode === 'damage'
-          ? 'damage'
+      this.attackPhase() === 'damage'
+        ? 'damage'
+        : this.config.mode === 'ability'
+          ? this.config.rollType
           : 'dice';
     const label = this.title;
-    const diceNotation =
-      this.config.mode === 'ability' ? '1d20' : `${this.diceCount}d${this.sides}`;
+    const diceNotation = this.isAbility ? '1d20' : `${this.diceCount}d${this.sides}`;
 
     const payload: RollLogPayload = {
       id_character: this.idCharacter,
@@ -214,7 +245,7 @@ export class RollModalComponent {
       label,
       dice_notation: diceNotation,
       rolls,
-      advantage_state: this.config.mode === 'ability' ? this.advantageState() : 'normal',
+      advantage_state: this.isAbility ? this.advantageState() : 'normal',
       modifier: this.modifier,
       total,
     };

@@ -167,17 +167,3 @@
     (closed)="closeRoll()"
   />
 }
-
-@if (pendingDamagePrompt()) {
-  <div class="pa-damage-prompt-backdrop">
-    <div class="pa-damage-prompt">
-      <h3 class="pa-modal-title">O ataque passou da CA do alvo?</h3>
-      <div class="pa-damage-prompt-actions">
-        <button class="pa-freeform-btn" (click)="rollDamage()">🎲 ROLAR DANO</button>
-        <button class="pa-freeform-btn pa-freeform-btn--secondary" (click)="missedAttack()">
-          NÃO ACERTEI
-        </button>
-      </div>
-    </div>
-  </div>
-}

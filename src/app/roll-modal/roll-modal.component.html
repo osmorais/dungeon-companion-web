@@ -133,11 +133,19 @@
       </div>
     }
 
-    <div class="roll-modal-actions">
-      <button class="roll-btn-primary" [disabled]="isRolling()" (click)="roll()">
-        {{ isRolling() ? 'ROLANDO...' : result() ? 'ROLAR NOVAMENTE' : 'ROLAR' }}
-      </button>
-      <button class="roll-btn-secondary" (click)="close()">FECHAR</button>
-    </div>
+    @if (isAwaitingHitDecision) {
+      <p class="roll-hit-question">O ataque passou da CA do alvo?</p>
+      <div class="roll-modal-actions">
+        <button class="roll-btn-primary" (click)="rollDamageNow()">🎲 ROLAR DANO</button>
+        <button class="roll-btn-secondary" (click)="confirmMiss()">NÃO ACERTEI</button>
+      </div>
+    } @else {
+      <div class="roll-modal-actions">
+        <button class="roll-btn-primary" [disabled]="isRolling()" (click)="roll()">
+          {{ isRolling() ? 'ROLANDO...' : result() ? 'ROLAR NOVAMENTE' : 'ROLAR' }}
+        </button>
+        <button class="roll-btn-secondary" (click)="close()">FECHAR</button>
+      </div>
+    }
   </div>
 </div>
