@@ -20,15 +20,14 @@
   &__value {
     font-size: calc(var(--die-size) * 0.4);
     font-weight: bold;
-    color: #8b0000;
+    color: #ffffff;
     line-height: 1;
     text-shadow:
       -1px -1px 0 #000,
       1px -1px 0 #000,
       -1px 1px 0 #000,
       1px 1px 0 #000,
-      0 0 6px #ffd700,
-      0 0 10px #ffd700;
+      0 0 4px rgba(0, 0, 0, 0.9);
   }
 
   &--dropped {
