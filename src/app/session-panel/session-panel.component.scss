@@ -1521,6 +1521,16 @@
   flex-shrink: 0;
 }
 
+.roll-toast-dm-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 56px;
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
 @keyframes roll-toast-pop {
   0% {
     opacity: 0;

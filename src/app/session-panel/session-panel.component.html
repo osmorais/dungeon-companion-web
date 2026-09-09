@@ -833,7 +833,11 @@
         <button class="modal-close-btn" (click)="closeRollToast()">✕</button>
         <span class="roll-toast-label">{{ toast.label }}{{ advantageSuffix(toast) }}</span>
         <div class="roll-toast-avatar-circle">
-          <app-avatar-display [preset]="rollToastAvatarPreset(toast)" />
+          @if (toast.id_character === null) {
+            <div class="roll-toast-dm-icon" title="Mestre">🎭</div>
+          } @else {
+            <app-avatar-display [preset]="rollToastAvatarPreset(toast)" />
+          }
         </div>
         <span class="roll-toast-actor">{{ toast.actor_name }}</span>
         <div class="roll-toast-dice">
