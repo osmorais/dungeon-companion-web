@@ -733,6 +733,22 @@ export class SessionPanelComponent implements OnDestroy {
     );
   });
 
+  /** ========================= ROLAGEM DO MESTRE (pública ou oculta) ========================= */
+
+  dmRollOpen = signal(false);
+
+  get dmActorName(): string {
+    return this.sessionDetail()?.game_session.dm_name ?? 'Mestre';
+  }
+
+  openDmRoll(): void {
+    this.dmRollOpen.set(true);
+  }
+
+  closeDmRoll(): void {
+    this.dmRollOpen.set(false);
+  }
+
   openStartFightModal(): void {
     this.combatStartOpen.set(true);
   }

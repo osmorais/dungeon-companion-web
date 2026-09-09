@@ -195,6 +195,20 @@
   margin-top: 0;
 }
 
+.dm-roll-btn {
+  float: none;
+  font-size: 7px;
+  padding: 5px 8px;
+  margin-top: 0;
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+
+  &:hover {
+    background-color: var(--accent-color);
+    color: var(--bg-color);
+  }
+}
+
 .polling-btn {
   float: none;
   font-size: 7px;
@@ -849,6 +863,17 @@
     opacity: 0.4;
     cursor: not-allowed;
   }
+}
+
+.mobile-dm-roll-btn {
+  background: none;
+  border: 1px solid var(--accent-color);
+  color: var(--accent-color);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 14px;
+  padding: 4px 10px;
+  cursor: pointer;
+  line-height: 1;
 }
 
 .mobile-polling-btn {

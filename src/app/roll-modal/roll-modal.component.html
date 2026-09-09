@@ -76,6 +76,29 @@
             </button>
           </div>
         </div>
+        @if (canHideRoll) {
+          <div class="roll-config-row">
+            <span class="roll-config-label">MODO</span>
+            <div class="roll-toggle-row">
+              <button
+                class="roll-toggle-btn"
+                [class.active]="!freeformHidden()"
+                [disabled]="isRolling()"
+                (click)="setFreeformHidden(false)"
+              >
+                PÚBLICO
+              </button>
+              <button
+                class="roll-toggle-btn"
+                [class.active]="freeformHidden()"
+                [disabled]="isRolling()"
+                (click)="setFreeformHidden(true)"
+              >
+                🔒 OCULTO
+              </button>
+            </div>
+          </div>
+        }
       </div>
     }
 
@@ -116,6 +139,9 @@
       <div class="roll-result">
         <p class="roll-modifier-line">{{ formatMod(modifier) }} (modificador)</p>
         <p class="roll-total">TOTAL: {{ res.total }}</p>
+        @if (canHideRoll && freeformHidden()) {
+          <p class="roll-hidden-note">🔒 Só você vê esse resultado</p>
+        }
         @if (postFailed()) {
           <p class="roll-post-error">Não foi possível registrar na sessão.</p>
         }

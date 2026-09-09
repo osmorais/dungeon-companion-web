@@ -50,6 +50,8 @@ export class RollModalComponent {
   @Input() idCharacter: number | null = null;
   @Input() actorName = 'Aventureiro';
   @Input() sessionId: string | undefined;
+  /** Só o mestre pode rolar oculto — mostra o alternador PÚBLICO/OCULTO no modo freeform. */
+  @Input() canHideRoll = false;
   @Output() closed = new EventEmitter<void>();
   /** Emite quando a interação termina de vez (não a cada rolagem — ver finishRoll/confirmMiss). */
   @Output() rolled = new EventEmitter<{ rolls: number[]; modifier: number; total: number }>();
@@ -63,6 +65,8 @@ export class RollModalComponent {
     Object.fromEntries(DIE_OPTIONS.map((d) => [d, d === 6 ? 1 : 0])),
   );
   freeformModifier = signal(0);
+  /** Só tem efeito se canHideRoll — ver comentário no @Input. */
+  freeformHidden = signal(false);
 
   /** Fase do fluxo de ataque — só avança além de 'attack' quando config.damage existe. */
   attackPhase = signal<AttackPhase>('attack');
@@ -146,6 +150,11 @@ export class RollModalComponent {
     if (this.isRolling()) return;
     this.freeformModifier.update((m) => m + delta);
     this.result.set(null);
+  }
+
+  setFreeformHidden(hidden: boolean) {
+    if (this.isRolling()) return;
+    this.freeformHidden.set(hidden);
   }
 
   roll() {
@@ -284,6 +293,7 @@ export class RollModalComponent {
       advantage_state: this.isAbility ? this.advantageState() : 'normal',
       modifier: this.modifier,
       total,
+      is_hidden: this.canHideRoll && this.config.mode === 'freeform' && this.freeformHidden(),
     };
 
     this.posting.set(true);

@@ -5,6 +5,9 @@
     <div class="mobile-header">
       <button class="mobile-back-btn" (click)="goBack()">&#8592;</button>
       <span class="mobile-title">PAINEL DA SESSÃO</span>
+      @if (isOwner()) {
+        <button class="mobile-dm-roll-btn" (click)="openDmRoll()" title="Rolar dados (mestre)">🎲</button>
+      }
       <button
         class="mobile-polling-btn"
         [class.mobile-polling-btn--on]="pollingEnabled()"
@@ -425,6 +428,9 @@
             <span class="session-players-count">
               {{ sessionDetail()!.players.length }}/{{ sessionDetail()!.game_session.max_player_quantity }} JOGADORES
             </span>
+            @if (isOwner()) {
+              <button class="retro-btn dm-roll-btn" (click)="openDmRoll()">🎲 ROLAR DADOS</button>
+            }
             <button
               class="retro-btn polling-btn"
               [class.polling-btn--on]="pollingEnabled()"
@@ -808,6 +814,19 @@
     [sessionId]="id()"
     (rolled)="onInitiativeRolled(ir.idCombatParticipant, $event)"
     (closed)="closeInitiativeRoll()"
+  />
+}
+
+<!-- ===== MODAL: ROLAGEM DO MESTRE (pública ou oculta) ===== -->
+@if (dmRollOpen()) {
+  <app-roll-modal
+    [config]="{ mode: 'freeform' }"
+    [idCharacter]="null"
+    [actorName]="dmActorName"
+    [sessionId]="id()"
+    [canHideRoll]="true"
+    (rolled)="closeDmRoll()"
+    (closed)="closeDmRoll()"
   />
 }
 
