@@ -814,43 +814,53 @@
 <!-- ===== TOAST: NOVA ROLAGEM (broadcast pra todos na sessão) ===== -->
 @if (activeRollToast(); as rollToast) {
   <div class="overlay roll-toast-overlay" (click)="closeRollToast()">
-    <div class="retro-panel roll-toast-panel" (click)="$event.stopPropagation()">
-      <button class="modal-close-btn" (click)="closeRollToast()">✕</button>
-      <span class="roll-toast-label">{{ rollToast.label }}{{ advantageSuffix(rollToast) }}</span>
-      <div class="roll-toast-avatar-circle">
-        <app-avatar-display [preset]="rollToastAvatarPreset(rollToast)" />
-      </div>
-      <span class="roll-toast-actor">{{ rollToast.actor_name }}</span>
-      <div class="roll-toast-dice">
-        @for (v of rollToast.rolls; track $index) {
-          @if (isD6(rollToast)) {
-            <app-pixel-die [face]="v" [dropped]="isRollValueDropped(rollToast, v)" />
-          } @else {
-            <app-pixel-numeric-die [sides]="rollSides(rollToast)" [value]="v" [dropped]="isRollValueDropped(rollToast, v)" />
+    <!-- @for com track força o Angular a destruir/recriar o painel a cada rolagem nova — sem
+         isso, indo de uma rolagem direto pra outra (sem passar por null), o @if reaproveita o
+         mesmo elemento .roll-toast-timer-fill e a animação CSS da barra de tempo não reinicia. -->
+    @for (toast of [rollToast]; track toast.id_roll) {
+      <div class="retro-panel roll-toast-panel" (click)="$event.stopPropagation()">
+        <button class="modal-close-btn" (click)="closeRollToast()">✕</button>
+        <span class="roll-toast-label">{{ toast.label }}{{ advantageSuffix(toast) }}</span>
+        <div class="roll-toast-avatar-circle">
+          <app-avatar-display [preset]="rollToastAvatarPreset(toast)" />
+        </div>
+        <span class="roll-toast-actor">{{ toast.actor_name }}</span>
+        <div class="roll-toast-dice">
+          @for (v of toast.rolls; track $index) {
+            @if (isD6(toast)) {
+              <app-pixel-die [face]="v" [dropped]="isRollValueDropped(toast, v)" />
+            } @else {
+              <app-pixel-numeric-die [sides]="rollSides(toast)" [value]="v" [dropped]="isRollValueDropped(toast, v)" />
+            }
           }
-        }
+        </div>
+        <span class="roll-toast-modifier">{{ formatMod(toast.modifier) }} (modificador)</span>
+        <span class="roll-toast-total">{{ toast.total }}</span>
+        <div class="roll-toast-timer-bar">
+          <div class="roll-toast-timer-fill" [style.animation-duration.ms]="ROLL_TOAST_MS"></div>
+        </div>
       </div>
-      <span class="roll-toast-modifier">{{ formatMod(rollToast.modifier) }} (modificador)</span>
-      <span class="roll-toast-total">{{ rollToast.total }}</span>
-      <div class="roll-toast-timer-bar">
-        <div class="roll-toast-timer-fill" [style.animation-duration.ms]="ROLL_TOAST_MS"></div>
-      </div>
-    </div>
+    }
   </div>
 }
 
 <!-- ===== TOAST: MONSTRO DERROTADO (broadcast pra todos na sessão) ===== -->
-@if (activeMonsterDefeatedToast(); as defeatedName) {
+@if (activeMonsterDefeatedToast(); as defeated) {
   <div class="overlay monster-defeated-overlay" (click)="closeMonsterDefeatedToast()">
-    <div class="retro-panel monster-defeated-panel" (click)="$event.stopPropagation()">
-      <button class="modal-close-btn" (click)="closeMonsterDefeatedToast()">✕</button>
-      <span class="monster-defeated-icon">☠</span>
-      <span class="monster-defeated-name">{{ defeatedName }}</span>
-      <span class="monster-defeated-label">FOI DERROTADO!</span>
-      <div class="roll-toast-timer-bar">
-        <div class="roll-toast-timer-fill" [style.animation-duration.ms]="MONSTER_DEFEATED_TOAST_MS"></div>
+    <!-- @for com track (key) força recriar o painel a cada monstro derrotado — mesmo motivo do
+         toast de rolagem acima; sem isso dois derrotados seguidos com o mesmo nome nem
+         recriariam o elemento. -->
+    @for (d of [defeated]; track d.key) {
+      <div class="retro-panel monster-defeated-panel" (click)="$event.stopPropagation()">
+        <button class="modal-close-btn" (click)="closeMonsterDefeatedToast()">✕</button>
+        <span class="monster-defeated-icon">☠</span>
+        <span class="monster-defeated-name">{{ d.name }}</span>
+        <span class="monster-defeated-label">FOI DERROTADO!</span>
+        <div class="roll-toast-timer-bar">
+          <div class="roll-toast-timer-fill" [style.animation-duration.ms]="MONSTER_DEFEATED_TOAST_MS"></div>
+        </div>
       </div>
-    </div>
+    }
   </div>
 }
 
