@@ -1,17 +1,8 @@
 <div
   class="pixel-die"
-  [class]="'face-' + face"
   [class.pixel-die--dropped]="dropped"
   [class.pixel-die--mini]="mini"
   [class.pixel-die--rolling]="rolling"
 >
-  <span class="pip"></span>
-  <span class="pip"></span>
-  <span class="pip"></span>
-  <span class="pip"></span>
-  <span class="pip"></span>
-  <span class="pip"></span>
-  <span class="pip"></span>
-  <span class="pip"></span>
-  <span class="pip"></span>
+  <span class="pixel-die__value">{{ face }}</span>
 </div>

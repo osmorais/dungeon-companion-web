@@ -16,4 +16,8 @@ export class PixelNumericDieComponent {
   @Input() critical: 'high' | 'low' | null = null;
   /** Dado não escolhido (ex: perdeu na vantagem/desvantagem). */
   @Input() dropped = false;
+
+  get imagePath(): string {
+    return `/assets/dice/d${this.sides}.png`;
+  }
 }

@@ -7,37 +7,30 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-color);
-  border: 2px solid var(--border-color);
-  transform: rotate(45deg);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  position: relative;
 
   &--mini {
     --die-size: 22px;
-    border-width: 1px;
-  }
-
-  &__inner {
-    transform: rotate(-45deg);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    line-height: 1;
   }
 
   &__value {
     font-size: calc(var(--die-size) * 0.34);
-    color: var(--text-color);
-  }
-
-  &__sides {
-    font-size: 6px;
-    color: var(--label-title-color);
-    margin-top: 4px;
+    font-weight: bold;
+    color: #ffffff;
+    line-height: 1;
+    text-shadow:
+      -1px -1px 0 #000,
+      1px -1px 0 #000,
+      -1px 1px 0 #000,
+      1px 1px 0 #000,
+      0 0 6px rgba(0, 0, 0, 0.9);
   }
 
   &--crit-high {
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 2px var(--accent-color) inset;
+    filter: drop-shadow(0 0 6px var(--accent-color));
 
     .pixel-numeric-die__value {
       color: var(--accent-color);
@@ -52,7 +45,6 @@
   &--dropped {
     opacity: 0.35;
     filter: grayscale(1);
-    position: relative;
 
     &::after {
       content: '';
@@ -75,19 +67,19 @@
 
 @keyframes pixel-numeric-die-shake {
   0% {
-    transform: rotate(45deg) translate(0, 0);
+    transform: translate(0, 0) rotate(0deg);
   }
   25% {
-    transform: rotate(41deg) translate(1px, -1px);
+    transform: translate(1px, -1px) rotate(-4deg);
   }
   50% {
-    transform: rotate(49deg) translate(-1px, 1px);
+    transform: translate(-1px, 1px) rotate(4deg);
   }
   75% {
-    transform: rotate(43deg) translate(1px, 1px);
+    transform: translate(1px, 1px) rotate(-2deg);
   }
   100% {
-    transform: rotate(47deg) translate(-1px, -1px);
+    transform: translate(-1px, -1px) rotate(2deg);
   }
 }
 
