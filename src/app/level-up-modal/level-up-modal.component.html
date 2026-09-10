@@ -175,6 +175,30 @@
             }
           }
 
+          @case ('expertise') {
+            @if (p.expertise_choice; as ec) {
+              <div class="lu-block">
+                <span class="lu-section-label">
+                  ESCOLHA {{ ec.count }} PERÍCIAS JÁ TREINADAS — {{ selectedExpertiseIds().size }}/{{ ec.count }}
+                </span>
+                <p class="lu-note">O bônus de proficiência dobra nas perícias escolhidas.</p>
+                <div class="lu-spell-list">
+                  @for (skill of eligibleExpertiseSkills(); track skill.id_skill) {
+                    <div class="lu-spell-option" [class.lu-spell-option--selected]="isExpertiseSelected(skill.id_skill)">
+                      <input
+                        type="checkbox"
+                        [checked]="isExpertiseSelected(skill.id_skill)"
+                        [disabled]="!canToggleExpertise(skill.id_skill)"
+                        (change)="toggleExpertiseSkill(skill.id_skill, $event)"
+                      />
+                      <span class="lu-spell-name">{{ skill.name }} ({{ skill.attribute_name }})</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          }
+
           @case ('asi') {
             <div class="lu-block">
               <div class="lu-asi-tabs">
@@ -311,6 +335,17 @@
                   <span class="lu-section-label">MAGIAS/TRUQUES ESCOLHIDOS</span>
                   <div class="lu-chip-grid">
                     @for (name of selectedSpellNames(); track name) {
+                      <span class="lu-chip">{{ name }}</span>
+                    }
+                  </div>
+                </div>
+              }
+
+              @if (p.expertise_choice) {
+                <div class="lu-block">
+                  <span class="lu-section-label">ESPECIALIZAÇÃO ESCOLHIDA</span>
+                  <div class="lu-chip-grid">
+                    @for (name of selectedExpertiseNames(); track name) {
                       <span class="lu-chip">{{ name }}</span>
                     }
                   </div>

@@ -116,6 +116,37 @@
                 </p>
               }
             </div>
+
+            @if (resourceTracker(); as res) {
+              <div class="hit-dice-box">
+                <p class="hit-dice-title">
+                  {{ res.name.toUpperCase() }}
+                  <span class="hit-dice-count">
+                    {{ res.max === 'unlimited' ? 'ILIMITADO' : resourceAvailable() + '/' + res.max }}
+                  </span>
+                </p>
+                @if (res.max !== 'unlimited') {
+                  <div class="hit-dice-pips">
+                    @for (i of resourcePips(); track i) {
+                      <span class="hit-dice-pip" [class.spent]="i >= resourceAvailable()"></span>
+                    }
+                  </div>
+                  <div class="rest-buttons-row">
+                    <button class="retro-btn hit-die-btn"
+                            [disabled]="expendingResource() || resourceAvailable() === 0"
+                            (click)="expendResource(1)">
+                      GASTAR
+                    </button>
+                    <button class="retro-btn spell-rest-btn"
+                            [disabled]="expendingResource() || resourceAvailable() >= res.max"
+                            (click)="expendResource(-1)">
+                      DESFAZER
+                    </button>
+                  </div>
+                }
+                <p class="hit-die-result">Recarrega em descanso {{ res.recharge_on === 'short_rest' ? 'curto ou longo' : 'longo' }}.</p>
+              </div>
+            }
           }
 
           @case ('attrs') {
@@ -142,6 +173,9 @@
                   <span class="prof-dot">{{ skill.is_trained ? '●' : '○' }}</span>
                   <span class="skill-mod">{{ formatMod(skill.total_skill_value) }}</span>
                   <span class="skill-name">{{ skill.name }}</span>
+                  @if (skill.is_expert) {
+                    <span class="skill-expert-badge" title="Especialização: bônus de proficiência dobrado">★</span>
+                  }
                   <span class="skill-attr">({{ skill.attribute_name }})</span>
                   <button class="roll-trigger-btn" (click)="rollSkill(skill)">🎲</button>
                 </li>
@@ -438,6 +472,37 @@
               }
             </div>
 
+            @if (resourceTracker(); as res) {
+              <div class="hit-dice-box">
+                <p class="hit-dice-title">
+                  {{ res.name.toUpperCase() }}
+                  <span class="hit-dice-count">
+                    {{ res.max === 'unlimited' ? 'ILIMITADO' : resourceAvailable() + '/' + res.max }}
+                  </span>
+                </p>
+                @if (res.max !== 'unlimited') {
+                  <div class="hit-dice-pips">
+                    @for (i of resourcePips(); track i) {
+                      <span class="hit-dice-pip" [class.spent]="i >= resourceAvailable()"></span>
+                    }
+                  </div>
+                  <div class="rest-buttons-row">
+                    <button class="retro-btn hit-die-btn"
+                            [disabled]="expendingResource() || resourceAvailable() === 0"
+                            (click)="expendResource(1)">
+                      GASTAR
+                    </button>
+                    <button class="retro-btn spell-rest-btn"
+                            [disabled]="expendingResource() || resourceAvailable() >= res.max"
+                            (click)="expendResource(-1)">
+                      DESFAZER
+                    </button>
+                  </div>
+                }
+                <p class="hit-die-result">Recarrega em descanso {{ res.recharge_on === 'short_rest' ? 'curto ou longo' : 'longo' }}.</p>
+              </div>
+            }
+
             <div class="passive-box">
               <p>Percepção Passiva: {{ data.character_sheet.combat_stats.passive_perception }}</p>
             </div>
@@ -449,7 +514,11 @@
               @for (skill of sortedSkills(); track skill.id_skill) {
                 <li [class.trained]="skill.is_trained">
                   <span class="prof-dot">{{ skill.is_trained ? '●' : '○' }}</span>
-                  {{ formatMod(skill.total_skill_value) }} {{ skill.name }} <span class="skill-attribute">({{ skill.attribute_name }})</span>
+                  {{ formatMod(skill.total_skill_value) }} {{ skill.name }}
+                  @if (skill.is_expert) {
+                    <span class="skill-expert-badge" title="Especialização: bônus de proficiência dobrado">★</span>
+                  }
+                  <span class="skill-attribute">({{ skill.attribute_name }})</span>
                   <button class="roll-trigger-btn" (click)="rollSkill(skill)">🎲</button>
                 </li>
               }

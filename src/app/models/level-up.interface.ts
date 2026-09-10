@@ -37,6 +37,11 @@ export interface LevelUpSpellChoices {
   already_known_spell_ids: number[];
 }
 
+/** Especialização/Aptidão: dobra o bônus de proficiência em `count` perícias já treinadas. */
+export interface LevelUpExpertiseChoice {
+  count: number;
+}
+
 export interface LevelUpPreview {
   id_class: number;
   current_level: number;
@@ -53,6 +58,7 @@ export interface LevelUpPreview {
   spell_choices: LevelUpSpellChoices | null;
   subclass_options: LevelUpSubclassOption[] | null;
   subclass_spellcasting: LevelUpSubclassSpellcasting | null;
+  expertise_choice: LevelUpExpertiseChoice | null;
 }
 
 /** Resultado da rolagem do dado de vida — feita pelo jogador, sob demanda, sem gravar nada. */
@@ -69,6 +75,7 @@ export interface LevelUpConfirmInput {
   asi_or_feat?: AsiOrFeatChoice;
   new_spell_ids?: number[];
   id_subclass?: string;
+  expertise_skill_ids?: number[];
 }
 
 export interface LevelUpResult {

@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { CharacterSheetData } from '../models/character.interface';
-import { CharacterBackground, CharacterSheetResponse } from '../models/character-response.interface';
+import { CharacterBackground, CharacterSheetResponse, ResourceTracker } from '../models/character-response.interface';
 import { AvatarPreset } from '../models/avatar-preset.interface';
 import { CharacterOptions } from '../models/character-options.interface';
 import { CharacterSummary, CharacterPagedList } from '../models/character-summary.interface';
@@ -13,6 +13,7 @@ export interface LongRestResult {
   slots_expended: Record<string, number>;
   current_hit_points: number;
   hit_dice_spent: number;
+  resource_tracker: ResourceTracker | null;
 }
 
 export interface EquipmentUpdateInput {
@@ -32,6 +33,7 @@ export interface HitDieRollResult {
   hit_dice_spent: number;
   hit_dice_total: number;
   die_size: number;
+  resource_tracker: ResourceTracker | null;
 }
 
 @Injectable({
@@ -96,6 +98,13 @@ export class CharacterService {
     return this.http.patch<{ slots_expended: Record<string, number> }>(
       `${this.baseUrl}/api/character-sheet/${id}/spell-slots`,
       { level, delta },
+    );
+  }
+
+  updateResourceUses(id: number, delta: number): Observable<{ resource_tracker: ResourceTracker | null }> {
+    return this.http.patch<{ resource_tracker: ResourceTracker | null }>(
+      `${this.baseUrl}/api/character-sheet/${id}/resource-uses`,
+      { delta },
     );
   }
 

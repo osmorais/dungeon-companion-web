@@ -372,6 +372,27 @@
           </div>
         </fieldset>
 
+        @if (expertiseGrantCount > 0) {
+          <fieldset class="mobile-wizard-panel">
+            <legend>{{ expertiseSectionTitle }}</legend>
+            <p class="mobile-panel-subtitle">
+              ESCOLHA {{ expertiseGrantCount }} PERÍCIAS COM BÔNUS DOBRADO
+              <span class="skill-counter">{{ (characterData.choices.expertise_skill_ids ?? []).length }}/{{ expertiseGrantCount }}</span>
+            </p>
+            <div class="mobile-checklist">
+              @for (skill of expertisePoolSkills; track skill.id_skill) {
+                <div class="mobile-check-row">
+                  <input type="checkbox" class="retro-checkbox"
+                         [checked]="isExpertiseSelected(skill.id_skill)"
+                         [disabled]="isExpertiseCheckboxDisabled(skill.id_skill)"
+                         (change)="toggleExpertise(skill.id_skill, $event)">
+                  <span class="choice-toggle-label">{{ skill.name }} <span class="skill-attribute">({{ skill.attribute_name }})</span></span>
+                </div>
+              }
+            </div>
+          </fieldset>
+        }
+
         @if (showStepError) {
           <p class="step-error-msg">Preencha todas as informações necessárias antes de continuar.</p>
         }
@@ -825,6 +846,28 @@
             }
           </div>
         </fieldset>
+
+        @if (expertiseGrantCount > 0) {
+          <fieldset class="retro-panel">
+            <legend>{{ expertiseSectionTitle }}</legend>
+            <p class="panel-subtitle">
+              ESCOLHA {{ expertiseGrantCount }} PERÍCIAS COM BÔNUS DOBRADO
+              <span class="skill-counter">{{ (characterData.choices.expertise_skill_ids ?? []).length }}/{{ expertiseGrantCount }}</span>
+            </p>
+            <div class="grid-2-col checkboxes">
+              @for (skill of expertisePoolSkills; track skill.id_skill) {
+                <div class="wizard-check-row">
+                  <input type="checkbox" class="retro-checkbox"
+                         [checked]="isExpertiseSelected(skill.id_skill)"
+                         [disabled]="isExpertiseCheckboxDisabled(skill.id_skill)"
+                         (change)="toggleExpertise(skill.id_skill, $event)">
+                  <span class="choice-toggle-label">{{ skill.name }} <span class="skill-attribute">({{ skill.attribute_name }})</span></span>
+                </div>
+              }
+            </div>
+          </fieldset>
+        }
+
         @if (showStepError) {
           <p class="step-error-msg">Preencha todas as informações necessárias antes de continuar.</p>
         }

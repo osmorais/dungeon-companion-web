@@ -6,6 +6,14 @@ export interface CharacterBackground {
   full_history: string;
 }
 
+/** Recurso consumível rastreado (Fúria/Pontos de Chi/Canalizar Divindade). */
+export interface ResourceTracker {
+  name: string;
+  max: number | 'unlimited';
+  used: number;
+  recharge_on: 'short_rest' | 'long_rest';
+}
+
 export interface CharacterSheetResponse {
   character_background?: CharacterBackground;
   character_sheet: {
@@ -64,5 +72,7 @@ export interface CharacterSheetResponse {
     };
     spells?: Spell[];
     avatar_preset?: AvatarPreset | null;
+    /** `null` se a classe não tiver nenhum recurso rastreável neste nível. */
+    resource_tracker: ResourceTracker | null;
   };
 }

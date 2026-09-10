@@ -12,7 +12,7 @@ import {
 import { forkJoin } from 'rxjs';
 import { CharacterService } from '../services/character.service';
 import { PixelNumericDieComponent } from '../pixel-numeric-die/pixel-numeric-die.component';
-import { Spell } from '../models/character-options.interface';
+import { Skill, Spell } from '../models/character-options.interface';
 import { CLASS_SPELLS } from '../constants/spell-rules';
 import {
   AsiOrFeatChoice,
@@ -25,7 +25,7 @@ import {
 const ASI_TOTAL_POINTS = 2;
 const ASI_MAX_PER_STAT = 2;
 
-type FixedStepId = 'hp' | 'subclass' | 'cantrips' | 'traits' | 'asi' | 'summary';
+type FixedStepId = 'hp' | 'subclass' | 'cantrips' | 'traits' | 'expertise' | 'asi' | 'summary';
 /** Uma página por círculo de magia (`spells-1`, `spells-2`...) — truques (círculo 0) usam a
  *  página fixa `cantrips` em vez disso, já que só existe um círculo de truque. */
 type LevelUpStepId = FixedStepId | `spells-${number}`;
@@ -35,6 +35,7 @@ const STEP_LABELS: Record<FixedStepId, string> = {
   subclass: 'SUBCLASSE',
   cantrips: 'TRUQUES',
   traits: 'TRAÇOS',
+  expertise: 'ESPECIALIZAÇÃO',
   asi: 'MELHORIA',
   summary: 'RESUMO',
 };
@@ -72,6 +73,7 @@ export class LevelUpModalComponent implements OnInit {
     if ((p.spell_choices?.cantrips_gained ?? 0) > 0) list.push('cantrips');
     list.push(...this.spellCirclePages());
     if (p.new_features.length > 0) list.push('traits');
+    if (p.expertise_choice) list.push('expertise');
     if (p.is_asi_level) list.push('asi');
     list.push('summary');
     return list;
@@ -118,6 +120,8 @@ export class LevelUpModalComponent implements OnInit {
         return this.hitDieRoll() !== null;
       case 'subclass':
         return this.selectedSubclassId() !== null;
+      case 'expertise':
+        return this.isExpertiseChoiceValid();
       case 'asi':
         return this.isAsiChoiceValid();
       case 'summary':
@@ -248,7 +252,53 @@ export class LevelUpModalComponent implements OnInit {
     if (this.hitDieRoll() === null) return false;
     if (p.subclass_options && !this.selectedSubclassId()) return false;
     if (p.is_asi_level && !this.isAsiChoiceValid()) return false;
+    if (p.expertise_choice && !this.isExpertiseChoiceValid()) return false;
     return true;
+  });
+
+  /**
+   * ========================= ESPECIALIZAÇÃO/APTIDÃO =========================
+   * Ladino (nível 6) e Bardo (nível 3/10) dobram o bônus de proficiência em N perícias já
+   * treinadas. A lista de treinadas vem da própria ficha do personagem (carregada à parte do
+   * preview, que só descreve o que muda no nível, não o estado atual das perícias).
+   */
+  private characterSkills = signal<Skill[]>([]);
+  selectedExpertiseIds = signal<Set<number>>(new Set());
+
+  eligibleExpertiseSkills = computed(() =>
+    this.characterSkills().filter((s) => s.is_trained && !s.is_expert),
+  );
+
+  private isExpertiseChoiceValid(): boolean {
+    const count = this.preview()?.expertise_choice?.count ?? 0;
+    return count > 0 && this.selectedExpertiseIds().size === count;
+  }
+
+  isExpertiseSelected(idSkill: number): boolean {
+    return this.selectedExpertiseIds().has(idSkill);
+  }
+
+  canToggleExpertise(idSkill: number): boolean {
+    if (this.isExpertiseSelected(idSkill)) return true;
+    const count = this.preview()?.expertise_choice?.count ?? 0;
+    return this.selectedExpertiseIds().size < count;
+  }
+
+  toggleExpertiseSkill(idSkill: number, event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    this.selectedExpertiseIds.update((current) => {
+      const next = new Set(current);
+      if (checked) next.add(idSkill);
+      else next.delete(idSkill);
+      return next;
+    });
+  }
+
+  selectedExpertiseNames = computed<string[]>(() => {
+    const byId = new Map(this.characterSkills().map((s) => [s.id_skill, s.name]));
+    return [...this.selectedExpertiseIds()]
+      .map((id) => byId.get(id))
+      .filter((name): name is string => !!name);
   });
 
   /** ========================= MAGIAS/TRUQUES NOVOS ========================= */
@@ -331,10 +381,12 @@ export class LevelUpModalComponent implements OnInit {
     forkJoin({
       preview: this.characterService.previewLevelUp(this.idCharacter),
       options: this.characterService.getCharacterOptions(),
+      sheet: this.characterService.getCharacterById(this.idCharacter),
     }).subscribe({
-      next: ({ preview, options }) => {
+      next: ({ preview, options, sheet }) => {
         this.preview.set(preview);
         this.spellCatalog.set(options.spells ?? []);
+        this.characterSkills.set(sheet.character_sheet.skills ?? []);
         this.loading.set(false);
       },
       error: () => {
@@ -468,6 +520,7 @@ export class LevelUpModalComponent implements OnInit {
         id_subclass: preview.subclass_options
           ? (this.selectedSubclassId() ?? undefined)
           : undefined,
+        expertise_skill_ids: preview.expertise_choice ? [...this.selectedExpertiseIds()] : undefined,
       })
       .subscribe({
         next: (result) => {

@@ -97,7 +97,7 @@ export class CharacterWizardComponent implements OnInit {
       generation_method: 'standard_array',
       base_values: { FOR: 8, DES: 8, CON: 8, INT: 8, SAB: 8, CAR: 8 }
     },
-    choices: { skills: [], spells: [] },
+    choices: { skills: [], spells: [], expertise_skill_ids: [] },
     equipment: { armour: null, weapons: [], has_shield: false }
   };
 
@@ -249,7 +249,10 @@ export class CharacterWizardComponent implements OnInit {
         return this.selectedSpellCountByCircle(circle) >= Math.min(limit, available);
       }
       case 4:
-        return this.maxSkillChoices === 0 || this.selectedChoicesCount >= this.maxSkillChoices;
+        return (
+          (this.maxSkillChoices === 0 || this.selectedChoicesCount >= this.maxSkillChoices) &&
+          (this.expertiseGrantCount === 0 || (this.characterData.choices.expertise_skill_ids ?? []).length >= this.expertiseGrantCount)
+        );
       default:
         return true;
     }
@@ -351,6 +354,7 @@ export class CharacterWizardComponent implements OnInit {
   private resetSkillChoices(): void {
     const granted = this.grantedSkills;
     this.characterData.choices.skills = [...granted];
+    this.characterData.choices.expertise_skill_ids = [];
   }
 
   private syncGrantedSkills(): void {
@@ -442,6 +446,9 @@ export class CharacterWizardComponent implements OnInit {
     } else {
       const idx = this.characterData.choices.skills.findIndex(s => s.id_skill === skill.id_skill);
       if (idx > -1) this.characterData.choices.skills.splice(idx, 1);
+      const expertiseIds = this.characterData.choices.expertise_skill_ids;
+      const expertiseIdx = expertiseIds?.indexOf(skill.id_skill) ?? -1;
+      if (expertiseIdx > -1) expertiseIds!.splice(expertiseIdx, 1);
     }
   }
 
@@ -454,6 +461,64 @@ export class CharacterWizardComponent implements OnInit {
   toggleSkillDetails(idSkill: number): void {
     if (this.expandedSkillIds.has(idSkill)) this.expandedSkillIds.delete(idSkill);
     else this.expandedSkillIds.add(idSkill);
+  }
+
+  /**
+   * ========================= ESPECIALIZAÇÃO / BÊNÇÃO DO CONHECIMENTO =========================
+   * Ladino (Especialização, nível 1) dobra o bônus de proficiência em 2 perícias já treinadas.
+   * Clérigo + Domínio do Conhecimento (Bênção do Conhecimento) concede treino novo + dobro em 2
+   * perícias de uma lista fixa (Arcanismo/História/Natureza/Religião), independente das perícias
+   * normais de classe/antecedente. As demais ocorrências (Ladino nível 6, Bardo nível 3/10) só
+   * acontecem via level-up, nunca na criação — ver level-up-modal.
+   */
+  private static stripAccents(value: string): string {
+    return value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  }
+
+  get expertiseGrantCount(): number {
+    if (+this.characterData.core_build.id_class === 8) return 2; // Ladino
+    if (+this.characterData.core_build.id_class === 4 && this.characterData.core_build.id_subclass === 'conhecimento') return 2; // Clérigo — Domínio do Conhecimento
+    return 0;
+  }
+
+  /** Perícias que o jogador pode escolher pra Especialização/Bênção do Conhecimento nesta classe. */
+  get expertisePoolSkills(): Skill[] {
+    if (+this.characterData.core_build.id_class === 8) {
+      return this.characterData.choices.skills;
+    }
+    if (+this.characterData.core_build.id_class === 4 && this.characterData.core_build.id_subclass === 'conhecimento') {
+      const targets = ['arcanismo', 'historia', 'natureza', 'religiao'];
+      return this.availableSkills.filter(s => targets.includes(CharacterWizardComponent.stripAccents(s.name)));
+    }
+    return [];
+  }
+
+  get expertiseSectionTitle(): string {
+    return +this.characterData.core_build.id_class === 8 ? 'ESPECIALIZAÇÃO' : 'BÊNÇÃO DO CONHECIMENTO';
+  }
+
+  isExpertiseSelected(idSkill: number): boolean {
+    return (this.characterData.choices.expertise_skill_ids ?? []).includes(idSkill);
+  }
+
+  isExpertiseCheckboxDisabled(idSkill: number): boolean {
+    return !this.isExpertiseSelected(idSkill) && (this.characterData.choices.expertise_skill_ids ?? []).length >= this.expertiseGrantCount;
+  }
+
+  toggleExpertise(idSkill: number, event: Event): void {
+    const isChecked = (event.target as HTMLInputElement).checked;
+    const ids = this.characterData.choices.expertise_skill_ids ?? (this.characterData.choices.expertise_skill_ids = []);
+
+    if (isChecked) {
+      if (ids.length >= this.expertiseGrantCount) {
+        (event.target as HTMLInputElement).checked = false;
+        return;
+      }
+      if (!ids.includes(idSkill)) ids.push(idSkill);
+    } else {
+      const idx = ids.indexOf(idSkill);
+      if (idx > -1) ids.splice(idx, 1);
+    }
   }
 
   /** ========================= MAGIC ========================= */
@@ -983,6 +1048,13 @@ export class CharacterWizardComponent implements OnInit {
   /** ========================= SAVE ========================= */
 
   saveCharacter() {
+    // Clampeia contra escolha de subclasse trocada depois de já ter marcado perícias de
+    // Especialização/Bênção do Conhecimento pra uma subclasse diferente (ids ficariam órfãos).
+    const validPoolIds = new Set(this.expertisePoolSkills.map(s => s.id_skill));
+    this.characterData.choices.expertise_skill_ids = (this.characterData.choices.expertise_skill_ids ?? [])
+      .filter(id => validPoolIds.has(id))
+      .slice(0, this.expertiseGrantCount);
+
     this.loadingOverlay.show('SALVANDO SEU PERSONAGEM...', 'AGUARDE ENQUANTO A MAGIA ACONTECE');
 
     this.charService.saveCharacter(this.characterData).subscribe({

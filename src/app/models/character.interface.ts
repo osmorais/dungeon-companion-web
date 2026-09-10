@@ -28,6 +28,8 @@ export interface CharacterSheetData {
   choices: {
     skills: Skill[];
     spells: Spell[];
+    /** Especialização (Ladino) ou Bênção do Conhecimento (Clérigo, Domínio do Conhecimento) — só relevante pra essas. */
+    expertise_skill_ids?: number[];
   };
   equipment: {
     armour: Armour | null;

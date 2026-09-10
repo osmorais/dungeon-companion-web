@@ -5,7 +5,7 @@ import { CommonModule, KeyValuePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { CharacterService, HitDieRollResult } from '../services/character.service';
 import { Skill, Spell, WeaponRow } from '../models/character-options.interface';
-import { CharacterSheetResponse } from '../models/character-response.interface';
+import { CharacterSheetResponse, ResourceTracker } from '../models/character-response.interface';
 import { AvatarPreset } from '../models/avatar-preset.interface';
 import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
 import { AvatarCustomizerComponent } from '../avatar-customizer/avatar-customizer.component';
@@ -278,9 +278,10 @@ export class CharacterSheetComponent {
     if (!id || this.restingLong()) return;
     this.restingLong.set(true);
     this.charService.longRest(id).subscribe({
-      next: ({ slots_expended, current_hit_points, hit_dice_spent }) => {
+      next: ({ slots_expended, current_hit_points, hit_dice_spent, resource_tracker }) => {
         this.patchSpellcastingInfo({ slots_expended });
         this.patchCombatStats({ hit_dice_spent }, current_hit_points);
+        this.patchResourceTracker(resource_tracker);
         this.lastHitDieResult.set(null);
         this.restingLong.set(false);
       },
@@ -354,9 +355,56 @@ export class CharacterSheetComponent {
       next: result => {
         this.lastHitDieResult.set(result);
         this.patchCombatStats({ hit_dice_spent: result.hit_dice_spent }, result.current_hit_points);
+        this.patchResourceTracker(result.resource_tracker);
         this.rollingHitDie.set(false);
       },
       error: () => this.rollingHitDie.set(false),
+    });
+  }
+
+  /** ========================= RECURSO CONSUMÍVEL (FÚRIA/CHI/CANALIZAR DIVINDADE) ========================= */
+
+  expendingResource = signal(false);
+
+  resourceTracker(): ResourceTracker | null {
+    return this.sheetData()?.character_sheet.resource_tracker ?? null;
+  }
+
+  resourceMaxCount(): number {
+    const max = this.resourceTracker()?.max;
+    return typeof max === 'number' ? max : 0;
+  }
+
+  resourcePips(): number[] {
+    return Array.from({ length: this.resourceMaxCount() }, (_, i) => i);
+  }
+
+  resourceAvailable(): number {
+    const tracker = this.resourceTracker();
+    if (!tracker) return 0;
+    if (tracker.max === 'unlimited') return Infinity;
+    return Math.max(0, tracker.max - tracker.used);
+  }
+
+  expendResource(delta: number): void {
+    const id = this.sheetData()?.character_sheet.id_character;
+    if (!id || this.expendingResource()) return;
+    this.expendingResource.set(true);
+    this.charService.updateResourceUses(id, delta).subscribe({
+      next: ({ resource_tracker }) => {
+        this.patchResourceTracker(resource_tracker);
+        this.expendingResource.set(false);
+      },
+      error: () => this.expendingResource.set(false),
+    });
+  }
+
+  private patchResourceTracker(tracker: ResourceTracker | null): void {
+    const sheet = this.sheetData();
+    if (!sheet) return;
+    this.charService.currentCharacter.set({
+      ...sheet,
+      character_sheet: { ...sheet.character_sheet, resource_tracker: tracker },
     });
   }
 
