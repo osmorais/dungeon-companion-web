@@ -68,6 +68,100 @@
   margin-left: 8px;
 }
 
+/* Linha de escolha (perícia/armadura) restruturada como checkbox/radio + botão de
+   expandir/recolher os detalhes — nem tudo é um <label> porque clicar no nome não pode
+   selecionar sozinho. */
+.wizard-check-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+
+  .skill-attribute {
+    font-size: 0.75em;
+    opacity: 0.65;
+  }
+}
+
+.choice-toggle {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover .choice-toggle-label {
+    color: var(--accent-color);
+  }
+}
+
+.choice-toggle-label {
+  flex: 1;
+}
+
+.choice-toggle-chevron {
+  font-size: 0.85em;
+  color: var(--label-title-color);
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+
+  &--open {
+    transform: rotate(90deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .choice-toggle-chevron {
+    transition: none;
+  }
+}
+
+/* Explicação de uma escolha (Passo 1: raça/sub-raça/classe/subclasse/antecedente/alinhamento;
+   e detalhes de perícia/armadura). */
+.choice-info {
+  grid-column: 1 / -1;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-color);
+  padding: 8px 10px;
+  margin: -4px 0 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.choice-info-meta {
+  margin: -4px 0 6px;
+  font-size: 0.85em;
+  color: var(--label-title-color);
+  line-height: 1.5;
+}
+
+.choice-info-trait {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.choice-info-trait-name {
+  font-size: 0.9em;
+  color: var(--accent-color);
+}
+
+.choice-info-trait-desc {
+  margin: 0;
+  font-size: 0.9em;
+  color: var(--text-color);
+  line-height: 1.5;
+}
+
 .spell-circle-header {
   display: flex;
   align-items: center;

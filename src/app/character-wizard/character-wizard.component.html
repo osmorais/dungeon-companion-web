@@ -1,5 +1,23 @@
 <app-dragon-animation [trigger]="dragonTrigger" />
 
+<!-- Explicação de uma escolha (raça/sub-raça/classe/subclasse/antecedente) — reaproveitado em
+     todos os seletores do Passo 1, mobile e desktop. -->
+<ng-template #choiceInfo let-meta="meta" let-traits="traits">
+  @if (meta || (traits && traits.length > 0)) {
+    <div class="choice-info">
+      @if (meta) {
+        <p class="choice-info-meta">{{ meta }}</p>
+      }
+      @for (t of traits; track t.name) {
+        <div class="choice-info-trait">
+          <span class="choice-info-trait-name">{{ t.name }}</span>
+          <p class="choice-info-trait-desc">{{ t.description }}</p>
+        </div>
+      }
+    </div>
+  }
+</ng-template>
+
 @if (isMobile()) {
   <!-- ===== MOBILE LAYOUT ===== -->
   <div class="mobile-wizard-container">
@@ -26,6 +44,11 @@
                 }
               </select>
             </label>
+            @if (selectedRace) {
+              <ng-container
+                *ngTemplateOutlet="choiceInfo; context: { meta: selectedRaceMeta, traits: selectedRace.traits }"
+              ></ng-container>
+            }
             @if (availableSubraces.length > 0) {
               <label>SUB-RAÇA
                 <select [(ngModel)]="characterData.core_build.subrace">
@@ -35,6 +58,11 @@
                   }
                 </select>
               </label>
+              @if (selectedSubrace) {
+                <ng-container
+                  *ngTemplateOutlet="choiceInfo; context: { meta: selectedSubraceMeta, traits: selectedSubrace.traits }"
+                ></ng-container>
+              }
             }
             <label>CLASSE
               <select [(ngModel)]="characterData.core_build.id_class" (ngModelChange)="onClassChange()">
@@ -43,6 +71,11 @@
                 }
               </select>
             </label>
+            @if (selectedClass) {
+              <ng-container
+                *ngTemplateOutlet="choiceInfo; context: { meta: selectedClassMeta, traits: selectedClass.traits }"
+              ></ng-container>
+            }
             @if (availableLevel1Subclasses.length > 0) {
               <label>SUBCLASSE
                 <select [(ngModel)]="characterData.core_build.id_subclass">
@@ -52,6 +85,11 @@
                   }
                 </select>
               </label>
+              @if (selectedLevel1Subclass) {
+                <ng-container
+                  *ngTemplateOutlet="choiceInfo; context: { meta: null, traits: selectedLevel1Subclass.features }"
+                ></ng-container>
+              }
             }
             <label>ANTECEDENTE
               <select [(ngModel)]="characterData.core_build.id_background">
@@ -60,6 +98,11 @@
                 }
               </select>
             </label>
+            @if (selectedBackground) {
+              <ng-container
+                *ngTemplateOutlet="choiceInfo; context: { meta: selectedBackgroundMeta, traits: selectedBackgroundTraits }"
+              ></ng-container>
+            }
           </div>
         </fieldset>
 
@@ -75,6 +118,9 @@
                 }
               </select>
             </label>
+            @if (selectedAlignment) {
+              <p class="choice-info-meta">{{ selectedAlignment.description }}</p>
+            }
           </div>
         </fieldset>
 
@@ -300,20 +346,28 @@
           </p>
           <div class="mobile-checklist">
             @for (skill of availableSkills; track skill.id_skill) {
-              <label class="mobile-check-row"
-                     [class.skill-granted]="isSkillGranted(skill)"
-                     [class.skill-unavailable]="isSkillCheckboxDisabled(skill) && !isSkillSelected(skill)">
+              <div class="mobile-check-row"
+                   [class.skill-granted]="isSkillGranted(skill)"
+                   [class.skill-unavailable]="isSkillCheckboxDisabled(skill) && !isSkillSelected(skill)">
                 <input type="checkbox" class="retro-checkbox"
                        [checked]="isSkillSelected(skill)"
                        [disabled]="isSkillCheckboxDisabled(skill)"
                        (change)="toggleSkill(skill, $event)">
-                <span>
-                  {{ skill.name }} <span class="skill-attribute">({{ skill.attribute_name }})</span>
-                  @if (isSkillGranted(skill)) {
-                    <span class="skill-badge">Raça</span>
-                  }
-                </span>
-              </label>
+                <button type="button" class="choice-toggle"
+                        [attr.aria-expanded]="isSkillExpanded(skill.id_skill)"
+                        (click)="toggleSkillDetails(skill.id_skill)">
+                  <span class="choice-toggle-label">
+                    {{ skill.name }} <span class="skill-attribute">({{ skill.attribute_name }})</span>
+                    @if (isSkillGranted(skill)) {
+                      <span class="skill-badge">Raça</span>
+                    }
+                  </span>
+                  <span class="choice-toggle-chevron" [class.choice-toggle-chevron--open]="isSkillExpanded(skill.id_skill)" aria-hidden="true">▸</span>
+                </button>
+              </div>
+              @if (isSkillExpanded(skill.id_skill)) {
+                <p class="choice-info-meta">{{ skill.description }}</p>
+              }
             }
           </div>
         </fieldset>
@@ -338,16 +392,32 @@
               <span>Nenhuma</span>
             </label>
             @for (armour of availableArmours; track armour.id_armour) {
-              <label class="mobile-check-row" [class.skill-unavailable]="!isArmourAvailable(armour)">
+              <div class="mobile-check-row" [class.skill-unavailable]="!isArmourAvailable(armour)">
                 <input type="radio" name="mobile-armour" class="retro-checkbox"
                        [checked]="characterData.equipment.armour?.id_armour === armour.id_armour"
                        [disabled]="!isArmourAvailable(armour)"
                        (change)="selectArmour(armour)">
-                <span class="mobile-item-info">
-                  <span>{{ armour.name }}</span>
-                  <span class="item-hint">{{ armour.armour_type }} — CA {{ armour.armour_class_base }}</span>
-                </span>
-              </label>
+                <button type="button" class="choice-toggle"
+                        [attr.aria-expanded]="isArmourExpanded(armour.id_armour)"
+                        (click)="toggleArmourDetails(armour.id_armour)">
+                  <span class="choice-toggle-label">
+                    {{ armour.name }}
+                    <span class="item-hint">{{ armour.armour_type }} — CA {{ armour.armour_class_base }}</span>
+                  </span>
+                  <span class="choice-toggle-chevron" [class.choice-toggle-chevron--open]="isArmourExpanded(armour.id_armour)" aria-hidden="true">▸</span>
+                </button>
+              </div>
+              @if (isArmourExpanded(armour.id_armour)) {
+                <p class="choice-info-meta">
+                  Peso: {{ armour.weight ?? '—' }}kg · Custo: {{ armour.price_value ?? '—' }}po
+                  @if (armour.max_dexterity_bonus != null) {
+                    · Bônus máx. de Destreza: +{{ armour.max_dexterity_bonus }}
+                  }
+                  @if (armour.is_stealth_disadvantage) {
+                    · Desvantagem em Furtividade
+                  }
+                </p>
+              }
             }
           </div>
           <label class="shield-label" [class.skill-unavailable]="!shieldAllowed">
@@ -431,6 +501,11 @@
                 }
               </select>
             </label>
+            @if (selectedRace) {
+              <ng-container
+                *ngTemplateOutlet="choiceInfo; context: { meta: selectedRaceMeta, traits: selectedRace.traits }"
+              ></ng-container>
+            }
             @if (availableSubraces.length > 0) {
               <label>SUB-RAÇA
                 <select [(ngModel)]="characterData.core_build.subrace">
@@ -440,6 +515,11 @@
                   }
                 </select>
               </label>
+              @if (selectedSubrace) {
+                <ng-container
+                  *ngTemplateOutlet="choiceInfo; context: { meta: selectedSubraceMeta, traits: selectedSubrace.traits }"
+                ></ng-container>
+              }
             }
             <label>CLASSE
               <select [(ngModel)]="characterData.core_build.id_class" (ngModelChange)="onClassChange()">
@@ -448,6 +528,11 @@
                 }
               </select>
             </label>
+            @if (selectedClass) {
+              <ng-container
+                *ngTemplateOutlet="choiceInfo; context: { meta: selectedClassMeta, traits: selectedClass.traits }"
+              ></ng-container>
+            }
             @if (availableLevel1Subclasses.length > 0) {
               <label>SUBCLASSE
                 <select [(ngModel)]="characterData.core_build.id_subclass">
@@ -457,6 +542,11 @@
                   }
                 </select>
               </label>
+              @if (selectedLevel1Subclass) {
+                <ng-container
+                  *ngTemplateOutlet="choiceInfo; context: { meta: null, traits: selectedLevel1Subclass.features }"
+                ></ng-container>
+              }
             }
             <label>ANTECEDENTE
               <select [(ngModel)]="characterData.core_build.id_background">
@@ -465,6 +555,11 @@
                 }
               </select>
             </label>
+            @if (selectedBackground) {
+              <ng-container
+                *ngTemplateOutlet="choiceInfo; context: { meta: selectedBackgroundMeta, traits: selectedBackgroundTraits }"
+              ></ng-container>
+            }
           </div>
         </fieldset>
 
@@ -480,6 +575,9 @@
                 }
               </select>
             </label>
+            @if (selectedAlignment) {
+              <p class="choice-info-meta full-width">{{ selectedAlignment.description }}</p>
+            }
           </div>
         </fieldset>
         @if (showStepError) {
@@ -702,17 +800,28 @@
           </p>
           <div class="grid-2-col checkboxes">
             @for (skill of availableSkills; track skill.id_skill) {
-              <label [class.skill-granted]="isSkillGranted(skill)"
-                     [class.skill-unavailable]="isSkillCheckboxDisabled(skill) && !isSkillSelected(skill)">
+              <div class="wizard-check-row"
+                   [class.skill-granted]="isSkillGranted(skill)"
+                   [class.skill-unavailable]="isSkillCheckboxDisabled(skill) && !isSkillSelected(skill)">
                 <input type="checkbox" class="retro-checkbox"
                        [checked]="isSkillSelected(skill)"
                        [disabled]="isSkillCheckboxDisabled(skill)"
                        (change)="toggleSkill(skill, $event)">
-                {{ skill.name }} <span class="skill-attribute">({{ skill.attribute_name }})</span>
-                @if (isSkillGranted(skill)) {
-                  <span class="skill-badge">Raça</span>
-                }
-              </label>
+                <button type="button" class="choice-toggle"
+                        [attr.aria-expanded]="isSkillExpanded(skill.id_skill)"
+                        (click)="toggleSkillDetails(skill.id_skill)">
+                  <span class="choice-toggle-label">
+                    {{ skill.name }} <span class="skill-attribute">({{ skill.attribute_name }})</span>
+                    @if (isSkillGranted(skill)) {
+                      <span class="skill-badge">Raça</span>
+                    }
+                  </span>
+                  <span class="choice-toggle-chevron" [class.choice-toggle-chevron--open]="isSkillExpanded(skill.id_skill)" aria-hidden="true">▸</span>
+                </button>
+              </div>
+              @if (isSkillExpanded(skill.id_skill)) {
+                <p class="choice-info-meta full-width">{{ skill.description }}</p>
+              }
             }
           </div>
         </fieldset>
@@ -735,16 +844,34 @@
               <span class="item-info"><span>Nenhuma</span></span>
             </label>
             @for (armour of availableArmours; track armour.id_armour) {
-              <label [class.skill-unavailable]="!isArmourAvailable(armour)">
+              <div class="wizard-check-row" [class.skill-unavailable]="!isArmourAvailable(armour)">
                 <input type="radio" name="armour" class="retro-checkbox"
                        [checked]="characterData.equipment.armour?.id_armour === armour.id_armour"
                        [disabled]="!isArmourAvailable(armour)"
                        (change)="selectArmour(armour)">
-                <span class="item-info">
-                  <span>{{ armour.name }}</span>
-                  <span class="item-hint">{{ armour.armour_type }} — CA {{ armour.armour_class_base }}</span>
-                </span>
-              </label>
+                <button type="button" class="choice-toggle"
+                        [attr.aria-expanded]="isArmourExpanded(armour.id_armour)"
+                        (click)="toggleArmourDetails(armour.id_armour)">
+                  <span class="choice-toggle-label">
+                    <span class="item-info">
+                      <span>{{ armour.name }}</span>
+                      <span class="item-hint">{{ armour.armour_type }} — CA {{ armour.armour_class_base }}</span>
+                    </span>
+                  </span>
+                  <span class="choice-toggle-chevron" [class.choice-toggle-chevron--open]="isArmourExpanded(armour.id_armour)" aria-hidden="true">▸</span>
+                </button>
+              </div>
+              @if (isArmourExpanded(armour.id_armour)) {
+                <p class="choice-info-meta full-width">
+                  Peso: {{ armour.weight ?? '—' }}kg · Custo: {{ armour.price_value ?? '—' }}po
+                  @if (armour.max_dexterity_bonus != null) {
+                    · Bônus máx. de Destreza: +{{ armour.max_dexterity_bonus }}
+                  }
+                  @if (armour.is_stealth_disadvantage) {
+                    · Desvantagem em Furtividade
+                  }
+                </p>
+              }
             }
           </div>
           <label class="shield-label" [class.skill-unavailable]="!shieldAllowed">

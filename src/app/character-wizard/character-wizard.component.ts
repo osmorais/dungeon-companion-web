@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CharacterSheetData } from '../models/character.interface';
-import { Alignment, Armour, AttributeType, Background, CharacterClass, CharacterOptions, Race, Skill, Spell, Subrace, WeaponRow } from '../models/character-options.interface';
+import { Alignment, Armour, AttributeType, Background, CharacterClass, CharacterOptions, Race, Skill, Spell, Subrace, TraitInfo, WeaponRow } from '../models/character-options.interface';
 import { DragonAnimationComponent } from '../dragon-animation/dragon-animation.component';
 import { LoadingOverlayComponent } from '../loading-overlay/loading-overlay.component';
 import { LoadingOverlayService } from '../loading-overlay/loading-overlay.service';
@@ -154,6 +154,69 @@ export class CharacterWizardComponent implements OnInit {
 
   get availableLevel1Subclasses(): Level1SubclassOption[] {
     return LEVEL1_SUBCLASS_OPTIONS[+this.characterData.core_build.id_class] ?? [];
+  }
+
+  /** ========================= EXPLICAÇÕES DAS ESCOLHAS (info box abaixo de cada seletor) ========================= */
+
+  get selectedRace(): Race | undefined {
+    return this.availableRaces.find(r => +r.id_race === +this.characterData.core_build.id_race);
+  }
+
+  get selectedSubrace(): Subrace | undefined {
+    return this.availableSubraces.find(s => s.key === this.characterData.core_build.subrace);
+  }
+
+  get selectedClass(): CharacterClass | undefined {
+    return this.availableClasses.find(c => +c.id_class === +this.characterData.core_build.id_class);
+  }
+
+  get selectedLevel1Subclass(): Level1SubclassOption | undefined {
+    return this.availableLevel1Subclasses.find(s => s.id_subclass === this.characterData.core_build.id_subclass);
+  }
+
+  get selectedBackground(): Background | undefined {
+    return this.availableBackgrounds.find(b => +b.id_background === +this.characterData.core_build.id_background);
+  }
+
+  get selectedAlignment(): Alignment | undefined {
+    return this.availableAlignments.find(a => +a.id_alignment === +this.characterData.character_details.id_alignment);
+  }
+
+  get selectedRaceMeta(): string {
+    const r = this.selectedRace;
+    if (!r) return '';
+    const parts = [`Deslocamento: ${r.movement}`];
+    if (r.bonuses_text) parts.unshift(`Bônus: ${r.bonuses_text}`);
+    if (r.languages.length) parts.push(`Idiomas: ${r.languages.join(', ')}`);
+    return parts.join(' · ');
+  }
+
+  get selectedSubraceMeta(): string {
+    const s = this.selectedSubrace;
+    return s?.bonuses_text ? `Bônus: ${s.bonuses_text}` : '';
+  }
+
+  get selectedClassMeta(): string {
+    const c = this.selectedClass;
+    if (!c) return '';
+    const parts = [`Dado de Vida: d${c.hit_die}`];
+    if (c.saving_throws_text) parts.push(`Resistências: ${c.saving_throws_text}`);
+    parts.push(`Armaduras: ${c.armor_proficiencies.join(', ') || 'nenhuma'}`);
+    parts.push(`Armas: ${c.weapon_proficiencies.join(', ') || 'nenhuma'}`);
+    return parts.join(' · ');
+  }
+
+  get selectedBackgroundMeta(): string {
+    const b = this.selectedBackground;
+    if (!b) return '';
+    const parts = [`Perícias: ${b.skills.join(', ') || '—'}`];
+    if (b.tools.length) parts.push(`Ferramentas: ${b.tools.join(', ')}`);
+    parts.push(`Idiomas adicionais: ${b.languages_number}`);
+    return parts.join(' · ');
+  }
+
+  get selectedBackgroundTraits(): TraitInfo[] {
+    return this.selectedBackground ? [this.selectedBackground.feature] : [];
   }
 
   private isCurrentStepValid(): boolean {
@@ -380,6 +443,17 @@ export class CharacterWizardComponent implements OnInit {
       const idx = this.characterData.choices.skills.findIndex(s => s.id_skill === skill.id_skill);
       if (idx > -1) this.characterData.choices.skills.splice(idx, 1);
     }
+  }
+
+  private expandedSkillIds = new Set<number>();
+
+  isSkillExpanded(idSkill: number): boolean {
+    return this.expandedSkillIds.has(idSkill);
+  }
+
+  toggleSkillDetails(idSkill: number): void {
+    if (this.expandedSkillIds.has(idSkill)) this.expandedSkillIds.delete(idSkill);
+    else this.expandedSkillIds.add(idSkill);
   }
 
   /** ========================= MAGIC ========================= */
@@ -805,6 +879,17 @@ export class CharacterWizardComponent implements OnInit {
 
   selectArmour(armour: Armour | null) {
     this.characterData.equipment.armour = armour;
+  }
+
+  private expandedArmourIds = new Set<number>();
+
+  isArmourExpanded(idArmour: number): boolean {
+    return this.expandedArmourIds.has(idArmour);
+  }
+
+  toggleArmourDetails(idArmour: number): void {
+    if (this.expandedArmourIds.has(idArmour)) this.expandedArmourIds.delete(idArmour);
+    else this.expandedArmourIds.add(idArmour);
   }
 
   isWeaponSelected(weapon: WeaponRow): boolean {

@@ -36,9 +36,16 @@ export interface WeaponOption {
   isRanged: boolean;
 }
 
+export interface TraitInfo {
+  name: string;
+  description: string;
+}
+
 export interface Subrace {
   key: string;
   name: string;
+  bonuses_text: string;
+  traits: TraitInfo[];
 }
 
 export interface Race {
@@ -46,12 +53,21 @@ export interface Race {
   name: string;
   movement: string;
   subraces: Subrace[];
+  bonuses_text: string;
+  languages: string[];
+  traits: TraitInfo[];
 }
 
 export interface CharacterClass {
   id_class: number;
   name: string;
   starting_gold_po: number;
+  hit_die: number;
+  saving_throws_text: string;
+  armor_proficiencies: string[];
+  weapon_proficiencies: string[];
+  is_spellcaster: boolean;
+  traits: TraitInfo[];
 }
 
 export interface Background {
@@ -59,6 +75,9 @@ export interface Background {
   name: string;
   starting_gold_po: number;
   languages_number: number;
+  skills: string[];
+  tools: string[];
+  feature: TraitInfo;
 }
 
 export interface Alignment {
