@@ -82,7 +82,11 @@
           <div class="combat-bottom">
             @for (m of revealedMonsters(); track m.id_monster_session) {
               <div class="revealed-monster-card">
-                <div class="revealed-monster-image">🐉</div>
+                @if (m.image_url) {
+                  <img class="revealed-monster-image" [src]="m.image_url" [alt]="m.name" />
+                } @else {
+                  <div class="revealed-monster-image">🐉</div>
+                }
                 <span class="revealed-monster-name">{{ m.name }}</span>
               </div>
             }
@@ -396,7 +400,11 @@
           <div class="combat-bottom">
             @for (m of revealedMonsters(); track m.id_monster_session) {
               <div class="revealed-monster-card">
-                <div class="revealed-monster-image">🐉</div>
+                @if (m.image_url) {
+                  <img class="revealed-monster-image" [src]="m.image_url" [alt]="m.name" />
+                } @else {
+                  <div class="revealed-monster-image">🐉</div>
+                }
                 <span class="revealed-monster-name">{{ m.name }}</span>
               </div>
             }
