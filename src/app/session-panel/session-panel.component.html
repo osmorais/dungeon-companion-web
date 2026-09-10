@@ -868,6 +868,7 @@
         <button class="modal-close-btn" (click)="closeMonsterDefeatedToast()">✕</button>
         <div class="monster-defeated-image-wrap">
           <img class="monster-defeated-image" [src]="d.imageUrl || DEFAULT_MONSTER_IMAGE" [alt]="d.name" />
+          <img class="monster-defeated-broken-overlay" src="assets/broken.png" alt="" />
         </div>
         <span class="monster-defeated-name">{{ d.name }}</span>
         <span class="monster-defeated-label">FOI DERROTADO!</span>
