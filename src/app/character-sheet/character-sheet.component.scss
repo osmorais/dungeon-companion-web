@@ -1291,6 +1291,23 @@ ul {
   }
 }
 
+.equipment-edit-btn {
+  vertical-align: middle;
+  margin-left: 6px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  font-size: 8px;
+  width: 16px;
+  height: 16px;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .roll-trigger-btn {
   flex-shrink: 0;
   margin-left: auto;
@@ -1386,4 +1403,21 @@ ul {
       cursor: not-allowed;
     }
   }
+}
+
+/* ===== SUBIR DE NÍVEL ===== */
+
+.level-up-btn {
+  float: none;
+  margin-top: 6px;
+  font-size: 8px;
+  padding: 6px 10px;
+  background-color: var(--accent-color);
+  color: var(--bg-color);
+  border-color: var(--accent-color);
+}
+
+.mobile-level-up-btn {
+  font-size: 6px;
+  padding: 5px 8px;
 }

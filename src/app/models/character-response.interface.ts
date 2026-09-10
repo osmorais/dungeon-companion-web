@@ -13,6 +13,7 @@ export interface CharacterSheetResponse {
     header: {
       name: string;
       class_and_level: string;
+      id_class: number;
       race: string;
       background: string;
       alignment: string;
@@ -48,6 +49,8 @@ export interface CharacterSheetResponse {
     equipment: {
       currency: any;
       items: string[];
+      equipped_armour: { id_armour: number; name: string; armour_type: string | null } | null;
+      has_shield: boolean;
     };
     spellcasting_info?: {
       spellcasting_ability: string;

@@ -1,0 +1,400 @@
+<div class="overlay modal-overlay" (click)="close()">
+  <div class="retro-panel level-up-modal" (click)="$event.stopPropagation()">
+    <button class="modal-close-btn" (click)="close()">✕</button>
+    <h3 class="modal-title">SUBIR DE NÍVEL</h3>
+
+    @if (loading()) {
+      <p class="lu-loading">Calculando...</p>
+    } @else if (!preview()) {
+      <p class="lu-error">{{ error() }}</p>
+      <div class="lu-actions">
+        <button class="retro-btn lu-cancel" (click)="close()">FECHAR</button>
+      </div>
+    } @else {
+      @let p = preview()!;
+
+      <div class="lu-level-banner">NÍVEL {{ p.current_level }} → {{ p.next_level }}</div>
+
+      <div class="lu-steps">
+        @for (step of steps(); track step; let i = $index) {
+          <span
+            class="lu-step-dot"
+            [class.lu-step-dot--active]="i === currentStepIndex()"
+            [class.lu-step-dot--done]="i < currentStepIndex()"
+          ></span>
+        }
+      </div>
+      <h4 class="lu-step-title">
+        PASSO {{ currentStepIndex() + 1 }}/{{ steps().length }} — {{ stepLabels[currentStep()] }}
+      </h4>
+
+      <div class="lu-page">
+        @switch (currentStep()) {
+          @case ('hp') {
+            <div class="lu-block">
+              <span class="lu-section-label">PONTOS DE VIDA</span>
+              <div class="lu-hp-roll">
+                <app-pixel-numeric-die
+                  [value]="hitDieRoll()"
+                  [sides]="p.hit_die"
+                  [rolling]="rollingHitDie()"
+                  [critical]="
+                    hitDieRoll() === p.hit_die ? 'high' : hitDieRoll() === 1 ? 'low' : null
+                  "
+                />
+                @if (hitDieRoll() === null) {
+                  <button
+                    class="retro-btn lu-roll-btn"
+                    [disabled]="rollingHitDie()"
+                    (click)="rollHp()"
+                  >
+                    {{ rollingHitDie() ? 'ROLANDO...' : 'ROLAR DADO DE VIDA' }}
+                  </button>
+                } @else {
+                  <span class="lu-hp-formula">
+                    {{ hitDieRoll() }} {{ p.con_modifier >= 0 ? '+' : '−' }}
+                    {{ abs(p.con_modifier) }} (CON)
+                    @if (p.hp_bonus_per_level > 0) {
+                      + {{ p.hp_bonus_per_level }} (sub-raça)
+                    }
+                    = <strong>{{ hpGained() }} PV</strong>
+                  </span>
+                }
+              </div>
+            </div>
+          }
+
+          @case ('subclass') {
+            <div class="lu-block">
+              <span class="lu-section-label">ESCOLHA SUA SUBCLASSE</span>
+              <div class="lu-spell-list">
+                @for (option of p.subclass_options ?? []; track option.id_subclass) {
+                  <label
+                    class="lu-spell-option"
+                    [class.lu-spell-option--selected]="selectedSubclassId() === option.id_subclass"
+                  >
+                    <input
+                      type="radio"
+                      name="lu-subclass"
+                      [checked]="selectedSubclassId() === option.id_subclass"
+                      [disabled]="loadingSubclassPreview()"
+                      (change)="selectSubclass(option.id_subclass)"
+                    />
+                    <span class="lu-spell-name">{{ option.display_name }}</span>
+                  </label>
+                }
+              </div>
+              @if (loadingSubclassPreview()) {
+                <p class="lu-note">Calculando o que essa subclasse muda neste nível...</p>
+              }
+            </div>
+          }
+
+          @case ('cantrips') {
+            @if (p.spell_choices; as sc) {
+              <div class="lu-block">
+                <span class="lu-section-label">
+                  TRUQUES NOVOS — {{ selectedCantripCount() }}/{{ sc.cantrips_gained }}
+                </span>
+                <div class="lu-spell-list">
+                  @for (spell of spellsForCircle(0); track spell.id_spell) {
+                    <label
+                      class="lu-spell-option"
+                      [class.lu-spell-option--selected]="isSpellSelected(spell.id_spell)"
+                    >
+                      <input
+                        type="checkbox"
+                        [checked]="isSpellSelected(spell.id_spell)"
+                        [disabled]="!canToggleSpell(spell, 0)"
+                        (change)="toggleSpell(spell, $event)"
+                      />
+                      <span class="lu-spell-name">{{ spell.name }}</span>
+                    </label>
+                  }
+                </div>
+              </div>
+            }
+          }
+
+          @case ('spells') {
+            @if (p.spell_choices; as sc) {
+              @if (!isPerCircleMode() && sc.spells_gained > 0) {
+                <div class="lu-block">
+                  <span class="lu-section-label">
+                    MAGIAS NOVAS — {{ selectedSharedPoolCount() }}/{{ sc.spells_gained }}
+                  </span>
+                  @for (circle of sharedPoolCircles(); track circle) {
+                    @if (spellsForCircle(circle).length > 0) {
+                      <div class="lu-spell-circle">
+                        <span class="lu-spell-circle-label">{{ circle }}º círculo</span>
+                        <div class="lu-spell-list">
+                          @for (spell of spellsForCircle(circle); track spell.id_spell) {
+                            <label
+                              class="lu-spell-option"
+                              [class.lu-spell-option--selected]="isSpellSelected(spell.id_spell)"
+                            >
+                              <input
+                                type="checkbox"
+                                [checked]="isSpellSelected(spell.id_spell)"
+                                [disabled]="!canToggleSpell(spell, circle)"
+                                (change)="toggleSpell(spell, $event)"
+                              />
+                              <span class="lu-spell-name">{{ spell.name }}</span>
+                            </label>
+                          }
+                        </div>
+                      </div>
+                    }
+                  }
+                </div>
+              }
+
+              @if (isPerCircleMode()) {
+                <div class="lu-block">
+                  <span class="lu-section-label">MAGIAS NOVAS</span>
+                  @for (entry of perCircleEntries(); track entry.circle) {
+                    <div class="lu-spell-circle">
+                      <span class="lu-spell-circle-label">
+                        {{ entry.circle }}º círculo — {{ selectedCountForCircle(entry.circle) }}/{{
+                          entry.limit
+                        }}
+                      </span>
+                      <div class="lu-spell-list">
+                        @for (spell of spellsForCircle(entry.circle); track spell.id_spell) {
+                          <label
+                            class="lu-spell-option"
+                            [class.lu-spell-option--selected]="isSpellSelected(spell.id_spell)"
+                          >
+                            <input
+                              type="checkbox"
+                              [checked]="isSpellSelected(spell.id_spell)"
+                              [disabled]="!canToggleSpell(spell, entry.circle)"
+                              (change)="toggleSpell(spell, $event)"
+                            />
+                            <span class="lu-spell-name">{{ spell.name }}</span>
+                          </label>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            }
+          }
+
+          @case ('traits') {
+            @if (p.new_features.length > 0) {
+              <div class="lu-block">
+                <span class="lu-section-label">NOVAS CARACTERÍSTICAS</span>
+                @for (f of p.new_features; track f.name) {
+                  <div class="lu-feature">
+                    <span class="lu-feature-name">{{ f.name }}</span>
+                    <p class="lu-feature-desc">{{ f.description }}</p>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (p.is_subclass_feature_level) {
+              <p class="lu-note">
+                Esse nível também concede uma característica de subclasse — ainda não suportado
+                nesta versão.
+              </p>
+            }
+          }
+
+          @case ('asi') {
+            <div class="lu-block">
+              <div class="lu-asi-tabs">
+                <button
+                  class="retro-btn lu-asi-tab"
+                  [class.lu-asi-tab--active]="asiMode() === 'asi'"
+                  (click)="selectAsiMode('asi')"
+                >
+                  ATRIBUTO
+                </button>
+                <button
+                  class="retro-btn lu-asi-tab"
+                  [class.lu-asi-tab--active]="asiMode() === 'feat'"
+                  (click)="selectAsiMode('feat')"
+                >
+                  FEAT
+                </button>
+              </div>
+
+              @if (asiMode() === 'asi') {
+                <p class="lu-asi-hint">
+                  Distribua 2 pontos (máx. +2 num só atributo) — {{ totalAsiPoints() }}/2 alocados.
+                </p>
+                <div class="lu-asi-grid">
+                  @for (stat of statKeys; track stat) {
+                    <div class="lu-asi-stat">
+                      <span class="lu-asi-stat-name">{{ stat }}</span>
+                      <span class="lu-asi-stat-value">+{{ asiAllocation()[stat] ?? 0 }}</span>
+                      <button
+                        class="retro-btn lu-asi-btn"
+                        [disabled]="!canIncrementAsi(stat)"
+                        (click)="incrementAsi(stat)"
+                      >
+                        +1
+                      </button>
+                    </div>
+                  }
+                </div>
+                @if (totalAsiPoints() > 0) {
+                  <button class="retro-btn lu-asi-reset" (click)="resetAsi()">LIMPAR</button>
+                }
+              }
+
+              @if (asiMode() === 'feat') {
+                <div class="lu-feat-list">
+                  @for (feat of p.feat_options; track feat.id_feat) {
+                    <label
+                      class="lu-feat-option"
+                      [class.lu-feat-option--selected]="selectedFeatId() === feat.id_feat"
+                    >
+                      <input
+                        type="radio"
+                        name="lu-feat"
+                        [value]="feat.id_feat"
+                        [checked]="selectedFeatId() === feat.id_feat"
+                        (change)="selectedFeatId.set(feat.id_feat)"
+                      />
+                      <span class="lu-feat-name">{{ feat.display_name }}</span>
+                      <p class="lu-feat-desc">{{ feat.description }}</p>
+                    </label>
+                  }
+                </div>
+              }
+            </div>
+          }
+
+          @case ('summary') {
+            <div class="lu-summary">
+              @if (p.subclass_options) {
+                <div class="lu-block">
+                  <span class="lu-section-label">SUBCLASSE ESCOLHIDA</span>
+                  <p class="lu-summary-line">
+                    <strong>{{ selectedSubclassName() }}</strong>
+                  </p>
+                </div>
+              }
+              <div class="lu-block">
+                <span class="lu-section-label">PONTOS DE VIDA</span>
+                <p class="lu-summary-line">
+                  {{ hitDieRoll() }} {{ p.con_modifier >= 0 ? '+' : '−' }}
+                  {{ abs(p.con_modifier) }} (CON)
+                  @if (p.hp_bonus_per_level > 0) {
+                    + {{ p.hp_bonus_per_level }} (sub-raça)
+                  }
+                  = <strong>+{{ hpGained() }} PV</strong>
+                </p>
+              </div>
+
+              @if (p.new_features.length > 0) {
+                <div class="lu-block">
+                  <span class="lu-section-label">NOVAS CARACTERÍSTICAS — GANHO AUTOMÁTICO</span>
+                  @for (f of p.new_features; track f.name) {
+                    <div class="lu-feature">
+                      <span class="lu-feature-name">{{ f.name }}</span>
+                      <p class="lu-feature-desc">{{ f.description }}</p>
+                    </div>
+                  }
+                </div>
+              }
+
+              @if (p.is_subclass_feature_level) {
+                <p class="lu-note">
+                  Esse nível também concede uma característica de subclasse — ainda não suportado
+                  nesta versão.
+                </p>
+              }
+
+              @if (p.resources) {
+                <div class="lu-block">
+                  <span class="lu-section-label">RECURSOS — GANHO AUTOMÁTICO</span>
+                  <div class="lu-chip-grid">
+                    @for (r of resourceEntries(p.resources); track r.key) {
+                      <span class="lu-chip"
+                        >{{ r.key }}: <strong>{{ r.value }}</strong></span
+                      >
+                    }
+                  </div>
+                </div>
+              }
+
+              @if (p.spell_slots_total) {
+                <div class="lu-block">
+                  <span class="lu-section-label">ESPAÇOS DE MAGIA — GANHO AUTOMÁTICO</span>
+                  <div class="lu-chip-grid">
+                    @for (s of slotEntries(p.spell_slots_total); track s.key) {
+                      <span class="lu-chip"
+                        >{{ s.label }}: <strong>{{ s.value }}</strong></span
+                      >
+                    }
+                  </div>
+                </div>
+              }
+
+              <div class="lu-block">
+                <span class="lu-section-label">BÔNUS DE PROFICIÊNCIA — GANHO AUTOMÁTICO</span>
+                <p class="lu-summary-line">+{{ p.proficiency_bonus }}</p>
+              </div>
+
+              @if (selectedSpellNames().length > 0) {
+                <div class="lu-block">
+                  <span class="lu-section-label">MAGIAS/TRUQUES ESCOLHIDOS</span>
+                  <div class="lu-chip-grid">
+                    @for (name of selectedSpellNames(); track name) {
+                      <span class="lu-chip">{{ name }}</span>
+                    }
+                  </div>
+                </div>
+              }
+
+              @if (p.is_asi_level) {
+                <div class="lu-block">
+                  <span class="lu-section-label">MELHORIA ESCOLHIDA</span>
+                  @if (asiMode() === 'asi') {
+                    <div class="lu-chip-grid">
+                      @for (entry of asiIncreaseEntries(); track entry.stat) {
+                        <span class="lu-chip"
+                          >{{ entry.stat }}: <strong>+{{ entry.amount }}</strong></span
+                        >
+                      }
+                    </div>
+                  } @else if (asiMode() === 'feat') {
+                    <p class="lu-summary-line">
+                      <strong>{{ selectedFeatName() }}</strong>
+                    </p>
+                  }
+                </div>
+              }
+            </div>
+          }
+        }
+      </div>
+
+      @if (error()) {
+        <p class="lu-error">{{ error() }}</p>
+      }
+
+      <div class="lu-actions">
+        @if (currentStepIndex() > 0) {
+          <button class="retro-btn lu-cancel" (click)="goBack()" [disabled]="confirming()">
+            VOLTAR
+          </button>
+        } @else {
+          <button class="retro-btn lu-cancel" (click)="close()" [disabled]="confirming()">
+            CANCELAR
+          </button>
+        }
+        <button class="retro-btn lu-confirm" [disabled]="!canGoNext()" (click)="goNext()">
+          {{
+            currentStep() === 'summary' ? (confirming() ? 'APLICANDO...' : 'CONFIRMAR') : 'PRÓXIMO'
+          }}
+        </button>
+      </div>
+    }
+  </div>
+</div>

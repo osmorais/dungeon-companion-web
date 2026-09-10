@@ -9,6 +9,7 @@ export interface CharacterSheetData {
     subrace?: string;
     id_class: number;
     class: string;
+    id_subclass?: string;
     id_background: number;
     background: string;
   };

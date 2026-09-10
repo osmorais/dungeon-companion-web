@@ -1,0 +1,143 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.equipment-modal {
+  position: relative;
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+  width: 420px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 24px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 12px;
+  color: var(--accent-color);
+  text-align: center;
+}
+
+.eq-loading,
+.eq-error {
+  font-size: 9px;
+  color: var(--text-color);
+  text-align: center;
+}
+
+.eq-error {
+  color: #ff6b6b;
+}
+
+.eq-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.eq-section-label {
+  font-size: 8px;
+  color: var(--label-title-color);
+  letter-spacing: 0.05em;
+}
+
+.eq-armour-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.eq-armour-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-color);
+  padding: 6px 10px;
+  cursor: pointer;
+
+  &--selected {
+    border-color: var(--accent-color);
+  }
+}
+
+.eq-armour-name {
+  font-size: 8px;
+  color: var(--text-color);
+  flex: 1;
+}
+
+.eq-armour-type {
+  font-size: 7px;
+  color: var(--label-title-color);
+}
+
+.eq-note {
+  margin: 0;
+  font-size: 7px;
+  color: var(--label-title-color);
+  font-style: italic;
+}
+
+.eq-shield-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 8px;
+  color: var(--text-color);
+  cursor: pointer;
+}
+
+.eq-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.eq-cancel {
+  background: transparent;
+  border-color: #555;
+  float: none;
+  margin-top: 0;
+}
+
+.eq-confirm {
+  background-color: #00aa00;
+  border-color: #ffffff;
+  float: none;
+  margin-top: 0;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}

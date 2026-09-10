@@ -14,6 +14,9 @@
           <h2>{{ data.character_sheet.header.name }}</h2>
           <p>{{ data.character_sheet.header.class_and_level }}</p>
           <p class="mobile-race">{{ data.character_sheet.header.race || 'Humano' }}</p>
+          @if (canLevelUp()) {
+            <button class="retro-btn level-up-btn mobile-level-up-btn" (click)="openLevelUpModal()">⬆ SUBIR DE NÍVEL</button>
+          }
         </div>
         <div class="mobile-hp-badge">
           <div class="mobile-hp-controls">
@@ -63,6 +66,7 @@
               <div class="mobile-stat-card">
                 <label>CA</label>
                 <span>{{ data.character_sheet.combat_stats.armor_class }}</span>
+                <button class="equipment-edit-btn" (click)="openEquipmentModal()">✎</button>
               </div>
               <div class="mobile-stat-card">
                 <label>INICIATIVA</label>
@@ -284,6 +288,9 @@
         <div class="char-title">
           <h1>{{ data.character_sheet.header.name }}</h1>
           <p>{{ data.character_sheet.header.class_and_level }} &mdash; {{ data.character_sheet.header.race || 'Humano' }}</p>
+          @if (canLevelUp()) {
+            <button class="retro-btn level-up-btn" (click)="openLevelUpModal()">⬆ SUBIR DE NÍVEL</button>
+          }
         </div>
         <div class="char-details">
           <p>Antecedente: {{ data.character_sheet.header.background }}</p>
@@ -362,7 +369,7 @@
           <fieldset class="retro-panel combat-panel">
             <legend>COMBATE</legend>
             <div class="stats-row">
-              <div><label>CA</label><span>{{ data.character_sheet.combat_stats.armor_class }}</span></div>
+              <div><label>CA</label><span>{{ data.character_sheet.combat_stats.armor_class }}</span><button class="equipment-edit-btn" (click)="openEquipmentModal()">✎</button></div>
               <div><label>INIT</label><span>{{ formatMod(data.character_sheet.combat_stats.initiative) }}</span></div>
               <div><label>MOV</label><span>{{ data.character_sheet.combat_stats.speed }}</span></div>
               <div><label>BÔNUS PROF</label><span>{{ formatMod(data.character_sheet.combat_stats.proficiency_bonus) }}</span></div>
@@ -695,6 +702,23 @@
     [idCharacter]="idCharacterForRoll"
     [actorName]="actorName"
     (closed)="closeRoll()" />
+}
+
+@if (showLevelUpModal() && sheetData()?.character_sheet?.id_character) {
+  <app-level-up-modal
+    [idCharacter]="sheetData()!.character_sheet.id_character!"
+    (closed)="closeLevelUpModal()"
+    (leveledUp)="onLeveledUp()" />
+}
+
+@if (showEquipmentModal() && sheetData()?.character_sheet?.id_character) {
+  <app-equipment-modal
+    [idCharacter]="sheetData()!.character_sheet.id_character!"
+    [idClass]="equipmentIdClass"
+    [currentArmourId]="equipmentCurrentArmourId"
+    [currentHasShield]="equipmentCurrentHasShield"
+    (closed)="closeEquipmentModal()"
+    (saved)="onEquipmentSaved($event)" />
 }
 
 } @else if (!loading()) {

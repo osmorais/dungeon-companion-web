@@ -27,6 +27,7 @@ import {
   WIZARD_CLASS_ID,
 } from '../constants/spell-rules';
 import { CLASS_ARMOUR_RULES } from '../constants/armour-rules';
+import { LEVEL1_SUBCLASS_OPTIONS, Level1SubclassOption } from '../constants/level1-subclass-options';
 import { PixelDieComponent } from '../pixel-die/pixel-die.component';
 
 type AttributeKey = 'FOR' | 'DES' | 'CON' | 'INT' | 'SAB' | 'CAR';
@@ -151,6 +152,10 @@ export class CharacterWizardComponent implements OnInit {
     return this.availableRaces.find(r => +r.id_race === +this.characterData.core_build.id_race)?.subraces ?? [];
   }
 
+  get availableLevel1Subclasses(): Level1SubclassOption[] {
+    return LEVEL1_SUBCLASS_OPTIONS[+this.characterData.core_build.id_class] ?? [];
+  }
+
   private isCurrentStepValid(): boolean {
     switch (this.currentStep) {
       case 1:
@@ -160,7 +165,8 @@ export class CharacterWizardComponent implements OnInit {
           +this.characterData.core_build.id_background !== 0 &&
           this.characterData.character_details.name.trim() !== '' &&
           +this.characterData.character_details.id_alignment !== 0 &&
-          (this.availableSubraces.length === 0 || !!this.characterData.core_build.subrace)
+          (this.availableSubraces.length === 0 || !!this.characterData.core_build.subrace) &&
+          (this.availableLevel1Subclasses.length === 0 || !!this.characterData.core_build.id_subclass)
         );
       case 2:
         if (this.characterData.attributes.generation_method === 'point_buy') return true;
@@ -252,6 +258,7 @@ export class CharacterWizardComponent implements OnInit {
   onClassChange(): void {
     const cls = this.availableClasses.find(c => +c.id_class === +this.characterData.core_build.id_class);
     this.characterData.core_build.class = cls?.name ?? '';
+    this.characterData.core_build.id_subclass = this.availableLevel1Subclasses.length > 0 ? '' : undefined;
     this.resetAllChoices();
   }
 

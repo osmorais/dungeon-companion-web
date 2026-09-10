@@ -1,0 +1,383 @@
+/* "fieldset.retro-panel" (styles.scss) só vale pra <fieldset> — como este painel é uma <div>,
+   precisa repetir fundo/borda/overlay aqui, mesmo padrão usado no resto do app. */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.level-up-modal {
+  position: relative;
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+  width: 480px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 24px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 12px;
+  color: var(--accent-color);
+  text-align: center;
+}
+
+.lu-loading,
+.lu-error {
+  font-size: 9px;
+  color: var(--text-color);
+  text-align: center;
+}
+
+.lu-error {
+  color: #ff6b6b;
+}
+
+.lu-level-banner {
+  text-align: center;
+  font-size: 13px;
+  color: var(--accent-color);
+  border: 1px solid var(--border-color);
+  padding: 8px;
+  background-color: var(--bg-color);
+}
+
+.lu-steps {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.lu-step-dot {
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-color);
+
+  &--done {
+    background-color: var(--label-title-color);
+  }
+
+  &--active {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+  }
+}
+
+.lu-step-title {
+  margin: 0;
+  font-size: 8px;
+  color: var(--label-title-color);
+  text-align: center;
+  letter-spacing: 0.05em;
+}
+
+.lu-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.lu-roll-btn {
+  float: none;
+  margin-top: 0;
+  font-size: 8px;
+  padding: 10px 14px;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.lu-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lu-summary-line {
+  margin: 0;
+  font-size: 9px;
+  color: var(--text-color);
+
+  strong {
+    color: var(--accent-color);
+  }
+}
+
+.lu-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lu-section-label {
+  font-size: 8px;
+  color: var(--label-title-color);
+  letter-spacing: 0.05em;
+}
+
+.lu-hp-roll {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.lu-hp-formula {
+  font-size: 9px;
+  color: var(--text-color);
+
+  strong {
+    color: var(--accent-color);
+  }
+}
+
+.lu-feature {
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-color);
+  padding: 8px 10px;
+}
+
+.lu-feature-name {
+  font-size: 9px;
+  color: var(--accent-color);
+}
+
+.lu-feature-desc {
+  margin: 4px 0 0;
+  font-size: 8px;
+  color: var(--text-color);
+  line-height: 1.5;
+}
+
+.lu-note {
+  margin: 0;
+  font-size: 7px;
+  color: var(--label-title-color);
+  font-style: italic;
+}
+
+.lu-chip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.lu-chip {
+  font-size: 8px;
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-color);
+  padding: 4px 8px;
+
+  strong {
+    color: var(--accent-color);
+  }
+}
+
+.lu-asi-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.lu-asi-tab {
+  float: none;
+  flex: 1;
+  font-size: 8px;
+  padding: 8px;
+  margin-top: 0;
+  background-color: var(--bg-color);
+
+  &--active {
+    background-color: var(--accent-color);
+    color: var(--bg-color);
+  }
+}
+
+.lu-asi-hint {
+  margin: 0;
+  font-size: 7px;
+  color: var(--label-title-color);
+}
+
+.lu-asi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.lu-asi-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-color);
+  padding: 8px 4px;
+}
+
+.lu-asi-stat-name {
+  font-size: 8px;
+  color: var(--label-title-color);
+}
+
+.lu-asi-stat-value {
+  font-size: 11px;
+  color: var(--accent-color);
+}
+
+.lu-asi-btn {
+  float: none;
+  margin-top: 0;
+  font-size: 7px;
+  padding: 4px 8px;
+  width: 100%;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.lu-asi-reset {
+  float: none;
+  margin-top: 0;
+  align-self: flex-start;
+  font-size: 7px;
+  padding: 5px 10px;
+  background: transparent;
+  border-color: #555;
+}
+
+.lu-feat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lu-feat-option {
+  display: block;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-color);
+  padding: 8px 10px;
+  cursor: pointer;
+
+  input {
+    margin-right: 6px;
+  }
+
+  &--selected {
+    border-color: var(--accent-color);
+  }
+}
+
+.lu-feat-name {
+  font-size: 9px;
+  color: var(--accent-color);
+}
+
+.lu-feat-desc {
+  margin: 4px 0 0 20px;
+  font-size: 8px;
+  color: var(--text-color);
+  line-height: 1.5;
+}
+
+.lu-spell-circle {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+
+  &:first-child {
+    margin-top: 0;
+  }
+}
+
+.lu-spell-circle-label {
+  font-size: 7px;
+  color: var(--label-title-color);
+}
+
+.lu-spell-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lu-spell-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-color);
+  padding: 6px 10px;
+  cursor: pointer;
+
+  &:has(input:disabled) {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  &--selected {
+    border-color: var(--accent-color);
+  }
+}
+
+.lu-spell-name {
+  font-size: 8px;
+  color: var(--text-color);
+}
+
+.lu-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.lu-cancel {
+  background: transparent;
+  border-color: #555;
+  float: none;
+  margin-top: 0;
+}
+
+.lu-confirm {
+  background-color: #00aa00;
+  border-color: #ffffff;
+  float: none;
+  margin-top: 0;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}

@@ -10,6 +10,8 @@ import { AvatarPreset } from '../models/avatar-preset.interface';
 import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
 import { AvatarCustomizerComponent } from '../avatar-customizer/avatar-customizer.component';
 import { AbilityRollConfig, RollConfig, RollModalComponent } from '../roll-modal/roll-modal.component';
+import { LevelUpModalComponent } from '../level-up-modal/level-up-modal.component';
+import { EquipmentModalComponent, EquipmentSaved } from '../equipment-modal/equipment-modal.component';
 
 type MobileTab = 'combat' | 'attrs' | 'skills' | 'traits' | 'equipment' | 'spells' | 'notes';
 type DesktopPage = 'sheet' | 'notes';
@@ -19,7 +21,7 @@ const NOTES_SEPARATOR = '\n\n[ANOTAÇÕES]\n\n';
 @Component({
   selector: 'app-character-sheet',
   standalone: true,
-  imports: [CommonModule, KeyValuePipe, AvatarDisplayComponent, AvatarCustomizerComponent, RollModalComponent],
+  imports: [CommonModule, KeyValuePipe, AvatarDisplayComponent, AvatarCustomizerComponent, RollModalComponent, LevelUpModalComponent, EquipmentModalComponent],
   templateUrl: './character-sheet.component.html',
   styleUrls: ['./character-sheet.component.scss'],
 })
@@ -424,6 +426,77 @@ export class CharacterSheetComponent {
   closeAvatarEditor(): void {
     this.showAvatarEditor.set(false);
     this.editingPreset.set(null);
+  }
+
+  /** ========================= SUBIR DE NÍVEL ========================= */
+
+  showLevelUpModal = signal(false);
+
+  canLevelUp(): boolean {
+    // hit_dice_total é sempre igual ao nível do personagem (personagem de classe única).
+    const level = this.sheetData()?.character_sheet.combat_stats.hit_dice_total;
+    return level !== undefined && level < 20;
+  }
+
+  openLevelUpModal(): void {
+    this.showLevelUpModal.set(true);
+  }
+
+  closeLevelUpModal(): void {
+    this.showLevelUpModal.set(false);
+  }
+
+  /** Resultado do level-up mexe em quase toda a ficha (nível, PV, atributos, magia) — mais
+   *  simples e seguro recarregar tudo do que tentar aplicar um patch parcial em cada campo. */
+  onLeveledUp(): void {
+    this.showLevelUpModal.set(false);
+    const id = this.sheetData()?.character_sheet.id_character;
+    if (!id) return;
+    this.charService.getCharacterById(id).subscribe({
+      next: sheet => this.charService.currentCharacter.set(sheet),
+    });
+  }
+
+  /** ========================= EQUIPAMENTO (ARMADURA/ESCUDO) ========================= */
+
+  showEquipmentModal = signal(false);
+
+  openEquipmentModal(): void {
+    this.showEquipmentModal.set(true);
+  }
+
+  closeEquipmentModal(): void {
+    this.showEquipmentModal.set(false);
+  }
+
+  get equipmentIdClass(): number {
+    return this.sheetData()?.character_sheet.header.id_class ?? 0;
+  }
+
+  get equipmentCurrentArmourId(): number | null {
+    return this.sheetData()?.character_sheet.equipment.equipped_armour?.id_armour ?? null;
+  }
+
+  get equipmentCurrentHasShield(): boolean {
+    return this.sheetData()?.character_sheet.equipment.has_shield ?? false;
+  }
+
+  onEquipmentSaved(result: EquipmentSaved): void {
+    this.showEquipmentModal.set(false);
+    const sheet = this.sheetData();
+    if (!sheet) return;
+    this.charService.currentCharacter.set({
+      ...sheet,
+      character_sheet: {
+        ...sheet.character_sheet,
+        combat_stats: { ...sheet.character_sheet.combat_stats, armor_class: result.armor_class },
+        equipment: {
+          ...sheet.character_sheet.equipment,
+          equipped_armour: result.equipped_armour,
+          has_shield: result.has_shield,
+        },
+      },
+    });
   }
 
   /** ========================= ROLAGENS ========================= */

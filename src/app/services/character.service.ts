@@ -6,12 +6,22 @@ import { CharacterBackground, CharacterSheetResponse } from '../models/character
 import { AvatarPreset } from '../models/avatar-preset.interface';
 import { CharacterOptions } from '../models/character-options.interface';
 import { CharacterSummary, CharacterPagedList } from '../models/character-summary.interface';
+import { LevelUpConfirmInput, LevelUpHitDieRoll, LevelUpPreview, LevelUpResult } from '../models/level-up.interface';
 import { environment } from '../../environments/environment';
 
 export interface LongRestResult {
   slots_expended: Record<string, number>;
   current_hit_points: number;
   hit_dice_spent: number;
+}
+
+export interface EquipmentUpdateInput {
+  id_armour: number | null;
+  has_shield: boolean;
+}
+
+export interface EquipmentUpdateResult {
+  armor_class: number;
 }
 
 export interface HitDieRollResult {
@@ -95,6 +105,23 @@ export class CharacterService {
 
   rollHitDie(id: number): Observable<HitDieRollResult> {
     return this.http.post<HitDieRollResult>(`${this.baseUrl}/api/character-sheet/${id}/short-rest/hit-die`, {});
+  }
+
+  updateEquipment(id: number, input: EquipmentUpdateInput): Observable<EquipmentUpdateResult> {
+    return this.http.patch<EquipmentUpdateResult>(`${this.baseUrl}/api/character-sheet/${id}/equipment`, input);
+  }
+
+  previewLevelUp(id: number, idSubclass?: string): Observable<LevelUpPreview> {
+    const params: Record<string, string> = idSubclass ? { id_subclass: idSubclass } : {};
+    return this.http.get<LevelUpPreview>(`${this.baseUrl}/api/character-sheet/${id}/level-up/preview`, { params });
+  }
+
+  rollLevelUpHitDie(id: number): Observable<LevelUpHitDieRoll> {
+    return this.http.post<LevelUpHitDieRoll>(`${this.baseUrl}/api/character-sheet/${id}/level-up/roll-hp`, {});
+  }
+
+  confirmLevelUp(id: number, input: LevelUpConfirmInput): Observable<LevelUpResult> {
+    return this.http.post<LevelUpResult>(`${this.baseUrl}/api/character-sheet/${id}/level-up/confirm`, input);
   }
 
   setSpellPrepared(id: number, idSpell: number, isPrepared: boolean): Observable<{ success: boolean }> {

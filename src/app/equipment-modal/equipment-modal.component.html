@@ -1,0 +1,68 @@
+<div class="overlay modal-overlay" (click)="close()">
+  <div class="retro-panel equipment-modal" (click)="$event.stopPropagation()">
+    <button class="modal-close-btn" (click)="close()">✕</button>
+    <h3 class="modal-title">EQUIPAMENTO</h3>
+
+    @if (loading()) {
+      <p class="eq-loading">Carregando...</p>
+    } @else {
+      <div class="eq-block">
+        <span class="eq-section-label">ARMADURA</span>
+        <div class="eq-armour-list">
+          <label
+            class="eq-armour-option"
+            [class.eq-armour-option--selected]="selectedArmourId() === null"
+          >
+            <input
+              type="radio"
+              name="eq-armour"
+              [checked]="selectedArmourId() === null"
+              (change)="selectArmour(null)"
+            />
+            <span class="eq-armour-name">Nenhuma (sem armadura)</span>
+          </label>
+          @for (armour of availableArmours(); track armour.id_armour) {
+            <label
+              class="eq-armour-option"
+              [class.eq-armour-option--selected]="selectedArmourId() === armour.id_armour"
+            >
+              <input
+                type="radio"
+                name="eq-armour"
+                [checked]="selectedArmourId() === armour.id_armour"
+                (change)="selectArmour(armour.id_armour)"
+              />
+              <span class="eq-armour-name">{{ armour.name }}</span>
+              <span class="eq-armour-type">{{ armour.armour_type }}</span>
+            </label>
+          }
+          @if (availableArmours().length === 0) {
+            <p class="eq-note">Essa classe não tem proficiência com nenhuma armadura.</p>
+          }
+        </div>
+      </div>
+
+      @if (canEquipShield()) {
+        <div class="eq-block">
+          <label class="eq-shield-option">
+            <input type="checkbox" [checked]="shieldEquipped()" (change)="toggleShield($event)" />
+            <span>Escudo equipado (+2 CA)</span>
+          </label>
+        </div>
+      }
+
+      @if (error()) {
+        <p class="eq-error">{{ error() }}</p>
+      }
+
+      <div class="eq-actions">
+        <button class="retro-btn eq-cancel" (click)="close()" [disabled]="saving()">
+          CANCELAR
+        </button>
+        <button class="retro-btn eq-confirm" [disabled]="saving()" (click)="save()">
+          {{ saving() ? 'SALVANDO...' : 'SALVAR' }}
+        </button>
+      </div>
+    }
+  </div>
+</div>

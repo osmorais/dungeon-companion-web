@@ -43,6 +43,16 @@
                 }
               </select>
             </label>
+            @if (availableLevel1Subclasses.length > 0) {
+              <label>SUBCLASSE
+                <select [(ngModel)]="characterData.core_build.id_subclass">
+                  <option value="">Selecione...</option>
+                  @for (sub of availableLevel1Subclasses; track sub.id_subclass) {
+                    <option [value]="sub.id_subclass">{{ sub.displayName }}</option>
+                  }
+                </select>
+              </label>
+            }
             <label>ANTECEDENTE
               <select [(ngModel)]="characterData.core_build.id_background">
                 @for (bg of availableBackgrounds; track bg.id_background) {
@@ -438,6 +448,16 @@
                 }
               </select>
             </label>
+            @if (availableLevel1Subclasses.length > 0) {
+              <label>SUBCLASSE
+                <select [(ngModel)]="characterData.core_build.id_subclass">
+                  <option value="">Selecione...</option>
+                  @for (sub of availableLevel1Subclasses; track sub.id_subclass) {
+                    <option [value]="sub.id_subclass">{{ sub.displayName }}</option>
+                  }
+                </select>
+              </label>
+            }
             <label>ANTECEDENTE
               <select [(ngModel)]="characterData.core_build.id_background">
                 @for (bg of availableBackgrounds; track bg.id_background) {
