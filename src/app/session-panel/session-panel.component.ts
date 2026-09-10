@@ -11,6 +11,7 @@ import {
   MonsterSession,
   NpcSession,
   PlayerSession,
+  RevealedMonster,
   RollLogEntry,
 } from '../models/game-session.interface';
 import { CharacterSummary } from '../models/character-summary.interface';
@@ -117,6 +118,16 @@ export class SessionPanelComponent implements OnDestroy {
     effect(() => {
       const detail = this.sessionDetail();
       untracked(() => this.checkForNewRolls(detail));
+    });
+
+    /** Troca o monstro em destaque só quando é a vez de um monstro — ver spotlightMonster. */
+    effect(() => {
+      const current = this.currentTurnParticipant();
+      untracked(() => {
+        if (current?.participant_type === 'monster') {
+          this.spotlightMonsterId.set(current.id_monster_session);
+        }
+      });
     });
   }
 
@@ -560,6 +571,31 @@ export class SessionPanelComponent implements OnDestroy {
 
   revealedMonsters = computed(() => this.sessionDetail()?.revealed_monsters ?? []);
   revealingMonsterId = signal<string | null>(null);
+
+  /**
+   * Monstro revelado em destaque (card grande, estilo card de jogador) — só um por vez, mesmo
+   * com vários revelados. Por padrão mostra o de melhor iniciativa (combat.participants já vem
+   * ordenado por iniciativa); o effect logo abaixo troca pro próximo só quando é a vez dele,
+   * mantendo o atual durante turnos de jogadores/NPCs ("fica até o próximo monstro aparecer").
+   */
+  private spotlightMonsterId = signal<string | null>(null);
+
+  spotlightMonster = computed<RevealedMonster | null>(() => {
+    const revealed = this.revealedMonsters();
+    if (revealed.length === 0) return null;
+
+    const spotlighted = revealed.find((m) => m.id_monster_session === this.spotlightMonsterId());
+    if (spotlighted) return spotlighted;
+
+    const combat = this.combat();
+    const bestInInitiative = combat?.participants.find(
+      (p) => p.participant_type === 'monster' && revealed.some((m) => m.id_monster_session === p.id_monster_session),
+    );
+    if (bestInInitiative) {
+      return revealed.find((m) => m.id_monster_session === bestInInitiative.id_monster_session)!;
+    }
+    return revealed[0];
+  });
 
   /** Sem refetch — o socket ecoa `monster_revealed`/`monster_hidden` de volta (ver addNpc acima). */
   toggleMonsterReveal(monster: MonsterSession, event: Event): void {

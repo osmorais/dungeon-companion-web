@@ -78,14 +78,12 @@
           </div>
         }
         </div>
-        @if (revealedMonsters().length > 0) {
+        @if (spotlightMonster(); as monster) {
           <div class="combat-bottom">
-            @for (m of revealedMonsters(); track m.id_monster_session) {
-              <div class="revealed-monster-card">
-                <img class="revealed-monster-image" [src]="m.image_url || DEFAULT_MONSTER_IMAGE" [alt]="m.name" />
-                <span class="revealed-monster-name">{{ m.name }}</span>
-              </div>
-            }
+            <div class="revealed-monster-spotlight">
+              <img class="revealed-monster-spotlight-image" [src]="monster.image_url || DEFAULT_MONSTER_IMAGE" [alt]="monster.name" />
+              <span class="revealed-monster-spotlight-name">{{ monster.name }}</span>
+            </div>
           </div>
         }
       </fieldset>
@@ -398,14 +396,12 @@
           </div>
         }
         </div>
-        @if (revealedMonsters().length > 0) {
+        @if (spotlightMonster(); as monster) {
           <div class="combat-bottom">
-            @for (m of revealedMonsters(); track m.id_monster_session) {
-              <div class="revealed-monster-card">
-                <img class="revealed-monster-image" [src]="m.image_url || DEFAULT_MONSTER_IMAGE" [alt]="m.name" />
-                <span class="revealed-monster-name">{{ m.name }}</span>
-              </div>
-            }
+            <div class="revealed-monster-spotlight">
+              <img class="revealed-monster-spotlight-image" [src]="monster.image_url || DEFAULT_MONSTER_IMAGE" [alt]="monster.name" />
+              <span class="revealed-monster-spotlight-name">{{ monster.name }}</span>
+            </div>
           </div>
         }
         </div>
