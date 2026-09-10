@@ -155,16 +155,17 @@
                       ❤ {{ editedHp(player) }}/{{ player.character.max_hit_points }}
                     </span>
                     @if (canEditHp(player)) {
-                      <div class="hp-controls">
-                        <button class="hp-btn" (click)="decrementHp(player)" [disabled]="editedHp(player) <= 0">−</button>
-                        <span class="hp-edit-value">{{ editedHp(player) }}</span>
-                        <button class="hp-btn" (click)="incrementHp(player)" [disabled]="editedHp(player) >= player.character.max_hit_points">+</button>
+                      <div class="hp-delta-controls">
+                        <input type="number" min="0" class="hp-delta-input" placeholder="0"
+                          [value]="playerDamageInput(player) || ''"
+                          (input)="setPlayerDamageInput(player, $event)" />
+                        <button class="retro-btn hp-delta-btn hp-damage-btn"
+                          [disabled]="!playerDamageInput(player) || savingHp().has(player.id_player_session)"
+                          (click)="applyPlayerDamage(player)">DANO</button>
+                        <button class="retro-btn hp-delta-btn hp-heal-btn"
+                          [disabled]="!playerDamageInput(player) || savingHp().has(player.id_player_session)"
+                          (click)="applyPlayerHeal(player)">CURA</button>
                       </div>
-                      <button class="retro-btn hp-save-btn mobile-hp-save-btn"
-                        (click)="saveHp(player)"
-                        [disabled]="savingHp().has(player.id_player_session) || !hasHpChange(player)">
-                        {{ savingHp().has(player.id_player_session) ? '...' : 'SALVAR HP' }}
-                      </button>
                     }
                   </div>
 
@@ -213,16 +214,17 @@
                     <span class="mobile-npc-meta">{{ npc.character.class }} · {{ npc.character.race }} · NV {{ npc.character.level }}</span>
                     <span class="mobile-npc-hp">❤ {{ editedNpcHp(npc) }}/{{ npc.character.max_hit_points }}</span>
                     @if (isOwner()) {
-                      <div class="hp-controls">
-                        <button class="hp-btn" (click)="decrementNpcHp(npc)" [disabled]="editedNpcHp(npc) <= 0">−</button>
-                        <span class="hp-edit-value">{{ editedNpcHp(npc) }}</span>
-                        <button class="hp-btn" (click)="incrementNpcHp(npc)" [disabled]="editedNpcHp(npc) >= npc.character.max_hit_points">+</button>
+                      <div class="hp-delta-controls">
+                        <input type="number" min="0" class="hp-delta-input" placeholder="0"
+                          [value]="npcDamageInput(npc) || ''"
+                          (input)="setNpcDamageInput(npc, $event)" />
+                        <button class="retro-btn hp-delta-btn hp-damage-btn"
+                          [disabled]="!npcDamageInput(npc) || savingNpcHp().has(npc.id_npc_session)"
+                          (click)="applyNpcDamage(npc)">DANO</button>
+                        <button class="retro-btn hp-delta-btn hp-heal-btn"
+                          [disabled]="!npcDamageInput(npc) || savingNpcHp().has(npc.id_npc_session)"
+                          (click)="applyNpcHeal(npc)">CURA</button>
                       </div>
-                      <button class="retro-btn hp-save-btn mobile-hp-save-btn"
-                        (click)="saveNpcHp(npc)"
-                        [disabled]="savingNpcHp().has(npc.id_npc_session) || !hasNpcHpChange(npc)">
-                        {{ savingNpcHp().has(npc.id_npc_session) ? '...' : 'SALVAR HP' }}
-                      </button>
                     }
                   } @else {
                     <span class="mobile-npc-name">NPC #{{ npc.id_character }}</span>
@@ -477,16 +479,17 @@
                       ❤ {{ editedHp(player) }}/{{ player.character.max_hit_points }}
                     </span>
                     @if (canEditHp(player)) {
-                      <div class="hp-controls">
-                        <button class="hp-btn" (click)="decrementHp(player)" [disabled]="editedHp(player) <= 0">−</button>
-                        <span class="hp-edit-value">{{ editedHp(player) }}</span>
-                        <button class="hp-btn" (click)="incrementHp(player)" [disabled]="editedHp(player) >= player.character.max_hit_points">+</button>
+                      <div class="hp-delta-controls">
+                        <input type="number" min="0" class="hp-delta-input" placeholder="0"
+                          [value]="playerDamageInput(player) || ''"
+                          (input)="setPlayerDamageInput(player, $event)" />
+                        <button class="retro-btn hp-delta-btn hp-damage-btn"
+                          [disabled]="!playerDamageInput(player) || savingHp().has(player.id_player_session)"
+                          (click)="applyPlayerDamage(player)">DANO</button>
+                        <button class="retro-btn hp-delta-btn hp-heal-btn"
+                          [disabled]="!playerDamageInput(player) || savingHp().has(player.id_player_session)"
+                          (click)="applyPlayerHeal(player)">CURA</button>
                       </div>
-                      <button class="retro-btn hp-save-btn"
-                        (click)="saveHp(player)"
-                        [disabled]="savingHp().has(player.id_player_session) || !hasHpChange(player)">
-                        {{ savingHp().has(player.id_player_session) ? '...' : 'SALVAR HP' }}
-                      </button>
                     }
                   </div>
 
@@ -544,15 +547,16 @@
                       <span class="npc-hp-text">❤ {{ editedNpcHp(npc) }}/{{ npc.character.max_hit_points }}</span>
                     </div>
                     @if (isOwner()) {
-                      <div class="npc-hp-controls">
-                        <button class="hp-btn" (click)="decrementNpcHp(npc)" [disabled]="editedNpcHp(npc) <= 0">−</button>
-                        <span class="hp-edit-value">{{ editedNpcHp(npc) }}</span>
-                        <button class="hp-btn" (click)="incrementNpcHp(npc)" [disabled]="editedNpcHp(npc) >= npc.character.max_hit_points">+</button>
-                        <button class="retro-btn npc-hp-save-btn"
-                          (click)="saveNpcHp(npc)"
-                          [disabled]="savingNpcHp().has(npc.id_npc_session) || !hasNpcHpChange(npc)">
-                          {{ savingNpcHp().has(npc.id_npc_session) ? '...' : 'SALVAR HP' }}
-                        </button>
+                      <div class="hp-delta-controls">
+                        <input type="number" min="0" class="hp-delta-input" placeholder="0"
+                          [value]="npcDamageInput(npc) || ''"
+                          (input)="setNpcDamageInput(npc, $event)" />
+                        <button class="retro-btn hp-delta-btn hp-damage-btn"
+                          [disabled]="!npcDamageInput(npc) || savingNpcHp().has(npc.id_npc_session)"
+                          (click)="applyNpcDamage(npc)">DANO</button>
+                        <button class="retro-btn hp-delta-btn hp-heal-btn"
+                          [disabled]="!npcDamageInput(npc) || savingNpcHp().has(npc.id_npc_session)"
+                          (click)="applyNpcHeal(npc)">CURA</button>
                       </div>
                     }
                   } @else {

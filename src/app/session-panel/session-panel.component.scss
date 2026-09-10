@@ -327,62 +327,6 @@
   color: var(--text-color);
 }
 
-.hp-controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: 100%;
-  margin-top: 2px;
-}
-
-.hp-btn {
-  background: none;
-  border: 1px solid var(--accent-color);
-  color: var(--accent-color);
-  font-family: 'Press Start 2P', monospace;
-  font-size: 10px;
-  width: 22px;
-  height: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-  transition: background-color 0.15s;
-
-  &:hover:not(:disabled) {
-    background-color: var(--accent-color);
-    color: var(--bg-color);
-  }
-
-  &:disabled {
-    opacity: 0.35;
-    cursor: not-allowed;
-  }
-}
-
-.hp-edit-value {
-  font-size: 9px;
-  color: var(--accent-color);
-  min-width: 22px;
-  text-align: center;
-}
-
-.hp-save-btn {
-  float: none;
-  margin-top: 2px;
-  font-size: 6px;
-  padding: 5px 8px;
-  width: 100%;
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-}
-
 .sheet-btn {
   float: none;
   margin-top: 4px;
@@ -630,26 +574,6 @@
   text-align: center;
 }
 
-.npc-hp-controls {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 4px;
-  flex-wrap: wrap;
-}
-
-.npc-hp-save-btn {
-  float: none;
-  font-size: 6px;
-  padding: 4px 8px;
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-}
-
-/* Monster table — desktop */
 /* Monster list — desktop (mesmo padrão visual do .npc-row: avatar + info + ações). */
 .monster-list {
   display: flex;
@@ -1107,11 +1031,6 @@
 .mobile-hp-value {
   font-size: 6px;
   color: var(--text-color);
-}
-
-.mobile-hp-save-btn {
-  font-size: 5px;
-  padding: 5px 6px;
 }
 
 .mobile-sheet-btn {

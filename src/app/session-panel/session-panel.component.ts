@@ -188,7 +188,9 @@ export class SessionPanelComponent implements OnDestroy {
         }
 
         this.hpEdits.set({});
+        this.playerDamageInputs.set({});
         this.npcHpEdits.set({});
+        this.npcDamageInputs.set({});
         this.monsterHpEdits.set({});
         this.monsterDamageInputs.set({});
         this.refreshing.set(false);
@@ -313,24 +315,44 @@ export class SessionPanelComponent implements OnDestroy {
     return this.hpEdits()[player.id_player_session] ?? player.character!.current_hit_points;
   }
 
-  hasHpChange(player: PlayerSession): boolean {
+  /**
+   * Mesmo padrão de dano/cura em lote dos monstros (ver SessionPanelComponent.applyMonsterHpDelta):
+   * digita um valor e aplica como dano ou cura de uma vez, já salvando na hora.
+   */
+  playerDamageInputs = signal<Record<string, number>>({});
+
+  playerDamageInput(player: PlayerSession): number {
+    return this.playerDamageInputs()[player.id_player_session] ?? 0;
+  }
+
+  setPlayerDamageInput(player: PlayerSession, event: Event) {
+    const raw = Number((event.target as HTMLInputElement).value);
+    const value = Number.isFinite(raw) ? Math.max(0, Math.trunc(raw)) : 0;
+    this.playerDamageInputs.update(v => ({ ...v, [player.id_player_session]: value }));
+  }
+
+  applyPlayerDamage(player: PlayerSession) {
+    this.applyPlayerHpDelta(player, -1);
+  }
+
+  applyPlayerHeal(player: PlayerSession) {
+    this.applyPlayerHpDelta(player, 1);
+  }
+
+  private applyPlayerHpDelta(player: PlayerSession, sign: 1 | -1) {
     const id = player.id_player_session;
-    const edits = this.hpEdits();
-    if (!(id in edits)) return false;
-    return edits[id] !== player.character!.current_hit_points;
-  }
+    const amount = this.playerDamageInput(player);
+    if (!amount || this.savingHp().has(id)) return;
 
-  decrementHp(player: PlayerSession) {
-    const current = this.editedHp(player);
-    if (current <= 0) return;
-    this.hpEdits.update(edits => ({ ...edits, [player.id_player_session]: current - 1 }));
-  }
-
-  incrementHp(player: PlayerSession) {
-    const current = this.editedHp(player);
     const max = player.character!.max_hit_points;
-    if (current >= max) return;
-    this.hpEdits.update(edits => ({ ...edits, [player.id_player_session]: current + 1 }));
+    const next = Math.min(max, Math.max(0, this.editedHp(player) + sign * amount));
+    this.hpEdits.update(edits => ({ ...edits, [id]: next }));
+    this.playerDamageInputs.update(v => {
+      const n = { ...v };
+      delete n[id];
+      return n;
+    });
+    this.saveHp(player);
   }
 
   saveHp(player: PlayerSession) {
@@ -362,24 +384,40 @@ export class SessionPanelComponent implements OnDestroy {
     return this.npcHpEdits()[npc.id_npc_session] ?? npc.character!.current_hit_points;
   }
 
-  hasNpcHpChange(npc: NpcSession): boolean {
+  npcDamageInputs = signal<Record<string, number>>({});
+
+  npcDamageInput(npc: NpcSession): number {
+    return this.npcDamageInputs()[npc.id_npc_session] ?? 0;
+  }
+
+  setNpcDamageInput(npc: NpcSession, event: Event) {
+    const raw = Number((event.target as HTMLInputElement).value);
+    const value = Number.isFinite(raw) ? Math.max(0, Math.trunc(raw)) : 0;
+    this.npcDamageInputs.update(v => ({ ...v, [npc.id_npc_session]: value }));
+  }
+
+  applyNpcDamage(npc: NpcSession) {
+    this.applyNpcHpDelta(npc, -1);
+  }
+
+  applyNpcHeal(npc: NpcSession) {
+    this.applyNpcHpDelta(npc, 1);
+  }
+
+  private applyNpcHpDelta(npc: NpcSession, sign: 1 | -1) {
     const id = npc.id_npc_session;
-    const edits = this.npcHpEdits();
-    if (!(id in edits)) return false;
-    return edits[id] !== npc.character!.current_hit_points;
-  }
+    const amount = this.npcDamageInput(npc);
+    if (!amount || this.savingNpcHp().has(id)) return;
 
-  decrementNpcHp(npc: NpcSession) {
-    const current = this.editedNpcHp(npc);
-    if (current <= 0) return;
-    this.npcHpEdits.update(edits => ({ ...edits, [npc.id_npc_session]: current - 1 }));
-  }
-
-  incrementNpcHp(npc: NpcSession) {
-    const current = this.editedNpcHp(npc);
     const max = npc.character!.max_hit_points;
-    if (current >= max) return;
-    this.npcHpEdits.update(edits => ({ ...edits, [npc.id_npc_session]: current + 1 }));
+    const next = Math.min(max, Math.max(0, this.editedNpcHp(npc) + sign * amount));
+    this.npcHpEdits.update(edits => ({ ...edits, [id]: next }));
+    this.npcDamageInputs.update(v => {
+      const n = { ...v };
+      delete n[id];
+      return n;
+    });
+    this.saveNpcHp(npc);
   }
 
   saveNpcHp(npc: NpcSession) {
