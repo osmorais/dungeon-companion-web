@@ -122,6 +122,7 @@ export class SessionPanelComponent implements OnDestroy {
     this.stopPolling();
     if (this.rollToastTimer) clearTimeout(this.rollToastTimer);
     if (this.monsterDefeatedToastTimer) clearTimeout(this.monsterDefeatedToastTimer);
+    if (this.monsterAnnouncementTimer) clearTimeout(this.monsterAnnouncementTimer);
   }
 
   /** Guarda a busca silenciosa (independente de `refreshing`, que é só pro botão/estado visível). */
@@ -131,6 +132,9 @@ export class SessionPanelComponent implements OnDestroy {
     this.eventsSub = this.sessionState.connectRealtime(sessionId).subscribe((event) => {
       this.sessionState.applyEvent(event);
       if (event.type === 'monster_defeated') this.showMonsterDefeatedToast(event.name);
+      if (event.type === 'monster_revealed') {
+        this.queueMonsterAnnouncement(event.name, event.image_url);
+      }
     });
     this.safetyNetSub = interval(this.SAFETY_NET_MS).subscribe(() => {
       if (!this.pollInFlight) this.fetchSession(sessionId, true);
@@ -661,6 +665,49 @@ export class SessionPanelComponent implements OnDestroy {
   closeMonsterDefeatedToast(): void {
     if (this.monsterDefeatedToastTimer) clearTimeout(this.monsterDefeatedToastTimer);
     this.activeMonsterDefeatedToast.set(null);
+  }
+
+  /** ========================= MODAL: MONSTRO REVELADO (broadcast) ========================= */
+
+  readonly MONSTER_ANNOUNCEMENT_MS = 5_000;
+
+  /** `key` incremental — mesmo motivo do roll-toast/monster-defeated-toast: força o @for a
+   *  recriar o painel mesmo se dois monstros seguidos tiverem o mesmo nome. */
+  activeMonsterAnnouncement = signal<{ name: string; imageUrl: string | null; key: number } | null>(
+    null,
+  );
+  private monsterAnnouncementQueue: { name: string; imageUrl: string | null }[] = [];
+  private monsterAnnouncementTimer: ReturnType<typeof setTimeout> | null = null;
+  private monsterAnnouncementCounter = 0;
+
+  /**
+   * Dispara ao revelar um monstro manualmente (toggleMonsterReveal) e ao entrar em combate
+   * (o backend revela e anuncia automaticamente quem ainda não tinha sido revelado, antes do
+   * combat_started) — mesmo evento de socket (`monster_revealed`) pros dois casos. Fila porque
+   * um combate pode revelar vários monstros de uma vez; mostra um de cada vez.
+   */
+  private queueMonsterAnnouncement(name: string, imageUrl: string | null): void {
+    this.monsterAnnouncementQueue.push({ name, imageUrl });
+    if (!this.activeMonsterAnnouncement()) this.showNextMonsterAnnouncement();
+  }
+
+  private showNextMonsterAnnouncement(): void {
+    const next = this.monsterAnnouncementQueue.shift();
+    if (!next) {
+      this.activeMonsterAnnouncement.set(null);
+      return;
+    }
+    this.monsterAnnouncementCounter++;
+    this.activeMonsterAnnouncement.set({ ...next, key: this.monsterAnnouncementCounter });
+    this.monsterAnnouncementTimer = setTimeout(
+      () => this.showNextMonsterAnnouncement(),
+      this.MONSTER_ANNOUNCEMENT_MS,
+    );
+  }
+
+  closeMonsterAnnouncement(): void {
+    if (this.monsterAnnouncementTimer) clearTimeout(this.monsterAnnouncementTimer);
+    this.showNextMonsterAnnouncement();
   }
 
   /** Avatar de quem rolou, buscando entre jogadores e NPCs da sessão pelo id_character da rolagem. */

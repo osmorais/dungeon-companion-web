@@ -81,6 +81,7 @@ export interface MonsterSession {
 export interface RevealedMonster {
   id_monster_session: string;
   name: string;
+  image_url: string | null;
 }
 
 export type RollType = 'dice' | 'attack' | 'damage' | 'skill' | 'save' | 'spell' | 'initiative';

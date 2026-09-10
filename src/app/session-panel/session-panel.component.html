@@ -786,8 +786,10 @@
 }
 
 <!-- ===== BANNER: A BATALHA VAI COMEÇAR (aguardando rolagem de iniciativa) ===== -->
+<!-- Só aparece depois do(s) anúncio(s) de monstro revelado terminar(em) — ver comentário em
+     queueMonsterAnnouncement no componente. -->
 @if (myPendingInitiativeParticipant(); as pending) {
-  @if (!activeInitiativeRoll()) {
+  @if (!activeInitiativeRoll() && !activeMonsterAnnouncement()) {
     <div class="overlay modal-overlay">
       <div class="retro-panel battle-start-panel">
         <h3 class="modal-title">⚔ A BATALHA VAI COMEÇAR!</h3>
@@ -873,6 +875,26 @@
         <span class="monster-defeated-label">FOI DERROTADO!</span>
         <div class="roll-toast-timer-bar">
           <div class="roll-toast-timer-fill" [style.animation-duration.ms]="MONSTER_DEFEATED_TOAST_MS"></div>
+        </div>
+      </div>
+    }
+  </div>
+}
+
+<!-- ===== MODAL: MONSTRO REVELADO (broadcast pra todos na sessão) ===== -->
+@if (activeMonsterAnnouncement(); as announcement) {
+  <div class="overlay monster-announcement-overlay" (click)="closeMonsterAnnouncement()">
+    <!-- @for com track (key) força recriar o painel — mesmo motivo do roll-toast acima. -->
+    @for (a of [announcement]; track a.key) {
+      <div class="retro-panel monster-announcement-panel" (click)="$event.stopPropagation()">
+        <button class="modal-close-btn" (click)="closeMonsterAnnouncement()">✕</button>
+        <span class="monster-announcement-label">UM MONSTRO FOI REVELADO!</span>
+        @if (a.imageUrl) {
+          <img class="monster-announcement-image" [src]="a.imageUrl" [alt]="a.name" />
+        }
+        <span class="monster-announcement-name">{{ a.name }}</span>
+        <div class="roll-toast-timer-bar">
+          <div class="roll-toast-timer-fill" [style.animation-duration.ms]="MONSTER_ANNOUNCEMENT_MS"></div>
         </div>
       </div>
     }

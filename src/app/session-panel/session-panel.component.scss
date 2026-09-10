@@ -1640,6 +1640,45 @@
   margin-bottom: 6px;
 }
 
+.monster-announcement-overlay {
+  /* Acima dos demais overlays, mesmo motivo do roll-toast-overlay — é um aviso global. */
+  z-index: 1100;
+}
+
+.monster-announcement-panel {
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 44px 32px 30px;
+  min-width: 320px;
+  max-width: 92vw;
+  text-align: center;
+  animation: roll-toast-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.monster-announcement-label {
+  font-size: 12px;
+  color: var(--label-title-color);
+}
+
+.monster-announcement-image {
+  width: 100%;
+  max-width: 260px;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border: 2px solid var(--border-color);
+}
+
+.monster-announcement-name {
+  font-size: 20px;
+  color: var(--accent-color);
+}
+
 .battle-start-panel {
   /* "fieldset.retro-panel" (styles.scss) só vale pra <fieldset> — como este painel é uma
      <div>, precisa repetir fundo/borda aqui. */

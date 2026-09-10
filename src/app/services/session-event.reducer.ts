@@ -85,7 +85,11 @@ export function applySessionEvent(
           ? detail.revealed_monsters
           : [
               ...detail.revealed_monsters,
-              { id_monster_session: event.id_monster_session, name: event.name },
+              {
+                id_monster_session: event.id_monster_session,
+                name: event.name,
+                image_url: event.image_url,
+              },
             ],
       };
 
