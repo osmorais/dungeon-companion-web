@@ -223,17 +223,36 @@
               </div>
             }
             <div class="mobile-spell-cards">
-              @for (spell of data.character_sheet.spells; track spell.id_spell) {
-                <div class="mobile-spell-card" (click)="openSpellModal(spell)">
-                  <div class="spell-card-left">
-                    <div class="spell-card-name">
-                      {{ spell.name }}
-                      @if (spell.is_prepared) { <span class="prepared-dot" title="Preparada">●</span> }
+              @for (group of spellsByCircle(); track group.circle) {
+                <button
+                  type="button"
+                  class="spell-circle-header"
+                  [attr.aria-expanded]="!isCircleCollapsed(group.circle)"
+                  (click)="toggleCircle(group.circle)"
+                >
+                  <span
+                    class="spell-circle-chevron"
+                    [class.spell-circle-chevron--open]="!isCircleCollapsed(group.circle)"
+                    aria-hidden="true"
+                    >▸</span
+                  >
+                  <span class="spell-circle-name">{{ circleName(group.circle) }}</span>
+                  <span class="spell-circle-count">{{ group.spells.length }}</span>
+                </button>
+                @if (!isCircleCollapsed(group.circle)) {
+                  @for (spell of group.spells; track spell.id_spell) {
+                    <div class="mobile-spell-card" (click)="openSpellModal(spell)">
+                      <div class="spell-card-left">
+                        <div class="spell-card-name">
+                          {{ spell.name }}
+                          @if (spell.is_prepared) { <span class="prepared-dot" title="Preparada">●</span> }
+                        </div>
+                        <div class="spell-card-meta">{{ spell.school ?? '' }}{{ spell.casting_time ? ' · ' + spell.casting_time : '' }}</div>
+                      </div>
+                      <div class="spell-card-level">{{ spell.spellLevel === 0 ? 'T' : spell.spellLevel }}</div>
                     </div>
-                    <div class="spell-card-meta">{{ spell.school ?? '' }}{{ spell.casting_time ? ' · ' + spell.casting_time : '' }}</div>
-                  </div>
-                  <div class="spell-card-level">{{ spell.spellLevel === 0 ? 'T' : spell.spellLevel }}</div>
-                </div>
+                  }
+                }
               }
             </div>
           }
@@ -541,19 +560,39 @@
                 </tr>
               </thead>
               <tbody>
-                @for (spell of data.character_sheet.spells; track spell.id_spell) {
-                  <tr class="clickable-row" (click)="openSpellModal(spell)">
-                    <td>
-                      {{ spell.name }}
-                      @if (spell.is_prepared) { <span class="prepared-dot" title="Preparada">●</span> }
+                @for (group of spellsByCircle(); track group.circle) {
+                  <tr
+                    class="spell-circle-header-row"
+                    (click)="toggleCircle(group.circle)"
+                    [attr.aria-expanded]="!isCircleCollapsed(group.circle)"
+                  >
+                    <td colspan="7">
+                      <span
+                        class="spell-circle-chevron"
+                        [class.spell-circle-chevron--open]="!isCircleCollapsed(group.circle)"
+                        aria-hidden="true"
+                        >▸</span
+                      >
+                      <span class="spell-circle-name">{{ circleName(group.circle) }}</span>
+                      <span class="spell-circle-count">{{ group.spells.length }}</span>
                     </td>
-                    <td class="text-center">{{ spell.spellLevel === 0 ? 'T' : spell.spellLevel }}</td>
-                    <td>{{ spell.casting_time ?? '—' }}</td>
-                    <td>{{ spell.range_distance != null ? spell.range_distance + 'm' : '—' }}</td>
-                    <td>{{ spell.duration ?? '—' }}</td>
-                    <td>{{ spell.school ?? '—' }}</td>
-                    <td class="text-center">{{ spellComponents(spell) }}</td>
                   </tr>
+                  @if (!isCircleCollapsed(group.circle)) {
+                    @for (spell of group.spells; track spell.id_spell) {
+                      <tr class="clickable-row" (click)="openSpellModal(spell)">
+                        <td>
+                          {{ spell.name }}
+                          @if (spell.is_prepared) { <span class="prepared-dot" title="Preparada">●</span> }
+                        </td>
+                        <td class="text-center">{{ spell.spellLevel === 0 ? 'T' : spell.spellLevel }}</td>
+                        <td>{{ spell.casting_time ?? '—' }}</td>
+                        <td>{{ spell.range_distance != null ? spell.range_distance + 'm' : '—' }}</td>
+                        <td>{{ spell.duration ?? '—' }}</td>
+                        <td>{{ spell.school ?? '—' }}</td>
+                        <td class="text-center">{{ spellComponents(spell) }}</td>
+                      </tr>
+                    }
+                  }
                 }
               </tbody>
             </table>

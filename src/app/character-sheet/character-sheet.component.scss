@@ -479,6 +479,75 @@ ul {
   min-width: 100px;
 }
 
+/* Agrupamento de magias por círculo (collapse) — cabeçalho compartilha aparência entre a
+   versão de tabela (desktop) e a de cartões (mobile), só muda a tag (tr/button). */
+.spell-circle-chevron {
+  font-size: 9px;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+
+  &--open {
+    transform: rotate(90deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spell-circle-chevron {
+    transition: none;
+  }
+}
+
+.spell-circle-name {
+  flex: 1;
+  text-align: left;
+  letter-spacing: 0.05em;
+}
+
+.spell-circle-count {
+  font-size: 8px;
+  color: #888;
+}
+
+tr.spell-circle-header-row {
+  cursor: pointer;
+
+  td {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--label-title-color);
+    font-size: 9px;
+    white-space: nowrap;
+  }
+
+  &:hover td {
+    color: var(--accent-color);
+  }
+}
+
+.spell-circle-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--label-title-color);
+  font-family: inherit;
+  font-size: 9px;
+  padding: 8px 12px;
+  cursor: pointer;
+  margin-top: 8px;
+
+  &:first-child {
+    margin-top: 0;
+  }
+
+  &:hover {
+    color: var(--accent-color);
+  }
+}
+
 /* Proficiências */
 .prof-label {
   font-size: 8px;
