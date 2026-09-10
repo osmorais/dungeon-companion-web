@@ -16,6 +16,7 @@ export interface LevelUpFeatOption {
 export interface LevelUpSubclassOption {
   id_subclass: string;
   display_name: string;
+  features: LevelUpFeaturePreview[];
 }
 
 export interface LevelUpSubclassSpellcasting {

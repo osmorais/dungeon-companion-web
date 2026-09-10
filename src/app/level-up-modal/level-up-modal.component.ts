@@ -171,6 +171,20 @@ export class LevelUpModalComponent implements OnInit {
 
   selectedSubclassId = signal<string | null>(null);
   loadingSubclassPreview = signal(false);
+  private expandedSubclassIds = signal<Set<string>>(new Set());
+
+  isSubclassExpanded(idSubclass: string): boolean {
+    return this.expandedSubclassIds().has(idSubclass);
+  }
+
+  toggleSubclassDetails(idSubclass: string): void {
+    this.expandedSubclassIds.update((current) => {
+      const next = new Set(current);
+      if (next.has(idSubclass)) next.delete(idSubclass);
+      else next.add(idSubclass);
+      return next;
+    });
+  }
 
   /**
    * Escolher a subclasse pode mudar o que esse nível concede (ex: Cavaleiro Arcano ganha

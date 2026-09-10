@@ -69,7 +69,7 @@
               <span class="lu-section-label">ESCOLHA SUA SUBCLASSE</span>
               <div class="lu-spell-list">
                 @for (option of p.subclass_options ?? []; track option.id_subclass) {
-                  <label
+                  <div
                     class="lu-spell-option"
                     [class.lu-spell-option--selected]="selectedSubclassId() === option.id_subclass"
                   >
@@ -80,8 +80,38 @@
                       [disabled]="loadingSubclassPreview()"
                       (change)="selectSubclass(option.id_subclass)"
                     />
-                    <span class="lu-spell-name">{{ option.display_name }}</span>
-                  </label>
+                    <button
+                      type="button"
+                      class="lu-spell-toggle"
+                      [attr.aria-expanded]="isSubclassExpanded(option.id_subclass)"
+                      (click)="toggleSubclassDetails(option.id_subclass)"
+                    >
+                      <span class="lu-spell-name">{{ option.display_name }}</span>
+                      <span
+                        class="lu-spell-chevron"
+                        [class.lu-spell-chevron--open]="isSubclassExpanded(option.id_subclass)"
+                        aria-hidden="true"
+                        >▸</span
+                      >
+                    </button>
+                  </div>
+                  @if (isSubclassExpanded(option.id_subclass)) {
+                    <div class="lu-spell-detail">
+                      @if (option.features.length > 0) {
+                        @for (f of option.features; track f.name) {
+                          <div class="lu-feature">
+                            <span class="lu-feature-name">{{ f.name }}</span>
+                            <p class="lu-feature-desc">{{ f.description }}</p>
+                          </div>
+                        }
+                      } @else {
+                        <p class="lu-spell-detail-desc">
+                          Essa opção não concede nenhuma característica nova neste nível específico
+                          — só em níveis futuros.
+                        </p>
+                      }
+                    </div>
+                  }
                 }
               </div>
               @if (loadingSubclassPreview()) {
