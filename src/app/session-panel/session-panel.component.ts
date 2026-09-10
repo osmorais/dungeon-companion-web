@@ -421,29 +421,10 @@ export class SessionPanelComponent implements OnDestroy {
     return this.monsterHpEdits()[monster.id_monster_session] ?? monster.hp_current;
   }
 
-  hasMonsterHpChange(monster: MonsterSession): boolean {
-    const id = monster.id_monster_session;
-    const edits = this.monsterHpEdits();
-    if (!(id in edits)) return false;
-    return edits[id] !== monster.hp_current;
-  }
-
-  decrementMonsterHp(monster: MonsterSession) {
-    const current = this.editedMonsterHp(monster);
-    if (current <= 0) return;
-    this.monsterHpEdits.update(edits => ({ ...edits, [monster.id_monster_session]: current - 1 }));
-  }
-
-  incrementMonsterHp(monster: MonsterSession) {
-    const current = this.editedMonsterHp(monster);
-    if (current >= monster.hp_max) return;
-    this.monsterHpEdits.update(edits => ({ ...edits, [monster.id_monster_session]: current + 1 }));
-  }
-
   /**
    * PV de monstro costuma ser um número grande (dezenas/centenas) — clicar em +/- um por um pra
-   * aplicar uma rolagem de dano/cura é inviável. Esse input aplica um delta de uma vez, salvando
-   * na hora; o stepper +/- continua para ajustes finos de 1 ponto.
+   * aplicar uma rolagem de dano/cura é inviável. Esse input aplica um delta de uma vez e já salva
+   * na hora (sem +/- nem botão "salvar" separados, ao contrário de player/NPC).
    */
   monsterDamageInputs = signal<Record<string, number>>({});
 

@@ -650,63 +650,67 @@
 }
 
 /* Monster table — desktop */
-.monster-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 8px;
-
-  th {
-    text-align: left;
-    padding: 6px 10px;
-    border-bottom: 1px solid var(--border-color);
-    color: var(--label-title-color);
-    font-size: 7px;
-    letter-spacing: 0.05em;
-  }
-
-  td {
-    padding: 8px 10px;
-    border-bottom: 1px solid var(--border-color);
-    vertical-align: middle;
-
-    &:last-child { border-bottom-color: transparent; }
-  }
-
-  tr:last-child td { border-bottom: none; }
-
-  tbody tr {
-    cursor: pointer;
-    transition: background-color 0.12s;
-
-    &:hover { background-color: var(--btn-color); }
-  }
-}
-
-.text-center { text-align: center; }
-
-.monster-name-cell {
-  color: var(--accent-color);
-  font-size: 8px;
-  white-space: nowrap;
-}
-
-.monster-ac {
-  font-size: 10px;
-  color: var(--text-color);
-  font-weight: bold;
-}
-
-.monster-hp-cell {
+/* Monster list — desktop (mesmo padrão visual do .npc-row: avatar + info + ações). */
+.monster-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  min-width: 180px;
+  gap: 10px;
+}
+
+.monster-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 12px 10px 40px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-color);
+  cursor: pointer;
+  transition: background-color 0.12s;
+
+  &:hover {
+    background-color: var(--btn-color);
+  }
+}
+
+.monster-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--border-color);
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.monster-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.monster-name {
+  font-size: 9px;
+  color: var(--accent-color);
+}
+
+.monster-meta {
+  font-size: 7px;
+  color: var(--label-title-color);
 }
 
 .monster-hp-bar-wrap {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-top: 2px;
 }
 
 .monster-hp-bar {
@@ -726,24 +730,6 @@
   font-size: 7px;
   color: var(--text-color);
   white-space: nowrap;
-}
-
-.monster-hp-controls {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.monster-hp-save-btn {
-  float: none;
-  font-size: 6px;
-  padding: 4px 8px;
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
 }
 
 /* PV de monstro costuma ser grande — aplica um delta de dano/cura de uma vez, em vez de clicar
@@ -847,24 +833,6 @@
       background-color: var(--panel-bg);
       transform: translateX(18px);
     }
-  }
-}
-
-.monster-delete-btn {
-  background: none;
-  border: 1px solid #ff6b6b;
-  color: #ff6b6b;
-  font-size: 12px;
-  width: 26px;
-  height: 26px;
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-  flex-shrink: 0;
-
-  &:hover {
-    background-color: #ff6b6b;
-    color: var(--bg-color);
   }
 }
 
@@ -1268,6 +1236,7 @@
 }
 
 /* Monster list — mobile */
+/* Monster list — mobile (mesmo padrão visual do .mobile-npc-row: avatar + info + ações). */
 .mobile-monster-list {
   display: flex;
   flex-direction: column;
@@ -1275,10 +1244,11 @@
 }
 
 .mobile-monster-row {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 10px;
+  padding: 8px 10px 8px 36px;
   border: 1px solid var(--border-color);
   background-color: var(--bg-color);
   cursor: pointer;
@@ -1288,11 +1258,26 @@
   }
 }
 
+.mobile-monster-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--border-color);
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
 .mobile-monster-info {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
   min-width: 0;
 }
 
@@ -1304,27 +1289,35 @@
   text-overflow: ellipsis;
 }
 
-.mobile-monster-stats {
-  display: flex;
-  gap: 10px;
+.mobile-monster-meta {
+  font-size: 6px;
+  color: var(--label-title-color);
 }
 
-.mobile-monster-stat {
-  font-size: 6px;
-  color: var(--text-color);
+.mobile-monster-hp-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
 }
 
 .mobile-monster-hp-bar {
-  width: 100%;
+  flex: 1;
   height: 4px;
   background-color: var(--panel-bg);
   border: 1px solid var(--border-color);
+}
 
-  .mobile-monster-hp-fill {
-    height: 100%;
-    background-color: #e53935; /* fallback; sobrescrito pelo binding hpColor() */
-    transition: width 0.3s;
-  }
+.mobile-monster-hp-fill {
+  height: 100%;
+  background-color: #e53935; /* fallback; sobrescrito pelo binding hpColor() */
+  transition: width 0.3s;
+}
+
+.mobile-monster-hp-text {
+  font-size: 6px;
+  color: var(--text-color);
+  white-space: nowrap;
 }
 
 /* ===== ROLAGENS RECENTES ===== */
@@ -1534,7 +1527,9 @@
 }
 
 .npc-row .turn-end-btn,
-.mobile-npc-row .turn-end-btn {
+.mobile-npc-row .turn-end-btn,
+.monster-row .turn-end-btn,
+.mobile-monster-row .turn-end-btn {
   width: auto;
   margin-top: 0;
   font-size: 7px;
@@ -1542,7 +1537,8 @@
   flex-shrink: 0;
 }
 
-.mobile-npc-row .turn-end-btn {
+.mobile-npc-row .turn-end-btn,
+.mobile-monster-row .turn-end-btn {
   font-size: 5px;
   padding: 5px 6px;
 }
@@ -1551,22 +1547,10 @@
 .mobile-player-card--current-turn,
 .npc-row--current-turn,
 .mobile-npc-row--current-turn,
+.monster-row--current-turn,
 .mobile-monster-row--current-turn {
   border-color: var(--accent-color);
   box-shadow: 0 0 10px var(--accent-color);
-}
-
-/* box-shadow/border-color não renderiza em <tr> (display: table-row) — usa
-   outline e um fundo sutil pra destacar a linha do monstro na vez dele. */
-.monster-row--current-turn {
-  outline: 2px solid var(--accent-color);
-  outline-offset: -2px;
-  background-color: var(--btn-color);
-}
-
-.mobile-monster-row .turn-end-btn {
-  font-size: 6px;
-  padding: 6px 8px;
 }
 
 /* ===== TOAST: NOVA ROLAGEM (broadcast) ===== */

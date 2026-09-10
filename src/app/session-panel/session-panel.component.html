@@ -264,29 +264,25 @@
           <div class="mobile-monster-list">
             @for (monster of sessionDetail()!.monsters; track monster.id_monster_session) {
               <div class="mobile-monster-row" (click)="openMonsterDetail(monster)" [class.mobile-monster-row--current-turn]="isMonsterCurrentTurn(monster)">
+                @if (isOwner()) {
+                  <button class="delete-btn" title="Remover monstro da sessão" (click)="$event.stopPropagation(); deleteMonster(monster)">✕</button>
+                }
+                <div class="mobile-monster-avatar">
+                  <img [src]="monster.image_url || DEFAULT_MONSTER_IMAGE" [alt]="monsterDisplayName(monster)" />
+                </div>
                 <div class="mobile-monster-info">
                   <span class="mobile-monster-name">{{ monsterDisplayName(monster) }}</span>
-                  <div class="mobile-monster-stats">
-                    <span class="mobile-monster-stat">CA {{ monster.ac }}</span>
-                    <span class="mobile-monster-stat">❤ {{ monster.hp_current }}/{{ monster.hp_max }}</span>
-                  </div>
-                  <div class="mobile-monster-hp-bar">
-                    <div class="mobile-monster-hp-fill"
-                      [style.width.%]="hpPercent(monster.hp_current, monster.hp_max)"
-                      [style.background-color]="hpColor(monster.hp_current, monster.hp_max)">
+                  <span class="mobile-monster-meta">CA {{ monster.ac }}</span>
+                  <div class="mobile-monster-hp-bar-wrap">
+                    <div class="mobile-monster-hp-bar">
+                      <div class="mobile-monster-hp-fill"
+                        [style.width.%]="hpPercent(monster.hp_current, monster.hp_max)"
+                        [style.background-color]="hpColor(monster.hp_current, monster.hp_max)">
+                      </div>
                     </div>
+                    <span class="mobile-monster-hp-text">❤ {{ monster.hp_current }}/{{ monster.hp_max }}</span>
                   </div>
                   @if (isOwner()) {
-                    <div class="hp-controls" (click)="$event.stopPropagation()">
-                      <button class="hp-btn" (click)="decrementMonsterHp(monster)" [disabled]="editedMonsterHp(monster) <= 0">−</button>
-                      <span class="hp-edit-value">{{ editedMonsterHp(monster) }}</span>
-                      <button class="hp-btn" (click)="incrementMonsterHp(monster)" [disabled]="editedMonsterHp(monster) >= monster.hp_max">+</button>
-                    </div>
-                    <button class="retro-btn hp-save-btn mobile-hp-save-btn"
-                      (click)="$event.stopPropagation(); saveMonsterHp(monster)"
-                      [disabled]="savingMonsterHp().has(monster.id_monster_session) || !hasMonsterHpChange(monster)">
-                      {{ savingMonsterHp().has(monster.id_monster_session) ? '...' : 'SALVAR HP' }}
-                    </button>
                     <div class="hp-delta-controls" (click)="$event.stopPropagation()">
                       <input type="number" min="0" class="hp-delta-input" placeholder="0"
                         [value]="monsterDamageInput(monster) || ''"
@@ -298,12 +294,6 @@
                         [disabled]="!monsterDamageInput(monster) || savingMonsterHp().has(monster.id_monster_session)"
                         (click)="applyMonsterHeal(monster)">CURA</button>
                     </div>
-                    @if (isMonsterCurrentTurn(monster) && canEndCurrentTurn()) {
-                      <button class="retro-btn turn-end-btn" [disabled]="endingTurn()"
-                        (click)="$event.stopPropagation(); endTurn()">
-                        {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
-                      </button>
-                    }
                   }
                 </div>
                 <button
@@ -329,13 +319,12 @@
                   >
                     ✎
                   </button>
-                  <button
-                    class="monster-delete-btn"
-                    title="Remover monstro da sessão"
-                    (click)="$event.stopPropagation(); deleteMonster(monster)"
-                  >
-                    ✕
-                  </button>
+                  @if (isMonsterCurrentTurn(monster) && canEndCurrentTurn()) {
+                    <button class="retro-btn turn-end-btn" [disabled]="endingTurn()"
+                      (click)="$event.stopPropagation(); endTurn()">
+                      {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
+                    </button>
+                  }
                 }
               </div>
             }
@@ -605,112 +594,74 @@
           @if (sessionDetail()!.monsters.length === 0) {
             <p class="empty-msg">NENHUM MONSTRO ADICIONADO À SESSÃO.</p>
           } @else {
-          <table class="monster-table">
-            <thead>
-              <tr>
-                <th>NOME</th>
-                <th class="text-center">CA</th>
-                <th>PONTOS DE VIDA</th>
-                <th class="text-center">REVELAR</th>
-                <th class="text-center">DERROTAR</th>
-                <th class="text-center">EDITAR</th>
-                <th class="text-center">REMOVER</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (monster of sessionDetail()!.monsters; track monster.id_monster_session) {
-                <tr (click)="openMonsterDetail(monster)" [class.monster-row--current-turn]="isMonsterCurrentTurn(monster)">
-                  <td class="monster-name-cell">
-                    {{ monsterDisplayName(monster) }}
-                  </td>
-                  <td class="text-center monster-ac">{{ monster.ac }}</td>
-                  <td class="monster-hp-cell">
-                    <div class="monster-hp-bar-wrap">
-                      <div class="monster-hp-bar">
-                        <div class="monster-hp-fill"
-                          [style.width.%]="hpPercent(monster.hp_current, monster.hp_max)"
-                          [style.background-color]="hpColor(monster.hp_current, monster.hp_max)">
-                        </div>
+          <div class="monster-list">
+            @for (monster of sessionDetail()!.monsters; track monster.id_monster_session) {
+              <div class="monster-row" (click)="openMonsterDetail(monster)" [class.monster-row--current-turn]="isMonsterCurrentTurn(monster)">
+                @if (isOwner()) {
+                  <button class="delete-btn" title="Remover monstro da sessão" (click)="$event.stopPropagation(); deleteMonster(monster)">✕</button>
+                }
+                <div class="monster-avatar">
+                  <img [src]="monster.image_url || DEFAULT_MONSTER_IMAGE" [alt]="monsterDisplayName(monster)" />
+                </div>
+                <div class="monster-info">
+                  <span class="monster-name">{{ monsterDisplayName(monster) }}</span>
+                  <span class="monster-meta">CA {{ monster.ac }}</span>
+                  <div class="monster-hp-bar-wrap">
+                    <div class="monster-hp-bar">
+                      <div class="monster-hp-fill"
+                        [style.width.%]="hpPercent(monster.hp_current, monster.hp_max)"
+                        [style.background-color]="hpColor(monster.hp_current, monster.hp_max)">
                       </div>
-                      <span class="monster-hp-text">{{ monster.hp_current }}/{{ monster.hp_max }}</span>
                     </div>
-                    @if (isOwner()) {
-                      <div class="monster-hp-controls" (click)="$event.stopPropagation()">
-                        <button class="hp-btn" (click)="decrementMonsterHp(monster)" [disabled]="editedMonsterHp(monster) <= 0">−</button>
-                        <span class="hp-edit-value">{{ editedMonsterHp(monster) }}</span>
-                        <button class="hp-btn" (click)="incrementMonsterHp(monster)" [disabled]="editedMonsterHp(monster) >= monster.hp_max">+</button>
-                        <button class="retro-btn monster-hp-save-btn"
-                          (click)="saveMonsterHp(monster)"
-                          [disabled]="savingMonsterHp().has(monster.id_monster_session) || !hasMonsterHpChange(monster)">
-                          {{ savingMonsterHp().has(monster.id_monster_session) ? '...' : 'SALVAR HP' }}
-                        </button>
-                      </div>
-                      <div class="hp-delta-controls" (click)="$event.stopPropagation()">
-                        <input type="number" min="0" class="hp-delta-input" placeholder="0"
-                          [value]="monsterDamageInput(monster) || ''"
-                          (input)="setMonsterDamageInput(monster, $event)" />
-                        <button class="retro-btn hp-delta-btn hp-damage-btn"
-                          [disabled]="!monsterDamageInput(monster) || savingMonsterHp().has(monster.id_monster_session)"
-                          (click)="applyMonsterDamage(monster)">DANO</button>
-                        <button class="retro-btn hp-delta-btn hp-heal-btn"
-                          [disabled]="!monsterDamageInput(monster) || savingMonsterHp().has(monster.id_monster_session)"
-                          (click)="applyMonsterHeal(monster)">CURA</button>
-                      </div>
-                      @if (isMonsterCurrentTurn(monster) && canEndCurrentTurn()) {
-                        <button class="retro-btn turn-end-btn" [disabled]="endingTurn()"
-                          (click)="$event.stopPropagation(); endTurn()">
-                          {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
-                        </button>
-                      }
-                    }
-                  </td>
-                  <td class="text-center">
-                    <button
-                      class="reveal-toggle-btn"
-                      [class.reveal-toggle-btn--on]="monster.is_revealed"
-                      [disabled]="revealingMonsterId() === monster.id_monster_session"
-                      [title]="monster.is_revealed ? 'Esconder monstro dos jogadores' : 'Revelar monstro aos jogadores'"
-                      (click)="toggleMonsterReveal(monster, $event)"
-                    ></button>
-                  </td>
-                  <td class="text-center">
-                    @if (isOwner()) {
-                      <button
-                        class="monster-defeat-btn"
-                        title="Marcar monstro como derrotado"
-                        [disabled]="defeatingMonsterId() === monster.id_monster_session"
-                        (click)="$event.stopPropagation(); defeatMonster(monster)"
-                      >
-                        ⚔
-                      </button>
-                    }
-                  </td>
-                  <td class="text-center">
-                    @if (isOwner()) {
-                      <button
-                        class="monster-edit-btn"
-                        title="Editar monstro"
-                        (click)="$event.stopPropagation(); openMonsterDetail(monster)"
-                      >
-                        ✎
-                      </button>
-                    }
-                  </td>
-                  <td class="text-center">
-                    @if (isOwner()) {
-                      <button
-                        class="monster-delete-btn"
-                        title="Remover monstro da sessão"
-                        (click)="$event.stopPropagation(); deleteMonster(monster)"
-                      >
-                        ✕
-                      </button>
-                    }
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
+                    <span class="monster-hp-text">{{ monster.hp_current }}/{{ monster.hp_max }}</span>
+                  </div>
+                  @if (isOwner()) {
+                    <div class="hp-delta-controls" (click)="$event.stopPropagation()">
+                      <input type="number" min="0" class="hp-delta-input" placeholder="0"
+                        [value]="monsterDamageInput(monster) || ''"
+                        (input)="setMonsterDamageInput(monster, $event)" />
+                      <button class="retro-btn hp-delta-btn hp-damage-btn"
+                        [disabled]="!monsterDamageInput(monster) || savingMonsterHp().has(monster.id_monster_session)"
+                        (click)="applyMonsterDamage(monster)">DANO</button>
+                      <button class="retro-btn hp-delta-btn hp-heal-btn"
+                        [disabled]="!monsterDamageInput(monster) || savingMonsterHp().has(monster.id_monster_session)"
+                        (click)="applyMonsterHeal(monster)">CURA</button>
+                    </div>
+                  }
+                </div>
+                <button
+                  class="reveal-toggle-btn"
+                  [class.reveal-toggle-btn--on]="monster.is_revealed"
+                  [disabled]="revealingMonsterId() === monster.id_monster_session"
+                  [title]="monster.is_revealed ? 'Esconder monstro dos jogadores' : 'Revelar monstro aos jogadores'"
+                  (click)="toggleMonsterReveal(monster, $event)"
+                ></button>
+                @if (isOwner()) {
+                  <button
+                    class="monster-defeat-btn"
+                    title="Marcar monstro como derrotado"
+                    [disabled]="defeatingMonsterId() === monster.id_monster_session"
+                    (click)="$event.stopPropagation(); defeatMonster(monster)"
+                  >
+                    ⚔
+                  </button>
+                  <button
+                    class="monster-edit-btn"
+                    title="Editar monstro"
+                    (click)="$event.stopPropagation(); openMonsterDetail(monster)"
+                  >
+                    ✎
+                  </button>
+                  @if (isMonsterCurrentTurn(monster) && canEndCurrentTurn()) {
+                    <button class="retro-btn turn-end-btn" [disabled]="endingTurn()"
+                      (click)="$event.stopPropagation(); endTurn()">
+                      {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
+                    </button>
+                  }
+                }
+              </div>
+            }
+          </div>
           }
           @if (isOwner()) {
             <div class="npc-add-row">
