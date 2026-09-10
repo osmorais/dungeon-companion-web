@@ -131,7 +131,9 @@ export class SessionPanelComponent implements OnDestroy {
   private connectRealtime(sessionId: string) {
     this.eventsSub = this.sessionState.connectRealtime(sessionId).subscribe((event) => {
       this.sessionState.applyEvent(event);
-      if (event.type === 'monster_defeated') this.showMonsterDefeatedToast(event.name);
+      if (event.type === 'monster_defeated') {
+        this.showMonsterDefeatedToast(event.name, event.image_url);
+      }
       if (event.type === 'monster_revealed') {
         this.queueMonsterAnnouncement(event.name, event.image_url);
       }
@@ -647,15 +649,17 @@ export class SessionPanelComponent implements OnDestroy {
 
   /** `key` incremental — sem isso, dois monstros derrotados seguidos com o mesmo nome não
    *  forçariam a barra de tempo a recomeçar (ver comentário no @for do template). */
-  activeMonsterDefeatedToast = signal<{ name: string; key: number } | null>(null);
+  activeMonsterDefeatedToast = signal<{ name: string; imageUrl: string | null; key: number } | null>(
+    null,
+  );
   private monsterDefeatedToastTimer: ReturnType<typeof setTimeout> | null = null;
   private monsterDefeatedCounter = 0;
 
   /** Só o mestre dispara (defeatMonster), mas o evento ecoa pelo socket pra todo mundo, autor incluso. */
-  private showMonsterDefeatedToast(name: string): void {
+  private showMonsterDefeatedToast(name: string, imageUrl: string | null): void {
     if (this.monsterDefeatedToastTimer) clearTimeout(this.monsterDefeatedToastTimer);
     this.monsterDefeatedCounter++;
-    this.activeMonsterDefeatedToast.set({ name, key: this.monsterDefeatedCounter });
+    this.activeMonsterDefeatedToast.set({ name, imageUrl, key: this.monsterDefeatedCounter });
     this.monsterDefeatedToastTimer = setTimeout(
       () => this.activeMonsterDefeatedToast.set(null),
       this.MONSTER_DEFEATED_TOAST_MS,

@@ -874,7 +874,13 @@
     @for (d of [defeated]; track d.key) {
       <div class="retro-panel monster-defeated-panel" (click)="$event.stopPropagation()">
         <button class="modal-close-btn" (click)="closeMonsterDefeatedToast()">✕</button>
-        <span class="monster-defeated-icon">☠</span>
+        @if (d.imageUrl) {
+          <div class="monster-defeated-image-wrap">
+            <img class="monster-defeated-image" [src]="d.imageUrl" [alt]="d.name" />
+          </div>
+        } @else {
+          <span class="monster-defeated-icon">☠</span>
+        }
         <span class="monster-defeated-name">{{ d.name }}</span>
         <span class="monster-defeated-label">FOI DERROTADO!</span>
         <div class="roll-toast-timer-bar">
