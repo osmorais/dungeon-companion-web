@@ -18,6 +18,9 @@ import {
 export class StartFightModalComponent {
   private gameSessionService = inject(GameSessionService);
 
+  /** Miniatura padrão pra monstros sem image_url. */
+  readonly DEFAULT_MONSTER_IMAGE = 'assets/monster.png';
+
   @Input({ required: true }) sessionId!: string;
   @Input() players: PlayerSession[] = [];
   @Input() npcs: NpcSession[] = [];

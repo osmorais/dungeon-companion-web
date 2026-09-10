@@ -65,7 +65,9 @@
                 [checked]="selectedMonsters().has(monster.id_monster_session)"
                 (change)="toggleMonster(monster.id_monster_session)"
               />
-              <div class="sf-avatar sf-avatar--monster">☠</div>
+              <div class="sf-avatar">
+                <img [src]="monster.image_url || DEFAULT_MONSTER_IMAGE" [alt]="monsterName(monster)" />
+              </div>
               <div class="sf-info">
                 <span class="sf-name">{{ monsterName(monster) }}</span>
                 <span class="sf-meta">CA {{ monster.ac }} &mdash; PV {{ monster.hp_current }}/{{ monster.hp_max }}</span>
