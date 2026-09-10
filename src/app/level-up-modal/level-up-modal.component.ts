@@ -71,7 +71,7 @@ export class LevelUpModalComponent implements OnInit {
     if (p.subclass_options) list.push('subclass');
     if ((p.spell_choices?.cantrips_gained ?? 0) > 0) list.push('cantrips');
     list.push(...this.spellCirclePages());
-    if (p.new_features.length > 0 || p.is_subclass_feature_level) list.push('traits');
+    if (p.new_features.length > 0) list.push('traits');
     if (p.is_asi_level) list.push('asi');
     list.push('summary');
     return list;
