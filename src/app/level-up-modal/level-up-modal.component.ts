@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import {
   Component,
   EventEmitter,
@@ -24,13 +25,15 @@ import {
 const ASI_TOTAL_POINTS = 2;
 const ASI_MAX_PER_STAT = 2;
 
-type LevelUpStepId = 'hp' | 'subclass' | 'cantrips' | 'spells' | 'traits' | 'asi' | 'summary';
+type FixedStepId = 'hp' | 'subclass' | 'cantrips' | 'traits' | 'asi' | 'summary';
+/** Uma página por círculo de magia (`spells-1`, `spells-2`...) — truques (círculo 0) usam a
+ *  página fixa `cantrips` em vez disso, já que só existe um círculo de truque. */
+type LevelUpStepId = FixedStepId | `spells-${number}`;
 
-const STEP_LABELS: Record<LevelUpStepId, string> = {
+const STEP_LABELS: Record<FixedStepId, string> = {
   hp: 'VIDA',
   subclass: 'SUBCLASSE',
   cantrips: 'TRUQUES',
-  spells: 'MAGIAS',
   traits: 'TRAÇOS',
   asi: 'MELHORIA',
   summary: 'RESUMO',
@@ -39,7 +42,7 @@ const STEP_LABELS: Record<LevelUpStepId, string> = {
 @Component({
   selector: 'app-level-up-modal',
   standalone: true,
-  imports: [PixelNumericDieComponent],
+  imports: [PixelNumericDieComponent, NgTemplateOutlet],
   templateUrl: './level-up-modal.component.html',
   styleUrls: ['./level-up-modal.component.scss'],
 })
@@ -51,7 +54,6 @@ export class LevelUpModalComponent implements OnInit {
   @Output() leveledUp = new EventEmitter<LevelUpResult>();
 
   readonly statKeys = STAT_KEYS;
-  readonly stepLabels = STEP_LABELS;
 
   loading = signal(true);
   preview = signal<LevelUpPreview | null>(null);
@@ -68,7 +70,7 @@ export class LevelUpModalComponent implements OnInit {
     const list: LevelUpStepId[] = ['hp'];
     if (p.subclass_options) list.push('subclass');
     if ((p.spell_choices?.cantrips_gained ?? 0) > 0) list.push('cantrips');
-    if (this.hasSpellChoicePage(p)) list.push('spells');
+    list.push(...this.spellCirclePages());
     if (p.new_features.length > 0 || p.is_subclass_feature_level) list.push('traits');
     if (p.is_asi_level) list.push('asi');
     list.push('summary');
@@ -77,11 +79,37 @@ export class LevelUpModalComponent implements OnInit {
 
   currentStep = computed<LevelUpStepId>(() => this.steps()[this.currentStepIndex()] ?? 'summary');
 
-  private hasSpellChoicePage(p: LevelUpPreview): boolean {
-    const sc = p.spell_choices;
-    if (!sc) return false;
-    if (Object.keys(sc.spells_gained_by_circle).length > 0) return true;
-    return sc.spells_gained > 0;
+  /** Uma página por círculo com magias novas disponíveis pra escolher (nunca o círculo 0 — truques têm sua própria página). */
+  private spellCirclePages(): LevelUpStepId[] {
+    const sc = this.preview()?.spell_choices;
+    if (!sc) return [];
+    if (this.isPerCircleMode()) {
+      return this.perCircleEntries()
+        .filter((e) => this.spellsForCircle(e.circle).length > 0)
+        .map((e) => `spells-${e.circle}` as const);
+    }
+    if (sc.spells_gained > 0) {
+      return this.sharedPoolCircles()
+        .filter((c) => c > 0 && this.spellsForCircle(c).length > 0)
+        .map((c) => `spells-${c}` as const);
+    }
+    return [];
+  }
+
+  /** Número do círculo se a página atual for uma página de magia por círculo; `null` caso contrário. */
+  currentSpellCircle = computed<number | null>(() => {
+    const match = /^spells-(\d+)$/.exec(this.currentStep());
+    return match ? Number(match[1]) : null;
+  });
+
+  stepLabel(step: LevelUpStepId): string {
+    const match = /^spells-(\d+)$/.exec(step);
+    if (match) return `MAGIAS — ${match[1]}º CÍRCULO`;
+    return STEP_LABELS[step as FixedStepId] ?? '';
+  }
+
+  circleLimitFor(circle: number): number {
+    return this.perCircleEntries().find((e) => e.circle === circle)?.limit ?? 0;
   }
 
   canGoNext = computed(() => {
@@ -381,6 +409,23 @@ export class LevelUpModalComponent implements OnInit {
       const next = new Set(current);
       if (checked) next.add(spell.id_spell);
       else next.delete(spell.id_spell);
+      return next;
+    });
+  }
+
+  /** ========================= DETALHES DA MAGIA (COLLAPSE) ========================= */
+
+  private expandedSpellIds = signal<Set<number>>(new Set());
+
+  isSpellExpanded(idSpell: number): boolean {
+    return this.expandedSpellIds().has(idSpell);
+  }
+
+  toggleSpellDetails(idSpell: number): void {
+    this.expandedSpellIds.update((current) => {
+      const next = new Set(current);
+      if (next.has(idSpell)) next.delete(idSpell);
+      else next.add(idSpell);
       return next;
     });
   }

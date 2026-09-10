@@ -25,7 +25,7 @@
         }
       </div>
       <h4 class="lu-step-title">
-        PASSO {{ currentStepIndex() + 1 }}/{{ steps().length }} — {{ stepLabels[currentStep()] }}
+        PASSO {{ currentStepIndex() + 1 }}/{{ steps().length }} — {{ stepLabel(currentStep()) }}
       </h4>
 
       <div class="lu-page">
@@ -98,85 +98,34 @@
                 </span>
                 <div class="lu-spell-list">
                   @for (spell of spellsForCircle(0); track spell.id_spell) {
-                    <label
-                      class="lu-spell-option"
-                      [class.lu-spell-option--selected]="isSpellSelected(spell.id_spell)"
-                    >
-                      <input
-                        type="checkbox"
-                        [checked]="isSpellSelected(spell.id_spell)"
-                        [disabled]="!canToggleSpell(spell, 0)"
-                        (change)="toggleSpell(spell, $event)"
-                      />
-                      <span class="lu-spell-name">{{ spell.name }}</span>
-                    </label>
+                    <ng-container
+                      *ngTemplateOutlet="spellRow; context: { spell: spell, circle: 0 }"
+                    ></ng-container>
                   }
                 </div>
               </div>
             }
           }
 
-          @case ('spells') {
-            @if (p.spell_choices; as sc) {
-              @if (!isPerCircleMode() && sc.spells_gained > 0) {
+          @default {
+            @if (currentSpellCircle(); as circle) {
+              @if (p.spell_choices; as sc) {
                 <div class="lu-block">
                   <span class="lu-section-label">
-                    MAGIAS NOVAS — {{ selectedSharedPoolCount() }}/{{ sc.spells_gained }}
+                    {{ circle }}º CÍRCULO —
+                    {{
+                      isPerCircleMode()
+                        ? selectedCountForCircle(circle) + '/' + circleLimitFor(circle)
+                        : selectedSharedPoolCount() + '/' + sc.spells_gained + ' (pool geral)'
+                    }}
                   </span>
-                  @for (circle of sharedPoolCircles(); track circle) {
-                    @if (spellsForCircle(circle).length > 0) {
-                      <div class="lu-spell-circle">
-                        <span class="lu-spell-circle-label">{{ circle }}º círculo</span>
-                        <div class="lu-spell-list">
-                          @for (spell of spellsForCircle(circle); track spell.id_spell) {
-                            <label
-                              class="lu-spell-option"
-                              [class.lu-spell-option--selected]="isSpellSelected(spell.id_spell)"
-                            >
-                              <input
-                                type="checkbox"
-                                [checked]="isSpellSelected(spell.id_spell)"
-                                [disabled]="!canToggleSpell(spell, circle)"
-                                (change)="toggleSpell(spell, $event)"
-                              />
-                              <span class="lu-spell-name">{{ spell.name }}</span>
-                            </label>
-                          }
-                        </div>
-                      </div>
+                  <div class="lu-spell-list">
+                    @for (spell of spellsForCircle(circle); track spell.id_spell) {
+                      <ng-container
+                        *ngTemplateOutlet="spellRow; context: { spell: spell, circle: circle }"
+                      ></ng-container>
                     }
-                  }
-                </div>
-              }
-
-              @if (isPerCircleMode()) {
-                <div class="lu-block">
-                  <span class="lu-section-label">MAGIAS NOVAS</span>
-                  @for (entry of perCircleEntries(); track entry.circle) {
-                    <div class="lu-spell-circle">
-                      <span class="lu-spell-circle-label">
-                        {{ entry.circle }}º círculo — {{ selectedCountForCircle(entry.circle) }}/{{
-                          entry.limit
-                        }}
-                      </span>
-                      <div class="lu-spell-list">
-                        @for (spell of spellsForCircle(entry.circle); track spell.id_spell) {
-                          <label
-                            class="lu-spell-option"
-                            [class.lu-spell-option--selected]="isSpellSelected(spell.id_spell)"
-                          >
-                            <input
-                              type="checkbox"
-                              [checked]="isSpellSelected(spell.id_spell)"
-                              [disabled]="!canToggleSpell(spell, entry.circle)"
-                              (change)="toggleSpell(spell, $event)"
-                            />
-                            <span class="lu-spell-name">{{ spell.name }}</span>
-                          </label>
-                        }
-                      </div>
-                    </div>
-                  }
+                  </div>
                 </div>
               }
             }
@@ -398,3 +347,66 @@
     }
   </div>
 </div>
+
+<ng-template #spellRow let-spell="spell" let-circle="circle">
+  <div class="lu-spell-option" [class.lu-spell-option--selected]="isSpellSelected(spell.id_spell)">
+    <input
+      type="checkbox"
+      [checked]="isSpellSelected(spell.id_spell)"
+      [disabled]="!canToggleSpell(spell, circle)"
+      (change)="toggleSpell(spell, $event)"
+    />
+    <button
+      type="button"
+      class="lu-spell-toggle"
+      [attr.aria-expanded]="isSpellExpanded(spell.id_spell)"
+      (click)="toggleSpellDetails(spell.id_spell)"
+    >
+      <span class="lu-spell-name">{{ spell.name }}</span>
+      <span
+        class="lu-spell-chevron"
+        [class.lu-spell-chevron--open]="isSpellExpanded(spell.id_spell)"
+        aria-hidden="true"
+        >▸</span
+      >
+    </button>
+  </div>
+  @if (isSpellExpanded(spell.id_spell)) {
+    <div class="lu-spell-detail">
+      <p class="lu-spell-detail-meta">
+        {{ spell.school }} — {{ spell.spellLevel === 0 ? 'Truque' : 'Nível ' + spell.spellLevel }}
+      </p>
+      <div class="lu-spell-detail-row">
+        <span class="lu-spell-detail-label">TEMPO DE CONJURAÇÃO</span>
+        <span class="lu-spell-detail-value">{{ spell.casting_time ?? '—' }}</span>
+      </div>
+      <div class="lu-spell-detail-row">
+        <span class="lu-spell-detail-label">ALCANCE</span>
+        <span class="lu-spell-detail-value">{{
+          spell.range_distance != null ? spell.range_distance + ' m' : '—'
+        }}</span>
+      </div>
+      <div class="lu-spell-detail-row">
+        <span class="lu-spell-detail-label">DURAÇÃO</span>
+        <span class="lu-spell-detail-value">{{ spell.duration ?? '—' }}</span>
+      </div>
+      <div class="lu-spell-detail-row">
+        <span class="lu-spell-detail-label">COMPONENTES</span>
+        <span class="lu-spell-detail-value lu-spell-components">
+          @if (spell.is_verbal) {
+            <span class="lu-component-tag">V</span>
+          }
+          @if (spell.is_somatic) {
+            <span class="lu-component-tag">S</span>
+          }
+          @if (spell.is_material) {
+            <span class="lu-component-tag">M</span>
+          }
+        </span>
+      </div>
+      @if (spell.description) {
+        <p class="lu-spell-detail-desc">{{ spell.description }}</p>
+      }
+    </div>
+  }
+</ng-template>

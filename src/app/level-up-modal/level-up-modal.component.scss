@@ -339,21 +339,123 @@
   border: 1px solid var(--border-color);
   background-color: var(--bg-color);
   padding: 6px 10px;
-  cursor: pointer;
 
   &:has(input:disabled) {
     opacity: 0.4;
-    cursor: not-allowed;
   }
 
   &--selected {
     border-color: var(--accent-color);
+  }
+
+  input[type='checkbox'] {
+    flex-shrink: 0;
+    cursor: pointer;
+
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+}
+
+.lu-spell-toggle {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  float: none;
+
+  &:hover .lu-spell-name {
+    color: var(--accent-color);
   }
 }
 
 .lu-spell-name {
   font-size: 8px;
   color: var(--text-color);
+}
+
+.lu-spell-chevron {
+  font-size: 8px;
+  color: var(--label-title-color);
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+
+  &--open {
+    transform: rotate(90deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lu-spell-chevron {
+    transition: none;
+  }
+}
+
+.lu-spell-detail {
+  border: 1px solid var(--border-color);
+  border-top: none;
+  background-color: var(--panel-bg);
+  padding: 10px;
+  margin-top: -4px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lu-spell-detail-meta {
+  margin: 0;
+  font-size: 7px;
+  color: var(--label-title-color);
+}
+
+.lu-spell-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 6px;
+}
+
+.lu-spell-detail-label {
+  font-size: 7px;
+  color: var(--label-title-color);
+  flex-shrink: 0;
+}
+
+.lu-spell-detail-value {
+  font-size: 8px;
+  color: var(--text-color);
+  text-align: right;
+  word-break: break-word;
+}
+
+.lu-spell-components {
+  display: flex;
+  gap: 6px;
+}
+
+.lu-component-tag {
+  font-size: 8px;
+  border: 1px solid var(--accent-color);
+  color: var(--accent-color);
+  padding: 1px 5px;
+}
+
+.lu-spell-detail-desc {
+  margin: 0;
+  font-size: 8px;
+  color: var(--text-color);
+  line-height: 1.5;
 }
 
 .lu-actions {
