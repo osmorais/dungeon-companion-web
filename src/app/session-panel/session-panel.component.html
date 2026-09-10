@@ -82,11 +82,7 @@
           <div class="combat-bottom">
             @for (m of revealedMonsters(); track m.id_monster_session) {
               <div class="revealed-monster-card">
-                @if (m.image_url) {
-                  <img class="revealed-monster-image" [src]="m.image_url" [alt]="m.name" />
-                } @else {
-                  <div class="revealed-monster-image">🐉</div>
-                }
+                <img class="revealed-monster-image" [src]="m.image_url || DEFAULT_MONSTER_IMAGE" [alt]="m.name" />
                 <span class="revealed-monster-name">{{ m.name }}</span>
               </div>
             }
@@ -398,11 +394,7 @@
           <div class="combat-bottom">
             @for (m of revealedMonsters(); track m.id_monster_session) {
               <div class="revealed-monster-card">
-                @if (m.image_url) {
-                  <img class="revealed-monster-image" [src]="m.image_url" [alt]="m.name" />
-                } @else {
-                  <div class="revealed-monster-image">🐉</div>
-                }
+                <img class="revealed-monster-image" [src]="m.image_url || DEFAULT_MONSTER_IMAGE" [alt]="m.name" />
                 <span class="revealed-monster-name">{{ m.name }}</span>
               </div>
             }
@@ -874,13 +866,9 @@
     @for (d of [defeated]; track d.key) {
       <div class="retro-panel monster-defeated-panel" (click)="$event.stopPropagation()">
         <button class="modal-close-btn" (click)="closeMonsterDefeatedToast()">✕</button>
-        @if (d.imageUrl) {
-          <div class="monster-defeated-image-wrap">
-            <img class="monster-defeated-image" [src]="d.imageUrl" [alt]="d.name" />
-          </div>
-        } @else {
-          <span class="monster-defeated-icon">☠</span>
-        }
+        <div class="monster-defeated-image-wrap">
+          <img class="monster-defeated-image" [src]="d.imageUrl || DEFAULT_MONSTER_IMAGE" [alt]="d.name" />
+        </div>
         <span class="monster-defeated-name">{{ d.name }}</span>
         <span class="monster-defeated-label">FOI DERROTADO!</span>
         <div class="roll-toast-timer-bar">
@@ -899,9 +887,7 @@
       <div class="retro-panel monster-announcement-panel" (click)="$event.stopPropagation()">
         <button class="modal-close-btn" (click)="closeMonsterAnnouncement()">✕</button>
         <span class="monster-announcement-label">UM MONSTRO FOI REVELADO!</span>
-        @if (a.imageUrl) {
-          <img class="monster-announcement-image" [src]="a.imageUrl" [alt]="a.name" />
-        }
+        <img class="monster-announcement-image" [src]="a.imageUrl || DEFAULT_MONSTER_IMAGE" [alt]="a.name" />
         <span class="monster-announcement-name">{{ a.name }}</span>
         <div class="roll-toast-timer-bar">
           <div class="roll-toast-timer-fill" [style.animation-duration.ms]="MONSTER_ANNOUNCEMENT_MS"></div>
@@ -923,9 +909,7 @@
         }
         <p class="stat-meta">{{ monster.data_snapshot.size }} {{ monster.data_snapshot.type }}, {{ monster.data_snapshot.alignment }}</p>
 
-        @if (monster.image_url) {
-          <img class="stat-image" [src]="monster.image_url" [alt]="monsterDisplayName(monster)" />
-        }
+        <img class="stat-image" [src]="monster.image_url || DEFAULT_MONSTER_IMAGE" [alt]="monsterDisplayName(monster)" />
 
         <div class="stat-row"><span class="stat-label">CA</span><span>{{ monster.ac }}</span></div>
         <div class="stat-row"><span class="stat-label">PV</span><span>{{ monster.hp_current }}/{{ monster.hp_max }} ({{ monster.data_snapshot.hit_dice }})</span></div>

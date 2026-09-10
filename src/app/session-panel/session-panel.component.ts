@@ -75,6 +75,9 @@ export class SessionPanelComponent implements OnDestroy {
   private readonly SAFETY_NET_MS = 30_000;
   private readonly POLLING_MS = 6_000;
 
+  /** Imagem padrão pra monstros sem `image_url` cadastrada (avatar revelado, modais de anúncio/derrota/detalhe). */
+  readonly DEFAULT_MONSTER_IMAGE = 'assets/monster.png';
+
   /** Quando ligado, desliga o socket e usa polling a cada 6s pra atualizar a sessão. */
   pollingEnabled = signal(false);
 
