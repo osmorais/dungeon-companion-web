@@ -833,7 +833,8 @@ export class SessionPanelComponent implements OnDestroy {
   dmRollOpen = signal(false);
 
   get dmActorName(): string {
-    return this.sessionDetail()?.game_session.dm_name ?? 'Mestre';
+    // return this.sessionDetail()?.game_session.dm_name ?? 'Mestre';
+    return 'Mestre';
   }
 
   openDmRoll(): void {

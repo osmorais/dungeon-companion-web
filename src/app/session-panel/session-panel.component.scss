@@ -690,11 +690,6 @@
   white-space: nowrap;
 }
 
-.monster-icon {
-  margin-right: 6px;
-  opacity: 0.7;
-}
-
 .monster-ac {
   font-size: 10px;
   color: var(--text-color);
@@ -834,6 +829,23 @@
   &:disabled {
     opacity: 0.4;
     cursor: not-allowed;
+  }
+}
+
+.monster-edit-btn {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  font-size: 12px;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+
+  &:hover {
+    background-color: var(--btn-color);
   }
 }
 
@@ -1215,14 +1227,6 @@
   &:active {
     background-color: var(--btn-color);
   }
-}
-
-.mobile-monster-icon {
-  font-size: 20px;
-  flex-shrink: 0;
-  opacity: 0.7;
-  width: 32px;
-  text-align: center;
 }
 
 .mobile-monster-info {

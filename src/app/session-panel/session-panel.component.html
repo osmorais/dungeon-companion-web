@@ -264,7 +264,6 @@
           <div class="mobile-monster-list">
             @for (monster of sessionDetail()!.monsters; track monster.id_monster_session) {
               <div class="mobile-monster-row" (click)="openMonsterDetail(monster)" [class.mobile-monster-row--current-turn]="isMonsterCurrentTurn(monster)">
-                <div class="mobile-monster-icon">☠</div>
                 <div class="mobile-monster-info">
                   <span class="mobile-monster-name">{{ monsterDisplayName(monster) }}</span>
                   <div class="mobile-monster-stats">
@@ -311,6 +310,13 @@
                     (click)="$event.stopPropagation(); defeatMonster(monster)"
                   >
                     ⚔
+                  </button>
+                  <button
+                    class="monster-edit-btn"
+                    title="Editar monstro"
+                    (click)="$event.stopPropagation(); openMonsterDetail(monster)"
+                  >
+                    ✎
                   </button>
                   <button
                     class="monster-delete-btn"
@@ -596,6 +602,7 @@
                 <th>PONTOS DE VIDA</th>
                 <th class="text-center">REVELAR</th>
                 <th class="text-center">DERROTAR</th>
+                <th class="text-center">EDITAR</th>
                 <th class="text-center">REMOVER</th>
               </tr>
             </thead>
@@ -603,7 +610,6 @@
               @for (monster of sessionDetail()!.monsters; track monster.id_monster_session) {
                 <tr (click)="openMonsterDetail(monster)" [class.monster-row--current-turn]="isMonsterCurrentTurn(monster)">
                   <td class="monster-name-cell">
-                    <span class="monster-icon">☠</span>
                     {{ monsterDisplayName(monster) }}
                   </td>
                   <td class="text-center monster-ac">{{ monster.ac }}</td>
@@ -654,6 +660,17 @@
                         (click)="$event.stopPropagation(); defeatMonster(monster)"
                       >
                         ⚔
+                      </button>
+                    }
+                  </td>
+                  <td class="text-center">
+                    @if (isOwner()) {
+                      <button
+                        class="monster-edit-btn"
+                        title="Editar monstro"
+                        (click)="$event.stopPropagation(); openMonsterDetail(monster)"
+                      >
+                        ✎
                       </button>
                     }
                   </td>
