@@ -18,12 +18,15 @@
         @for (monster of monsters(); track monster.id_monster_catalog) {
           <li class="mobile-monster-card" (click)="openDetail(monster)">
             <button class="mobile-delete-btn" title="Remover monstro" (click)="requestDelete(monster, $event)">✕</button>
-            <span class="mobile-monster-name">{{ monsterName(monster) }}</span>
-            <span class="mobile-monster-meta">{{ monster.data_snapshot.size }} &mdash; {{ monster.data_snapshot.type }}</span>
-            <div class="mobile-monster-stats">
-              <span class="mobile-monster-stat">CA {{ monster.ac }}</span>
-              <span class="mobile-monster-stat">PV {{ monster.hp_max }}</span>
-              <span class="mobile-monster-stat">ND {{ monster.data_snapshot.challenge_rating }}</span>
+            <img class="mobile-monster-thumb" [src]="monster.image_url || DEFAULT_MONSTER_IMAGE" [alt]="monsterName(monster)" />
+            <div class="mobile-monster-info">
+              <span class="mobile-monster-name">{{ monsterName(monster) }}</span>
+              <span class="mobile-monster-meta">{{ monster.data_snapshot.size }} &mdash; {{ monster.data_snapshot.type }}</span>
+              <div class="mobile-monster-stats">
+                <span class="mobile-monster-stat">CA {{ monster.ac }}</span>
+                <span class="mobile-monster-stat">PV {{ monster.hp_max }}</span>
+                <span class="mobile-monster-stat">ND {{ monster.data_snapshot.challenge_rating }}</span>
+              </div>
             </div>
           </li>
         }
@@ -66,7 +69,7 @@
           @for (monster of monsters(); track monster.id_monster_catalog) {
             <div class="monster-card" (click)="openDetail(monster)">
               <button class="delete-btn" title="Remover monstro" (click)="requestDelete(monster, $event)">✕</button>
-              <span class="monster-icon">☠</span>
+              <img class="monster-thumb" [src]="monster.image_url || DEFAULT_MONSTER_IMAGE" [alt]="monsterName(monster)" />
               <span class="monster-name">{{ monsterName(monster) }}</span>
               <span class="monster-meta">{{ monster.data_snapshot.size }} &mdash; {{ monster.data_snapshot.type }}</span>
               <div class="monster-stats">

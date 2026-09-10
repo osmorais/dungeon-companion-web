@@ -15,6 +15,9 @@ export class MonsterCatalogListComponent implements OnInit {
   private router = inject(Router);
   private monsterCatalogService = inject(MonsterCatalogService);
 
+  /** Miniatura padrão pra monstros catalogados sem image_url. */
+  readonly DEFAULT_MONSTER_IMAGE = 'assets/monster.png';
+
   isMobile = signal(typeof window !== 'undefined' && window.innerWidth < 768);
 
   @HostListener('window:resize')
