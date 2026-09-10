@@ -73,6 +73,16 @@ export function applySessionEvent(
         ),
       };
 
+    case 'monster_image_updated':
+      return {
+        ...detail,
+        monsters: detail.monsters.map((m) =>
+          m.id_monster_session === event.id_monster_session
+            ? { ...m, image_url: event.image_url }
+            : m,
+        ),
+      };
+
     case 'monster_revealed':
       return {
         ...detail,

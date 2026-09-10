@@ -524,6 +524,47 @@ export class SessionPanelComponent implements OnDestroy {
     this.activeMonsterDetail.set(null);
   }
 
+  /** ========================= DETALHE DO MONSTRO: IMAGEM CUSTOMIZADA ========================= */
+
+  private static readonly MAX_MONSTER_IMAGE_BYTES = 5 * 1024 * 1024;
+
+  uploadingMonsterImage = signal(false);
+  monsterImageUploadError = signal<string | null>(null);
+
+  onMonsterImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = ''; // permite selecionar o mesmo arquivo de novo depois de um erro
+    if (!file) return;
+
+    const monster = this.activeMonsterDetail();
+    if (!monster || this.uploadingMonsterImage()) return;
+
+    if (!file.type.startsWith('image/')) {
+      this.monsterImageUploadError.set('O arquivo precisa ser uma imagem.');
+      return;
+    }
+    if (file.size > SessionPanelComponent.MAX_MONSTER_IMAGE_BYTES) {
+      this.monsterImageUploadError.set('Imagem muito grande — o limite é 5 MB.');
+      return;
+    }
+
+    this.monsterImageUploadError.set(null);
+    this.uploadingMonsterImage.set(true);
+    this.gameSessionService.uploadMonsterImage(monster.id_monster_session, file).subscribe({
+      next: (updated) => {
+        // Também atualiza via socket (monster_image_updated) pra quem só vê a lista, mas o
+        // modal aberto guarda um retrato próprio do monstro — precisa desse patch direto.
+        this.activeMonsterDetail.set(updated);
+        this.uploadingMonsterImage.set(false);
+      },
+      error: () => {
+        this.monsterImageUploadError.set('Não foi possível enviar a imagem. Tente novamente.');
+        this.uploadingMonsterImage.set(false);
+      },
+    });
+  }
+
   monsterAcValue(monster: MonsterSession): number | null {
     return monster.data_snapshot.armor_class?.[0]?.value ?? null;
   }

@@ -114,6 +114,15 @@ export class GameSessionService {
     );
   }
 
+  uploadMonsterImage(idMonsterSession: string, file: File): Observable<MonsterSession> {
+    const formData = new FormData();
+    formData.append('image', file);
+    return this.http.post<MonsterSession>(
+      `${this.baseUrl}/api/game-session/monster-session/${idMonsterSession}/image`,
+      formData,
+    );
+  }
+
   revealMonster(idMonsterSession: string): Observable<void> {
     return this.http.post<void>(
       `${this.baseUrl}/api/game-session/monster-session/${idMonsterSession}/reveal`,

@@ -910,7 +910,16 @@
         }
         <p class="stat-meta">{{ monster.data_snapshot.size }} {{ monster.data_snapshot.type }}, {{ monster.data_snapshot.alignment }}</p>
 
-        <img class="stat-image" [src]="monster.image_url || DEFAULT_MONSTER_IMAGE" [alt]="monsterDisplayName(monster)" />
+        <div class="stat-image-block">
+          <img class="stat-image" [src]="monster.image_url || DEFAULT_MONSTER_IMAGE" [alt]="monsterDisplayName(monster)" />
+          <label class="retro-btn stat-image-upload-btn">
+            {{ uploadingMonsterImage() ? 'ENVIANDO...' : monster.image_url ? 'TROCAR IMAGEM' : '+ ADICIONAR IMAGEM' }}
+            <input type="file" accept="image/*" hidden [disabled]="uploadingMonsterImage()" (change)="onMonsterImageSelected($event)" />
+          </label>
+          @if (monsterImageUploadError()) {
+            <p class="stat-image-error">{{ monsterImageUploadError() }}</p>
+          }
+        </div>
 
         <div class="stat-row"><span class="stat-label">CA</span><span>{{ monster.ac }}</span></div>
         <div class="stat-row"><span class="stat-label">PV</span><span>{{ monster.hp_current }}/{{ monster.hp_max }} ({{ monster.data_snapshot.hit_dice }})</span></div>
