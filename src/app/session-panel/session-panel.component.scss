@@ -1684,8 +1684,15 @@
 }
 
 .monster-defeated-label {
-  font-size: 12px;
-  color: var(--label-title-color);
+  font-size: 17px;
+  font-weight: bold;
+  color: #8b0000;
+  letter-spacing: 0.5px;
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;
   margin-bottom: 6px;
 }
 
@@ -1713,8 +1720,15 @@
 }
 
 .monster-announcement-label {
-  font-size: 16px;
-  color: var(--label-title-color);
+  font-size: 17px;
+  font-weight: bold;
+  color: #8b0000;
+  letter-spacing: 0.5px;
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;
 }
 
 .monster-announcement-image {
