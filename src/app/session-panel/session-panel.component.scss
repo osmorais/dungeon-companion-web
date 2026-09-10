@@ -746,6 +746,65 @@
   }
 }
 
+/* PV de monstro costuma ser grande — aplica um delta de dano/cura de uma vez, em vez de clicar
+   no +/- várias vezes. Ver SessionPanelComponent.applyMonsterHpDelta. */
+.hp-delta-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.hp-delta-input {
+  width: 48px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  padding: 4px;
+  text-align: center;
+
+  /* Some browsers ainda mostram as setinhas nativas mesmo com [type=number] estilizado. */
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    margin: 0;
+  }
+}
+
+.hp-delta-btn {
+  float: none;
+  font-size: 6px;
+  padding: 5px 8px;
+  flex: 1;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.hp-damage-btn {
+  border-color: #ff6b6b;
+  color: #ff6b6b;
+
+  &:hover:not(:disabled) {
+    background-color: #ff6b6b;
+    color: var(--bg-color);
+  }
+}
+
+.hp-heal-btn {
+  border-color: #4caf50;
+  color: #4caf50;
+
+  &:hover:not(:disabled) {
+    background-color: #4caf50;
+    color: var(--bg-color);
+  }
+}
+
 .reveal-toggle-btn {
   position: relative;
   background-color: var(--bg-color);

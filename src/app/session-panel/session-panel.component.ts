@@ -190,6 +190,7 @@ export class SessionPanelComponent implements OnDestroy {
         this.hpEdits.set({});
         this.npcHpEdits.set({});
         this.monsterHpEdits.set({});
+        this.monsterDamageInputs.set({});
         this.refreshing.set(false);
         setTimeout(() => {
           document.getElementById('players-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -437,6 +438,46 @@ export class SessionPanelComponent implements OnDestroy {
     const current = this.editedMonsterHp(monster);
     if (current >= monster.hp_max) return;
     this.monsterHpEdits.update(edits => ({ ...edits, [monster.id_monster_session]: current + 1 }));
+  }
+
+  /**
+   * PV de monstro costuma ser um número grande (dezenas/centenas) — clicar em +/- um por um pra
+   * aplicar uma rolagem de dano/cura é inviável. Esse input aplica um delta de uma vez, salvando
+   * na hora; o stepper +/- continua para ajustes finos de 1 ponto.
+   */
+  monsterDamageInputs = signal<Record<string, number>>({});
+
+  monsterDamageInput(monster: MonsterSession): number {
+    return this.monsterDamageInputs()[monster.id_monster_session] ?? 0;
+  }
+
+  setMonsterDamageInput(monster: MonsterSession, event: Event) {
+    const raw = Number((event.target as HTMLInputElement).value);
+    const value = Number.isFinite(raw) ? Math.max(0, Math.trunc(raw)) : 0;
+    this.monsterDamageInputs.update(v => ({ ...v, [monster.id_monster_session]: value }));
+  }
+
+  applyMonsterDamage(monster: MonsterSession) {
+    this.applyMonsterHpDelta(monster, -1);
+  }
+
+  applyMonsterHeal(monster: MonsterSession) {
+    this.applyMonsterHpDelta(monster, 1);
+  }
+
+  private applyMonsterHpDelta(monster: MonsterSession, sign: 1 | -1) {
+    const id = monster.id_monster_session;
+    const amount = this.monsterDamageInput(monster);
+    if (!amount || this.savingMonsterHp().has(id)) return;
+
+    const next = Math.min(monster.hp_max, Math.max(0, this.editedMonsterHp(monster) + sign * amount));
+    this.monsterHpEdits.update(edits => ({ ...edits, [id]: next }));
+    this.monsterDamageInputs.update(v => {
+      const n = { ...v };
+      delete n[id];
+      return n;
+    });
+    this.saveMonsterHp(monster);
   }
 
   saveMonsterHp(monster: MonsterSession) {
