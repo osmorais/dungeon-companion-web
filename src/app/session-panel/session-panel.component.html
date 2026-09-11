@@ -777,6 +777,19 @@
   />
 }
 
+<!-- ===== CONFIRMAÇÃO: MONSTROS DO COMBATE FORAM DERROTADOS? ===== -->
+@if (showEndCombatConfirm()) {
+  <div class="overlay end-combat-confirm-overlay" (click)="declineMonstersDefeated()">
+    <div class="retro-panel end-combat-confirm-panel" (click)="$event.stopPropagation()">
+      <p class="end-combat-confirm-question">OS MONSTROS DESTE COMBATE FORAM DERROTADOS?</p>
+      <div class="end-combat-confirm-actions">
+        <button class="retro-btn" (click)="confirmMonstersDefeated()">SIM</button>
+        <button class="retro-btn end-combat-confirm-no" (click)="declineMonstersDefeated()">NÃO</button>
+      </div>
+    </div>
+  </div>
+}
+
 <!-- ===== MODAL: DISTRIBUIR XP ===== -->
 @if (showDistributeXpModal() && sessionDetail(); as detail) {
   <app-distribute-xp-modal

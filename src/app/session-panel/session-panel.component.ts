@@ -566,13 +566,18 @@ export class SessionPanelComponent implements OnDestroy {
   showDistributeXpModal = signal(false);
   xpModalSuggestedAmount = signal<number | null>(null);
   xpModalPreselected = signal<string[]>([]);
-  private xpModalPendingMonster = signal<MonsterSession | null>(null);
+  /** Monstros a marcar como derrotados quando o XP for concedido — um só (botão "derrotar") ou
+   *  vários (todos os monstros do combate, ao encerrá-lo). Vazio no fluxo avulso (sem monstro). */
+  private xpModalPendingMonsters = signal<MonsterSession[]>([]);
+  /** Só setado no fluxo de encerrar combate — depois de derrotar os monstros, também finaliza o encontro. */
+  private xpModalEndsCombat = signal<string | null>(null);
 
   /** Botão avulso "DISTRIBUIR XP" — sem sugestão de valor nem destinatários pré-marcados. */
   openDistributeXpModal(): void {
     this.xpModalSuggestedAmount.set(null);
     this.xpModalPreselected.set([]);
-    this.xpModalPendingMonster.set(null);
+    this.xpModalPendingMonsters.set([]);
+    this.xpModalEndsCombat.set(null);
     this.showDistributeXpModal.set(true);
   }
 
@@ -582,21 +587,26 @@ export class SessionPanelComponent implements OnDestroy {
     if (this.defeatingMonsterId()) return;
     this.xpModalSuggestedAmount.set(monster.data_snapshot?.xp ?? null);
     this.xpModalPreselected.set(this.currentCombatPlayerSessionIds());
-    this.xpModalPendingMonster.set(monster);
+    this.xpModalPendingMonsters.set([monster]);
+    this.xpModalEndsCombat.set(null);
     this.showDistributeXpModal.set(true);
   }
 
   closeDistributeXpModal(): void {
     this.showDistributeXpModal.set(false);
-    this.xpModalPendingMonster.set(null);
+    this.xpModalPendingMonsters.set([]);
+    this.xpModalEndsCombat.set(null);
   }
 
-  /** Só marca o monstro como derrotado depois que o XP foi concedido com sucesso. */
+  /** Só marca o(s) monstro(s) como derrotado(s) — e encerra o combate, se for o caso — depois que o XP foi concedido com sucesso. */
   onXpGranted(): void {
-    const monster = this.xpModalPendingMonster();
+    const monsters = this.xpModalPendingMonsters();
+    const idCombatEncounter = this.xpModalEndsCombat();
     this.showDistributeXpModal.set(false);
-    this.xpModalPendingMonster.set(null);
-    if (monster) this.defeatMonster(monster);
+    this.xpModalPendingMonsters.set([]);
+    this.xpModalEndsCombat.set(null);
+    for (const monster of monsters) this.defeatMonster(monster);
+    if (idCombatEncounter) this.finishEncounter(idCombatEncounter);
   }
 
   private currentCombatPlayerSessionIds(): string[] {
@@ -605,6 +615,17 @@ export class SessionPanelComponent implements OnDestroy {
     return combat.participants
       .filter((p): p is typeof p & { id_player_session: string } => p.participant_type === 'player' && !!p.id_player_session)
       .map(p => p.id_player_session);
+  }
+
+  private currentCombatMonsters(): MonsterSession[] {
+    const combat = this.combat();
+    if (!combat) return [];
+    const monsterIds = new Set(
+      combat.participants
+        .filter((p): p is typeof p & { id_monster_session: string } => p.participant_type === 'monster' && !!p.id_monster_session)
+        .map(p => p.id_monster_session),
+    );
+    return (this.sessionDetail()?.monsters ?? []).filter(m => monsterIds.has(m.id_monster_session));
   }
 
   private removeMonsterFromState(idMonsterSession: string): void {
@@ -1126,14 +1147,53 @@ export class SessionPanelComponent implements OnDestroy {
       .subscribe();
   }
 
-  /** Sem refetch — o socket ecoa `combat_ended` de volta (ver addNpc acima). */
+  /** Se o combate tem monstros, pergunta antes se foram derrotados (pra passar pelo fluxo de
+   *  XP); senão encerra direto — igual ao comportamento de hoje. */
   endCombat(): void {
     const combat = this.combat();
     if (!combat || this.endingCombat()) return;
+    if (this.currentCombatMonsters().length > 0) {
+      this.showEndCombatConfirm.set(true);
+      return;
+    }
+    this.finishEncounter(combat.encounter.id_combat_encounter);
+  }
+
+  /** Sem refetch — o socket ecoa `combat_ended` de volta (ver addNpc acima). */
+  private finishEncounter(idCombatEncounter: string): void {
+    if (this.endingCombat()) return;
     this.endingCombat.set(true);
     this.gameSessionService
-      .endEncounter(combat.encounter.id_combat_encounter)
+      .endEncounter(idCombatEncounter)
       .pipe(finalize(() => this.endingCombat.set(false)))
       .subscribe();
+  }
+
+  /** ========================= ENCERRAR COMBATE: MONSTROS FORAM DERROTADOS? ========================= */
+
+  showEndCombatConfirm = signal(false);
+
+  /** "Sim" — abre a distribuição de XP (soma o XP de todos os monstros do combate); só derrota
+   *  os monstros e encerra o combate depois que o XP for concedido (ver onXpGranted). */
+  confirmMonstersDefeated(): void {
+    const combat = this.combat();
+    this.showEndCombatConfirm.set(false);
+    if (!combat) return;
+
+    const monsters = this.currentCombatMonsters();
+    const totalXp = monsters.reduce((sum, m) => sum + (m.data_snapshot?.xp ?? 0), 0);
+
+    this.xpModalSuggestedAmount.set(totalXp || null);
+    this.xpModalPreselected.set(this.currentCombatPlayerSessionIds());
+    this.xpModalPendingMonsters.set(monsters);
+    this.xpModalEndsCombat.set(combat.encounter.id_combat_encounter);
+    this.showDistributeXpModal.set(true);
+  }
+
+  /** "Não" — encerra o combate normalmente, sem conceder XP nem derrotar ninguém. */
+  declineMonstersDefeated(): void {
+    const combat = this.combat();
+    this.showEndCombatConfirm.set(false);
+    if (combat) this.finishEncounter(combat.encounter.id_combat_encounter);
   }
 }

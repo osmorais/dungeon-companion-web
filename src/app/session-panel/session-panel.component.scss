@@ -1723,6 +1723,45 @@
   letter-spacing: 0.5px;
 }
 
+.end-combat-confirm-overlay {
+  z-index: 1100;
+}
+
+.end-combat-confirm-panel {
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 28px;
+  width: 92vw;
+  max-width: 380px;
+  text-align: center;
+}
+
+.end-combat-confirm-question {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+.end-combat-confirm-actions {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+
+  .retro-btn {
+    flex: 1;
+  }
+}
+
+.end-combat-confirm-no {
+  background-color: transparent;
+  color: var(--label-title-color);
+}
+
 .monster-announcement-overlay {
   /* Acima dos demais overlays, mesmo motivo do roll-toast-overlay — é um aviso global. */
   z-index: 1100;
