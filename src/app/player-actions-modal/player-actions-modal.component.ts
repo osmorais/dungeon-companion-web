@@ -129,6 +129,43 @@ export class PlayerActionsModalComponent implements OnInit {
     );
   }
 
+  /** ========================= MAGIAS AGRUPADAS POR CÍRCULO ========================= */
+
+  spellsByCircle(): { circle: number; spells: Spell[] }[] {
+    const spells = this.sheet()?.character_sheet.spells ?? [];
+    const map = new Map<number, Spell[]>();
+    for (const spell of spells) {
+      const list = map.get(spell.spellLevel) ?? [];
+      list.push(spell);
+      map.set(spell.spellLevel, list);
+    }
+    return [...map.entries()]
+      .sort(([a], [b]) => a - b)
+      .map(([circle, list]) => ({
+        circle,
+        spells: [...list].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')),
+      }));
+  }
+
+  circleName(circle: number): string {
+    return circle === 0 ? 'TRUQUES' : `${circle}º CÍRCULO`;
+  }
+
+  private collapsedCircles = signal<Set<number>>(new Set());
+
+  isCircleCollapsed(circle: number): boolean {
+    return this.collapsedCircles().has(circle);
+  }
+
+  toggleCircle(circle: number): void {
+    this.collapsedCircles.update((current) => {
+      const next = new Set(current);
+      if (next.has(circle)) next.delete(circle);
+      else next.add(circle);
+      return next;
+    });
+  }
+
   /** ========================= ESPAÇOS DE MAGIA ========================= */
 
   slotLevels(): string[] {
