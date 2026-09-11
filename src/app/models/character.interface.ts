@@ -30,6 +30,10 @@ export interface CharacterSheetData {
     spells: Spell[];
     /** Especialização (Ladino) ou Bênção do Conhecimento (Clérigo, Domínio do Conhecimento) — só relevante pra essas. */
     expertise_skill_ids?: number[];
+    /** Só relevante se a raça tiver `tool_proficiency_options` (hoje só o Anão). */
+    tool_proficiency?: string;
+    /** Só relevante se a classe tiver `fighting_style_options` (hoje só o Guerreiro). */
+    fighting_style?: string;
   };
   equipment: {
     armour: Armour | null;

@@ -49,9 +49,19 @@
                 *ngTemplateOutlet="choiceInfo; context: { meta: selectedRaceMeta, traits: selectedRace.traits }"
               ></ng-container>
             }
+            @if (toolProficiencyOptions.length > 0) {
+              <label>FERRAMENTA DE ARTESÃO
+                <select [(ngModel)]="characterData.choices.tool_proficiency">
+                  <option value="">Selecione...</option>
+                  @for (opt of toolProficiencyOptions; track opt) {
+                    <option [value]="opt">{{ opt }}</option>
+                  }
+                </select>
+              </label>
+            }
             @if (availableSubraces.length > 0) {
               <label>SUB-RAÇA
-                <select [(ngModel)]="characterData.core_build.subrace">
+                <select [(ngModel)]="characterData.core_build.subrace" (ngModelChange)="onSubraceChange()">
                   <option value="">Selecione...</option>
                   @for (sub of availableSubraces; track sub.key) {
                     <option [value]="sub.key">{{ sub.name }}</option>
@@ -62,6 +72,20 @@
                 <ng-container
                   *ngTemplateOutlet="choiceInfo; context: { meta: selectedSubraceMeta, traits: selectedSubrace.traits }"
                 ></ng-container>
+              }
+            }
+            @if (racialCantripGrant; as cantripGrant) {
+              @if (cantripGrant.fixedSpellName) {
+                <p class="choice-info-meta">Truque racial automático: <strong>{{ cantripGrant.fixedSpellName }}</strong></p>
+              } @else {
+                <label>TRUQUE RACIAL (à escolha)
+                  <select [ngModel]="selectedRacialCantripId ?? ''" (ngModelChange)="selectRacialCantrip($event)">
+                    <option value="">Selecione...</option>
+                    @for (spell of racialCantripOptions; track spell.id_spell) {
+                      <option [value]="spell.id_spell">{{ spell.name }}</option>
+                    }
+                  </select>
+                </label>
               }
             }
             <label>CLASSE
@@ -75,6 +99,16 @@
               <ng-container
                 *ngTemplateOutlet="choiceInfo; context: { meta: selectedClassMeta, traits: selectedClass.traits }"
               ></ng-container>
+            }
+            @if (fightingStyleOptions.length > 0) {
+              <label>ESTILO DE COMBATE
+                <select [(ngModel)]="characterData.choices.fighting_style">
+                  <option value="">Selecione...</option>
+                  @for (opt of fightingStyleOptions; track opt) {
+                    <option [value]="opt">{{ opt }}</option>
+                  }
+                </select>
+              </label>
             }
             @if (availableLevel1Subclasses.length > 0) {
               <label>SUBCLASSE
@@ -527,9 +561,19 @@
                 *ngTemplateOutlet="choiceInfo; context: { meta: selectedRaceMeta, traits: selectedRace.traits }"
               ></ng-container>
             }
+            @if (toolProficiencyOptions.length > 0) {
+              <label>FERRAMENTA DE ARTESÃO
+                <select [(ngModel)]="characterData.choices.tool_proficiency">
+                  <option value="">Selecione...</option>
+                  @for (opt of toolProficiencyOptions; track opt) {
+                    <option [value]="opt">{{ opt }}</option>
+                  }
+                </select>
+              </label>
+            }
             @if (availableSubraces.length > 0) {
               <label>SUB-RAÇA
-                <select [(ngModel)]="characterData.core_build.subrace">
+                <select [(ngModel)]="characterData.core_build.subrace" (ngModelChange)="onSubraceChange()">
                   <option value="">Selecione...</option>
                   @for (sub of availableSubraces; track sub.key) {
                     <option [value]="sub.key">{{ sub.name }}</option>
@@ -540,6 +584,20 @@
                 <ng-container
                   *ngTemplateOutlet="choiceInfo; context: { meta: selectedSubraceMeta, traits: selectedSubrace.traits }"
                 ></ng-container>
+              }
+            }
+            @if (racialCantripGrant; as cantripGrant) {
+              @if (cantripGrant.fixedSpellName) {
+                <p class="choice-info-meta">Truque racial automático: <strong>{{ cantripGrant.fixedSpellName }}</strong></p>
+              } @else {
+                <label>TRUQUE RACIAL (à escolha)
+                  <select [ngModel]="selectedRacialCantripId ?? ''" (ngModelChange)="selectRacialCantrip($event)">
+                    <option value="">Selecione...</option>
+                    @for (spell of racialCantripOptions; track spell.id_spell) {
+                      <option [value]="spell.id_spell">{{ spell.name }}</option>
+                    }
+                  </select>
+                </label>
               }
             }
             <label>CLASSE
@@ -553,6 +611,16 @@
               <ng-container
                 *ngTemplateOutlet="choiceInfo; context: { meta: selectedClassMeta, traits: selectedClass.traits }"
               ></ng-container>
+            }
+            @if (fightingStyleOptions.length > 0) {
+              <label>ESTILO DE COMBATE
+                <select [(ngModel)]="characterData.choices.fighting_style">
+                  <option value="">Selecione...</option>
+                  @for (opt of fightingStyleOptions; track opt) {
+                    <option [value]="opt">{{ opt }}</option>
+                  }
+                </select>
+              </label>
             }
             @if (availableLevel1Subclasses.length > 0) {
               <label>SUBCLASSE

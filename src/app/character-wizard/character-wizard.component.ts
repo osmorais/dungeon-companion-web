@@ -28,6 +28,7 @@ import {
 } from '../constants/spell-rules';
 import { CLASS_ARMOUR_RULES } from '../constants/armour-rules';
 import { LEVEL1_SUBCLASS_OPTIONS, Level1SubclassOption } from '../constants/level1-subclass-options';
+import { RACE_FREE_CANTRIP, SUBRACE_FREE_CANTRIP, RacialCantripGrant } from '../constants/racial-cantrips';
 import { PixelDieComponent } from '../pixel-die/pixel-die.component';
 
 type AttributeKey = 'FOR' | 'DES' | 'CON' | 'INT' | 'SAB' | 'CAR';
@@ -229,7 +230,10 @@ export class CharacterWizardComponent implements OnInit {
           this.characterData.character_details.name.trim() !== '' &&
           +this.characterData.character_details.id_alignment !== 0 &&
           (this.availableSubraces.length === 0 || !!this.characterData.core_build.subrace) &&
-          (this.availableLevel1Subclasses.length === 0 || !!this.characterData.core_build.id_subclass)
+          (this.availableLevel1Subclasses.length === 0 || !!this.characterData.core_build.id_subclass) &&
+          (this.toolProficiencyOptions.length === 0 || !!this.characterData.choices.tool_proficiency) &&
+          (this.fightingStyleOptions.length === 0 || !!this.characterData.choices.fighting_style) &&
+          (this.racialCantripOptions.length === 0 || this.selectedRacialCantripId !== null)
         );
       case 2:
         if (this.characterData.attributes.generation_method === 'point_buy') return true;
@@ -325,19 +329,28 @@ export class CharacterWizardComponent implements OnInit {
     const cls = this.availableClasses.find(c => +c.id_class === +this.characterData.core_build.id_class);
     this.characterData.core_build.class = cls?.name ?? '';
     this.characterData.core_build.id_subclass = this.availableLevel1Subclasses.length > 0 ? '' : undefined;
+    this.characterData.choices.fighting_style = undefined;
     this.resetAllChoices();
+    this.applyRacialCantripGrant();
   }
 
   onRaceChange(): void {
     const race = this.availableRaces.find(r => +r.id_race === +this.characterData.core_build.id_race);
     this.characterData.core_build.race = race?.name ?? '';
     this.characterData.core_build.subrace = this.availableSubraces.length > 0 ? '' : undefined;
+    this.characterData.choices.tool_proficiency = undefined;
     this.resetAllChoices();
+    this.applyRacialCantripGrant();
 
     if (this.characterData.avatar_preset) {
       const raceKey = RACE_NAME_TO_AVATAR[this.characterData.core_build.race] ?? 'human';
       this.characterData.avatar_preset = { ...this.characterData.avatar_preset, race: raceKey };
     }
+  }
+
+  /** Sub-raça não muda a classe nem as escolhas de magia/perícia já feitas — só troca o truque racial. */
+  onSubraceChange(): void {
+    this.applyRacialCantripGrant();
   }
 
   private resetAllChoices(): void {
@@ -364,6 +377,73 @@ export class CharacterWizardComponent implements OnInit {
         this.characterData.choices.skills.push(skill);
       }
     }
+  }
+
+  /**
+   * ========================= TRUQUE RACIAL (ALTO ELFO/GNOMO DAS FLORESTAS/TIEFLING) =========================
+   * Independente da classe — mesmo um personagem de classe não conjuradora ganha esse truque.
+   * Fixo (Gnomo/Tiefling) é injetado automaticamente; à escolha (Alto Elfo) o jogador escolhe
+   * entre os truques de mago. Rastreado por id pra poder trocar/remover sem mexer nas outras
+   * magias já escolhidas pelo jogador (ver toggleSpell/resetAllChoices).
+   */
+  private currentRacialCantripSpellId: number | null = null;
+
+  get racialCantripGrant(): RacialCantripGrant | null {
+    const subraceKey = this.characterData.core_build.subrace;
+    if (subraceKey && SUBRACE_FREE_CANTRIP[subraceKey]) return SUBRACE_FREE_CANTRIP[subraceKey];
+    return RACE_FREE_CANTRIP[+this.characterData.core_build.id_race] ?? null;
+  }
+
+  /** Só populado quando o truque é à escolha do jogador (Alto Elfo) — vazio pros fixos. */
+  get racialCantripOptions(): Spell[] {
+    const grant = this.racialCantripGrant;
+    if (!grant || grant.fixedSpellName) return [];
+    const classSpellIds = new Set(CLASS_SPELLS[grant.spellListClassId] ?? []);
+    return this.availableSpells
+      .filter(s => s.spellLevel === 0 && classSpellIds.has(s.id_spell))
+      .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+  }
+
+  get selectedRacialCantripId(): number | null {
+    return this.currentRacialCantripSpellId;
+  }
+
+  private removeCurrentRacialCantrip(): void {
+    if (this.currentRacialCantripSpellId === null) return;
+    const idx = this.characterData.choices.spells.findIndex(s => s.id_spell === this.currentRacialCantripSpellId);
+    if (idx > -1) this.characterData.choices.spells.splice(idx, 1);
+    this.currentRacialCantripSpellId = null;
+  }
+
+  /** Chamado após qualquer troca de raça/sub-raça — reaplica o truque fixo (se houver) e limpa a escolha anterior. */
+  private applyRacialCantripGrant(): void {
+    this.removeCurrentRacialCantrip();
+    const grant = this.racialCantripGrant;
+    if (!grant?.fixedSpellName) return;
+    const spell = this.availableSpells.find(s => s.spellLevel === 0 && s.name === grant.fixedSpellName);
+    if (!spell) return;
+    this.characterData.choices.spells.push(spell);
+    this.currentRacialCantripSpellId = spell.id_spell;
+  }
+
+  selectRacialCantrip(value: string): void {
+    this.removeCurrentRacialCantrip();
+    if (!value) return;
+    const idSpell = +value;
+    const spell = this.racialCantripOptions.find(s => s.id_spell === idSpell);
+    if (!spell) return;
+    this.characterData.choices.spells.push(spell);
+    this.currentRacialCantripSpellId = idSpell;
+  }
+
+  /** ========================= FERRAMENTA / ESTILO DE COMBATE (ESCOLHAS DE RAÇA/CLASSE) ========================= */
+
+  get toolProficiencyOptions(): string[] {
+    return this.selectedRace?.tool_proficiency_options ?? [];
+  }
+
+  get fightingStyleOptions(): string[] {
+    return this.selectedClass?.fighting_style_options ?? [];
   }
 
   /** ========================= SKILL STATE ========================= */
@@ -555,7 +635,9 @@ export class CharacterWizardComponent implements OnInit {
   }
 
   get selectedNonCantripSpellCount(): number {
-    return this.characterData.choices.spells.filter(s => s.spellLevel > 0).length;
+    return this.characterData.choices.spells.filter(
+      s => s.spellLevel > 0 && s.id_spell !== this.currentRacialCantripSpellId,
+    ).length;
   }
 
   get availableNonCantripSpells(): number {
@@ -582,6 +664,9 @@ export class CharacterWizardComponent implements OnInit {
     const map = new Map<number, Spell[]>();
     for (const spell of this.availableSpells) {
       if (!ids.has(spell.id_spell)) continue;
+      // O truque racial (ver TRUQUE RACIAL) é concedido à parte — não aparece aqui pra não ser
+      // confundido com uma escolha de classe nem descontar da cota normal de truques/magias.
+      if (spell.id_spell === this.currentRacialCantripSpellId) continue;
       const lvl = spell.spellLevel;
       if (!map.has(lvl)) map.set(lvl, []);
       map.get(lvl)!.push(spell);
@@ -604,7 +689,9 @@ export class CharacterWizardComponent implements OnInit {
   }
 
   selectedSpellCountByCircle(circle: number): number {
-    return this.characterData.choices.spells.filter(s => s.spellLevel === circle).length;
+    return this.characterData.choices.spells.filter(
+      s => s.spellLevel === circle && s.id_spell !== this.currentRacialCantripSpellId,
+    ).length;
   }
 
   spellLimitForCircle(circle: number): number {

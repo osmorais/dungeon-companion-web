@@ -58,6 +58,8 @@ export interface Race {
   bonuses_text: string;
   languages: string[];
   traits: TraitInfo[];
+  /** Opções de ferramenta pra escolher 1 (ex: Anão) — ausente se a raça não tiver essa escolha. */
+  tool_proficiency_options?: string[];
 }
 
 export interface CharacterClass {
@@ -70,6 +72,8 @@ export interface CharacterClass {
   weapon_proficiencies: string[];
   is_spellcaster: boolean;
   traits: TraitInfo[];
+  /** Opções de Estilo de Combate no nível 1 (hoje só o Guerreiro) — ausente se a classe não tiver essa escolha. */
+  fighting_style_options?: string[];
 }
 
 export interface Background {
