@@ -1121,7 +1121,14 @@ export class SessionPanelComponent implements OnDestroy {
     this.activeInitiativeRoll.set(null);
   }
 
+  /**
+   * Iniciativa só pode ser rolada uma vez (o servidor rejeita uma segunda submissão) — fecha o
+   * modal assim que a rolagem termina, antes que o jogador possa clicar em "ROLAR NOVAMENTE" e
+   * ver um resultado diferente do que já foi de fato registrado. Depois disso ele vê a mesma
+   * rolagem no feed da sessão, igual a todo mundo.
+   */
   onInitiativeRolled(idCombatParticipant: string, result: { rolls: number[]; modifier: number; total: number }): void {
+    this.closeInitiativeRoll();
     this.initiativeSubmitted.update((set) => new Set(set).add(idCombatParticipant));
     this.gameSessionService.submitInitiative(idCombatParticipant, result).subscribe({
       error: () => {
