@@ -709,8 +709,7 @@ export class CharacterWizardComponent implements OnInit {
     }
 
     if (method === 'dice_roll') {
-      this.rollPool(); // agora realmente random
-      this.resetStats();
+      this.rollPool(); // já reseta os atributos (ver rollPool)
     }
   }
 
@@ -880,6 +879,12 @@ export class CharacterWizardComponent implements OnInit {
   }
 
   rollPool() {
+    // Rolar de novo descarta qualquer atribuição já feita — senão os atributos já preenchidos
+    // ficariam com valores de uma rolagem anterior que não existe mais no pool.
+    this.resetStats();
+    this.mobileSelectedValue = null;
+    this.mobileSelectedFromStat = null;
+
     const prefersReducedMotion =
       typeof window !== 'undefined' &&
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
