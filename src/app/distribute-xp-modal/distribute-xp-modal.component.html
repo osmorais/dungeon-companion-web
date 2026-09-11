@@ -1,0 +1,53 @@
+<div class="dx-modal-backdrop" (click)="close()">
+  <div class="dx-modal" (click)="$event.stopPropagation()">
+    <button class="dx-modal-close" (click)="close()">✕</button>
+    <h3 class="dx-modal-title">{{ title }}</h3>
+
+    <label class="dx-amount-label">
+      QUANTIDADE DE XP
+      <input
+        type="number"
+        min="0"
+        class="dx-amount-input"
+        [ngModel]="xpAmount()"
+        (ngModelChange)="setXpAmount($event)"
+      />
+    </label>
+
+    @if (eligiblePlayers.length === 0) {
+      <p class="dx-empty">Nenhum jogador na sessão.</p>
+    } @else {
+      <div class="dx-group">
+        <span class="dx-group-label">QUEM VAI GANHAR ESSE XP</span>
+        @for (player of eligiblePlayers; track player.id_player_session) {
+          <label class="dx-item">
+            <input
+              type="checkbox"
+              [checked]="isSelected(player.id_player_session)"
+              (change)="togglePlayer(player.id_player_session)"
+            />
+            <div class="dx-info">
+              <span class="dx-name">{{ player.character?.name }}</span>
+              <span class="dx-meta">{{ player.character?.class }} &mdash; NV {{ player.character?.level }}</span>
+            </div>
+          </label>
+        }
+      </div>
+    }
+
+    @if (error(); as err) {
+      <p class="dx-error">{{ err }}</p>
+    }
+
+    <div class="dx-actions">
+      <button
+        class="dx-btn-primary"
+        [disabled]="!hasSelection || xpAmount() <= 0 || granting()"
+        (click)="confirm()"
+      >
+        {{ granting() ? 'CONCEDENDO...' : 'CONCEDER XP' }}
+      </button>
+      <button class="dx-btn-secondary" [disabled]="granting()" (click)="close()">CANCELAR</button>
+    </div>
+  </div>
+</div>

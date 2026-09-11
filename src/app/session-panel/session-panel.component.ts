@@ -21,6 +21,7 @@ import { PixelDieComponent } from '../pixel-die/pixel-die.component';
 import { PixelNumericDieComponent } from '../pixel-numeric-die/pixel-numeric-die.component';
 import { PlayerActionsModalComponent } from '../player-actions-modal/player-actions-modal.component';
 import { StartFightModalComponent } from '../start-fight-modal/start-fight-modal.component';
+import { DistributeXpModalComponent } from '../distribute-xp-modal/distribute-xp-modal.component';
 import { AbilityRollConfig, RollModalComponent } from '../roll-modal/roll-modal.component';
 import { AddMonsterModalComponent } from '../add-monster-modal/add-monster-modal.component';
 
@@ -33,6 +34,7 @@ import { AddMonsterModalComponent } from '../add-monster-modal/add-monster-modal
     PixelNumericDieComponent,
     PlayerActionsModalComponent,
     StartFightModalComponent,
+    DistributeXpModalComponent,
     RollModalComponent,
     AddMonsterModalComponent,
   ],
@@ -137,6 +139,7 @@ export class SessionPanelComponent implements OnDestroy {
     if (this.rollToastTimer) clearTimeout(this.rollToastTimer);
     if (this.monsterDefeatedToastTimer) clearTimeout(this.monsterDefeatedToastTimer);
     if (this.monsterAnnouncementTimer) clearTimeout(this.monsterAnnouncementTimer);
+    if (this.levelUpEligibleToastTimer) clearTimeout(this.levelUpEligibleToastTimer);
   }
 
   /** Guarda a busca silenciosa (independente de `refreshing`, que é só pro botão/estado visível). */
@@ -150,6 +153,12 @@ export class SessionPanelComponent implements OnDestroy {
       }
       if (event.type === 'monster_revealed') {
         this.queueMonsterAnnouncement(event.name, event.image_url);
+      }
+      if (event.type === 'player_xp_granted' && event.can_level_up) {
+        const player = this.sessionDetail()?.players.find(
+          (p) => p.id_player_session === event.id_player_session,
+        );
+        this.showLevelUpEligibleToast(event.character_name, player?.character?.avatar_preset ?? null);
       }
     });
     this.safetyNetSub = interval(this.SAFETY_NET_MS).subscribe(() => {
@@ -541,8 +550,8 @@ export class SessionPanelComponent implements OnDestroy {
 
   defeatingMonsterId = signal<string | null>(null);
 
-  /** Remove o monstro (igual deleteMonster) e dispara a notificação de derrota pra todo mundo. */
-  defeatMonster(monster: MonsterSession) {
+  /** Marca o monstro como derrotado depois de conceder XP (sempre passa pelo modal de distribuição primeiro). */
+  private defeatMonster(monster: MonsterSession) {
     if (this.defeatingMonsterId()) return;
     this.defeatingMonsterId.set(monster.id_monster_session);
     this.gameSessionService.defeatMonster(monster.id_monster_session).pipe(
@@ -550,6 +559,52 @@ export class SessionPanelComponent implements OnDestroy {
     ).subscribe({
       next: () => this.removeMonsterFromState(monster.id_monster_session),
     });
+  }
+
+  /** ========================= DISTRIBUIÇÃO DE XP ========================= */
+
+  showDistributeXpModal = signal(false);
+  xpModalSuggestedAmount = signal<number | null>(null);
+  xpModalPreselected = signal<string[]>([]);
+  private xpModalPendingMonster = signal<MonsterSession | null>(null);
+
+  /** Botão avulso "DISTRIBUIR XP" — sem sugestão de valor nem destinatários pré-marcados. */
+  openDistributeXpModal(): void {
+    this.xpModalSuggestedAmount.set(null);
+    this.xpModalPreselected.set([]);
+    this.xpModalPendingMonster.set(null);
+    this.showDistributeXpModal.set(true);
+  }
+
+  /** Antes de marcar um monstro como derrotado, sempre pergunta a distribuição de XP — sugere o
+   *  XP do monstro e pré-marca os jogadores do combate ativo (ambos ajustáveis pelo mestre). */
+  openDefeatMonsterXpModal(monster: MonsterSession): void {
+    if (this.defeatingMonsterId()) return;
+    this.xpModalSuggestedAmount.set(monster.data_snapshot?.xp ?? null);
+    this.xpModalPreselected.set(this.currentCombatPlayerSessionIds());
+    this.xpModalPendingMonster.set(monster);
+    this.showDistributeXpModal.set(true);
+  }
+
+  closeDistributeXpModal(): void {
+    this.showDistributeXpModal.set(false);
+    this.xpModalPendingMonster.set(null);
+  }
+
+  /** Só marca o monstro como derrotado depois que o XP foi concedido com sucesso. */
+  onXpGranted(): void {
+    const monster = this.xpModalPendingMonster();
+    this.showDistributeXpModal.set(false);
+    this.xpModalPendingMonster.set(null);
+    if (monster) this.defeatMonster(monster);
+  }
+
+  private currentCombatPlayerSessionIds(): string[] {
+    const combat = this.combat();
+    if (!combat) return [];
+    return combat.participants
+      .filter((p): p is typeof p & { id_player_session: string } => p.participant_type === 'player' && !!p.id_player_session)
+      .map(p => p.id_player_session);
   }
 
   private removeMonsterFromState(idMonsterSession: string): void {
@@ -809,6 +864,31 @@ export class SessionPanelComponent implements OnDestroy {
   closeMonsterDefeatedToast(): void {
     if (this.monsterDefeatedToastTimer) clearTimeout(this.monsterDefeatedToastTimer);
     this.activeMonsterDefeatedToast.set(null);
+  }
+
+  /** ========================= TOAST: PERSONAGEM PODE SUBIR DE NÍVEL (broadcast) ========================= */
+
+  readonly LEVEL_UP_ELIGIBLE_TOAST_MS = 6_000;
+
+  activeLevelUpEligibleToast = signal<
+    { name: string; avatarPreset: AvatarPreset | null; key: number } | null
+  >(null);
+  private levelUpEligibleToastTimer: ReturnType<typeof setTimeout> | null = null;
+  private levelUpEligibleCounter = 0;
+
+  private showLevelUpEligibleToast(name: string, avatarPreset: AvatarPreset | null): void {
+    if (this.levelUpEligibleToastTimer) clearTimeout(this.levelUpEligibleToastTimer);
+    this.levelUpEligibleCounter++;
+    this.activeLevelUpEligibleToast.set({ name, avatarPreset, key: this.levelUpEligibleCounter });
+    this.levelUpEligibleToastTimer = setTimeout(
+      () => this.activeLevelUpEligibleToast.set(null),
+      this.LEVEL_UP_ELIGIBLE_TOAST_MS,
+    );
+  }
+
+  closeLevelUpEligibleToast(): void {
+    if (this.levelUpEligibleToastTimer) clearTimeout(this.levelUpEligibleToastTimer);
+    this.activeLevelUpEligibleToast.set(null);
   }
 
   /** ========================= MODAL: MONSTRO REVELADO (broadcast) ========================= */

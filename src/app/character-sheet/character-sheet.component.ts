@@ -520,7 +520,20 @@ export class CharacterSheetComponent {
   canLevelUp(): boolean {
     // hit_dice_total é sempre igual ao nível do personagem (personagem de classe única).
     const level = this.sheetData()?.character_sheet.combat_stats.hit_dice_total;
-    return level !== undefined && level < 20;
+    if (level === undefined || level >= 20) return false;
+    return this.hasEnoughXpToLevelUp();
+  }
+
+  hasEnoughXpToLevelUp(): boolean {
+    const header = this.sheetData()?.character_sheet.header;
+    if (!header || header.next_level_xp === null) return false;
+    return header.experience_points >= header.next_level_xp;
+  }
+
+  xpMissingForLevelUp(): number {
+    const header = this.sheetData()?.character_sheet.header;
+    if (!header || header.next_level_xp === null) return 0;
+    return Math.max(0, header.next_level_xp - header.experience_points);
   }
 
   openLevelUpModal(): void {

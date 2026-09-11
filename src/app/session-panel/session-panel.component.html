@@ -41,6 +41,9 @@
       <!-- Combate -->
       <fieldset class="mobile-panel combat-panel" [class.combat-panel--split]="revealedMonsters().length > 0">
         <legend>COMBATE</legend>
+        @if (isOwner()) {
+          <button class="retro-btn xp-distribute-btn" (click)="openDistributeXpModal()">✦ DISTRIBUIR XP</button>
+        }
         <div class="combat-top">
         @if (!combat()) {
           @if (isOwner()) {
@@ -140,7 +143,7 @@
                   <span class="mobile-char-name">{{ player.character.name }}</span>
                   <span class="mobile-char-meta">{{ player.character.class }}</span>
                   <span class="mobile-char-meta">{{ player.character.race }}</span>
-                  <span class="mobile-char-level">NV {{ player.character.level }}</span>
+                  <span class="mobile-char-level">NV {{ player.character.level }} &mdash; {{ player.character.experience_points }} XP</span>
 
                   <div class="mobile-hp">
                     <div class="mobile-hp-bar">
@@ -308,7 +311,7 @@
                     class="monster-defeat-btn"
                     title="Marcar monstro como derrotado"
                     [disabled]="defeatingMonsterId() === monster.id_monster_session"
-                    (click)="$event.stopPropagation(); defeatMonster(monster)"
+                    (click)="$event.stopPropagation(); openDefeatMonsterXpModal(monster)"
                   >
                     ⚔
                   </button>
@@ -358,6 +361,9 @@
       <!-- Combate -->
       <fieldset class="retro-panel combat-panel combat-sidebar">
         <legend>COMBATE</legend>
+        @if (isOwner()) {
+          <button class="retro-btn xp-distribute-btn" (click)="openDistributeXpModal()">✦ DISTRIBUIR XP</button>
+        }
         <div class="combat-sidebar-body" [class.combat-sidebar-body--split]="revealedMonsters().length > 0">
         <div class="combat-top">
         @if (!combat()) {
@@ -462,7 +468,7 @@
                   <span class="player-label">{{ player.player_name }}</span>
                   <span class="char-name">{{ player.character.name }}</span>
                   <span class="char-meta">{{ player.character.class }} — {{ player.character.race }}</span>
-                  <span class="char-level">NÍVEL {{ player.character.level }}</span>
+                  <span class="char-level">NÍVEL {{ player.character.level }} &mdash; {{ player.character.experience_points }} XP</span>
 
                   <div class="hp-section">
                     <div class="hp-bar">
@@ -641,7 +647,7 @@
                     class="monster-defeat-btn"
                     title="Marcar monstro como derrotado"
                     [disabled]="defeatingMonsterId() === monster.id_monster_session"
-                    (click)="$event.stopPropagation(); defeatMonster(monster)"
+                    (click)="$event.stopPropagation(); openDefeatMonsterXpModal(monster)"
                   >
                     ⚔
                   </button>
@@ -771,6 +777,18 @@
   />
 }
 
+<!-- ===== MODAL: DISTRIBUIR XP ===== -->
+@if (showDistributeXpModal() && sessionDetail(); as detail) {
+  <app-distribute-xp-modal
+    [sessionId]="id()!"
+    [players]="detail.players"
+    [preselectedPlayerSessionIds]="xpModalPreselected()"
+    [suggestedXp]="xpModalSuggestedAmount()"
+    (closed)="closeDistributeXpModal()"
+    (granted)="onXpGranted()"
+  />
+}
+
 <!-- ===== BANNER: A BATALHA VAI COMEÇAR (aguardando rolagem de iniciativa) ===== -->
 <!-- Só aparece depois do(s) anúncio(s) de monstro revelado terminar(em) — ver comentário em
      queueMonsterAnnouncement no componente. -->
@@ -864,6 +882,24 @@
         <span class="monster-defeated-label">FOI DERROTADO!</span>
         <div class="roll-toast-timer-bar">
           <div class="roll-toast-timer-fill" [style.animation-duration.ms]="MONSTER_DEFEATED_TOAST_MS"></div>
+        </div>
+      </div>
+    }
+  </div>
+}
+
+<!-- ===== TOAST: PERSONAGEM PODE SUBIR DE NÍVEL (broadcast pra todos na sessão) ===== -->
+@if (activeLevelUpEligibleToast(); as leveled) {
+  <div class="overlay level-up-eligible-overlay" (click)="closeLevelUpEligibleToast()">
+    @for (l of [leveled]; track l.key) {
+      <div class="retro-panel level-up-eligible-panel" (click)="$event.stopPropagation()">
+        <button class="modal-close-btn" (click)="closeLevelUpEligibleToast()">✕</button>
+        <div class="level-up-eligible-avatar">
+          <app-avatar-display [preset]="l.avatarPreset" />
+        </div>
+        <span class="level-up-eligible-name">{{ l.name }} SUBIU DE NÍVEL!</span>
+        <div class="roll-toast-timer-bar">
+          <div class="roll-toast-timer-fill" [style.animation-duration.ms]="LEVEL_UP_ELIGIBLE_TOAST_MS"></div>
         </div>
       </div>
     }

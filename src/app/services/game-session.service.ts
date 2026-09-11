@@ -9,6 +9,8 @@ import {
   GameSessionDetail,
   GameSessionPagedList,
   GameSessionResponse,
+  GrantXpPayload,
+  GrantXpResult,
   JoinSessionPayload,
   MonsterSession,
   PlayerSession,
@@ -136,6 +138,13 @@ export class GameSessionService {
       `${this.baseUrl}/api/game-session/monster-session/${idMonsterSession}/hide`,
       {},
       { context: this.silentContext() },
+    );
+  }
+
+  grantXp(idGameSession: string, payload: GrantXpPayload): Observable<GrantXpResult[]> {
+    return this.http.post<GrantXpResult[]>(
+      `${this.baseUrl}/api/game-session/${idGameSession}/grant-xp`,
+      payload,
     );
   }
 

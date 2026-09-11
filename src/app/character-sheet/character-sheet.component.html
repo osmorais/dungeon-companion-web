@@ -14,8 +14,16 @@
           <h2>{{ data.character_sheet.header.name }}</h2>
           <p>{{ data.character_sheet.header.class_and_level }}</p>
           <p class="mobile-race">{{ data.character_sheet.header.race || 'Humano' }}</p>
+          <p class="xp-line">
+            XP: {{ data.character_sheet.header.experience_points }}
+            @if (data.character_sheet.header.next_level_xp !== null) {
+              / {{ data.character_sheet.header.next_level_xp }}
+            }
+          </p>
           @if (canLevelUp()) {
             <button class="retro-btn level-up-btn mobile-level-up-btn" (click)="openLevelUpModal()">⬆ SUBIR DE NÍVEL</button>
+          } @else if (data.character_sheet.combat_stats.hit_dice_total < 20) {
+            <p class="xp-missing-hint">Faltam {{ xpMissingForLevelUp() }} XP pro próximo nível</p>
           }
         </div>
         <div class="mobile-hp-badge">
@@ -343,12 +351,19 @@
           <p>{{ data.character_sheet.header.class_and_level }} &mdash; {{ data.character_sheet.header.race || 'Humano' }}</p>
           @if (canLevelUp()) {
             <button class="retro-btn level-up-btn" (click)="openLevelUpModal()">⬆ SUBIR DE NÍVEL</button>
+          } @else if (data.character_sheet.combat_stats.hit_dice_total < 20) {
+            <p class="xp-missing-hint">Faltam {{ xpMissingForLevelUp() }} XP pro próximo nível</p>
           }
         </div>
         <div class="char-details">
           <p>Antecedente: {{ data.character_sheet.header.background }}</p>
           <p>Alinhamento: {{ data.character_sheet.header.alignment }}</p>
-          <p>XP: {{ data.character_sheet.header.experience_points }}</p>
+          <p>
+            XP: {{ data.character_sheet.header.experience_points }}
+            @if (data.character_sheet.header.next_level_xp !== null) {
+              / {{ data.character_sheet.header.next_level_xp }}
+            }
+          </p>
         </div>
       </fieldset>
 

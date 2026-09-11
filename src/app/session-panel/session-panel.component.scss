@@ -1377,6 +1377,22 @@
   text-align: center;
 }
 
+.xp-distribute-btn {
+  width: 100%;
+  background-color: var(--btn-color);
+  color: var(--text-color);
+  border: 2px solid var(--border-color);
+  padding: 8px 12px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  cursor: pointer;
+  margin-bottom: 10px;
+
+  &:hover {
+    background-color: var(--btn-color-hover);
+  }
+}
+
 .combat-turn-banner {
   margin: 0;
   font-size: 9px;
@@ -1666,6 +1682,45 @@
     -1px 1px 0 #000,
     1px 1px 0 #000;
   margin-bottom: 6px;
+}
+
+.level-up-eligible-overlay {
+  /* Acima dos demais overlays, mesmo motivo do roll-toast-overlay — é um aviso global. */
+  z-index: 1100;
+}
+
+.level-up-eligible-panel {
+  border: 2px solid var(--accent-color);
+  background-color: var(--panel-bg);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 40px;
+  width: 92vw;
+  max-width: 420px;
+  text-align: center;
+  animation: roll-toast-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.level-up-eligible-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--accent-color);
+  box-shadow: 0 0 20px var(--accent-color);
+  flex-shrink: 0;
+}
+
+.level-up-eligible-name {
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--accent-color);
+  letter-spacing: 0.5px;
 }
 
 .monster-announcement-overlay {

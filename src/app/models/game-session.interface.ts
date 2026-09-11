@@ -45,6 +45,7 @@ export interface PlayerCharacterSummary {
   level: number;
   max_hit_points: number;
   current_hit_points: number;
+  experience_points: number;
   avatar_preset?: import('./avatar-preset.interface').AvatarPreset | null;
 }
 
@@ -175,6 +176,18 @@ export interface JoinSessionPayload {
   session_code: string;
   player_name: string;
   id_character: number;
+}
+
+export interface GrantXpPayload {
+  xp_amount: number;
+  /** Cada jogador listado recebe o valor cheio de `xp_amount` (não é dividido entre eles). */
+  id_player_sessions: string[];
+}
+
+export interface GrantXpResult {
+  id_player_session: string;
+  id_character: number;
+  xp_points: number;
 }
 
 export interface GameSessionSummary {
