@@ -59,6 +59,7 @@ export interface LevelUpPreview {
   subclass_options: LevelUpSubclassOption[] | null;
   subclass_spellcasting: LevelUpSubclassSpellcasting | null;
   expertise_choice: LevelUpExpertiseChoice | null;
+  fighting_style_options: string[] | null;
 }
 
 /** Resultado da rolagem do dado de vida — feita pelo jogador, sob demanda, sem gravar nada. */
@@ -76,6 +77,7 @@ export interface LevelUpConfirmInput {
   new_spell_ids?: number[];
   id_subclass?: string;
   expertise_skill_ids?: number[];
+  fighting_style?: string;
 }
 
 export interface LevelUpResult {

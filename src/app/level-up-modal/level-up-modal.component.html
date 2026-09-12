@@ -120,6 +120,29 @@
             </div>
           }
 
+          @case ('fighting_style') {
+            <div class="lu-block">
+              <span class="lu-section-label">ESCOLHA SEU ESTILO DE COMBATE</span>
+              <div class="lu-feat-list">
+                @for (option of p.fighting_style_options ?? []; track option) {
+                  <label
+                    class="lu-feat-option"
+                    [class.lu-feat-option--selected]="selectedFightingStyle() === option"
+                  >
+                    <input
+                      type="radio"
+                      name="lu-fighting-style"
+                      [value]="option"
+                      [checked]="selectedFightingStyle() === option"
+                      (change)="selectedFightingStyle.set(option)"
+                    />
+                    <span class="lu-feat-name">{{ option }}</span>
+                  </label>
+                }
+              </div>
+            </div>
+          }
+
           @case ('cantrips') {
             @if (p.spell_choices; as sc) {
               <div class="lu-block">
@@ -272,6 +295,14 @@
                   <span class="lu-section-label">SUBCLASSE ESCOLHIDA</span>
                   <p class="lu-summary-line">
                     <strong>{{ selectedSubclassName() }}</strong>
+                  </p>
+                </div>
+              }
+              @if (p.fighting_style_options) {
+                <div class="lu-block">
+                  <span class="lu-section-label">ESTILO DE COMBATE ESCOLHIDO</span>
+                  <p class="lu-summary-line">
+                    <strong>{{ selectedFightingStyle() }}</strong>
                   </p>
                 </div>
               }

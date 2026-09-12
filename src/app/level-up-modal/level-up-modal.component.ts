@@ -25,7 +25,15 @@ import {
 const ASI_TOTAL_POINTS = 2;
 const ASI_MAX_PER_STAT = 2;
 
-type FixedStepId = 'hp' | 'subclass' | 'cantrips' | 'traits' | 'expertise' | 'asi' | 'summary';
+type FixedStepId =
+  | 'hp'
+  | 'subclass'
+  | 'fighting_style'
+  | 'cantrips'
+  | 'traits'
+  | 'expertise'
+  | 'asi'
+  | 'summary';
 /** Uma página por círculo de magia (`spells-1`, `spells-2`...) — truques (círculo 0) usam a
  *  página fixa `cantrips` em vez disso, já que só existe um círculo de truque. */
 type LevelUpStepId = FixedStepId | `spells-${number}`;
@@ -33,6 +41,7 @@ type LevelUpStepId = FixedStepId | `spells-${number}`;
 const STEP_LABELS: Record<FixedStepId, string> = {
   hp: 'VIDA',
   subclass: 'SUBCLASSE',
+  fighting_style: 'ESTILO DE COMBATE',
   cantrips: 'TRUQUES',
   traits: 'TRAÇOS',
   expertise: 'ESPECIALIZAÇÃO',
@@ -70,6 +79,7 @@ export class LevelUpModalComponent implements OnInit {
     if (!p) return ['hp', 'summary'];
     const list: LevelUpStepId[] = ['hp'];
     if (p.subclass_options) list.push('subclass');
+    if (p.fighting_style_options) list.push('fighting_style');
     if ((p.spell_choices?.cantrips_gained ?? 0) > 0) list.push('cantrips');
     list.push(...this.spellCirclePages());
     if (p.new_features.length > 0) list.push('traits');
@@ -120,6 +130,8 @@ export class LevelUpModalComponent implements OnInit {
         return this.hitDieRoll() !== null;
       case 'subclass':
         return this.selectedSubclassId() !== null;
+      case 'fighting_style':
+        return this.selectedFightingStyle() !== null;
       case 'expertise':
         return this.isExpertiseChoiceValid();
       case 'asi':
@@ -218,6 +230,10 @@ export class LevelUpModalComponent implements OnInit {
         ?.display_name ?? '',
   );
 
+  /** ========================= ESTILO DE COMBATE ========================= */
+
+  selectedFightingStyle = signal<string | null>(null);
+
   /** ========================= ASI / FEAT ========================= */
 
   asiMode = signal<'asi' | 'feat' | null>(null);
@@ -251,6 +267,7 @@ export class LevelUpModalComponent implements OnInit {
     if (!p || this.confirming()) return false;
     if (this.hitDieRoll() === null) return false;
     if (p.subclass_options && !this.selectedSubclassId()) return false;
+    if (p.fighting_style_options && !this.selectedFightingStyle()) return false;
     if (p.is_asi_level && !this.isAsiChoiceValid()) return false;
     if (p.expertise_choice && !this.isExpertiseChoiceValid()) return false;
     return true;
@@ -521,6 +538,9 @@ export class LevelUpModalComponent implements OnInit {
           ? (this.selectedSubclassId() ?? undefined)
           : undefined,
         expertise_skill_ids: preview.expertise_choice ? [...this.selectedExpertiseIds()] : undefined,
+        fighting_style: preview.fighting_style_options
+          ? (this.selectedFightingStyle() ?? undefined)
+          : undefined,
       })
       .subscribe({
         next: (result) => {
