@@ -26,6 +26,13 @@ export interface SessionEventPayloadMap {
     xp_points: number;
     can_level_up: boolean;
   };
+  npc_xp_granted: {
+    id_npc_session: string;
+    character_name: string;
+    xp_amount: number;
+    xp_points: number;
+    can_level_up: boolean;
+  };
   npc_hp_updated: { id_npc_session: string; current_hit_points: number };
   monster_hp_updated: { id_monster_session: string; hp_current: number };
   monster_image_updated: { id_monster_session: string; image_url: string };

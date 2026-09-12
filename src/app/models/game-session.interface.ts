@@ -180,14 +180,19 @@ export interface JoinSessionPayload {
 
 export interface GrantXpPayload {
   xp_amount: number;
-  /** Cada jogador listado recebe o valor cheio de `xp_amount` (não é dividido entre eles). */
-  id_player_sessions: string[];
+  /** Cada jogador/NPC listado recebe o valor cheio de `xp_amount` (não é dividido entre eles). */
+  id_player_sessions?: string[];
+  id_npc_sessions?: string[];
 }
 
 export interface GrantXpResult {
-  id_player_session: string;
+  participant_type: 'player' | 'npc';
+  id_player_session?: string;
+  id_npc_session?: string;
   id_character: number;
+  character_name: string;
   xp_points: number;
+  level: number;
 }
 
 export interface GameSessionSummary {

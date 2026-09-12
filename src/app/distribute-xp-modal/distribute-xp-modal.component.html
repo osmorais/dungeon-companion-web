@@ -14,25 +14,46 @@
       />
     </label>
 
-    @if (eligiblePlayers.length === 0) {
-      <p class="dx-empty">Nenhum jogador na sessão.</p>
+    @if (eligiblePlayers.length === 0 && eligibleNpcs.length === 0) {
+      <p class="dx-empty">Nenhum jogador ou NPC na sessão.</p>
     } @else {
-      <div class="dx-group">
-        <span class="dx-group-label">QUEM VAI GANHAR ESSE XP</span>
-        @for (player of eligiblePlayers; track player.id_player_session) {
-          <label class="dx-item">
-            <input
-              type="checkbox"
-              [checked]="isSelected(player.id_player_session)"
-              (change)="togglePlayer(player.id_player_session)"
-            />
-            <div class="dx-info">
-              <span class="dx-name">{{ player.character?.name }}</span>
-              <span class="dx-meta">{{ player.character?.class }} &mdash; NV {{ player.character?.level }}</span>
-            </div>
-          </label>
-        }
-      </div>
+      @if (eligiblePlayers.length > 0) {
+        <div class="dx-group">
+          <span class="dx-group-label">JOGADORES</span>
+          @for (player of eligiblePlayers; track player.id_player_session) {
+            <label class="dx-item">
+              <input
+                type="checkbox"
+                [checked]="isSelected(player.id_player_session)"
+                (change)="togglePlayer(player.id_player_session)"
+              />
+              <div class="dx-info">
+                <span class="dx-name">{{ player.character?.name }}</span>
+                <span class="dx-meta">{{ player.character?.class }} &mdash; NV {{ player.character?.level }}</span>
+              </div>
+            </label>
+          }
+        </div>
+      }
+
+      @if (eligibleNpcs.length > 0) {
+        <div class="dx-group">
+          <span class="dx-group-label">NPCS</span>
+          @for (npc of eligibleNpcs; track npc.id_npc_session) {
+            <label class="dx-item">
+              <input
+                type="checkbox"
+                [checked]="isNpcSelected(npc.id_npc_session)"
+                (change)="toggleNpc(npc.id_npc_session)"
+              />
+              <div class="dx-info">
+                <span class="dx-name">{{ npc.character?.name }}</span>
+                <span class="dx-meta">{{ npc.character?.class }} &mdash; NV {{ npc.character?.level }}</span>
+              </div>
+            </label>
+          }
+        </div>
+      }
     }
 
     @if (error(); as err) {

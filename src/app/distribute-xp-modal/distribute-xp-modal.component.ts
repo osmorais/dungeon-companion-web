@@ -1,13 +1,13 @@
 import { Component, EventEmitter, Input, OnInit, Output, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { GameSessionService } from '../services/game-session.service';
-import { GrantXpResult, PlayerSession } from '../models/game-session.interface';
+import { GrantXpResult, NpcSession, PlayerSession } from '../models/game-session.interface';
 
 /**
  * Usado em dois pontos do session-panel: um botão avulso "DISTRIBUIR XP" (sem sugestão de
  * valor/destinatários) e o fluxo de derrotar monstro (sugere o XP do monstro e pré-marca os
- * jogadores do combate ativo). Cada jogador selecionado recebe o valor cheio de XP informado —
- * não é dividido entre eles.
+ * jogadores do combate ativo). Cada jogador/NPC selecionado recebe o valor cheio de XP
+ * informado — não é dividido entre eles.
  */
 @Component({
   selector: 'app-distribute-xp-modal',
@@ -21,32 +21,40 @@ export class DistributeXpModalComponent implements OnInit {
 
   @Input({ required: true }) sessionId!: string;
   @Input() players: PlayerSession[] = [];
+  @Input() npcs: NpcSession[] = [];
   @Input() preselectedPlayerSessionIds: string[] = [];
+  @Input() preselectedNpcSessionIds: string[] = [];
   @Input() suggestedXp: number | null = null;
   @Input() title = 'DISTRIBUIR XP';
   @Output() closed = new EventEmitter<void>();
   @Output() granted = new EventEmitter<GrantXpResult[]>();
 
   xpAmount = signal(0);
-  selected = signal<Set<string>>(new Set());
+  selectedPlayers = signal<Set<string>>(new Set());
+  selectedNpcs = signal<Set<string>>(new Set());
   granting = signal(false);
   error = signal<string | null>(null);
 
   ngOnInit(): void {
     this.xpAmount.set(this.suggestedXp ?? 0);
-    this.selected.set(new Set(this.preselectedPlayerSessionIds));
+    this.selectedPlayers.set(new Set(this.preselectedPlayerSessionIds));
+    this.selectedNpcs.set(new Set(this.preselectedNpcSessionIds));
   }
 
   get eligiblePlayers(): PlayerSession[] {
     return this.players.filter(p => !!p.character);
   }
 
+  get eligibleNpcs(): NpcSession[] {
+    return this.npcs.filter(n => !!n.character);
+  }
+
   get hasSelection(): boolean {
-    return this.selected().size > 0;
+    return this.selectedPlayers().size > 0 || this.selectedNpcs().size > 0;
   }
 
   togglePlayer(id: string): void {
-    this.selected.update(current => {
+    this.selectedPlayers.update(current => {
       const next = new Set(current);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -55,7 +63,20 @@ export class DistributeXpModalComponent implements OnInit {
   }
 
   isSelected(id: string): boolean {
-    return this.selected().has(id);
+    return this.selectedPlayers().has(id);
+  }
+
+  toggleNpc(id: string): void {
+    this.selectedNpcs.update(current => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  isNpcSelected(id: string): boolean {
+    return this.selectedNpcs().has(id);
   }
 
   setXpAmount(value: string): void {
@@ -75,7 +96,8 @@ export class DistributeXpModalComponent implements OnInit {
     this.gameSessionService
       .grantXp(this.sessionId, {
         xp_amount: this.xpAmount(),
-        id_player_sessions: [...this.selected()],
+        id_player_sessions: [...this.selectedPlayers()],
+        id_npc_sessions: [...this.selectedNpcs()],
       })
       .subscribe({
         next: result => {

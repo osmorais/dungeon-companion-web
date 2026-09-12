@@ -63,6 +63,16 @@ export function applySessionEvent(
         ),
       };
 
+    case 'npc_xp_granted':
+      return {
+        ...detail,
+        npcs: detail.npcs.map((n) =>
+          n.id_npc_session === event.id_npc_session && n.character
+            ? { ...n, character: { ...n.character, experience_points: event.xp_points } }
+            : n,
+        ),
+      };
+
     case 'npc_hp_updated':
       return {
         ...detail,

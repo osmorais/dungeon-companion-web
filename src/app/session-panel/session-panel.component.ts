@@ -160,6 +160,10 @@ export class SessionPanelComponent implements OnDestroy {
         );
         this.showLevelUpEligibleToast(event.character_name, player?.character?.avatar_preset ?? null);
       }
+      if (event.type === 'npc_xp_granted' && event.can_level_up) {
+        const npc = this.sessionDetail()?.npcs.find((n) => n.id_npc_session === event.id_npc_session);
+        this.showLevelUpEligibleToast(event.character_name, npc?.character?.avatar_preset ?? null);
+      }
     });
     this.safetyNetSub = interval(this.SAFETY_NET_MS).subscribe(() => {
       if (!this.pollInFlight) this.fetchSession(sessionId, true);
