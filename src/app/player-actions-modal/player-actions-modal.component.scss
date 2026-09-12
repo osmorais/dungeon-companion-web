@@ -172,6 +172,15 @@
     border-color: var(--accent-color);
     background: rgba(255, 170, 0, 0.08);
   }
+
+  &--static {
+    cursor: default;
+
+    &:hover {
+      border-color: var(--border-color);
+      background-color: var(--bg-color);
+    }
+  }
 }
 
 .pa-action-value {

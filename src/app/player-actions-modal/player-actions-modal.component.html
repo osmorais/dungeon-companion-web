@@ -83,6 +83,20 @@
         </div>
       }
 
+      @if (data.character_sheet.class_resources; as classResources) {
+        <div class="pa-section">
+          <h4 class="pa-section-title">RECURSOS DE CLASSE</h4>
+          <div class="pa-row-list">
+            @for (r of classResources | keyvalue; track r.key) {
+              <div class="pa-action-row pa-action-row--static">
+                <span>{{ r.key }}</span>
+                <span class="pa-action-value">{{ r.value }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
       @if (data.character_sheet.spellcasting_info; as spellInfo) {
         <div class="pa-section">
           <h4 class="pa-section-title">

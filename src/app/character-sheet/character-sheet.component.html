@@ -232,6 +232,20 @@
               <p class="empty-label">Nenhuma arma equipada</p>
             }
 
+            @if (data.character_sheet.class_resources) {
+              <div class="class-resources-box">
+                <p class="mobile-panel-subtitle">RECURSOS DE CLASSE</p>
+                <div class="class-resources-list">
+                  @for (r of data.character_sheet.class_resources | keyvalue; track r.key) {
+                    <div class="class-resource-row">
+                      <span class="class-resource-name">{{ r.key }}</span>
+                      <span class="class-resource-value">{{ r.value }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
             <div class="currency-box">
               <p class="mobile-panel-subtitle">DINHEIRO</p>
               @if (currencyDraft() !== null) {
@@ -651,6 +665,20 @@
             <p class="empty-label">Nenhuma arma equipada</p>
           }
         </fieldset>
+
+        @if (data.character_sheet.class_resources) {
+          <fieldset class="retro-panel">
+            <legend>RECURSOS DE CLASSE</legend>
+            <div class="class-resources-list">
+              @for (r of data.character_sheet.class_resources | keyvalue; track r.key) {
+                <div class="class-resource-row">
+                  <span class="class-resource-name">{{ r.key }}</span>
+                  <span class="class-resource-value">{{ r.value }}</span>
+                </div>
+              }
+            </div>
+          </fieldset>
+        }
 
         @if (data.character_sheet.spells?.length) {
           <fieldset class="retro-panel magic-panel">

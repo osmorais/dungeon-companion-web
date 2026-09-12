@@ -86,5 +86,7 @@ export interface CharacterSheetResponse {
     resource_trackers: ResourceTracker[];
     /** Vazio se a classe não tiver nenhuma característica ativável neste nível. */
     chi_abilities: ChiAbility[];
+    /** Recursos de classe/subclasse que escalam por nível (ex: "Ataque Furtivo": "2d6") — informativo, `null` se não houver nenhum neste nível. */
+    class_resources: Record<string, string> | null;
   };
 }

@@ -1396,6 +1396,34 @@ tr.spell-circle-header-row {
   justify-content: center;
 }
 
+.class-resources-box {
+  margin-top: 12px;
+}
+
+.class-resources-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.class-resource-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 4px;
+  font-size: 9px;
+}
+
+.class-resource-name {
+  color: var(--label-title-color);
+}
+
+.class-resource-value {
+  color: var(--accent-color);
+}
+
 .currency-box {
   margin-top: 12px;
 }
