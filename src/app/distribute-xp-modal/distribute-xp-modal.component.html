@@ -27,6 +27,9 @@
                 [checked]="isSelected(player.id_player_session)"
                 (change)="togglePlayer(player.id_player_session)"
               />
+              <div class="dx-avatar">
+                <app-avatar-display [preset]="player.character?.avatar_preset ?? null" />
+              </div>
               <div class="dx-info">
                 <span class="dx-name">{{ player.character?.name }}</span>
                 <span class="dx-meta">{{ player.character?.class }} &mdash; NV {{ player.character?.level }}</span>
@@ -46,6 +49,9 @@
                 [checked]="isNpcSelected(npc.id_npc_session)"
                 (change)="toggleNpc(npc.id_npc_session)"
               />
+              <div class="dx-avatar">
+                <app-avatar-display [preset]="npc.character?.avatar_preset ?? null" />
+              </div>
               <div class="dx-info">
                 <span class="dx-name">{{ npc.character?.name }}</span>
                 <span class="dx-meta">{{ npc.character?.class }} &mdash; NV {{ npc.character?.level }}</span>

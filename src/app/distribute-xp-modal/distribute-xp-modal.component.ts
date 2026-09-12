@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, OnInit, Output, inject, signal } from '
 import { FormsModule } from '@angular/forms';
 import { GameSessionService } from '../services/game-session.service';
 import { GrantXpResult, NpcSession, PlayerSession } from '../models/game-session.interface';
+import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
 
 /**
  * Usado em dois pontos do session-panel: um botão avulso "DISTRIBUIR XP" (sem sugestão de
@@ -12,7 +13,7 @@ import { GrantXpResult, NpcSession, PlayerSession } from '../models/game-session
 @Component({
   selector: 'app-distribute-xp-modal',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, AvatarDisplayComponent],
   templateUrl: './distribute-xp-modal.component.html',
   styleUrls: ['./distribute-xp-modal.component.scss'],
 })

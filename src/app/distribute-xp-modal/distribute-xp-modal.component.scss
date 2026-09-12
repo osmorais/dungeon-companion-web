@@ -106,6 +106,15 @@
   }
 }
 
+.dx-avatar {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--border-color);
+}
+
 .dx-info {
   display: flex;
   flex-direction: column;
