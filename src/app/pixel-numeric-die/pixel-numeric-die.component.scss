@@ -16,6 +16,10 @@
     --die-size: 22px;
   }
 
+  &--large {
+    --die-size: 80px;
+  }
+
   &__value {
     font-size: calc(var(--die-size) * 0.34);
     font-weight: bold;

@@ -12,6 +12,7 @@ export class PixelNumericDieComponent {
   @Input() sides = 20;
   @Input() rolling = false;
   @Input() mini = false;
+  @Input() large = false;
   /** Destaca resultado natural máximo/mínimo (ex: 20 ou 1 num d20). */
   @Input() critical: 'high' | 'low' | null = null;
   /** Dado não escolhido (ex: perdeu na vantagem/desvantagem). */

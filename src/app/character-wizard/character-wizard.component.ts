@@ -258,6 +258,8 @@ export class CharacterWizardComponent implements OnInit {
           (this.maxSkillChoices === 0 || this.selectedChoicesCount >= this.maxSkillChoices) &&
           (this.expertiseGrantCount === 0 || (this.characterData.choices.expertise_skill_ids ?? []).length >= this.expertiseGrantCount)
         );
+      case 7:
+        return this.hasRolledStartingGold;
       default:
         return true;
     }
@@ -291,7 +293,7 @@ export class CharacterWizardComponent implements OnInit {
       this.currentStep++;
       if (this.currentStep === 3) this.spellCircleStep = 0;
       if (this.currentStep === 4) this.syncGrantedSkills();
-      if (this.currentStep === 7) this.initAvatarPreset();
+      if (this.currentStep === 8) this.initAvatarPreset();
     }
   }
 

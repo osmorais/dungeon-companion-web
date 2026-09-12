@@ -314,6 +314,37 @@
   }
 }
 
+.starting-gold-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+}
+
+.starting-gold-image {
+  max-width: 280px;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.starting-gold-explainer {
+  margin: 0;
+  max-width: 42ch;
+  font-size: 9px;
+  line-height: 1.6;
+  color: var(--label-title-color);
+}
+
+.starting-gold-dice-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  min-height: 80px;
+}
+
 .dice-total {
   font-size: 13px;
   color: var(--accent-color);

@@ -520,32 +520,21 @@
       }
 
       @case (7) {
-        <fieldset class="mobile-wizard-panel">
-          <legend>AVATAR</legend>
-          @if (characterData.avatar_preset) {
-            <app-avatar-customizer
-              [preset]="characterData.avatar_preset"
-              (presetChange)="onPresetChange($event)" />
-          }
-        </fieldset>
-
-        <div class="mobile-wizard-actions">
-          <button class="retro-btn mobile-secondary-btn" (click)="prevStep()">← VOLTAR</button>
-          <button class="retro-btn mobile-primary-btn" (click)="nextStep()">PRÓXIMO →</button>
-        </div>
-      }
-
-      @case (8) {
-        <fieldset class="mobile-wizard-panel">
+        <fieldset class="mobile-wizard-panel starting-gold-panel">
           <legend>DINHEIRO INICIAL</legend>
+          <img src="assets/winmoney.png" alt="" class="starting-gold-image">
+          <p class="starting-gold-explainer">
+            Role os dados de riqueza inicial da sua classe pra determinar quanto dinheiro extra
+            seu personagem carrega além do equipamento já escolhido.
+          </p>
           <p class="dice-hint">Riqueza Inicial: {{ startingGoldFormulaLabel }}</p>
-          @if (startingGoldDiceRolls) {
-            <div class="dice-row">
+          <div class="starting-gold-dice-row">
+            @if (startingGoldDiceRolls) {
               @for (roll of startingGoldDiceRolls; track $index) {
-                <app-pixel-numeric-die [value]="roll" [sides]="startingGoldDice.sides" [rolling]="rollingStartingGold" [mini]="true" />
+                <app-pixel-numeric-die [value]="roll" [sides]="startingGoldDice.sides" [rolling]="rollingStartingGold" [large]="true" />
               }
-            </div>
-          }
+            }
+          </div>
           @if (hasRolledStartingGold) {
             <p class="mobile-tap-hint">Total: <strong>{{ characterData.equipment.starting_gold }} PO</strong></p>
           } @else {
@@ -562,7 +551,23 @@
 
         <div class="mobile-wizard-actions">
           <button class="retro-btn mobile-secondary-btn" (click)="prevStep()">← VOLTAR</button>
-          <button class="retro-btn mobile-primary-btn" [disabled]="!hasRolledStartingGold" (click)="saveCharacter()">SALVAR →</button>
+          <button class="retro-btn mobile-primary-btn" [disabled]="!hasRolledStartingGold" (click)="nextStep()">PRÓXIMO →</button>
+        </div>
+      }
+
+      @case (8) {
+        <fieldset class="mobile-wizard-panel">
+          <legend>AVATAR</legend>
+          @if (characterData.avatar_preset) {
+            <app-avatar-customizer
+              [preset]="characterData.avatar_preset"
+              (presetChange)="onPresetChange($event)" />
+          }
+        </fieldset>
+
+        <div class="mobile-wizard-actions">
+          <button class="retro-btn mobile-secondary-btn" (click)="prevStep()">← VOLTAR</button>
+          <button class="retro-btn mobile-primary-btn" (click)="saveCharacter()">SALVAR →</button>
         </div>
       }
 
@@ -1058,32 +1063,21 @@
       }
 
       @case (7) {
-        <fieldset class="retro-panel">
-          <legend>AVATAR</legend>
-          @if (characterData.avatar_preset) {
-            <app-avatar-customizer
-              [preset]="characterData.avatar_preset"
-              (presetChange)="onPresetChange($event)" />
-          }
-        </fieldset>
-
-        <div class="action-buttons">
-          <button class="retro-btn secondary" (click)="prevStep()">VOLTAR</button>
-          <button class="retro-btn primary" (click)="nextStep()">PRÓXIMO</button>
-        </div>
-      }
-
-      @case (8) {
-        <fieldset class="retro-panel">
+        <fieldset class="retro-panel starting-gold-panel">
           <legend>DINHEIRO INICIAL</legend>
+          <img src="assets/winmoney.png" alt="" class="starting-gold-image">
+          <p class="starting-gold-explainer">
+            Role os dados de riqueza inicial da sua classe pra determinar quanto dinheiro extra
+            seu personagem carrega além do equipamento já escolhido.
+          </p>
           <p class="dice-hint">Riqueza Inicial: {{ startingGoldFormulaLabel }}</p>
-          @if (startingGoldDiceRolls) {
-            <div class="dice-row">
+          <div class="starting-gold-dice-row">
+            @if (startingGoldDiceRolls) {
               @for (roll of startingGoldDiceRolls; track $index) {
-                <app-pixel-numeric-die [value]="roll" [sides]="startingGoldDice.sides" [rolling]="rollingStartingGold" [mini]="true" />
+                <app-pixel-numeric-die [value]="roll" [sides]="startingGoldDice.sides" [rolling]="rollingStartingGold" [large]="true" />
               }
-            </div>
-          }
+            }
+          </div>
           @if (hasRolledStartingGold) {
             <p class="mobile-tap-hint">Total: <strong>{{ characterData.equipment.starting_gold }} PO</strong></p>
           } @else {
@@ -1100,7 +1094,23 @@
 
         <div class="action-buttons">
           <button class="retro-btn secondary" (click)="prevStep()">VOLTAR</button>
-          <button class="retro-btn primary" [disabled]="!hasRolledStartingGold" (click)="saveCharacter()">SALVAR PERSONAGEM</button>
+          <button class="retro-btn primary" [disabled]="!hasRolledStartingGold" (click)="nextStep()">PRÓXIMO</button>
+        </div>
+      }
+
+      @case (8) {
+        <fieldset class="retro-panel">
+          <legend>AVATAR</legend>
+          @if (characterData.avatar_preset) {
+            <app-avatar-customizer
+              [preset]="characterData.avatar_preset"
+              (presetChange)="onPresetChange($event)" />
+          }
+        </fieldset>
+
+        <div class="action-buttons">
+          <button class="retro-btn secondary" (click)="prevStep()">VOLTAR</button>
+          <button class="retro-btn primary" (click)="saveCharacter()">SALVAR PERSONAGEM</button>
         </div>
       }
 
