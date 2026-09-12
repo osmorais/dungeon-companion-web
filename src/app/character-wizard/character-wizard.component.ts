@@ -79,6 +79,32 @@ export class CharacterWizardComponent implements OnInit {
 
   closeAvatarPicker() { this.showAvatarPicker.set(false); }
 
+  /** ========================= EASTER EGG: ATRIBUTOS PERSONALIZADOS =========================
+   *  Escondido atrás de 3 cliques seguidos no retrato do Tom, só na etapa de atributos. */
+  showCustomAttributesModal = signal(false);
+  customAttributeDraft: Record<AttributeKey, number> = { FOR: 8, DES: 8, CON: 8, INT: 8, SAB: 8, CAR: 8 };
+
+  onTomTripleClick(): void {
+    if (this.currentStep !== 2) return;
+    this.customAttributeDraft = { ...this.characterData.attributes.base_values };
+    this.showCustomAttributesModal.set(true);
+  }
+
+  closeCustomAttributesModal(): void {
+    this.showCustomAttributesModal.set(false);
+  }
+
+  confirmCustomAttributes(): void {
+    const sanitized = {} as Record<AttributeKey, number>;
+    for (const attr of this.attributesList) {
+      const raw = this.customAttributeDraft[attr];
+      sanitized[attr] = Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : 8;
+    }
+    this.characterData.attributes.generation_method = 'manual';
+    this.characterData.attributes.base_values = sanitized;
+    this.showCustomAttributesModal.set(false);
+  }
+
   attributesList: AttributeKey[] = ['FOR', 'DES', 'CON', 'INT', 'SAB', 'CAR'];
 
   /** ===== DRAG SOURCE ===== */

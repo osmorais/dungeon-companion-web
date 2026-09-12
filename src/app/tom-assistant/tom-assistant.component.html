@@ -1,5 +1,5 @@
 <div class="tom-assistant">
-  <img [src]="imagePath" alt="Tom" class="tom-assistant__portrait" />
+  <img [src]="imagePath" alt="Tom" class="tom-assistant__portrait" (click)="onPortraitClick()" />
   @if (message) {
     <div class="tom-assistant__bubble">
       <p>

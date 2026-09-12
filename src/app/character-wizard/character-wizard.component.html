@@ -1,5 +1,5 @@
 <app-dragon-animation [trigger]="dragonTrigger" />
-<app-tom-assistant [image]="tomImage" [message]="tomMessage" />
+<app-tom-assistant [image]="tomImage" [message]="tomMessage" (tripleClick)="onTomTripleClick()" />
 
 <!-- Explicação de uma escolha (raça/sub-raça/classe/subclasse/antecedente) — reaproveitado em
      todos os seletores do Passo 1, mobile e desktop. -->
@@ -311,6 +311,18 @@
               }
             </div>
             <p class="mobile-points-remaining">Pontos restantes: {{ availablePoints }}</p>
+          }
+
+          @if (characterData.attributes.generation_method === 'manual') {
+            <p class="dice-hint">Valores definidos manualmente.</p>
+            <div class="mobile-point-buy-list">
+              @for (stat of attributesList; track stat) {
+                <div class="mobile-point-row">
+                  <span class="mobile-stat-label">{{ stat }}</span>
+                  <span>{{ characterData.attributes.base_values[stat] }}</span>
+                </div>
+              }
+            </div>
           }
         </fieldset>
 
@@ -863,6 +875,18 @@
           <p>Pontos restantes: {{ availablePoints }}</p>
           }
 
+          @if (characterData.attributes.generation_method === 'manual') {
+          <p class="dice-hint">Valores definidos manualmente.</p>
+          <div class="stats-grid">
+            @for (stat of attributesList; track stat) {
+            <div class="stat-box">
+              <label>{{ stat }}</label>
+              <span>{{ characterData.attributes.base_values[stat] }}</span>
+            </div>
+            }
+          </div>
+          }
+
         </fieldset>
         @if (showStepError) {
           <p class="step-error-msg">Preencha todas as informações necessárias antes de continuar.</p>
@@ -1125,6 +1149,27 @@
     (avatarSelected)="onAvatarSelected($event)"
     (cancelled)="closeAvatarPicker()"
   />
+}
+
+@if (showCustomAttributesModal()) {
+  <div class="overlay modal-overlay" (click)="closeCustomAttributesModal()">
+    <div class="retro-panel custom-attributes-modal" (click)="$event.stopPropagation()">
+      <h3 class="item-modal-title">ATRIBUTOS PERSONALIZADOS</h3>
+      <p class="dice-hint">Só entre nós: coloque os valores que você quiser em cada atributo.</p>
+      <div class="custom-attributes-grid">
+        @for (attr of attributesList; track attr) {
+          <label class="custom-attribute-row">
+            {{ attr }}
+            <input type="number" min="1" max="30" [(ngModel)]="customAttributeDraft[attr]">
+          </label>
+        }
+      </div>
+      <div class="action-buttons">
+        <button class="retro-btn secondary" (click)="closeCustomAttributesModal()">CANCELAR</button>
+        <button class="retro-btn primary" (click)="confirmCustomAttributes()">CONFIRMAR</button>
+      </div>
+    </div>
+  </div>
 }
 
 @if (selectedWeapon) {

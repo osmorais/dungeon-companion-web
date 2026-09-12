@@ -14,6 +14,9 @@
 .wizard-container {
   width: 600px;
   max-width: 90vw;
+  /* Reserva espaço embaixo pro Tom (fixo, sobreposto na parte de baixo da tela) não cobrir os
+     botões de ação quando a página rola até o final. */
+  padding-bottom: 220px;
 }
 
 .panel-subtitle {
@@ -454,6 +457,41 @@
 }
 
 
+.custom-attributes-modal {
+  /* "fieldset.retro-panel" (styles.scss) só vale pra <fieldset> — como este painel é uma
+     <div>, precisa repetir fundo/borda aqui. */
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+  width: 360px;
+  max-width: 92vw;
+  padding: 24px;
+}
+
+.custom-attributes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.custom-attribute-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 9px;
+  color: var(--label-title-color);
+
+  input {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 6px;
+    text-align: center;
+  }
+}
+
 .success-panel {
   /* "fieldset.retro-panel" (styles.scss) só vale pra <fieldset> — como este painel é uma
      <div>, precisa repetir fundo/borda aqui. */
@@ -616,7 +654,8 @@
   min-height: 100vh;
   box-sizing: border-box;
   overflow-x: hidden;
-  padding: 12px 14px 32px;
+  /* Espaço reservado embaixo pro Tom (fixo, sobreposto) não cobrir os botões de ação. */
+  padding: 12px 14px 150px;
 }
 
 .mobile-step-bar {

@@ -17,6 +17,7 @@
   object-fit: contain;
   flex-shrink: 0;
   filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.5));
+  pointer-events: auto;
 }
 
 .tom-assistant__bubble {

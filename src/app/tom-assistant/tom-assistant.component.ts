@@ -1,9 +1,11 @@
 import {
   ChangeDetectorRef,
   Component,
+  EventEmitter,
   Input,
   OnChanges,
   OnDestroy,
+  Output,
   SimpleChanges,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -23,9 +25,13 @@ export class TomAssistantComponent implements OnChanges, OnDestroy {
   @Input() image = 'tom.png';
   @Input() message = '';
 
+  /** Emite quando o retrato do Tom leva 3 cliques seguidos (dentro de 1s) — easter egg. */
+  @Output() tripleClick = new EventEmitter<void>();
+
   displayedMessage = '';
 
   private typingInterval: ReturnType<typeof setInterval> | null = null;
+  private clickTimestamps: number[] = [];
 
   constructor(private cdr: ChangeDetectorRef) {}
 
@@ -35,6 +41,15 @@ export class TomAssistantComponent implements OnChanges, OnDestroy {
 
   get isTyping(): boolean {
     return this.displayedMessage.length < this.message.length;
+  }
+
+  onPortraitClick(): void {
+    const now = Date.now();
+    this.clickTimestamps = [...this.clickTimestamps.filter((t) => now - t < 1000), now];
+    if (this.clickTimestamps.length >= 3) {
+      this.clickTimestamps = [];
+      this.tripleClick.emit();
+    }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
