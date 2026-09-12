@@ -60,6 +60,9 @@ export interface LevelUpPreview {
   subclass_spellcasting: LevelUpSubclassSpellcasting | null;
   expertise_choice: LevelUpExpertiseChoice | null;
   fighting_style_options: string[] | null;
+  /** Segredos Mágicos do Bardo (nv10/14/18): as magias de `spell_choices` podem vir de qualquer
+   *  lista de classe conjuradora, não só a do personagem. */
+  spell_pool_any_class: boolean;
 }
 
 /** Resultado da rolagem do dado de vida — feita pelo jogador, sob demanda, sem gravar nada. */
@@ -78,6 +81,7 @@ export interface LevelUpConfirmInput {
   id_subclass?: string;
   expertise_skill_ids?: number[];
   fighting_style?: string;
+  choice_data?: Record<string, unknown>;
 }
 
 export interface LevelUpResult {

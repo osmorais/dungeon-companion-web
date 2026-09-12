@@ -173,24 +173,24 @@
         </div>
       }
 
-      @if (resourceTracker(); as res) {
+      @for (res of resourceTrackers(); track res.name) {
         <div class="pa-section">
           <h4 class="pa-section-title">
             {{ res.name.toUpperCase() }}
             <span class="pa-hit-dice-count">
-              {{ res.max === 'unlimited' ? 'ILIMITADO' : resourceAvailable() + '/' + res.max }}
+              {{ res.max === 'unlimited' ? 'ILIMITADO' : resourceAvailable(res) + '/' + res.max }}
             </span>
           </h4>
           @if (res.max !== 'unlimited') {
             <div class="pa-hit-dice-pips">
-              @for (i of resourcePips(); track i) {
-                <span class="pa-hit-dice-pip" [class.spent]="i >= resourceAvailable()"></span>
+              @for (i of resourcePips(res); track i) {
+                <span class="pa-hit-dice-pip" [class.spent]="i >= resourceAvailable(res)"></span>
               }
             </div>
           }
-          @if (chiAbilities().length > 0) {
+          @if (abilitiesForResource(res.name).length > 0) {
             <div class="pa-spell-list">
-              @for (ability of chiAbilities(); track ability.name) {
+              @for (ability of abilitiesForResource(res.name); track ability.name) {
                 <div class="pa-spell-row">
                   <div class="pa-spell-head">
                     <span class="pa-spell-name">

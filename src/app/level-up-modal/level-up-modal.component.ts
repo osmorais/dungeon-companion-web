@@ -328,9 +328,14 @@ export class LevelUpModalComponent implements OnInit {
   );
 
   /** Normalmente as magias elegíveis vêm da própria classe; quando a subclasse concede
-   *  conjuração (ex: Cavaleiro Arcano), o pool vem de outra classe (Mago) e filtrado por escola. */
+   *  conjuração (ex: Cavaleiro Arcano), o pool vem de outra classe (Mago) e filtrado por escola;
+   *  Segredos Mágicos do Bardo (nv10/14/18) abre o pool pra qualquer lista de classe. */
   private classSpellIds = computed(() => {
     const p = this.preview();
+    if (p?.spell_pool_any_class) {
+      return new Set(Object.values(CLASS_SPELLS).flat());
+    }
+
     const subclassCasting = p?.subclass_spellcasting;
     if (!subclassCasting) return new Set(CLASS_SPELLS[p?.id_class ?? -1] ?? []);
 

@@ -278,10 +278,10 @@ export class CharacterSheetComponent {
     if (!id || this.restingLong()) return;
     this.restingLong.set(true);
     this.charService.longRest(id).subscribe({
-      next: ({ slots_expended, current_hit_points, hit_dice_spent, resource_tracker }) => {
+      next: ({ slots_expended, current_hit_points, hit_dice_spent, resource_trackers }) => {
         this.patchSpellcastingInfo({ slots_expended });
         this.patchCombatStats({ hit_dice_spent }, current_hit_points);
-        this.patchResourceTracker(resource_tracker);
+        this.patchResourceTrackers(resource_trackers);
         this.lastHitDieResult.set(null);
         this.restingLong.set(false);
       },
@@ -355,60 +355,62 @@ export class CharacterSheetComponent {
       next: result => {
         this.lastHitDieResult.set(result);
         this.patchCombatStats({ hit_dice_spent: result.hit_dice_spent }, result.current_hit_points);
-        this.patchResourceTracker(result.resource_tracker);
+        this.patchResourceTrackers(result.resource_trackers);
         this.rollingHitDie.set(false);
       },
       error: () => this.rollingHitDie.set(false),
     });
   }
 
-  /** ========================= RECURSO CONSUMÍVEL (FÚRIA/CHI/CANALIZAR DIVINDADE) ========================= */
+  /** ========================= RECURSOS CONSUMÍVEIS (FÚRIA/CHI/CANALIZAR DIVINDADE/...) =========================
+   *  Uma classe pode ter mais de um recurso rastreável ao mesmo tempo (ex: Guerreiro). */
 
   expendingResource = signal(false);
 
-  resourceTracker(): ResourceTracker | null {
-    return this.sheetData()?.character_sheet.resource_tracker ?? null;
+  resourceTrackers(): ResourceTracker[] {
+    return this.sheetData()?.character_sheet.resource_trackers ?? [];
   }
 
-  resourceMaxCount(): number {
-    const max = this.resourceTracker()?.max;
-    return typeof max === 'number' ? max : 0;
+  resourceTrackerByKey(key: string): ResourceTracker | null {
+    return this.resourceTrackers().find(r => r.name === key) ?? null;
   }
 
-  resourcePips(): number[] {
-    return Array.from({ length: this.resourceMaxCount() }, (_, i) => i);
+  resourceMaxCount(res: ResourceTracker): number {
+    return typeof res.max === 'number' ? res.max : 0;
   }
 
-  resourceAvailable(): number {
-    const tracker = this.resourceTracker();
-    if (!tracker) return 0;
-    if (tracker.max === 'unlimited') return Infinity;
-    return Math.max(0, tracker.max - tracker.used);
+  resourcePips(res: ResourceTracker): number[] {
+    return Array.from({ length: this.resourceMaxCount(res) }, (_, i) => i);
   }
 
-  expendResource(delta: number): void {
+  resourceAvailable(res: ResourceTracker): number {
+    if (res.max === 'unlimited') return Infinity;
+    return Math.max(0, res.max - res.used);
+  }
+
+  expendResource(resourceKey: string, delta: number): void {
     const id = this.sheetData()?.character_sheet.id_character;
     if (!id || this.expendingResource()) return;
     this.expendingResource.set(true);
-    this.charService.updateResourceUses(id, delta).subscribe({
-      next: ({ resource_tracker }) => {
-        this.patchResourceTracker(resource_tracker);
+    this.charService.updateResourceUses(id, resourceKey, delta).subscribe({
+      next: ({ resource_trackers }) => {
+        this.patchResourceTrackers(resource_trackers);
         this.expendingResource.set(false);
       },
       error: () => this.expendingResource.set(false),
     });
   }
 
-  private patchResourceTracker(tracker: ResourceTracker | null): void {
+  private patchResourceTrackers(trackers: ResourceTracker[]): void {
     const sheet = this.sheetData();
     if (!sheet) return;
     this.charService.currentCharacter.set({
       ...sheet,
-      character_sheet: { ...sheet.character_sheet, resource_tracker: tracker },
+      character_sheet: { ...sheet.character_sheet, resource_trackers: trackers },
     });
   }
 
-  /** ========================= CARACTERÍSTICAS DE CHI (MONGE) ========================= */
+  /** ========================= CARACTERÍSTICAS ATIVÁVEIS (CHI DO MONGE/...) ========================= */
 
   chiAbilities(): ChiAbility[] {
     return this.sheetData()?.character_sheet.chi_abilities ?? [];
@@ -425,12 +427,19 @@ export class CharacterSheetComponent {
   }
 
   canUseChiAbility(ability: ChiAbility): boolean {
-    return !this.expendingResource() && this.resourceAvailable() >= ability.chi_cost;
+    const res = this.resourceTrackerByKey(ability.resource_key);
+    if (!res) return false;
+    return !this.expendingResource() && this.resourceAvailable(res) >= ability.chi_cost;
   }
 
   useChiAbility(ability: ChiAbility): void {
     if (!this.canUseChiAbility(ability)) return;
-    this.expendResource(ability.chi_cost);
+    this.expendResource(ability.resource_key, ability.chi_cost);
+  }
+
+  resourceAvailableForAbility(ability: ChiAbility): number {
+    const res = this.resourceTrackerByKey(ability.resource_key);
+    return res ? this.resourceAvailable(res) : 0;
   }
 
   /** ========================= PREPARAR / CONJURAR MAGIAS ========================= */

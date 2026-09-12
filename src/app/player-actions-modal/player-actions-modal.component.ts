@@ -265,32 +265,43 @@ export class PlayerActionsModalComponent implements OnInit {
     });
   }
 
-  /** ========================= RECURSO CONSUMÍVEL / HABILIDADES DE CHI ========================= */
+  /** ========================= RECURSOS CONSUMÍVEIS / HABILIDADES ATIVÁVEIS =========================
+   *  Uma classe pode ter mais de um recurso rastreável ao mesmo tempo (ex: Guerreiro). */
 
   expendingResource = signal(false);
 
-  resourceTracker(): ResourceTracker | null {
-    return this.sheet()?.character_sheet.resource_tracker ?? null;
+  resourceTrackers(): ResourceTracker[] {
+    return this.sheet()?.character_sheet.resource_trackers ?? [];
   }
 
-  resourceMaxCount(): number {
-    const max = this.resourceTracker()?.max;
-    return typeof max === 'number' ? max : 0;
+  resourceTrackerByKey(key: string): ResourceTracker | null {
+    return this.resourceTrackers().find((r) => r.name === key) ?? null;
   }
 
-  resourcePips(): number[] {
-    return Array.from({ length: this.resourceMaxCount() }, (_, i) => i);
+  resourceMaxCount(res: ResourceTracker): number {
+    return typeof res.max === 'number' ? res.max : 0;
   }
 
-  resourceAvailable(): number {
-    const tracker = this.resourceTracker();
-    if (!tracker) return 0;
-    if (tracker.max === 'unlimited') return Infinity;
-    return Math.max(0, tracker.max - tracker.used);
+  resourcePips(res: ResourceTracker): number[] {
+    return Array.from({ length: this.resourceMaxCount(res) }, (_, i) => i);
+  }
+
+  resourceAvailable(res: ResourceTracker): number {
+    if (res.max === 'unlimited') return Infinity;
+    return Math.max(0, res.max - res.used);
+  }
+
+  resourceAvailableForAbility(ability: ChiAbility): number {
+    const res = this.resourceTrackerByKey(ability.resource_key);
+    return res ? this.resourceAvailable(res) : 0;
   }
 
   chiAbilities(): ChiAbility[] {
     return this.sheet()?.character_sheet.chi_abilities ?? [];
+  }
+
+  abilitiesForResource(resourceKey: string): ChiAbility[] {
+    return this.chiAbilities().filter((a) => a.resource_key === resourceKey);
   }
 
   private expandedChiAbilityNames = new Set<string>();
@@ -305,16 +316,16 @@ export class PlayerActionsModalComponent implements OnInit {
   }
 
   canUseChiAbility(ability: ChiAbility): boolean {
-    return !this.expendingResource() && this.resourceAvailable() >= ability.chi_cost;
+    return !this.expendingResource() && this.resourceAvailableForAbility(ability) >= ability.chi_cost;
   }
 
   useChiAbility(ability: ChiAbility): void {
     if (!this.canUseChiAbility(ability)) return;
     this.expendingResource.set(true);
     this.actionError.set(null);
-    this.charService.updateResourceUses(this.idCharacter, ability.chi_cost).subscribe({
-      next: ({ resource_tracker }) => {
-        this.patchResourceTracker(resource_tracker);
+    this.charService.updateResourceUses(this.idCharacter, ability.resource_key, ability.chi_cost).subscribe({
+      next: ({ resource_trackers }) => {
+        this.patchResourceTrackers(resource_trackers);
         this.expendingResource.set(false);
         this.closed.emit();
       },
@@ -325,12 +336,12 @@ export class PlayerActionsModalComponent implements OnInit {
     });
   }
 
-  private patchResourceTracker(tracker: ResourceTracker | null): void {
+  private patchResourceTrackers(trackers: ResourceTracker[]): void {
     const sheet = this.sheet();
     if (!sheet) return;
     this.sheet.set({
       ...sheet,
-      character_sheet: { ...sheet.character_sheet, resource_tracker: tracker },
+      character_sheet: { ...sheet.character_sheet, resource_trackers: trackers },
     });
   }
 

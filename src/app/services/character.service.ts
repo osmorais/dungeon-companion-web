@@ -13,7 +13,7 @@ export interface LongRestResult {
   slots_expended: Record<string, number>;
   current_hit_points: number;
   hit_dice_spent: number;
-  resource_tracker: ResourceTracker | null;
+  resource_trackers: ResourceTracker[];
 }
 
 export interface EquipmentUpdateInput {
@@ -33,7 +33,7 @@ export interface HitDieRollResult {
   hit_dice_spent: number;
   hit_dice_total: number;
   die_size: number;
-  resource_tracker: ResourceTracker | null;
+  resource_trackers: ResourceTracker[];
 }
 
 @Injectable({
@@ -101,10 +101,10 @@ export class CharacterService {
     );
   }
 
-  updateResourceUses(id: number, delta: number): Observable<{ resource_tracker: ResourceTracker | null }> {
-    return this.http.patch<{ resource_tracker: ResourceTracker | null }>(
+  updateResourceUses(id: number, resourceKey: string, delta: number): Observable<{ resource_trackers: ResourceTracker[] }> {
+    return this.http.patch<{ resource_trackers: ResourceTracker[] }>(
       `${this.baseUrl}/api/character-sheet/${id}/resource-uses`,
-      { delta },
+      { resource_key: resourceKey, delta },
     );
   }
 

@@ -14,11 +14,12 @@ export interface ResourceTracker {
   recharge_on: 'short_rest' | 'long_rest';
 }
 
-/** Característica ativável gastando o recurso consumível da classe (hoje só as de Pontos de Chi do Monge). */
+/** Característica ativável gastando um dos recursos rastreados (hoje só as de Pontos de Chi do Monge). */
 export interface ChiAbility {
   name: string;
   description: string;
   chi_cost: number;
+  resource_key: string;
 }
 
 export interface CharacterSheetResponse {
@@ -81,8 +82,8 @@ export interface CharacterSheetResponse {
     };
     spells?: Spell[];
     avatar_preset?: AvatarPreset | null;
-    /** `null` se a classe não tiver nenhum recurso rastreável neste nível. */
-    resource_tracker: ResourceTracker | null;
+    /** Vazio se a classe não tiver nenhum recurso rastreável neste nível. Uma classe pode ter mais de um ao mesmo tempo. */
+    resource_trackers: ResourceTracker[];
     /** Vazio se a classe não tiver nenhuma característica ativável neste nível. */
     chi_abilities: ChiAbility[];
   };

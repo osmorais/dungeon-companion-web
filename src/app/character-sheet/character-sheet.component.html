@@ -125,29 +125,29 @@
               }
             </div>
 
-            @if (resourceTracker(); as res) {
+            @for (res of resourceTrackers(); track res.name) {
               <div class="hit-dice-box">
                 <p class="hit-dice-title">
                   {{ res.name.toUpperCase() }}
                   <span class="hit-dice-count">
-                    {{ res.max === 'unlimited' ? 'ILIMITADO' : resourceAvailable() + '/' + res.max }}
+                    {{ res.max === 'unlimited' ? 'ILIMITADO' : resourceAvailable(res) + '/' + res.max }}
                   </span>
                 </p>
                 @if (res.max !== 'unlimited') {
                   <div class="hit-dice-pips">
-                    @for (i of resourcePips(); track i) {
-                      <span class="hit-dice-pip" [class.spent]="i >= resourceAvailable()"></span>
+                    @for (i of resourcePips(res); track i) {
+                      <span class="hit-dice-pip" [class.spent]="i >= resourceAvailable(res)"></span>
                     }
                   </div>
                   <div class="rest-buttons-row">
                     <button class="retro-btn hit-die-btn"
-                            [disabled]="expendingResource() || resourceAvailable() === 0"
-                            (click)="expendResource(1)">
+                            [disabled]="expendingResource() || resourceAvailable(res) === 0"
+                            (click)="expendResource(res.name, 1)">
                       GASTAR
                     </button>
                     <button class="retro-btn spell-rest-btn"
-                            [disabled]="expendingResource() || resourceAvailable() >= res.max"
-                            (click)="expendResource(-1)">
+                            [disabled]="expendingResource() || resourceAvailable(res) >= res.max"
+                            (click)="expendResource(res.name, -1)">
                       DESFAZER
                     </button>
                   </div>
@@ -302,17 +302,17 @@
             @if (chiAbilities().length > 0) {
               <div class="chi-panel-mobile">
                 <p class="chi-panel-title">PONTOS DE CHI</p>
-                @if (resourceTracker(); as res) {
+                @if (resourceTrackerByKey('Pontos de Chi'); as res) {
                   @if (res.max !== 'unlimited') {
                     <div class="spell-slots-bar">
                       <div class="spell-slot-row">
                         <span class="spell-slot-label">CHI</span>
                         <div class="spell-slot-pips">
-                          @for (i of resourcePips(); track i) {
-                            <span class="spell-slot-pip" [class.spent]="i >= resourceAvailable()"></span>
+                          @for (i of resourcePips(res); track i) {
+                            <span class="spell-slot-pip" [class.spent]="i >= resourceAvailable(res)"></span>
                           }
                         </div>
-                        <span class="spell-slot-count">{{ resourceAvailable() }}/{{ res.max }}</span>
+                        <span class="spell-slot-count">{{ resourceAvailable(res) }}/{{ res.max }}</span>
                       </div>
                     </div>
                   }
@@ -519,29 +519,29 @@
               }
             </div>
 
-            @if (resourceTracker(); as res) {
+            @for (res of resourceTrackers(); track res.name) {
               <div class="hit-dice-box">
                 <p class="hit-dice-title">
                   {{ res.name.toUpperCase() }}
                   <span class="hit-dice-count">
-                    {{ res.max === 'unlimited' ? 'ILIMITADO' : resourceAvailable() + '/' + res.max }}
+                    {{ res.max === 'unlimited' ? 'ILIMITADO' : resourceAvailable(res) + '/' + res.max }}
                   </span>
                 </p>
                 @if (res.max !== 'unlimited') {
                   <div class="hit-dice-pips">
-                    @for (i of resourcePips(); track i) {
-                      <span class="hit-dice-pip" [class.spent]="i >= resourceAvailable()"></span>
+                    @for (i of resourcePips(res); track i) {
+                      <span class="hit-dice-pip" [class.spent]="i >= resourceAvailable(res)"></span>
                     }
                   </div>
                   <div class="rest-buttons-row">
                     <button class="retro-btn hit-die-btn"
-                            [disabled]="expendingResource() || resourceAvailable() === 0"
-                            (click)="expendResource(1)">
+                            [disabled]="expendingResource() || resourceAvailable(res) === 0"
+                            (click)="expendResource(res.name, 1)">
                       GASTAR
                     </button>
                     <button class="retro-btn spell-rest-btn"
-                            [disabled]="expendingResource() || resourceAvailable() >= res.max"
-                            (click)="expendResource(-1)">
+                            [disabled]="expendingResource() || resourceAvailable(res) >= res.max"
+                            (click)="expendResource(res.name, -1)">
                       DESFAZER
                     </button>
                   </div>
@@ -718,17 +718,17 @@
         @if (chiAbilities().length > 0) {
           <fieldset class="retro-panel magic-panel">
             <legend>PONTOS DE CHI</legend>
-            @if (resourceTracker(); as res) {
+            @if (resourceTrackerByKey('Pontos de Chi'); as res) {
               @if (res.max !== 'unlimited') {
                 <div class="spell-slots-bar">
                   <div class="spell-slot-row">
                     <span class="spell-slot-label">CHI</span>
                     <div class="spell-slot-pips">
-                      @for (i of resourcePips(); track i) {
-                        <span class="spell-slot-pip" [class.spent]="i >= resourceAvailable()"></span>
+                      @for (i of resourcePips(res); track i) {
+                        <span class="spell-slot-pip" [class.spent]="i >= resourceAvailable(res)"></span>
                       }
                     </div>
-                    <span class="spell-slot-count">{{ resourceAvailable() }}/{{ res.max }}</span>
+                    <span class="spell-slot-count">{{ resourceAvailable(res) }}/{{ res.max }}</span>
                   </div>
                 </div>
               }
@@ -885,7 +885,7 @@
                   (click)="useChiAbility(ability); closeChiAbilityModal()">
             USAR ({{ ability.chi_cost }} chi)
           </button>
-          @if (resourceAvailable() < ability.chi_cost) {
+          @if (resourceAvailableForAbility(ability) < ability.chi_cost) {
             <p class="spell-no-slots">Chi insuficiente.</p>
           }
         </div>
