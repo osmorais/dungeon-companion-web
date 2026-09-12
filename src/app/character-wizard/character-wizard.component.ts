@@ -443,7 +443,10 @@ export class CharacterWizardComponent implements OnInit {
   }
 
   get fightingStyleOptions(): string[] {
-    return this.selectedClass?.fighting_style_options ?? [];
+    const cls = this.selectedClass;
+    if (!cls?.fighting_style_options?.length) return [];
+    if (cls.fighting_style_level != null && +this.characterData.core_build.level < cls.fighting_style_level) return [];
+    return cls.fighting_style_options;
   }
 
   /** ========================= SKILL STATE ========================= */
