@@ -18,6 +18,11 @@
   flex-shrink: 0;
   filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.5));
   pointer-events: auto;
+  /* Sem isso, toques rápidos seguidos no mobile viram um duplo-toque de zoom em vez de
+     chegarem como cliques — quebrava o easter egg dos 3 cliques. */
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .tom-assistant__bubble {

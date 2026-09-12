@@ -34,6 +34,12 @@
   --label-title-color: #a75454; /* Azul claro para títulos de seções */
 }
 
+html {
+  /* Evita o zoom por duplo toque em dispositivos móveis (junto com o viewport meta no
+     index.html), sem depender só do navegador respeitar user-scalable=no. */
+  touch-action: manipulation;
+}
+
 body {
   background-color: var(--bg-color);
   color: var(--text-color);
@@ -47,6 +53,7 @@ body {
   min-height: 100vh;
   padding-bottom: 48px;
   box-sizing: border-box;
+  touch-action: manipulation;
 }
 
 @media (max-width: 767px) {
