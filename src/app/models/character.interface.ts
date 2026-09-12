@@ -39,6 +39,8 @@ export interface CharacterSheetData {
     armour: Armour | null;
     weapons: WeaponRow[];
     has_shield: boolean;
+    /** Riqueza inicial rolada na criação (dado da classe, já multiplicado), em PO. */
+    starting_gold?: number;
   };
   character_details: {
     name: string;

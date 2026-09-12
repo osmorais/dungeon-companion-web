@@ -231,6 +231,29 @@
             } @else {
               <p class="empty-label">Nenhuma arma equipada</p>
             }
+
+            <div class="currency-box">
+              <p class="mobile-panel-subtitle">DINHEIRO</p>
+              @if (currencyDraft() !== null) {
+                <div class="currency-edit-row">
+                  <input type="number" min="0" class="currency-input"
+                         [value]="currencyDraft()"
+                         (input)="currencyDraft.set($any($event.target).valueAsNumber)">
+                  <button class="retro-btn" (click)="saveCurrency()" [disabled]="savingCurrency()">
+                    {{ savingCurrency() ? '...' : '✓' }}
+                  </button>
+                  <button class="retro-btn mobile-secondary-btn" (click)="cancelEditCurrency()">✕</button>
+                </div>
+              } @else {
+                <div class="currency-display-row">
+                  <span class="currency-value">{{ data.character_sheet.equipment.currency.gp }} PO</span>
+                  <button class="equipment-edit-btn" (click)="startEditCurrency()">✎</button>
+                </div>
+                @if (currencySaved()) {
+                  <span class="hp-saved-msg">SALVO!</span>
+                }
+              }
+            </div>
           }
 
           @case ('spells') {
@@ -751,6 +774,29 @@
             </table>
           </fieldset>
         }
+
+        <fieldset class="retro-panel">
+          <legend>DINHEIRO</legend>
+          @if (currencyDraft() !== null) {
+            <div class="currency-edit-row">
+              <input type="number" min="0" class="currency-input"
+                     [value]="currencyDraft()"
+                     (input)="currencyDraft.set($any($event.target).valueAsNumber)">
+              <button class="retro-btn" (click)="saveCurrency()" [disabled]="savingCurrency()">
+                {{ savingCurrency() ? '...' : '✓' }}
+              </button>
+              <button class="retro-btn secondary" (click)="cancelEditCurrency()">✕</button>
+            </div>
+          } @else {
+            <div class="currency-display-row">
+              <span class="currency-value">{{ data.character_sheet.equipment.currency.gp }} PO</span>
+              <button class="equipment-edit-btn" (click)="startEditCurrency()">✎</button>
+            </div>
+            @if (currencySaved()) {
+              <span class="hp-saved-msg">SALVO!</span>
+            }
+          }
+        </fieldset>
       </div>
 
       <div class="sheet-actions">

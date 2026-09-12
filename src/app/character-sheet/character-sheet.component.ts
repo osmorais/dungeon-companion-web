@@ -45,6 +45,9 @@ export class CharacterSheetComponent {
   savingHp = signal(false);
   hpSaved = signal(false);
   printingSheet = signal(false);
+  currencyDraft = signal<number | null>(null);
+  savingCurrency = signal(false);
+  currencySaved = signal(false);
 
   @HostListener('window:resize')
   onResize() {
@@ -155,6 +158,46 @@ export class CharacterSheetComponent {
         setTimeout(() => this.hpSaved.set(false), 3000);
       },
       error: () => this.savingHp.set(false),
+    });
+  }
+
+  /** ========================= DINHEIRO ========================= */
+
+  startEditCurrency(): void {
+    const sheet = this.sheetData();
+    if (!sheet) return;
+    this.currencyDraft.set(sheet.character_sheet.equipment.currency.gp);
+  }
+
+  cancelEditCurrency(): void {
+    this.currencyDraft.set(null);
+  }
+
+  saveCurrency(): void {
+    const sheet = this.sheetData();
+    const id = sheet?.character_sheet.id_character;
+    const draft = this.currencyDraft();
+    if (!sheet || !id || draft === null || !Number.isFinite(draft) || draft < 0 || this.savingCurrency()) return;
+
+    this.savingCurrency.set(true);
+    this.charService.updateCurrency(id, draft).subscribe({
+      next: () => {
+        this.charService.currentCharacter.set({
+          ...sheet,
+          character_sheet: {
+            ...sheet.character_sheet,
+            equipment: {
+              ...sheet.character_sheet.equipment,
+              currency: { ...sheet.character_sheet.equipment.currency, gp: draft },
+            },
+          },
+        });
+        this.savingCurrency.set(false);
+        this.currencyDraft.set(null);
+        this.currencySaved.set(true);
+        setTimeout(() => this.currencySaved.set(false), 3000);
+      },
+      error: () => this.savingCurrency.set(false),
     });
   }
 

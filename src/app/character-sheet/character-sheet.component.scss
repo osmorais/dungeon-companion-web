@@ -1396,6 +1396,35 @@ tr.spell-circle-header-row {
   justify-content: center;
 }
 
+.currency-box {
+  margin-top: 12px;
+}
+
+.currency-display-row,
+.currency-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.currency-value {
+  font-size: 11px;
+  color: var(--accent-color);
+}
+
+.currency-input {
+  width: 90px;
+  height: 26px;
+  box-sizing: border-box;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  padding: 0 6px;
+  text-align: center;
+}
+
 .roll-trigger-btn {
   flex-shrink: 0;
   margin-left: auto;

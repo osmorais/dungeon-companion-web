@@ -65,7 +65,7 @@ export interface CharacterSheetResponse {
       languages: string[];
     };
     equipment: {
-      currency: any;
+      currency: { cp: number; sp: number; ep: number; gp: number; pp: number };
       items: string[];
       equipped_armour: { id_armour: number; name: string; armour_type: string | null } | null;
       has_shield: boolean;

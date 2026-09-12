@@ -88,6 +88,13 @@ export class CharacterService {
     );
   }
 
+  updateCurrency(id: number, totalPo: number): Observable<{ success: boolean }> {
+    return this.http.patch<{ success: boolean }>(
+      `${this.baseUrl}/api/character-sheet/${id}/currency`,
+      { total_po: totalPo },
+    );
+  }
+
   printCharacter(id: number): Observable<string> {
     return this.http.get(`${this.baseUrl}/api/character-sheet/${id}/print`, {
       responseType: 'text',

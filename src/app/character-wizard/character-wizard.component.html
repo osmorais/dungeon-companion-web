@@ -531,7 +531,38 @@
 
         <div class="mobile-wizard-actions">
           <button class="retro-btn mobile-secondary-btn" (click)="prevStep()">← VOLTAR</button>
-          <button class="retro-btn mobile-primary-btn" (click)="saveCharacter()">SALVAR →</button>
+          <button class="retro-btn mobile-primary-btn" (click)="nextStep()">PRÓXIMO →</button>
+        </div>
+      }
+
+      @case (8) {
+        <fieldset class="mobile-wizard-panel">
+          <legend>DINHEIRO INICIAL</legend>
+          <p class="dice-hint">Riqueza Inicial: {{ startingGoldFormulaLabel }}</p>
+          @if (startingGoldDiceRolls) {
+            <div class="dice-row">
+              @for (roll of startingGoldDiceRolls; track $index) {
+                <app-pixel-numeric-die [value]="roll" [sides]="startingGoldDice.sides" [rolling]="rollingStartingGold" [mini]="true" />
+              }
+            </div>
+          }
+          @if (hasRolledStartingGold) {
+            <p class="mobile-tap-hint">Total: <strong>{{ characterData.equipment.starting_gold }} PO</strong></p>
+          } @else {
+            <button
+              type="button"
+              class="retro-btn dice-reroll-btn"
+              [disabled]="rollingStartingGold"
+              (click)="rollStartingGold()"
+            >
+              {{ rollingStartingGold ? 'ROLANDO...' : 'ROLAR' }}
+            </button>
+          }
+        </fieldset>
+
+        <div class="mobile-wizard-actions">
+          <button class="retro-btn mobile-secondary-btn" (click)="prevStep()">← VOLTAR</button>
+          <button class="retro-btn mobile-primary-btn" [disabled]="!hasRolledStartingGold" (click)="saveCharacter()">SALVAR →</button>
         </div>
       }
 
@@ -1038,7 +1069,38 @@
 
         <div class="action-buttons">
           <button class="retro-btn secondary" (click)="prevStep()">VOLTAR</button>
-          <button class="retro-btn primary" (click)="saveCharacter()">SALVAR PERSONAGEM</button>
+          <button class="retro-btn primary" (click)="nextStep()">PRÓXIMO</button>
+        </div>
+      }
+
+      @case (8) {
+        <fieldset class="retro-panel">
+          <legend>DINHEIRO INICIAL</legend>
+          <p class="dice-hint">Riqueza Inicial: {{ startingGoldFormulaLabel }}</p>
+          @if (startingGoldDiceRolls) {
+            <div class="dice-row">
+              @for (roll of startingGoldDiceRolls; track $index) {
+                <app-pixel-numeric-die [value]="roll" [sides]="startingGoldDice.sides" [rolling]="rollingStartingGold" [mini]="true" />
+              }
+            </div>
+          }
+          @if (hasRolledStartingGold) {
+            <p class="mobile-tap-hint">Total: <strong>{{ characterData.equipment.starting_gold }} PO</strong></p>
+          } @else {
+            <button
+              type="button"
+              class="retro-btn dice-reroll-btn"
+              [disabled]="rollingStartingGold"
+              (click)="rollStartingGold()"
+            >
+              {{ rollingStartingGold ? 'ROLANDO...' : 'ROLAR' }}
+            </button>
+          }
+        </fieldset>
+
+        <div class="action-buttons">
+          <button class="retro-btn secondary" (click)="prevStep()">VOLTAR</button>
+          <button class="retro-btn primary" [disabled]="!hasRolledStartingGold" (click)="saveCharacter()">SALVAR PERSONAGEM</button>
         </div>
       }
 

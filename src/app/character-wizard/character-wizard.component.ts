@@ -30,6 +30,7 @@ import { CLASS_ARMOUR_RULES } from '../constants/armour-rules';
 import { LEVEL1_SUBCLASS_OPTIONS, Level1SubclassOption } from '../constants/level1-subclass-options';
 import { RACE_FREE_CANTRIP, SUBRACE_FREE_CANTRIP, RacialCantripGrant } from '../constants/racial-cantrips';
 import { PixelDieComponent } from '../pixel-die/pixel-die.component';
+import { PixelNumericDieComponent } from '../pixel-numeric-die/pixel-numeric-die.component';
 
 type AttributeKey = 'FOR' | 'DES' | 'CON' | 'INT' | 'SAB' | 'CAR';
 
@@ -43,7 +44,7 @@ interface DiceBreakdown {
 @Component({
   selector: 'app-character-wizard',
   standalone: true,
-  imports: [CommonModule, FormsModule, DragonAnimationComponent, LoadingOverlayComponent, AvatarPickerModalComponent, AvatarCustomizerComponent, PixelDieComponent],
+  imports: [CommonModule, FormsModule, DragonAnimationComponent, LoadingOverlayComponent, AvatarPickerModalComponent, AvatarCustomizerComponent, PixelDieComponent, PixelNumericDieComponent],
   templateUrl: './character-wizard.component.html',
   styleUrls: ['./character-wizard.component.scss']
 })
@@ -286,7 +287,7 @@ export class CharacterWizardComponent implements OnInit {
       return;
     }
 
-    if (this.currentStep < 7) {
+    if (this.currentStep < 8) {
       this.currentStep++;
       if (this.currentStep === 3) this.spellCircleStep = 0;
       if (this.currentStep === 4) this.syncGrantedSkills();
@@ -359,6 +360,8 @@ export class CharacterWizardComponent implements OnInit {
     this.characterData.equipment.armour = null;
     this.characterData.equipment.has_shield = false;
     this.characterData.equipment.weapons = [];
+    this.characterData.equipment.starting_gold = undefined;
+    this.startingGoldDiceRolls = null;
     this.spellCircleStep = 0;
     this.weaponsPage = 0;
     this.showStepError = false;
@@ -1009,6 +1012,62 @@ export class CharacterWizardComponent implements OnInit {
       }
 
       // setInterval roda fora da detecção de mudanças do Angular (app zoneless) — força o repaint a cada tick.
+      this.cdr.detectChanges();
+    }, 80);
+  }
+
+  /** ========================= DINHEIRO INICIAL (RIQUEZA INICIAL POR CLASSE) ========================= */
+
+  rollingStartingGold = false;
+  startingGoldDiceRolls: number[] | null = null;
+
+  get startingGoldDice(): { count: number; sides: number; multiplier: number } {
+    return this.selectedClass?.starting_gold_dice ?? { count: 0, sides: 4, multiplier: 10 };
+  }
+
+  get startingGoldFormulaLabel(): string {
+    const d = this.startingGoldDice;
+    return d.multiplier === 1 ? `${d.count}d${d.sides} PO` : `${d.count}d${d.sides} × ${d.multiplier} PO`;
+  }
+
+  get hasRolledStartingGold(): boolean {
+    return this.characterData.equipment.starting_gold != null;
+  }
+
+  rollStartingGold(): void {
+    if (this.rollingStartingGold || this.hasRolledStartingGold) return;
+
+    const d = this.startingGoldDice;
+    const rollFinalValue = () => {
+      const rolls = Array.from({ length: d.count }, () => Math.floor(Math.random() * d.sides) + 1);
+      this.startingGoldDiceRolls = rolls;
+      const sum = rolls.reduce((a, b) => a + b, 0);
+      this.characterData.equipment.starting_gold = sum * d.multiplier;
+      this.rollingStartingGold = false;
+    };
+
+    const prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+    if (prefersReducedMotion) {
+      rollFinalValue();
+      return;
+    }
+
+    this.rollingStartingGold = true;
+    this.startingGoldDiceRolls = Array.from({ length: d.count }, () => 1);
+    let ticks = 0;
+
+    const interval = setInterval(() => {
+      this.startingGoldDiceRolls = Array.from({ length: d.count }, () => Math.floor(Math.random() * d.sides) + 1);
+      ticks++;
+
+      if (ticks > 8) {
+        clearInterval(interval);
+        rollFinalValue();
+      }
+
       this.cdr.detectChanges();
     }, 80);
   }
