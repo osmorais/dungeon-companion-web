@@ -1,0 +1,14 @@
+<div class="tom-assistant">
+  <img [src]="imagePath" alt="Tom" class="tom-assistant__portrait" />
+  @if (message) {
+    <div class="tom-assistant__bubble">
+      <p>
+        {{ displayedMessage
+        }}<span
+          class="tom-assistant__cursor"
+          [class.tom-assistant__cursor--blink]="!isTyping"
+        ></span>
+      </p>
+    </div>
+  }
+</div>

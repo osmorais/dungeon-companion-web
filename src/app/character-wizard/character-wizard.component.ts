@@ -31,6 +31,7 @@ import { LEVEL1_SUBCLASS_OPTIONS, Level1SubclassOption } from '../constants/leve
 import { RACE_FREE_CANTRIP, SUBRACE_FREE_CANTRIP, RacialCantripGrant } from '../constants/racial-cantrips';
 import { PixelDieComponent } from '../pixel-die/pixel-die.component';
 import { PixelNumericDieComponent } from '../pixel-numeric-die/pixel-numeric-die.component';
+import { TomAssistantComponent } from '../tom-assistant/tom-assistant.component';
 
 type AttributeKey = 'FOR' | 'DES' | 'CON' | 'INT' | 'SAB' | 'CAR';
 
@@ -44,7 +45,7 @@ interface DiceBreakdown {
 @Component({
   selector: 'app-character-wizard',
   standalone: true,
-  imports: [CommonModule, FormsModule, DragonAnimationComponent, LoadingOverlayComponent, AvatarPickerModalComponent, AvatarCustomizerComponent, PixelDieComponent, PixelNumericDieComponent],
+  imports: [CommonModule, FormsModule, DragonAnimationComponent, LoadingOverlayComponent, AvatarPickerModalComponent, AvatarCustomizerComponent, PixelDieComponent, PixelNumericDieComponent, TomAssistantComponent],
   templateUrl: './character-wizard.component.html',
   styleUrls: ['./character-wizard.component.scss']
 })
@@ -219,6 +220,60 @@ export class CharacterWizardComponent implements OnInit {
 
   get selectedBackgroundTraits(): TraitInfo[] {
     return this.selectedBackground ? [this.selectedBackground.feature] : [];
+  }
+
+  /** ========================= TOM, O ASSISTENTE ========================= */
+
+  private readonly tomStepDialogue: Record<number, { image: string; message: string }> = {
+    1: {
+      image: 'tom-hi.png',
+      message: 'Beleza, vamos criar seu herói! Escolha raça, classe e antecedente pra começar essa jornada.',
+    },
+    2: {
+      image: 'tom-pointing.png',
+      message: 'Aponte pros atributos e distribua os pontos! Força, Destreza, Constituição... escolha com sabedoria (ou confie na sorte dos dados).',
+    },
+    3: {
+      image: 'tom-casting-spell.png',
+      message: 'Abracadabra! Hora de escolher truques e magias. Escolha com cuidado, cada uma conta.',
+    },
+    4: {
+      image: 'tom-reading.png',
+      message: 'Todo bom aventureiro estuda antes de sair por aí. Escolha suas perícias!',
+    },
+    5: {
+      image: 'tom-forging.png',
+      message: 'Vamos pra forja! Escolha uma armadura pra não voltar pra casa cheio de buracos.',
+    },
+    6: {
+      image: 'tom-forging.png',
+      message: 'Ainda na forja: hora de escolher suas armas. Escolha com carinho, vocês vão passar bastante tempo juntos.',
+    },
+    7: {
+      image: 'tom-like.png',
+      message: 'Agora a parte boa: dinheiro! Role os dados e vamos ver quanta grana você ganhou.',
+    },
+    8: {
+      image: 'tom-celebrating.png',
+      message: 'Uhul, quase lá! Agora só precisa nos mostrar como você é e vamos partir pra aventura.',
+    },
+  };
+
+  private readonly tomStopMessage =
+    'Você não pode passar! (Sei que não sou o Gandalf mas é sério, faltou alguma coisa)';
+
+  private readonly tomSuccessMessage = 'Boa! Seu personagem tá pronto! Bora pra aventura!';
+
+  get tomImage(): string {
+    if (this.showSuccess) return 'tom-celebrating.png';
+    if (this.showStepError) return 'tom-stop.png';
+    return this.tomStepDialogue[this.currentStep]?.image ?? 'tom.png';
+  }
+
+  get tomMessage(): string {
+    if (this.showSuccess) return this.tomSuccessMessage;
+    if (this.showStepError) return this.tomStopMessage;
+    return this.tomStepDialogue[this.currentStep]?.message ?? '';
   }
 
   private isCurrentStepValid(): boolean {

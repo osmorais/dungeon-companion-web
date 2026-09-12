@@ -1,0 +1,115 @@
+.tom-assistant {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  max-width: 100vw;
+  padding: 0 12px;
+  pointer-events: none;
+}
+
+.tom-assistant__portrait {
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+  flex-shrink: 0;
+  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.5));
+}
+
+.tom-assistant__bubble {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  max-width: 480px;
+  margin-bottom: 34px;
+  background-color: #ffffff;
+  color: #111111;
+  border: 3px solid #111111;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.35);
+  padding: 12px 14px;
+  font-size: 9px;
+  line-height: 1.8;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: -13px;
+    bottom: 18px;
+    width: 0;
+    height: 0;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    border-right: 10px solid #111111;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: -9px;
+    bottom: 19px;
+    width: 0;
+    height: 0;
+    border-top: 7px solid transparent;
+    border-bottom: 7px solid transparent;
+    border-right: 8px solid #ffffff;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.tom-assistant__cursor {
+  display: inline-block;
+  width: 6px;
+  height: 9px;
+  margin-left: 2px;
+  background-color: #111111;
+  vertical-align: -1px;
+  opacity: 1;
+
+  &--blink {
+    animation: tom-assistant-blink 0.9s step-end infinite;
+  }
+}
+
+@keyframes tom-assistant-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tom-assistant__cursor--blink {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+@media (min-width: 641px) {
+  .tom-assistant {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 640px) {
+  .tom-assistant {
+    gap: 6px;
+    padding: 0 6px;
+  }
+
+  .tom-assistant__portrait {
+    width: 110px;
+    height: 110px;
+  }
+
+  .tom-assistant__bubble {
+    margin-bottom: 18px;
+    font-size: 8px;
+    padding: 10px 12px;
+  }
+}
