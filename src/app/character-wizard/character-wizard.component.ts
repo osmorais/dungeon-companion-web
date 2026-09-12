@@ -227,15 +227,15 @@ export class CharacterWizardComponent implements OnInit {
   private readonly tomStepDialogue: Record<number, { image: string; message: string }> = {
     1: {
       image: 'tom-hi.png',
-      message: 'Beleza, vamos criar seu herói! Escolha raça, classe e antecedente pra começar essa jornada.',
+      message: 'Olá aventureiro, sou o Tom! Vamos criar seu herói! Escolha raça, classe e antecedente pra começar essa jornada.',
     },
     2: {
       image: 'tom-pointing.png',
-      message: 'Aponte pros atributos e distribua os pontos! Força, Destreza, Constituição... escolha com sabedoria (ou confie na sorte dos dados).',
+      message: 'No que você é bom? Escolha seus atributos! Força, Destreza, Constituição... escolha com sabedoria (ou confie na sorte dos dados).',
     },
     3: {
       image: 'tom-casting-spell.png',
-      message: 'Abracadabra! Hora de escolher truques e magias. Escolha com cuidado, cada uma conta.',
+      message: 'Dracarys! Hora de escolher truques e magias. Escolha com cuidado, cada uma conta.',
     },
     4: {
       image: 'tom-reading.png',
@@ -260,7 +260,7 @@ export class CharacterWizardComponent implements OnInit {
   };
 
   private readonly tomStopMessage =
-    'Você não pode passar! (Sei que não sou o Gandalf mas é sério, faltou alguma coisa)';
+    'You shall not pass! (Sei que não sou o Gandalf mas é sério, faltou alguma coisa)';
 
   private readonly tomSuccessMessage = 'Boa! Seu personagem tá pronto! Bora pra aventura!';
 
