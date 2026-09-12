@@ -129,6 +129,19 @@
   font-size: 12px;
 }
 
+.chi-panel-mobile {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-color);
+}
+
+.chi-panel-title {
+  margin: 0 0 8px;
+  font-size: 10px;
+  color: var(--label-title-color);
+  letter-spacing: 0.05em;
+}
+
 /* Combate */
 .combat-panel .stats-row {
   display: flex;

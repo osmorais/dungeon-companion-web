@@ -5,7 +5,7 @@ import { CommonModule, KeyValuePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { CharacterService, HitDieRollResult } from '../services/character.service';
 import { Skill, Spell, WeaponRow } from '../models/character-options.interface';
-import { CharacterSheetResponse, ResourceTracker } from '../models/character-response.interface';
+import { CharacterSheetResponse, ResourceTracker, ChiAbility } from '../models/character-response.interface';
 import { AvatarPreset } from '../models/avatar-preset.interface';
 import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
 import { AvatarCustomizerComponent } from '../avatar-customizer/avatar-customizer.component';
@@ -406,6 +406,31 @@ export class CharacterSheetComponent {
       ...sheet,
       character_sheet: { ...sheet.character_sheet, resource_tracker: tracker },
     });
+  }
+
+  /** ========================= CARACTERÍSTICAS DE CHI (MONGE) ========================= */
+
+  chiAbilities(): ChiAbility[] {
+    return this.sheetData()?.character_sheet.chi_abilities ?? [];
+  }
+
+  selectedChiAbility: ChiAbility | null = null;
+
+  openChiAbilityModal(ability: ChiAbility): void {
+    this.selectedChiAbility = ability;
+  }
+
+  closeChiAbilityModal(): void {
+    this.selectedChiAbility = null;
+  }
+
+  canUseChiAbility(ability: ChiAbility): boolean {
+    return !this.expendingResource() && this.resourceAvailable() >= ability.chi_cost;
+  }
+
+  useChiAbility(ability: ChiAbility): void {
+    if (!this.canUseChiAbility(ability)) return;
+    this.expendResource(ability.chi_cost);
   }
 
   /** ========================= PREPARAR / CONJURAR MAGIAS ========================= */

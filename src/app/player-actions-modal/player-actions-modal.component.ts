@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output, inject, signal } from '@angular/core';
 import { CommonModule, KeyValuePipe } from '@angular/common';
 import { CharacterService, HitDieRollResult } from '../services/character.service';
-import { CharacterSheetResponse } from '../models/character-response.interface';
+import { CharacterSheetResponse, ChiAbility, ResourceTracker } from '../models/character-response.interface';
 import { Skill, Spell, WeaponRow } from '../models/character-options.interface';
 import {
   AbilityRollConfig,
@@ -262,6 +262,75 @@ export class PlayerActionsModalComponent implements OnInit {
               : combat.hit_points,
         },
       },
+    });
+  }
+
+  /** ========================= RECURSO CONSUMÍVEL / HABILIDADES DE CHI ========================= */
+
+  expendingResource = signal(false);
+
+  resourceTracker(): ResourceTracker | null {
+    return this.sheet()?.character_sheet.resource_tracker ?? null;
+  }
+
+  resourceMaxCount(): number {
+    const max = this.resourceTracker()?.max;
+    return typeof max === 'number' ? max : 0;
+  }
+
+  resourcePips(): number[] {
+    return Array.from({ length: this.resourceMaxCount() }, (_, i) => i);
+  }
+
+  resourceAvailable(): number {
+    const tracker = this.resourceTracker();
+    if (!tracker) return 0;
+    if (tracker.max === 'unlimited') return Infinity;
+    return Math.max(0, tracker.max - tracker.used);
+  }
+
+  chiAbilities(): ChiAbility[] {
+    return this.sheet()?.character_sheet.chi_abilities ?? [];
+  }
+
+  private expandedChiAbilityNames = new Set<string>();
+
+  isChiAbilityExpanded(name: string): boolean {
+    return this.expandedChiAbilityNames.has(name);
+  }
+
+  toggleChiAbilityDetails(name: string): void {
+    if (this.expandedChiAbilityNames.has(name)) this.expandedChiAbilityNames.delete(name);
+    else this.expandedChiAbilityNames.add(name);
+  }
+
+  canUseChiAbility(ability: ChiAbility): boolean {
+    return !this.expendingResource() && this.resourceAvailable() >= ability.chi_cost;
+  }
+
+  useChiAbility(ability: ChiAbility): void {
+    if (!this.canUseChiAbility(ability)) return;
+    this.expendingResource.set(true);
+    this.actionError.set(null);
+    this.charService.updateResourceUses(this.idCharacter, ability.chi_cost).subscribe({
+      next: ({ resource_tracker }) => {
+        this.patchResourceTracker(resource_tracker);
+        this.expendingResource.set(false);
+        this.closed.emit();
+      },
+      error: (err) => {
+        this.expendingResource.set(false);
+        this.handleActionError(err);
+      },
+    });
+  }
+
+  private patchResourceTracker(tracker: ResourceTracker | null): void {
+    const sheet = this.sheet();
+    if (!sheet) return;
+    this.sheet.set({
+      ...sheet,
+      character_sheet: { ...sheet.character_sheet, resource_tracker: tracker },
     });
   }
 

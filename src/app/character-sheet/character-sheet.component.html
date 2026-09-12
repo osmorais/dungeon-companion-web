@@ -59,7 +59,7 @@
         <button [class.active]="activeTab() === 'skills'" (click)="setTab('skills')">PERÍCIAS</button>
         <button [class.active]="activeTab() === 'traits'" (click)="setTab('traits')">TRAÇOS</button>
         <button [class.active]="activeTab() === 'equipment'" (click)="setTab('equipment')">ARMAS</button>
-        @if (data.character_sheet.spells?.length) {
+        @if (data.character_sheet.spells?.length || chiAbilities().length > 0) {
           <button [class.active]="activeTab() === 'spells'" (click)="setTab('spells')">MAGIAS</button>
         }
         <button [class.active]="activeTab() === 'notes'" (click)="setTab('notes')">NOTAS</button>
@@ -155,6 +155,7 @@
                 <p class="hit-die-result">Recarrega em descanso {{ res.recharge_on === 'short_rest' ? 'curto ou longo' : 'longo' }}.</p>
               </div>
             }
+
           }
 
           @case ('attrs') {
@@ -297,6 +298,37 @@
                 }
               }
             </div>
+
+            @if (chiAbilities().length > 0) {
+              <div class="chi-panel-mobile">
+                <p class="chi-panel-title">PONTOS DE CHI</p>
+                @if (resourceTracker(); as res) {
+                  @if (res.max !== 'unlimited') {
+                    <div class="spell-slots-bar">
+                      <div class="spell-slot-row">
+                        <span class="spell-slot-label">CHI</span>
+                        <div class="spell-slot-pips">
+                          @for (i of resourcePips(); track i) {
+                            <span class="spell-slot-pip" [class.spent]="i >= resourceAvailable()"></span>
+                          }
+                        </div>
+                        <span class="spell-slot-count">{{ resourceAvailable() }}/{{ res.max }}</span>
+                      </div>
+                    </div>
+                  }
+                }
+                <div class="mobile-spell-cards">
+                  @for (ability of chiAbilities(); track ability.name) {
+                    <div class="mobile-spell-card" (click)="openChiAbilityModal(ability)">
+                      <div class="spell-card-left">
+                        <div class="spell-card-name">{{ ability.name }}</div>
+                      </div>
+                      <div class="spell-card-level">{{ ability.chi_cost }}</div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
           }
 
           @case ('notes') {
@@ -682,6 +714,43 @@
             </table>
           </fieldset>
         }
+
+        @if (chiAbilities().length > 0) {
+          <fieldset class="retro-panel magic-panel">
+            <legend>PONTOS DE CHI</legend>
+            @if (resourceTracker(); as res) {
+              @if (res.max !== 'unlimited') {
+                <div class="spell-slots-bar">
+                  <div class="spell-slot-row">
+                    <span class="spell-slot-label">CHI</span>
+                    <div class="spell-slot-pips">
+                      @for (i of resourcePips(); track i) {
+                        <span class="spell-slot-pip" [class.spent]="i >= resourceAvailable()"></span>
+                      }
+                    </div>
+                    <span class="spell-slot-count">{{ resourceAvailable() }}/{{ res.max }}</span>
+                  </div>
+                </div>
+              }
+            }
+            <table class="weapons-table spells-table">
+              <thead>
+                <tr>
+                  <th>NOME</th>
+                  <th>CUSTO</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (ability of chiAbilities(); track ability.name) {
+                  <tr class="clickable-row" (click)="openChiAbilityModal(ability)">
+                    <td>{{ ability.name }}</td>
+                    <td class="text-center">{{ ability.chi_cost }} chi</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </fieldset>
+        }
       </div>
 
       <div class="sheet-actions">
@@ -795,6 +864,31 @@
             </div>
           }
         }
+      </div>
+    </div>
+  }
+
+  @if (selectedChiAbility; as ability) {
+    <div class="overlay modal-overlay" (click)="closeChiAbilityModal()">
+      <div class="retro-panel item-modal" (click)="$event.stopPropagation()">
+        <button class="item-modal-close" (click)="closeChiAbilityModal()">✕</button>
+        <h3 class="item-modal-title">{{ ability.name }}</h3>
+        <p class="spell-school">Custo: {{ ability.chi_cost }} ponto(s) de chi</p>
+        <div class="item-modal-info">
+          @if (ability.description) {
+            <div class="spell-description">{{ ability.description }}</div>
+          }
+        </div>
+        <div class="spell-cast-section">
+          <button class="retro-btn spell-slot-btn"
+                  [disabled]="!canUseChiAbility(ability)"
+                  (click)="useChiAbility(ability); closeChiAbilityModal()">
+            USAR ({{ ability.chi_cost }} chi)
+          </button>
+          @if (resourceAvailable() < ability.chi_cost) {
+            <p class="spell-no-slots">Chi insuficiente.</p>
+          }
+        </div>
       </div>
     </div>
   }
