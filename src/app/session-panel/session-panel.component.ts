@@ -702,7 +702,7 @@ export class SessionPanelComponent implements OnDestroy {
 
   /** ========================= DETALHE DO MONSTRO: IMAGEM CUSTOMIZADA ========================= */
 
-  private static readonly MAX_MONSTER_IMAGE_BYTES = 5 * 1024 * 1024;
+  private static readonly MAX_MONSTER_IMAGE_BYTES = 10 * 1024 * 1024;
 
   uploadingMonsterImage = signal(false);
   monsterImageUploadError = signal<string | null>(null);
@@ -721,7 +721,7 @@ export class SessionPanelComponent implements OnDestroy {
       return;
     }
     if (file.size > SessionPanelComponent.MAX_MONSTER_IMAGE_BYTES) {
-      this.monsterImageUploadError.set('Imagem muito grande — o limite é 5 MB.');
+      this.monsterImageUploadError.set('Imagem muito grande — o limite é 10 MB.');
       return;
     }
 

@@ -63,7 +63,7 @@ export class MonsterCatalogDetailComponent implements OnInit {
 
   /** ========================= IMAGEM CUSTOMIZADA ========================= */
 
-  private static readonly MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+  private static readonly MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 
   onImageSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -79,7 +79,7 @@ export class MonsterCatalogDetailComponent implements OnInit {
       return;
     }
     if (file.size > MonsterCatalogDetailComponent.MAX_IMAGE_BYTES) {
-      this.imageUploadError.set('Imagem muito grande — o limite é 5 MB.');
+      this.imageUploadError.set('Imagem muito grande — o limite é 10 MB.');
       return;
     }
 
