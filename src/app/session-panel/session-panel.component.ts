@@ -759,21 +759,25 @@ export class SessionPanelComponent implements OnDestroy {
     this.monsterStatsError.set(null);
   }
 
-  setMonsterStatsDraftName(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
+  /**
+   * `(ngModelChange)` já emite o valor novo do input (string/number), não um `Event` do DOM —
+   * ao contrário de `(change)`/`(input)`. Tratar `$event` como Event aqui lançava uma exceção
+   * silenciosa a cada tecla, então o rascunho nunca mudava e "salvar" reenviava os valores antigos.
+   */
+  setMonsterStatsDraftName(value: string): void {
     this.monsterStatsDraft.update((d) => ({ ...d, custom_name: value }));
   }
 
-  setMonsterStatsDraftNumber(field: 'hp_current' | 'hp_max' | 'ac', event: Event): void {
-    const raw = Number((event.target as HTMLInputElement).value);
-    const value = Number.isFinite(raw) ? Math.max(0, Math.trunc(raw)) : 0;
-    this.monsterStatsDraft.update((d) => ({ ...d, [field]: value }));
+  setMonsterStatsDraftNumber(field: 'hp_current' | 'hp_max' | 'ac', value: string | number): void {
+    const raw = Number(value);
+    const parsed = Number.isFinite(raw) ? Math.max(0, Math.trunc(raw)) : 0;
+    this.monsterStatsDraft.update((d) => ({ ...d, [field]: parsed }));
   }
 
-  setMonsterStatsDraftAbility(field: MonsterAbilityKey, event: Event): void {
-    const raw = Number((event.target as HTMLInputElement).value);
-    const value = Number.isFinite(raw) ? Math.min(30, Math.max(1, Math.trunc(raw))) : 1;
-    this.monsterStatsDraft.update((d) => ({ ...d, [field]: value }));
+  setMonsterStatsDraftAbility(field: MonsterAbilityKey, value: string | number): void {
+    const raw = Number(value);
+    const parsed = Number.isFinite(raw) ? Math.min(30, Math.max(1, Math.trunc(raw))) : 1;
+    this.monsterStatsDraft.update((d) => ({ ...d, [field]: parsed }));
   }
 
   saveMonsterStats(monster: MonsterSession): void {
