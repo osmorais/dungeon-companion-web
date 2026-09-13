@@ -12,6 +12,7 @@ import {
   GrantXpPayload,
   GrantXpResult,
   JoinSessionPayload,
+  MonsterAbilityKey,
   MonsterSession,
   PlayerSession,
   RollLogEntry,
@@ -118,7 +119,13 @@ export class GameSessionService {
 
   updateMonsterStats(
     idMonsterSession: string,
-    stats: { custom_name: string | null; hp_current: number; hp_max: number; ac: number },
+    stats: {
+      custom_name: string | null;
+      hp_current: number;
+      hp_max: number;
+      ac: number;
+      abilities?: Partial<Record<MonsterAbilityKey, number>>;
+    },
   ): Observable<void> {
     return this.http.patch<void>(
       `${this.baseUrl}/api/game-session/monster-session/${idMonsterSession}/stats`,

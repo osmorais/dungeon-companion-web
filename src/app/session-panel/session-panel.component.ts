@@ -9,6 +9,7 @@ import { AuthService } from '../services/auth.service';
 import {
   CombatParticipant,
   GameSessionDetail,
+  MonsterAbilityKey,
   MonsterSession,
   NpcSession,
   PlayerSession,
@@ -706,14 +707,34 @@ export class SessionPanelComponent implements OnDestroy {
 
   /** ========================= DETALHE DO MONSTRO: EDITAR STATUS ========================= */
 
+  readonly MONSTER_ABILITY_FIELDS: { key: MonsterAbilityKey; label: string }[] = [
+    { key: 'strength', label: 'FOR' },
+    { key: 'dexterity', label: 'DES' },
+    { key: 'constitution', label: 'CON' },
+    { key: 'intelligence', label: 'INT' },
+    { key: 'wisdom', label: 'SAB' },
+    { key: 'charisma', label: 'CAR' },
+  ];
+
   editingMonsterStats = signal(false);
   savingMonsterStats = signal(false);
   monsterStatsError = signal<string | null>(null);
-  monsterStatsDraft = signal<{ custom_name: string; hp_current: number; hp_max: number; ac: number }>({
+  monsterStatsDraft = signal<
+    { custom_name: string; hp_current: number; hp_max: number; ac: number } & Record<
+      MonsterAbilityKey,
+      number
+    >
+  >({
     custom_name: '',
     hp_current: 0,
     hp_max: 0,
     ac: 0,
+    strength: 10,
+    dexterity: 10,
+    constitution: 10,
+    intelligence: 10,
+    wisdom: 10,
+    charisma: 10,
   });
 
   startEditMonsterStats(monster: MonsterSession): void {
@@ -722,6 +743,12 @@ export class SessionPanelComponent implements OnDestroy {
       hp_current: monster.hp_current,
       hp_max: monster.hp_max,
       ac: monster.ac,
+      strength: monster.data_snapshot.strength,
+      dexterity: monster.data_snapshot.dexterity,
+      constitution: monster.data_snapshot.constitution,
+      intelligence: monster.data_snapshot.intelligence,
+      wisdom: monster.data_snapshot.wisdom,
+      charisma: monster.data_snapshot.charisma,
     });
     this.monsterStatsError.set(null);
     this.editingMonsterStats.set(true);
@@ -743,6 +770,12 @@ export class SessionPanelComponent implements OnDestroy {
     this.monsterStatsDraft.update((d) => ({ ...d, [field]: value }));
   }
 
+  setMonsterStatsDraftAbility(field: MonsterAbilityKey, event: Event): void {
+    const raw = Number((event.target as HTMLInputElement).value);
+    const value = Number.isFinite(raw) ? Math.min(30, Math.max(1, Math.trunc(raw))) : 1;
+    this.monsterStatsDraft.update((d) => ({ ...d, [field]: value }));
+  }
+
   saveMonsterStats(monster: MonsterSession): void {
     if (this.savingMonsterStats()) return;
     const draft = this.monsterStatsDraft();
@@ -751,11 +784,20 @@ export class SessionPanelComponent implements OnDestroy {
       return;
     }
 
+    const abilities: Record<MonsterAbilityKey, number> = {
+      strength: draft.strength,
+      dexterity: draft.dexterity,
+      constitution: draft.constitution,
+      intelligence: draft.intelligence,
+      wisdom: draft.wisdom,
+      charisma: draft.charisma,
+    };
     const payload = {
       custom_name: draft.custom_name.trim() || null,
       hp_current: Math.min(draft.hp_current, draft.hp_max),
       hp_max: draft.hp_max,
       ac: draft.ac,
+      abilities,
     };
     this.savingMonsterStats.set(true);
     this.monsterStatsError.set(null);
@@ -770,6 +812,7 @@ export class SessionPanelComponent implements OnDestroy {
             hp_current: payload.hp_current,
             hp_max: payload.hp_max,
             ac: payload.ac,
+            data_snapshot: { ...monster.data_snapshot, ...abilities },
           };
           this.activeMonsterDetail.set(updated);
           this.sessionState.patch((detail) => ({

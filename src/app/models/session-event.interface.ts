@@ -1,5 +1,6 @@
 import {
   CombatEncounterDetail,
+  MonsterAbilityKey,
   MonsterSession,
   NpcSession,
   PlayerSession,
@@ -41,6 +42,7 @@ export interface SessionEventPayloadMap {
     hp_current: number;
     hp_max: number;
     ac: number;
+    abilities?: Partial<Record<MonsterAbilityKey, number>>;
   };
   monster_image_updated: { id_monster_session: string; image_url: string };
   monster_revealed: { id_monster_session: string; name: string; image_url: string | null };

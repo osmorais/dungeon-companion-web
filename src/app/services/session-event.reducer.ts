@@ -104,6 +104,9 @@ export function applySessionEvent(
                 hp_current: event.hp_current,
                 hp_max: event.hp_max,
                 ac: event.ac,
+                data_snapshot: event.abilities
+                  ? { ...m.data_snapshot, ...event.abilities }
+                  : m.data_snapshot,
               }
             : m,
         ),

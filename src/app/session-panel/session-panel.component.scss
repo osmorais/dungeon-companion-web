@@ -1927,6 +1927,12 @@
   gap: 10px;
 }
 
+.monster-stats-edit-abilities {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
 .monster-stats-edit-field {
   display: flex;
   flex-direction: column;

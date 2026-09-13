@@ -981,6 +981,14 @@
                 <input type="number" min="1" [ngModel]="monsterStatsDraft().hp_max" (ngModelChange)="setMonsterStatsDraftNumber('hp_max', $event)" />
               </label>
             </div>
+            <div class="monster-stats-edit-abilities">
+              @for (field of MONSTER_ABILITY_FIELDS; track field.key) {
+                <label class="monster-stats-edit-field">
+                  {{ field.label }}
+                  <input type="number" min="1" max="30" [ngModel]="monsterStatsDraft()[field.key]" (ngModelChange)="setMonsterStatsDraftAbility(field.key, $event)" />
+                </label>
+              }
+            </div>
             @if (monsterStatsError()) {
               <p class="stat-image-error">{{ monsterStatsError() }}</p>
             }
@@ -996,16 +1004,16 @@
           <div class="stat-row"><span class="stat-label">PV</span><span>{{ monster.hp_current }}/{{ monster.hp_max }} ({{ monster.data_snapshot.hit_dice }})</span></div>
           <div class="stat-row"><span class="stat-label">DESLOC.</span><span>{{ monsterSpeedText(monster) }}</span></div>
           <button class="retro-btn stat-edit-btn" (click)="startEditMonsterStats(monster)">EDITAR STATUS</button>
-        }
 
-        <div class="stat-abilities">
-          <div class="stat-ability"><span class="stat-ability-key">FOR</span>{{ monster.data_snapshot.strength }}</div>
-          <div class="stat-ability"><span class="stat-ability-key">DES</span>{{ monster.data_snapshot.dexterity }}</div>
-          <div class="stat-ability"><span class="stat-ability-key">CON</span>{{ monster.data_snapshot.constitution }}</div>
-          <div class="stat-ability"><span class="stat-ability-key">INT</span>{{ monster.data_snapshot.intelligence }}</div>
-          <div class="stat-ability"><span class="stat-ability-key">SAB</span>{{ monster.data_snapshot.wisdom }}</div>
-          <div class="stat-ability"><span class="stat-ability-key">CAR</span>{{ monster.data_snapshot.charisma }}</div>
-        </div>
+          <div class="stat-abilities">
+            <div class="stat-ability"><span class="stat-ability-key">FOR</span>{{ monster.data_snapshot.strength }}</div>
+            <div class="stat-ability"><span class="stat-ability-key">DES</span>{{ monster.data_snapshot.dexterity }}</div>
+            <div class="stat-ability"><span class="stat-ability-key">CON</span>{{ monster.data_snapshot.constitution }}</div>
+            <div class="stat-ability"><span class="stat-ability-key">INT</span>{{ monster.data_snapshot.intelligence }}</div>
+            <div class="stat-ability"><span class="stat-ability-key">SAB</span>{{ monster.data_snapshot.wisdom }}</div>
+            <div class="stat-ability"><span class="stat-ability-key">CAR</span>{{ monster.data_snapshot.charisma }}</div>
+          </div>
+        }
 
         <div class="stat-row"><span class="stat-label">ND</span><span>{{ monster.data_snapshot.challenge_rating }} ({{ monster.data_snapshot.xp }} XP)</span></div>
 
