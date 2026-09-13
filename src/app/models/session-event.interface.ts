@@ -35,6 +35,13 @@ export interface SessionEventPayloadMap {
   };
   npc_hp_updated: { id_npc_session: string; current_hit_points: number };
   monster_hp_updated: { id_monster_session: string; hp_current: number };
+  monster_stats_updated: {
+    id_monster_session: string;
+    custom_name: string | null;
+    hp_current: number;
+    hp_max: number;
+    ac: number;
+  };
   monster_image_updated: { id_monster_session: string; image_url: string };
   monster_revealed: { id_monster_session: string; name: string; image_url: string | null };
   monster_hidden: { id_monster_session: string };

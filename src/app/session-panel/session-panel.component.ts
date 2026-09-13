@@ -1,4 +1,5 @@
 import { Component, HostListener, OnDestroy, inject, input, signal, effect, untracked, computed } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subscription, finalize, interval } from 'rxjs';
 import { GameSessionService } from '../services/game-session.service';
@@ -29,6 +30,7 @@ import { AddMonsterModalComponent } from '../add-monster-modal/add-monster-modal
   selector: 'app-session-panel',
   standalone: true,
   imports: [
+    FormsModule,
     AvatarDisplayComponent,
     PixelDieComponent,
     PixelNumericDieComponent,
@@ -698,6 +700,90 @@ export class SessionPanelComponent implements OnDestroy {
 
   closeMonsterDetail() {
     this.activeMonsterDetail.set(null);
+    this.editingMonsterStats.set(false);
+    this.monsterStatsError.set(null);
+  }
+
+  /** ========================= DETALHE DO MONSTRO: EDITAR STATUS ========================= */
+
+  editingMonsterStats = signal(false);
+  savingMonsterStats = signal(false);
+  monsterStatsError = signal<string | null>(null);
+  monsterStatsDraft = signal<{ custom_name: string; hp_current: number; hp_max: number; ac: number }>({
+    custom_name: '',
+    hp_current: 0,
+    hp_max: 0,
+    ac: 0,
+  });
+
+  startEditMonsterStats(monster: MonsterSession): void {
+    this.monsterStatsDraft.set({
+      custom_name: monster.custom_name ?? '',
+      hp_current: monster.hp_current,
+      hp_max: monster.hp_max,
+      ac: monster.ac,
+    });
+    this.monsterStatsError.set(null);
+    this.editingMonsterStats.set(true);
+  }
+
+  cancelEditMonsterStats(): void {
+    this.editingMonsterStats.set(false);
+    this.monsterStatsError.set(null);
+  }
+
+  setMonsterStatsDraftName(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.monsterStatsDraft.update((d) => ({ ...d, custom_name: value }));
+  }
+
+  setMonsterStatsDraftNumber(field: 'hp_current' | 'hp_max' | 'ac', event: Event): void {
+    const raw = Number((event.target as HTMLInputElement).value);
+    const value = Number.isFinite(raw) ? Math.max(0, Math.trunc(raw)) : 0;
+    this.monsterStatsDraft.update((d) => ({ ...d, [field]: value }));
+  }
+
+  saveMonsterStats(monster: MonsterSession): void {
+    if (this.savingMonsterStats()) return;
+    const draft = this.monsterStatsDraft();
+    if (draft.hp_max < 1) {
+      this.monsterStatsError.set('PV máximo precisa ser maior que zero.');
+      return;
+    }
+
+    const payload = {
+      custom_name: draft.custom_name.trim() || null,
+      hp_current: Math.min(draft.hp_current, draft.hp_max),
+      hp_max: draft.hp_max,
+      ac: draft.ac,
+    };
+    this.savingMonsterStats.set(true);
+    this.monsterStatsError.set(null);
+    this.gameSessionService
+      .updateMonsterStats(monster.id_monster_session, payload)
+      .pipe(finalize(() => this.savingMonsterStats.set(false)))
+      .subscribe({
+        next: () => {
+          const updated: MonsterSession = {
+            ...monster,
+            custom_name: payload.custom_name ?? undefined,
+            hp_current: payload.hp_current,
+            hp_max: payload.hp_max,
+            ac: payload.ac,
+          };
+          this.activeMonsterDetail.set(updated);
+          this.sessionState.patch((detail) => ({
+            ...detail,
+            monsters: detail.monsters.map((m) =>
+              m.id_monster_session === monster.id_monster_session ? updated : m,
+            ),
+          }));
+          this.editingMonsterStats.set(false);
+        },
+        error: () => {
+          this.monsterStatsError.set('Não foi possível salvar os status. Tente novamente.');
+        },
+      });
   }
 
   /** ========================= DETALHE DO MONSTRO: IMAGEM CUSTOMIZADA ========================= */

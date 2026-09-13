@@ -961,9 +961,42 @@
           }
         </div>
 
-        <div class="stat-row"><span class="stat-label">CA</span><span>{{ monster.ac }}</span></div>
-        <div class="stat-row"><span class="stat-label">PV</span><span>{{ monster.hp_current }}/{{ monster.hp_max }} ({{ monster.data_snapshot.hit_dice }})</span></div>
-        <div class="stat-row"><span class="stat-label">DESLOC.</span><span>{{ monsterSpeedText(monster) }}</span></div>
+        @if (editingMonsterStats()) {
+          <div class="monster-stats-edit">
+            <label class="monster-stats-edit-field">
+              NOME
+              <input type="text" [ngModel]="monsterStatsDraft().custom_name" (ngModelChange)="setMonsterStatsDraftName($event)" [placeholder]="monster.data_snapshot.name" />
+            </label>
+            <div class="monster-stats-edit-row">
+              <label class="monster-stats-edit-field">
+                CA
+                <input type="number" min="0" [ngModel]="monsterStatsDraft().ac" (ngModelChange)="setMonsterStatsDraftNumber('ac', $event)" />
+              </label>
+              <label class="monster-stats-edit-field">
+                PV ATUAL
+                <input type="number" min="0" [ngModel]="monsterStatsDraft().hp_current" (ngModelChange)="setMonsterStatsDraftNumber('hp_current', $event)" />
+              </label>
+              <label class="monster-stats-edit-field">
+                PV MÁXIMO
+                <input type="number" min="1" [ngModel]="monsterStatsDraft().hp_max" (ngModelChange)="setMonsterStatsDraftNumber('hp_max', $event)" />
+              </label>
+            </div>
+            @if (monsterStatsError()) {
+              <p class="stat-image-error">{{ monsterStatsError() }}</p>
+            }
+            <div class="monster-stats-edit-actions">
+              <button class="retro-btn" (click)="cancelEditMonsterStats()" [disabled]="savingMonsterStats()">CANCELAR</button>
+              <button class="retro-btn stat-save-btn" (click)="saveMonsterStats(monster)" [disabled]="savingMonsterStats()">
+                {{ savingMonsterStats() ? 'SALVANDO...' : 'SALVAR' }}
+              </button>
+            </div>
+          </div>
+        } @else {
+          <div class="stat-row"><span class="stat-label">CA</span><span>{{ monster.ac }}</span></div>
+          <div class="stat-row"><span class="stat-label">PV</span><span>{{ monster.hp_current }}/{{ monster.hp_max }} ({{ monster.data_snapshot.hit_dice }})</span></div>
+          <div class="stat-row"><span class="stat-label">DESLOC.</span><span>{{ monsterSpeedText(monster) }}</span></div>
+          <button class="retro-btn stat-edit-btn" (click)="startEditMonsterStats(monster)">EDITAR STATUS</button>
+        }
 
         <div class="stat-abilities">
           <div class="stat-ability"><span class="stat-ability-key">FOR</span>{{ monster.data_snapshot.strength }}</div>

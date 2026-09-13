@@ -1909,6 +1909,62 @@
   min-width: 60px;
 }
 
+.stat-edit-btn {
+  align-self: flex-start;
+  font-size: 8px;
+  margin-top: 4px;
+}
+
+.monster-stats-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.monster-stats-edit-row {
+  display: flex;
+  gap: 10px;
+}
+
+.monster-stats-edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 7px;
+  color: var(--label-title-color);
+  flex: 1;
+
+  input {
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    padding: 6px 8px;
+
+    &:focus {
+      outline: none;
+      border-color: var(--accent-color);
+    }
+  }
+}
+
+.monster-stats-edit-actions {
+  display: flex;
+  gap: 8px;
+
+  .retro-btn {
+    flex: 1;
+    font-size: 8px;
+  }
+}
+
+.stat-save-btn {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
 .stat-abilities {
   display: grid;
   grid-template-columns: repeat(6, 1fr);

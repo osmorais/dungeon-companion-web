@@ -116,6 +116,17 @@ export class GameSessionService {
     );
   }
 
+  updateMonsterStats(
+    idMonsterSession: string,
+    stats: { custom_name: string | null; hp_current: number; hp_max: number; ac: number },
+  ): Observable<void> {
+    return this.http.patch<void>(
+      `${this.baseUrl}/api/game-session/monster-session/${idMonsterSession}/stats`,
+      stats,
+      { context: this.silentContext() },
+    );
+  }
+
   uploadMonsterImage(idMonsterSession: string, file: File): Observable<MonsterSession> {
     const formData = new FormData();
     formData.append('image', file);
