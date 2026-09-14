@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output, inject, signal } from '@angular/core';
 import { CommonModule, KeyValuePipe } from '@angular/common';
 import { CharacterService, HitDieRollResult } from '../services/character.service';
-import { CharacterSheetResponse, ChiAbility, ResourceTracker } from '../models/character-response.interface';
+import { CharacterSheetResponse, ClassAbility, ResourceTracker } from '../models/character-response.interface';
 import { Skill, Spell, WeaponRow } from '../models/character-options.interface';
 import {
   AbilityRollConfig,
@@ -313,39 +313,39 @@ export class PlayerActionsModalComponent implements OnInit {
     return Math.max(0, res.max - res.used);
   }
 
-  resourceAvailableForAbility(ability: ChiAbility): number {
+  resourceAvailableForAbility(ability: ClassAbility): number {
     const res = this.resourceTrackerByKey(ability.resource_key);
     return res ? this.resourceAvailable(res) : 0;
   }
 
-  chiAbilities(): ChiAbility[] {
-    return this.sheet()?.character_sheet.chi_abilities ?? [];
+  classAbilities(): ClassAbility[] {
+    return this.sheet()?.character_sheet.class_abilities ?? [];
   }
 
-  abilitiesForResource(resourceKey: string): ChiAbility[] {
-    return this.chiAbilities().filter((a) => a.resource_key === resourceKey);
+  abilitiesForResource(resourceKey: string): ClassAbility[] {
+    return this.classAbilities().filter((a) => a.resource_key === resourceKey);
   }
 
-  private expandedChiAbilityNames = new Set<string>();
+  private expandedAbilityNames = new Set<string>();
 
-  isChiAbilityExpanded(name: string): boolean {
-    return this.expandedChiAbilityNames.has(name);
+  isAbilityExpanded(name: string): boolean {
+    return this.expandedAbilityNames.has(name);
   }
 
-  toggleChiAbilityDetails(name: string): void {
-    if (this.expandedChiAbilityNames.has(name)) this.expandedChiAbilityNames.delete(name);
-    else this.expandedChiAbilityNames.add(name);
+  toggleAbilityDetails(name: string): void {
+    if (this.expandedAbilityNames.has(name)) this.expandedAbilityNames.delete(name);
+    else this.expandedAbilityNames.add(name);
   }
 
-  canUseChiAbility(ability: ChiAbility): boolean {
-    return !this.expendingResource() && this.resourceAvailableForAbility(ability) >= ability.chi_cost;
+  canUseClassAbility(ability: ClassAbility): boolean {
+    return !this.expendingResource() && this.resourceAvailableForAbility(ability) >= ability.cost;
   }
 
-  useChiAbility(ability: ChiAbility): void {
-    if (!this.canUseChiAbility(ability)) return;
+  useClassAbility(ability: ClassAbility): void {
+    if (!this.canUseClassAbility(ability)) return;
     this.expendingResource.set(true);
     this.actionError.set(null);
-    this.charService.updateResourceUses(this.idCharacter, ability.resource_key, ability.chi_cost).subscribe({
+    this.charService.updateResourceUses(this.idCharacter, ability.resource_key, ability.cost).subscribe({
       next: ({ resource_trackers }) => {
         this.patchResourceTrackers(resource_trackers);
         this.expendingResource.set(false);

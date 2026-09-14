@@ -360,7 +360,7 @@
                       <div class="spell-card-left">
                         <div class="spell-card-name">{{ ability.name }}</div>
                       </div>
-                      <div class="spell-card-level">{{ ability.chi_cost }}</div>
+                      <div class="spell-card-level">{{ ability.cost }}</div>
                     </div>
                   }
                 </div>
@@ -795,7 +795,7 @@
                 @for (ability of chiAbilities(); track ability.name) {
                   <tr class="clickable-row" (click)="openChiAbilityModal(ability)">
                     <td>{{ ability.name }}</td>
-                    <td class="text-center">{{ ability.chi_cost }} chi</td>
+                    <td class="text-center">{{ ability.cost }} chi</td>
                   </tr>
                 }
               </tbody>
@@ -947,7 +947,7 @@
       <div class="retro-panel item-modal" (click)="$event.stopPropagation()">
         <button class="item-modal-close" (click)="closeChiAbilityModal()">✕</button>
         <h3 class="item-modal-title">{{ ability.name }}</h3>
-        <p class="spell-school">Custo: {{ ability.chi_cost }} ponto(s) de chi</p>
+        <p class="spell-school">Custo: {{ ability.cost }} ponto(s) de chi</p>
         <div class="item-modal-info">
           @if (ability.description) {
             <div class="spell-description">{{ ability.description }}</div>
@@ -957,9 +957,9 @@
           <button class="retro-btn spell-slot-btn"
                   [disabled]="!canUseChiAbility(ability)"
                   (click)="useChiAbility(ability); closeChiAbilityModal()">
-            USAR ({{ ability.chi_cost }} chi)
+            USAR ({{ ability.cost }} chi)
           </button>
-          @if (resourceAvailableForAbility(ability) < ability.chi_cost) {
+          @if (resourceAvailableForAbility(ability) < ability.cost) {
             <p class="spell-no-slots">Chi insuficiente.</p>
           }
         </div>

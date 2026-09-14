@@ -5,7 +5,7 @@ import { CommonModule, KeyValuePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { CharacterService, HitDieRollResult } from '../services/character.service';
 import { Skill, Spell, WeaponRow } from '../models/character-options.interface';
-import { CharacterSheetResponse, ResourceTracker, ChiAbility } from '../models/character-response.interface';
+import { CharacterSheetResponse, ResourceTracker, ClassAbility } from '../models/character-response.interface';
 import { AvatarPreset } from '../models/avatar-preset.interface';
 import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
 import { AvatarCustomizerComponent } from '../avatar-customizer/avatar-customizer.component';
@@ -456,13 +456,13 @@ export class CharacterSheetComponent {
 
   /** ========================= CARACTERÍSTICAS ATIVÁVEIS (CHI DO MONGE/...) ========================= */
 
-  chiAbilities(): ChiAbility[] {
-    return this.sheetData()?.character_sheet.chi_abilities ?? [];
+  chiAbilities(): ClassAbility[] {
+    return this.sheetData()?.character_sheet.class_abilities ?? [];
   }
 
-  selectedChiAbility: ChiAbility | null = null;
+  selectedChiAbility: ClassAbility | null = null;
 
-  openChiAbilityModal(ability: ChiAbility): void {
+  openChiAbilityModal(ability: ClassAbility): void {
     this.selectedChiAbility = ability;
   }
 
@@ -470,18 +470,18 @@ export class CharacterSheetComponent {
     this.selectedChiAbility = null;
   }
 
-  canUseChiAbility(ability: ChiAbility): boolean {
+  canUseChiAbility(ability: ClassAbility): boolean {
     const res = this.resourceTrackerByKey(ability.resource_key);
     if (!res) return false;
-    return !this.expendingResource() && this.resourceAvailable(res) >= ability.chi_cost;
+    return !this.expendingResource() && this.resourceAvailable(res) >= ability.cost;
   }
 
-  useChiAbility(ability: ChiAbility): void {
+  useChiAbility(ability: ClassAbility): void {
     if (!this.canUseChiAbility(ability)) return;
-    this.expendResource(ability.resource_key, ability.chi_cost);
+    this.expendResource(ability.resource_key, ability.cost);
   }
 
-  resourceAvailableForAbility(ability: ChiAbility): number {
+  resourceAvailableForAbility(ability: ClassAbility): number {
     const res = this.resourceTrackerByKey(ability.resource_key);
     return res ? this.resourceAvailable(res) : 0;
   }

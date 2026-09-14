@@ -217,22 +217,23 @@
                   <div class="pa-spell-head">
                     <span class="pa-spell-name">
                       {{ ability.name }}
-                      <span class="pa-spell-level">{{ ability.chi_cost }} chi</span>
+                      <span class="pa-spell-level">custo: {{ ability.cost }}</span>
                     </span>
-                    <button type="button" class="pa-prepare-toggle" (click)="toggleChiAbilityDetails(ability.name)">
-                      {{ isChiAbilityExpanded(ability.name) ? '▾' : '▸' }}
+                    <button type="button" class="pa-prepare-toggle" (click)="toggleAbilityDetails(ability.name)">
+                      {{ isAbilityExpanded(ability.name) ? '▾' : '▸' }}
                     </button>
                   </div>
-                  @if (isChiAbilityExpanded(ability.name)) {
+                  @if (isAbilityExpanded(ability.name)) {
                     <p class="pa-no-slots">{{ ability.description }}</p>
                   }
                   <div class="pa-cast-options">
                     <button
                       class="pa-cast-btn"
-                      [disabled]="!canUseChiAbility(ability)"
-                      (click)="useChiAbility(ability)"
+                      [disabled]="!canUseClassAbility(ability)"
+                      (click)="useClassAbility(ability)"
                     >
-                      USAR ({{ ability.chi_cost }})
+                      <span class="pa-cast-btn-label">Usar</span>
+                      <span class="pa-cast-btn-slots">custo: {{ ability.cost }} de {{ res.name }}</span>
                     </button>
                   </div>
                 </div>

@@ -14,11 +14,11 @@ export interface ResourceTracker {
   recharge_on: 'short_rest' | 'long_rest';
 }
 
-/** Característica ativável gastando um dos recursos rastreados (hoje só as de Pontos de Chi do Monge). */
-export interface ChiAbility {
+/** Característica ativável gastando um dos recursos rastreados (Canalizar Divindade, Fúria, Pontos de Chi, Forma Selvagem, etc.). */
+export interface ClassAbility {
   name: string;
   description: string;
-  chi_cost: number;
+  cost: number;
   resource_key: string;
 }
 
@@ -85,7 +85,7 @@ export interface CharacterSheetResponse {
     /** Vazio se a classe não tiver nenhum recurso rastreável neste nível. Uma classe pode ter mais de um ao mesmo tempo. */
     resource_trackers: ResourceTracker[];
     /** Vazio se a classe não tiver nenhuma característica ativável neste nível. */
-    chi_abilities: ChiAbility[];
+    class_abilities: ClassAbility[];
     /** Recursos de classe/subclasse que escalam por nível (ex: "Ataque Furtivo": "2d6") — informativo, `null` se não houver nenhum neste nível. */
     class_resources: Record<string, string> | null;
   };
