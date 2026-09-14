@@ -248,6 +248,23 @@
   padding: 6px 10px;
 }
 
+.pa-spell-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pa-spell-row-main {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.pa-spell-name-btn {
+  flex: 1;
+  min-width: 0;
+}
+
 .pa-spell-circle-header {
   display: flex;
   align-items: center;
@@ -304,23 +321,38 @@
 
 .pa-prepare-toggle {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
   cursor: pointer;
+  border: 1px solid var(--border-color);
+  padding: 0 8px;
+  font-size: 7px;
+  color: var(--label-title-color);
+  white-space: nowrap;
+}
+
+.pa-prepare-toggle-label {
+  pointer-events: none;
 }
 
 .pa-cast-options {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  margin-top: 6px;
+  margin-top: 2px;
 }
 
 .pa-cast-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
   background-color: var(--btn-color);
   color: var(--text-color);
   border: 1px solid var(--border-color);
-  padding: 4px 6px;
+  padding: 5px 7px;
   font-family: 'Press Start 2P', monospace;
-  font-size: 7px;
   cursor: pointer;
 
   &:hover:not(:disabled) {
@@ -333,7 +365,109 @@
   }
 }
 
+.pa-cast-btn-label {
+  font-size: 7px;
+}
+
+.pa-cast-btn-slots {
+  font-size: 6px;
+  color: var(--label-title-color);
+}
+
 .pa-no-slots {
   font-size: 7px;
   color: var(--label-title-color);
+}
+
+/* ===== MODAL: DETALHES DA MAGIA ===== */
+
+.pa-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.pa-item-modal {
+  position: relative;
+  width: 420px;
+  max-width: 100%;
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+  padding: 24px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+
+  &-close {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+
+    &:hover { color: var(--accent-color); }
+  }
+
+  &-title {
+    font-size: 11px;
+    color: var(--accent-color);
+    margin: 0 0 4px;
+    text-align: center;
+  }
+
+  &-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 6px;
+  }
+
+  &-label {
+    font-size: 8px;
+    color: var(--label-title-color);
+    flex-shrink: 0;
+  }
+
+  &-value {
+    font-size: 9px;
+    color: var(--text-color);
+    text-align: right;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+}
+
+.pa-spell-school-line {
+  font-size: 8px;
+  color: var(--label-title-color);
+  text-align: center;
+  text-transform: capitalize;
+  margin: 0 0 15px;
+}
+
+.pa-spell-description {
+  font-size: 8px;
+  color: var(--text-color);
+  line-height: 1.5;
+  border-top: 1px solid var(--border-color);
+  padding-top: 10px;
+  margin-top: 4px;
 }

@@ -50,7 +50,7 @@
         <div class="pa-row-list">
           @for (attr of data.character_sheet.attributes_and_saves | keyvalue; track attr.key) {
             <button class="pa-action-row" (click)="rollSave(attr.key, attr.value.save)">
-              <span>{{ attr.key }}</span>
+              <span>{{ attrLabel(attr.key) }}</span>
               <span class="pa-action-value">{{ formatMod(attr.value.save) }}</span>
             </button>
           }
@@ -143,16 +143,20 @@
               </button>
               @if (!isCircleCollapsed(group.circle)) {
                 @for (spell of group.spells; track spell.id_spell) {
-                  <div class="pa-spell-row">
-                    <div class="pa-spell-head">
-                      <span class="pa-spell-name">
-                        {{ spell.name }}
-                        <span class="pa-spell-level">{{
-                          spell.spellLevel === 0 ? 'T' : 'N' + spell.spellLevel
+                  <div class="pa-spell-entry">
+                    <div class="pa-spell-row-main">
+                      <button
+                        type="button"
+                        class="pa-action-row pa-spell-name-btn"
+                        (click)="openSpellDetail(spell)"
+                      >
+                        <span>{{ spell.name }}</span>
+                        <span class="pa-action-value">{{
+                          spell.spellLevel === 0 ? 'TRUQUE' : circleName(spell.spellLevel)
                         }}</span>
-                      </span>
+                      </button>
                       @if (spell.spellLevel > 0 && spellInfo.prepares_spells) {
-                        <label class="pa-prepare-toggle" title="Preparada">
+                        <label class="pa-prepare-toggle">
                           <input
                             type="checkbox"
                             class="retro-checkbox"
@@ -160,6 +164,7 @@
                             [disabled]="!spell.is_prepared && !canPrepareMore()"
                             (change)="togglePrepared(spell)"
                           />
+                          <span class="pa-prepare-toggle-label">Preparar</span>
                         </label>
                       }
                     </div>
@@ -171,11 +176,14 @@
                             [disabled]="expendingSlot()"
                             (click)="castSpell(spell, lvl)"
                           >
-                            NV{{ lvl }} ({{ slotsAvailable('level_' + lvl) }})
+                            <span class="pa-cast-btn-label">Lançar ({{ circleName(lvl) }})</span>
+                            <span class="pa-cast-btn-slots"
+                              >{{ slotsAvailable('level_' + lvl) }} espaço(s) restante(s)</span
+                            >
                           </button>
                         }
                         @if (availableSlotLevelsFor(spell).length === 0) {
-                          <span class="pa-no-slots">sem espaços</span>
+                          <span class="pa-no-slots">sem espaços disponíveis</span>
                         }
                       </div>
                     }
@@ -246,4 +254,39 @@
     (rolled)="onRolled()"
     (closed)="closeRoll()"
   />
+}
+
+@if (selectedSpellDetail(); as spell) {
+  <div class="pa-overlay pa-detail-overlay" (click)="closeSpellDetail()">
+    <div class="pa-item-modal" (click)="$event.stopPropagation()">
+      <button class="pa-item-modal-close" (click)="closeSpellDetail()">✕</button>
+      <h3 class="pa-item-modal-title">{{ spell.name }}</h3>
+      <p class="pa-spell-school-line">
+        {{ spell.school }} — {{ spell.spellLevel === 0 ? 'Truque' : circleName(spell.spellLevel) }}
+      </p>
+      <div class="pa-item-modal-info">
+        <div class="pa-item-modal-row">
+          <span class="pa-item-modal-label">TEMPO DE CONJURAÇÃO</span>
+          <span class="pa-item-modal-value">{{ spell.casting_time ?? '—' }}</span>
+        </div>
+        <div class="pa-item-modal-row">
+          <span class="pa-item-modal-label">ALCANCE</span>
+          <span class="pa-item-modal-value">{{
+            spell.range_distance != null ? spell.range_distance + ' m' : '—'
+          }}</span>
+        </div>
+        <div class="pa-item-modal-row">
+          <span class="pa-item-modal-label">DURAÇÃO</span>
+          <span class="pa-item-modal-value">{{ spell.duration ?? '—' }}</span>
+        </div>
+        <div class="pa-item-modal-row">
+          <span class="pa-item-modal-label">COMPONENTES</span>
+          <span class="pa-item-modal-value">{{ spellComponents(spell) }}</span>
+        </div>
+        @if (spell.description) {
+          <div class="pa-spell-description">{{ spell.description }}</div>
+        }
+      </div>
+    </div>
+  </div>
 }

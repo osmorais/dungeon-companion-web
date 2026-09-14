@@ -8,6 +8,7 @@ import {
   RollConfig,
   RollModalComponent,
 } from '../roll-modal/roll-modal.component';
+import { attrLabel } from '../models/level-up.interface';
 
 @Component({
   selector: 'app-player-actions-modal',
@@ -75,11 +76,13 @@ export class PlayerActionsModalComponent implements OnInit {
     this.activeRoll.set(config);
   }
 
+  readonly attrLabel = attrLabel;
+
   rollSave(attrKey: string, save: number): void {
     const config: AbilityRollConfig = {
       mode: 'ability',
       rollType: 'save',
-      label: `Resistência: ${attrKey}`,
+      label: `Resistência: ${attrLabel(attrKey)}`,
       modifier: save,
     };
     this.activeRoll.set(config);
@@ -151,19 +154,38 @@ export class PlayerActionsModalComponent implements OnInit {
     return circle === 0 ? 'TRUQUES' : `${circle}º CÍRCULO`;
   }
 
-  private collapsedCircles = signal<Set<number>>(new Set());
+  /** Vazio por padrão = todos os círculos vêm colapsados ao abrir a ficha. */
+  private expandedCircles = signal<Set<number>>(new Set());
 
   isCircleCollapsed(circle: number): boolean {
-    return this.collapsedCircles().has(circle);
+    return !this.expandedCircles().has(circle);
   }
 
   toggleCircle(circle: number): void {
-    this.collapsedCircles.update((current) => {
+    this.expandedCircles.update((current) => {
       const next = new Set(current);
       if (next.has(circle)) next.delete(circle);
       else next.add(circle);
       return next;
     });
+  }
+
+  /** ========================= DETALHE DA MAGIA ========================= */
+
+  selectedSpellDetail = signal<Spell | null>(null);
+
+  openSpellDetail(spell: Spell): void {
+    this.selectedSpellDetail.set(spell);
+  }
+
+  closeSpellDetail(): void {
+    this.selectedSpellDetail.set(null);
+  }
+
+  spellComponents(spell: Spell): string {
+    return [spell.is_verbal ? 'V' : '', spell.is_somatic ? 'S' : '', spell.is_material ? 'M' : '']
+      .filter(Boolean)
+      .join(', ') || '—';
   }
 
   /** ========================= ESPAÇOS DE MAGIA ========================= */
