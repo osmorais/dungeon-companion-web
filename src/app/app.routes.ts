@@ -113,6 +113,14 @@ export const routes: Routes = [
         m => m.MonsterCatalogDetailComponent,
       ),
   },
+  {
+    path: 'spell-catalog',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./spell-catalog-list/spell-catalog-list.component').then(
+        m => m.SpellCatalogListComponent,
+      ),
+  },
 
   { path: '**', redirectTo: '' },
 ];

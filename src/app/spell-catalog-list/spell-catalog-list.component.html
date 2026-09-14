@@ -1,0 +1,138 @@
+@if (isMobile()) {
+  <!-- ===== MOBILE LAYOUT ===== -->
+  <div class="mobile-catalog-container">
+
+    <div class="mobile-header">
+      <button class="mobile-back-btn" (click)="goBack()">&#8592;</button>
+      <span class="mobile-title">GRIMÓRIO DE MAGIAS</span>
+    </div>
+
+    <input
+      class="mobile-search-input"
+      type="text"
+      placeholder="Buscar magia pelo nome..."
+      [ngModel]="searchTerm()"
+      (ngModelChange)="onSearchChange($event)"
+    />
+
+    @if (loading()) {
+      <p class="mobile-empty-msg">CARREGANDO...</p>
+    } @else if (error()) {
+      <p class="mobile-empty-msg">ERRO AO CARREGAR AS MAGIAS.</p>
+    } @else if (spells().length === 0) {
+      <p class="mobile-empty-msg">NENHUMA MAGIA ENCONTRADA.</p>
+    } @else {
+      <ul class="mobile-spell-list">
+        @for (spell of spells(); track spell.id_spell) {
+          <li class="mobile-spell-card" (click)="openDetail(spell)">
+            <div class="mobile-spell-info">
+              <span class="mobile-spell-name">{{ spell.name }}</span>
+              <span class="mobile-spell-meta">{{ circleName(spell.spellLevel) }} &mdash; {{ spell.school }}</span>
+            </div>
+          </li>
+        }
+      </ul>
+
+      <div class="mobile-pagination">
+        <button class="mobile-page-btn" [disabled]="!hasPrev()" (click)="prevPage()">&#9664;</button>
+        <span class="mobile-page-info">{{ page() }} / {{ totalPages() }}</span>
+        <button class="mobile-page-btn" [disabled]="!hasNext()" (click)="nextPage()">&#9654;</button>
+      </div>
+
+      <p class="mobile-total-count">TOTAL: {{ totalCount() }}</p>
+    }
+
+  </div>
+} @else {
+  <!-- ===== DESKTOP LAYOUT ===== -->
+  <div class="list-container">
+
+    <fieldset class="retro-panel title-panel">
+      <legend>GRIMÓRIO DE MAGIAS</legend>
+    </fieldset>
+
+    <div class="search-row">
+      <input
+        class="search-input"
+        type="text"
+        placeholder="Buscar magia pelo nome..."
+        [ngModel]="searchTerm()"
+        (ngModelChange)="onSearchChange($event)"
+      />
+    </div>
+
+    @if (loading()) {
+      <fieldset class="retro-panel">
+        <p class="empty-msg">CARREGANDO...</p>
+      </fieldset>
+    } @else if (error()) {
+      <fieldset class="retro-panel">
+        <p class="empty-msg">ERRO AO CARREGAR AS MAGIAS.</p>
+      </fieldset>
+    } @else if (spells().length === 0) {
+      <fieldset class="retro-panel">
+        <p class="empty-msg">NENHUMA MAGIA ENCONTRADA.</p>
+      </fieldset>
+    } @else {
+      <fieldset class="retro-panel">
+        <legend>MAGIAS</legend>
+        <div class="spell-grid">
+          @for (spell of spells(); track spell.id_spell) {
+            <div class="spell-card" (click)="openDetail(spell)">
+              <span class="spell-name">{{ spell.name }}</span>
+              <span class="spell-meta">{{ circleName(spell.spellLevel) }}</span>
+              <span class="spell-school">{{ spell.school }}</span>
+            </div>
+          }
+        </div>
+      </fieldset>
+
+      <div class="pagination">
+        <button class="retro-btn page-btn" [disabled]="!hasPrev()" (click)="prevPage()">&#9664; ANTERIOR</button>
+        <span class="page-info">{{ page() }} / {{ totalPages() }}</span>
+        <button class="retro-btn page-btn" [disabled]="!hasNext()" (click)="nextPage()">PRÓXIMA &#9654;</button>
+      </div>
+
+      <p class="total-count">TOTAL DE MAGIAS: {{ totalCount() }}</p>
+    }
+
+    <button class="retro-btn back-btn" (click)="goBack()">VOLTAR</button>
+
+  </div>
+}
+
+<!-- ===== MODAL: DETALHES DA MAGIA ===== -->
+@if (selectedSpell(); as spell) {
+  <div class="overlay modal-overlay" (click)="closeDetail()">
+    <div class="retro-panel item-modal" (click)="$event.stopPropagation()">
+      <button class="item-modal-close" (click)="closeDetail()">✕</button>
+      <h3 class="item-modal-title">{{ spell.name }}</h3>
+      <p class="spell-school-line">{{ spell.school }} — {{ circleName(spell.spellLevel) }}</p>
+      <div class="item-modal-info">
+        <div class="item-modal-row">
+          <span class="item-modal-label">TEMPO DE CONJURAÇÃO</span>
+          <span class="item-modal-value">{{ spell.casting_time ?? '—' }}</span>
+        </div>
+        <div class="item-modal-row">
+          <span class="item-modal-label">ALCANCE</span>
+          <span class="item-modal-value">{{ spell.range_distance != null ? spell.range_distance + ' m' : '—' }}</span>
+        </div>
+        <div class="item-modal-row">
+          <span class="item-modal-label">DURAÇÃO</span>
+          <span class="item-modal-value">{{ spell.duration ?? '—' }}</span>
+        </div>
+        <div class="item-modal-row">
+          <span class="item-modal-label">COMPONENTES</span>
+          <span class="item-modal-value spell-components">
+            @if (spell.is_verbal) { <span class="component-tag">V</span> }
+            @if (spell.is_somatic) { <span class="component-tag">S</span> }
+            @if (spell.is_material) { <span class="component-tag">M</span> }
+          </span>
+        </div>
+        @if (spell.description) {
+          <div class="spell-description">{{ spell.description }}</div>
+        }
+      </div>
+    </div>
+  </div>
+}

@@ -67,4 +67,8 @@ export class HomeComponent {
   catalogMonsters() {
     this.router.navigate(['/monster-catalog']);
   }
+
+  openSpellCatalog() {
+    this.router.navigate(['/spell-catalog']);
+  }
 }
