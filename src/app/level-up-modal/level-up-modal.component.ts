@@ -20,6 +20,7 @@ import {
   LevelUpResult,
   STAT_KEYS,
   StatKeyEn,
+  attrLabel,
 } from '../models/level-up.interface';
 
 const ASI_TOTAL_POINTS = 2;
@@ -64,6 +65,7 @@ export class LevelUpModalComponent implements OnInit {
   @Output() leveledUp = new EventEmitter<LevelUpResult>();
 
   readonly statKeys = STAT_KEYS;
+  readonly attrLabel = attrLabel;
 
   loading = signal(true);
   preview = signal<LevelUpPreview | null>(null);

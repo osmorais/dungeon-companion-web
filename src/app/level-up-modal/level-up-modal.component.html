@@ -248,7 +248,7 @@
                 <div class="lu-asi-grid">
                   @for (stat of statKeys; track stat) {
                     <div class="lu-asi-stat">
-                      <span class="lu-asi-stat-name">{{ stat }}</span>
+                      <span class="lu-asi-stat-name">{{ attrLabel(stat) }}</span>
                       <span class="lu-asi-stat-value">+{{ asiAllocation()[stat] ?? 0 }}</span>
                       <button
                         class="retro-btn lu-asi-btn"
@@ -390,7 +390,7 @@
                     <div class="lu-chip-grid">
                       @for (entry of asiIncreaseEntries(); track entry.stat) {
                         <span class="lu-chip"
-                          >{{ entry.stat }}: <strong>+{{ entry.amount }}</strong></span
+                          >{{ attrLabel(entry.stat) }}: <strong>+{{ entry.amount }}</strong></span
                         >
                       }
                     </div>

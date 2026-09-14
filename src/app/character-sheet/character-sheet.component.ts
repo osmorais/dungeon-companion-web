@@ -12,6 +12,7 @@ import { AvatarCustomizerComponent } from '../avatar-customizer/avatar-customize
 import { AbilityRollConfig, RollConfig, RollModalComponent } from '../roll-modal/roll-modal.component';
 import { LevelUpModalComponent } from '../level-up-modal/level-up-modal.component';
 import { EquipmentModalComponent, EquipmentSaved } from '../equipment-modal/equipment-modal.component';
+import { attrLabel } from '../models/level-up.interface';
 
 type MobileTab = 'combat' | 'attrs' | 'skills' | 'traits' | 'equipment' | 'spells' | 'notes';
 type DesktopPage = 'sheet' | 'notes';
@@ -696,11 +697,13 @@ export class CharacterSheetComponent {
     this.activeRoll.set(config);
   }
 
+  readonly attrLabel = attrLabel;
+
   rollSave(attrKey: string, save: number): void {
     const config: AbilityRollConfig = {
       mode: 'ability',
       rollType: 'save',
-      label: `Resistência: ${attrKey}`,
+      label: `Resistência: ${attrLabel(attrKey)}`,
       modifier: save,
     };
     this.activeRoll.set(config);

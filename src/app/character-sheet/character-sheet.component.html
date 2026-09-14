@@ -162,12 +162,12 @@
             <div class="mobile-attrs-grid">
               @for (attr of data.character_sheet.attributes_and_saves | keyvalue; track attr.key) {
                 <div class="mobile-attr-card">
-                  <span class="attr-name">{{ attr.key }}</span>
+                  <span class="attr-name">{{ attrLabel(attr.key) }}</span>
                   <span class="attr-score">{{ attr.value.score }}</span>
                   <span class="attr-mod">{{ formatMod(attr.value.modifier) }}</span>
                   <div class="attr-save">
                     <span class="prof-dot">{{ attr.value.save_proficiency ? '●' : '○' }}</span>
-                    Save: {{ formatMod(attr.value.save) }}
+                    Resistência: {{ formatMod(attr.value.save) }}
                     <button class="roll-trigger-btn" (click)="rollSave(attr.key, attr.value.save)">🎲</button>
                   </div>
                 </div>
@@ -275,7 +275,7 @@
               <div class="spellcasting-info-mobile">
                 <div class="mobile-spell-stat-box">
                   <span class="spell-stat-label">ATRIBUTO</span>
-                  <span class="spell-stat-value">{{ data.character_sheet.spellcasting_info.spellcasting_ability }}</span>
+                  <span class="spell-stat-value">{{ attrLabel(data.character_sheet.spellcasting_info.spellcasting_ability) }}</span>
                 </div>
                 <div class="mobile-spell-stat-box">
                   <span class="spell-stat-label">CD</span>
@@ -487,12 +487,12 @@
             <div class="attributes-list">
               @for (attr of data.character_sheet.attributes_and_saves | keyvalue; track attr.key) {
                 <div class="attr-box">
-                  <span class="attr-name">{{ attr.key }}</span>
+                  <span class="attr-name">{{ attrLabel(attr.key) }}</span>
                   <span class="attr-score">{{ attr.value.score }}</span>
                   <span class="attr-mod">{{ formatMod(attr.value.modifier) }}</span>
                   <div class="save-box">
                     <span class="prof-dot">{{ attr.value.save_proficiency ? '●' : '○' }}</span>
-                    Save: {{ formatMod(attr.value.save) }}
+                    Resistência: {{ formatMod(attr.value.save) }}
                     <button class="roll-trigger-btn" (click)="rollSave(attr.key, attr.value.save)">🎲</button>
                   </div>
                 </div>
@@ -687,7 +687,7 @@
               <div class="spellcasting-stats">
                 <div class="spell-stat-box">
                   <span class="spell-stat-label">ATRIBUTO</span>
-                  <span class="spell-stat-value">{{ data.character_sheet.spellcasting_info.spellcasting_ability }}</span>
+                  <span class="spell-stat-value">{{ attrLabel(data.character_sheet.spellcasting_info.spellcasting_ability) }}</span>
                 </div>
                 <div class="spell-stat-box">
                   <span class="spell-stat-label">CD</span>

@@ -2,6 +2,24 @@ export type StatKeyEn = 'STR' | 'DEX' | 'CON' | 'INT' | 'WIS' | 'CHA';
 
 export const STAT_KEYS: StatKeyEn[] = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
 
+/**
+ * O backend identifica atributos pela sigla em inglês (`StatKeyEn`) — mantido assim porque é o
+ * mesmo contrato usado pra submeter ASI/talentos. Essa sigla nunca deve aparecer na tela: use
+ * este mapa (ou `attrLabel()`) em todo lugar que exibir um atributo pro jogador.
+ */
+export const ATTR_PT_LABEL: Record<StatKeyEn, string> = {
+  STR: 'FOR',
+  DEX: 'DES',
+  CON: 'CON',
+  INT: 'INT',
+  WIS: 'SAB',
+  CHA: 'CAR',
+};
+
+export function attrLabel(key: string): string {
+  return ATTR_PT_LABEL[key as StatKeyEn] ?? key;
+}
+
 export interface LevelUpFeaturePreview {
   name: string;
   description: string;
