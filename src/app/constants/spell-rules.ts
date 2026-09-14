@@ -106,6 +106,17 @@ const CANTRIPS_KNOWN: Record<number, number[]> = {
 // Paladino/Mago, que preparam/conhecem a partir da lista completa da classe.
 export const KNOWN_CASTER_CLASS_IDS = new Set([2, 3, 6, 12]);
 
+/**
+ * Clérigo, Druida e Paladino conhecem toda a lista de magias da classe instantaneamente — não
+ * "aprendem" magias novas ao subir de nível, só preparam um subconjunto (limite = nível +
+ * modificador do atributo de conjuração, mín. 1) depois de cada descanso longo. Por isso a
+ * criação de personagem não pede pra escolher magias com círculo pra essas classes (só truques,
+ * que continuam sendo escolhidos normalmente) — a ficha mostra a lista inteira depois de criado.
+ * Mesmo agrupamento usado no backend (`FULL_LIST_PREPARED_CASTER_CLASS_IDS` em
+ * `character-sheet/rules.ts`) — mantido em sincronia manualmente.
+ */
+export const FULL_LIST_PREPARED_CASTER_CLASS_IDS = new Set([4, 5, 11]);
+
 const SPELLS_KNOWN: Record<number, number[]> = {
   2:  [4,5,6,7,8,9,10,11,12,14,15,15,16,18,19,19,20,22,22,22],  // Bardo
   3:  [2,3,4,5,6,7,8,9,10,10,11,11,12,12,13,13,14,14,15,15],    // Bruxo

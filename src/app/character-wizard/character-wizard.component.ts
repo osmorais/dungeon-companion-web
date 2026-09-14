@@ -23,6 +23,7 @@ import {
   getSpellLimits,
   getWizardSpellbookSize,
   KNOWN_CASTER_CLASS_IDS,
+  FULL_LIST_PREPARED_CASTER_CLASS_IDS,
   SpellLimits,
   WIZARD_CLASS_ID,
 } from '../constants/spell-rules';
@@ -706,6 +707,12 @@ export class CharacterWizardComponent implements OnInit {
     return KNOWN_CASTER_CLASS_IDS.has(+this.characterData.core_build.id_class);
   }
 
+  /** Clérigo, Druida, Paladino — conhecem toda a lista da classe; não escolhem magias com círculo
+   *  na criação (só truques), a ficha mostra a lista inteira pra preparar depois de criado. */
+  get isFullListPreparedCaster(): boolean {
+    return FULL_LIST_PREPARED_CASTER_CLASS_IDS.has(+this.characterData.core_build.id_class);
+  }
+
   /** Mago (grimório) e conjuradores de lista fixa compartilham um pool livre entre círculos. */
   get hasSharedSpellPool(): boolean {
     return this.isWizard || this.isKnownCaster;
@@ -767,8 +774,12 @@ export class CharacterWizardComponent implements OnInit {
     const limits = this.currentSpellLimits;
     const circles: number[] = [];
     if (limits.cantrips > 0) circles.push(0);
-    for (let i = 1; i <= 9; i++) {
-      if ((limits.byCircle[i] ?? 0) > 0) circles.push(i);
+    // Clérigo/Druida/Paladino não escolhem magias com círculo na criação — conhecem a lista
+    // inteira da classe e a ficha já mostra tudo o que os espaços de magia do nível permitem.
+    if (!this.isFullListPreparedCaster) {
+      for (let i = 1; i <= 9; i++) {
+        if ((limits.byCircle[i] ?? 0) > 0) circles.push(i);
+      }
     }
     return circles;
   }

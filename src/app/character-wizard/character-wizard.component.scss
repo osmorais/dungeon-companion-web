@@ -25,6 +25,13 @@
   margin-bottom: 15px;
 }
 
+.panel-hint {
+  font-size: 8px;
+  color: var(--label-title-color);
+  line-height: 1.6;
+  margin: 0 0 15px;
+}
+
 .grid-2-col {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -853,6 +860,13 @@
 .mobile-panel-subtitle {
   font-size: 7px;
   color: var(--label-title-color);
+  margin: 0 0 10px;
+}
+
+.mobile-panel-hint {
+  font-size: 7px;
+  color: var(--label-title-color);
+  line-height: 1.6;
   margin: 0 0 10px;
 }
 

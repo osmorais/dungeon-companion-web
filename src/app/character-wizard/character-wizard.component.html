@@ -340,6 +340,12 @@
           <fieldset class="mobile-wizard-panel">
             <legend>MAGIAS</legend>
 
+            @if (isFullListPreparedCaster) {
+              <p class="mobile-panel-hint">
+                Sua classe conhece toda a lista de magias. Depois de criar o personagem, escolha
+                quais preparar a cada descanso longo.
+              </p>
+            }
             @let spells = spellsByCircle.get(currentSpellCircle) ?? [];
             @let selected = selectedSpellCountByCircle(currentSpellCircle);
             @let limit = spellLimitForCircle(currentSpellCircle);
@@ -900,6 +906,12 @@
         <fieldset class="retro-panel">
           <legend>MAGIAS — {{ circleName(currentSpellCircle) }}</legend>
 
+          @if (isFullListPreparedCaster) {
+            <p class="panel-hint">
+              Sua classe conhece toda a lista de magias. Depois de criar o personagem, escolha
+              quais preparar a cada descanso longo.
+            </p>
+          }
           @let spells = spellsByCircle.get(currentSpellCircle) ?? [];
           @let selected = selectedSpellCountByCircle(currentSpellCircle);
           @let limit = spellLimitForCircle(currentSpellCircle);
