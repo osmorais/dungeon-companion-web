@@ -55,6 +55,9 @@ export class RollModalComponent {
   @Output() closed = new EventEmitter<void>();
   /** Emite quando a interação termina de vez (não a cada rolagem — ver finishRoll/confirmMiss). */
   @Output() rolled = new EventEmitter<{ rolls: number[]; modifier: number; total: number }>();
+  /** Só emite pro fluxo de ataque com dano (`config.damage` presente): `true` quando o mestre
+   *  confirma que passou da CA (rollDamageNow), `false` quando confirma que não acertou (confirmMiss). */
+  @Output() attackResolved = new EventEmitter<boolean>();
 
   readonly dieOptions = DIE_OPTIONS;
 
@@ -181,6 +184,7 @@ export class RollModalComponent {
   /** O mestre confirmou que o ataque passou da CA — rola o dado de dano da arma, no mesmo modal. */
   rollDamageNow(): void {
     if (!this.pendingDamage) return;
+    this.attackResolved.emit(true);
     this.attackPhase.set('damage');
     this.result.set(null);
     this.roll();
@@ -188,6 +192,7 @@ export class RollModalComponent {
 
   /** O mestre disse que não passou da CA — encerra sem rolar dano. */
   confirmMiss(): void {
+    this.attackResolved.emit(false);
     const res = this.result();
     this.rolled.emit({ rolls: res?.rolls ?? [], modifier: this.modifier, total: res?.total ?? 0 });
   }

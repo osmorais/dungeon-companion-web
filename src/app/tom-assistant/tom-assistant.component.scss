@@ -102,6 +102,25 @@
   }
 }
 
+/* Variante "left" (sessão): sempre parado no canto esquerdo, retrato e balão menores — vence a
+   centralização acima em qualquer largura de tela. */
+.tom-assistant.tom-assistant--left {
+  left: 0;
+  transform: none;
+
+  .tom-assistant__portrait {
+    width: 140px;
+    height: 140px;
+  }
+
+  .tom-assistant__bubble {
+    max-width: 320px;
+    font-size: 8px;
+    margin-bottom: 22px;
+    padding: 10px 13px;
+  }
+}
+
 @media (max-width: 640px) {
   .tom-assistant {
     gap: 6px;

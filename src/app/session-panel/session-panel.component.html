@@ -1,3 +1,7 @@
+@if (tomState().message) {
+  <app-tom-assistant variant="left" [image]="tomState().image" [message]="tomState().message" />
+}
+
 @if (isMobile()) {
   <!-- ===== MOBILE LAYOUT ===== -->
   <div class="mobile-container">
@@ -94,11 +98,11 @@
       <!-- Rolagens recentes -->
       <fieldset class="mobile-panel">
         <legend>ROLAGENS</legend>
-        @if (sessionDetail()!.recent_rolls.length === 0) {
+        @if (visibleRecentRolls().length === 0) {
           <p class="mobile-empty-msg mobile-empty-msg--inner">NENHUMA ROLAGEM AINDA.</p>
         } @else {
           <div class="roll-log-list">
-            @for (roll of sessionDetail()!.recent_rolls; track roll.id_roll) {
+            @for (roll of visibleRecentRolls(); track roll.id_roll) {
               <div class="roll-log-row">
                 <div class="roll-log-info">
                   <span class="roll-log-actor">{{ roll.actor_name }}</span>
@@ -684,11 +688,11 @@
       <fieldset class="retro-panel rolls-sidebar">
         <legend>ROLAGENS RECENTES</legend>
         <div class="rolls-sidebar-body">
-        @if (sessionDetail()!.recent_rolls.length === 0) {
+        @if (visibleRecentRolls().length === 0) {
           <p class="empty-msg">NENHUMA ROLAGEM AINDA.</p>
         } @else {
           <div class="roll-log-list">
-            @for (roll of sessionDetail()!.recent_rolls; track roll.id_roll) {
+            @for (roll of visibleRecentRolls(); track roll.id_roll) {
               <div class="roll-log-row">
                 <div class="roll-log-info">
                   <span class="roll-log-actor">{{ roll.actor_name }}</span>
@@ -724,7 +728,8 @@
     [idCharacter]="actionsChar.id"
     [fallbackName]="actionsChar.name"
     [sessionId]="id()"
-    (closed)="closePlayerActions()" />
+    (closed)="closePlayerActions()"
+    (attackResolved)="onAttackResolved(actionsChar.name, $event)" />
 }
 
 <!-- ===== MODAL: ADICIONAR NPC ===== -->

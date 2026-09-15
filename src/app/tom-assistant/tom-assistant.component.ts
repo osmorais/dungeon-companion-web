@@ -24,6 +24,10 @@ export class TomAssistantComponent implements OnChanges, OnDestroy {
   /** Nome do arquivo dentro de assets/tom/ (ex: "tom-hi.png"). */
   @Input() image = 'tom.png';
   @Input() message = '';
+  /** 'center' (padrão, criação de personagem) ou 'left' (parado no canto esquerdo, com retrato e
+   *  balão de fala menores — usado na sessão, onde o Tom só reage a eventos em vez de guiar um
+   *  fluxo passo a passo). */
+  @Input() variant: 'center' | 'left' = 'center';
 
   /** Emite quando o retrato do Tom leva 3 cliques seguidos (dentro de 1s) — easter egg. */
   @Output() tripleClick = new EventEmitter<void>();

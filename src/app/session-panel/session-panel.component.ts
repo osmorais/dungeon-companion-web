@@ -26,6 +26,7 @@ import { StartFightModalComponent } from '../start-fight-modal/start-fight-modal
 import { DistributeXpModalComponent } from '../distribute-xp-modal/distribute-xp-modal.component';
 import { AbilityRollConfig, RollModalComponent } from '../roll-modal/roll-modal.component';
 import { AddMonsterModalComponent } from '../add-monster-modal/add-monster-modal.component';
+import { TomAssistantComponent } from '../tom-assistant/tom-assistant.component';
 
 @Component({
   selector: 'app-session-panel',
@@ -40,6 +41,7 @@ import { AddMonsterModalComponent } from '../add-monster-modal/add-monster-modal
     DistributeXpModalComponent,
     RollModalComponent,
     AddMonsterModalComponent,
+    TomAssistantComponent,
   ],
   templateUrl: './session-panel.component.html',
   styleUrls: ['./session-panel.component.scss'],
@@ -153,6 +155,7 @@ export class SessionPanelComponent implements OnDestroy {
       this.sessionState.applyEvent(event);
       if (event.type === 'monster_defeated') {
         this.showMonsterDefeatedToast(event.name, event.image_url);
+        this.reactTom('tom-celebrating.png', `${event.name} foi derrotado! Vitória!`);
       }
       if (event.type === 'monster_revealed') {
         this.queueMonsterAnnouncement(event.name, event.image_url);
@@ -951,6 +954,29 @@ export class SessionPanelComponent implements OnDestroy {
   private rollToastQueue: RollLogEntry[] = [];
   private rollToastTimer: ReturnType<typeof setTimeout> | null = null;
 
+  /** Ids de rolagens já liberadas pro histórico — só entram aqui depois que o toast de tela
+   *  cheia correspondente já foi exibido (ou nunca vai ser, ver `checkForNewRolls`). Existe pra
+   *  o histórico de rolagens recentes não "vazar" o resultado antes da notificação, quando várias
+   *  rolagens chegam em sequência e ficam empilhadas na fila do toast. */
+  private revealedRollIdsState = signal<ReadonlySet<string>>(new Set());
+  visibleRecentRolls = computed(() => {
+    const rolls = this.sessionDetail()?.recent_rolls ?? [];
+    const revealed = this.revealedRollIdsState();
+    return rolls.filter((r) => revealed.has(r.id_roll));
+  });
+
+  private revealRolls(ids: Iterable<string>): void {
+    const next = new Set(this.revealedRollIdsState());
+    let changed = false;
+    for (const id of ids) {
+      if (!next.has(id)) {
+        next.add(id);
+        changed = true;
+      }
+    }
+    if (changed) this.revealedRollIdsState.set(next);
+  }
+
   /**
    * Detecta rolagens que chegaram desde a última atualização da sessão (de qualquer jogador) e
    * as enfileira pra exibir em tela cheia por alguns segundos. No primeiro carregamento só marca
@@ -963,6 +989,7 @@ export class SessionPanelComponent implements OnDestroy {
     if (this.rollToastFirstLoad) {
       this.rollToastFirstLoad = false;
       rolls.forEach((r) => this.seenRollIds.add(r.id_roll));
+      this.revealRolls(rolls.map((r) => r.id_roll));
       return;
     }
 
@@ -972,9 +999,16 @@ export class SessionPanelComponent implements OnDestroy {
     if (newRolls.length === 0) return;
     newRolls.forEach((r) => this.seenRollIds.add(r.id_roll));
 
+    const lastVisible = [...newRolls].reverse().find((r) => !r.is_hidden);
+    if (lastVisible) this.reactTomToRoll(lastVisible);
+
     // Enquanto o próprio jogador está rolando (ação ou iniciativa), ele já vê a animação no
-    // roll-modal correspondente — evita empilhar o toast de tela cheia por cima disso.
-    if (this.activeActionsCharacter() || this.activeInitiativeRoll()) return;
+    // roll-modal correspondente — evita empilhar o toast de tela cheia por cima disso. Como
+    // essas rolagens nunca passam pela fila de toast, liberam pro histórico na hora.
+    if (this.activeActionsCharacter() || this.activeInitiativeRoll()) {
+      this.revealRolls(newRolls.map((r) => r.id_roll));
+      return;
+    }
 
     this.rollToastQueue.push(...newRolls);
     if (!this.activeRollToast()) this.playNextRollToast();
@@ -988,6 +1022,8 @@ export class SessionPanelComponent implements OnDestroy {
     const next = this.rollToastQueue.shift();
     this.activeRollToast.set(next ?? null);
     if (next) {
+      // Só entra no histórico quando o toast realmente aparece em tela, não quando é enfileirado.
+      this.revealRolls([next.id_roll]);
       this.rollToastTimer = setTimeout(() => this.playNextRollToast(), this.ROLL_TOAST_MS);
     }
   }
@@ -1022,6 +1058,53 @@ export class SessionPanelComponent implements OnDestroy {
   closeMonsterDefeatedToast(): void {
     if (this.monsterDefeatedToastTimer) clearTimeout(this.monsterDefeatedToastTimer);
     this.activeMonsterDefeatedToast.set(null);
+  }
+
+  /** ========================= TOM: REAÇÕES A EVENTOS DA SESSÃO =========================
+   *  Mesmo mascote da criação de personagem, mas aqui ele só comenta o que está acontecendo —
+   *  parado no canto esquerdo (variant="left"), sem guiar nenhum fluxo. Volta pro estado neutro
+   *  sozinho depois de alguns segundos. */
+
+  readonly TOM_REACTION_MS = 6_000;
+  private readonly tomIdleState = { image: 'tom.png', message: '' };
+
+  tomState = signal<{ image: string; message: string }>(this.tomIdleState);
+  private tomReactionTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private reactTom(image: string, message: string): void {
+    if (this.tomReactionTimer) clearTimeout(this.tomReactionTimer);
+    this.tomState.set({ image, message });
+    this.tomReactionTimer = setTimeout(() => this.tomState.set(this.tomIdleState), this.TOM_REACTION_MS);
+  }
+
+  /** Só comenta rolagens de d20 (ataque/perícia/resistência/iniciativa) — dano e dados livres
+   *  ficam de fora pra não reagir a todo dado rolado na sessão. Vantagem/desvantagem: o valor
+   *  "puro" do dado escolhido é `total - modifier`, já que só o dado contado entra na soma.
+   *  Nat 20/1 usam o dado puro (regra do d20); "bom"/"ruim" usa `total` com bônus incluído —
+   *  um 11 com +6 de bônus (total 17) é uma rolagem boa, mesmo o dado puro não sendo alto. */
+  private reactTomToRoll(roll: RollLogEntry): void {
+    if (!['attack', 'skill', 'save', 'initiative'].includes(roll.roll_type)) return;
+    const natural = roll.total - roll.modifier;
+    if (natural === 20) {
+      this.reactTom('tom-celebrating.png', `20 natural de ${roll.actor_name}! Incrível!`);
+    } else if (natural === 1) {
+      this.reactTom('tom-stop.png', `1 natural... que azar, ${roll.actor_name}.`);
+    } else if (roll.total >= 15) {
+      this.reactTom('tom-like.png', `Boa rolagem, ${roll.actor_name}!`);
+    } else if (roll.total <= 5) {
+      this.reactTom('tom-stop.png', `Hmm, não foi dessa vez, ${roll.actor_name}.`);
+    } else {
+      this.reactTom('tom.png', `${roll.actor_name} tirou ${roll.total}. Nem tão bem, nem tão mal.`);
+    }
+  }
+
+  /** Confirmação de acerto/erro contra a CA do alvo, vinda do roll-modal (via player-actions-modal). */
+  onAttackResolved(actorName: string, hit: boolean): void {
+    if (hit) {
+      this.reactTom('tom-celebrating.png', `${actorName} acertou o ataque!`);
+    } else {
+      this.reactTom('tom-stop.png', `${actorName} errou o ataque...`);
+    }
   }
 
   /** ========================= TOAST: PERSONAGEM PODE SUBIR DE NÍVEL (broadcast) ========================= */

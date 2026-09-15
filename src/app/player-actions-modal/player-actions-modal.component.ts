@@ -24,6 +24,9 @@ export class PlayerActionsModalComponent implements OnInit {
   @Input() fallbackName = 'Personagem';
   @Input() sessionId: string | undefined;
   @Output() closed = new EventEmitter<void>();
+  /** Repassa a confirmação de acerto/erro do roll-modal (só dispara no fluxo de ataque com dano) —
+   *  a sessão usa isso pra reagir (ex: Tom). */
+  @Output() attackResolved = new EventEmitter<boolean>();
 
   loading = signal(true);
   error = signal(false);

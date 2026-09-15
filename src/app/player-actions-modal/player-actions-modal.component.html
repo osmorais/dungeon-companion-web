@@ -254,6 +254,7 @@
     [sessionId]="sessionId"
     (rolled)="onRolled()"
     (closed)="closeRoll()"
+    (attackResolved)="attackResolved.emit($event)"
   />
 }
 
