@@ -45,6 +45,8 @@ export interface PlayerCharacterSummary {
   level: number;
   max_hit_points: number;
   current_hit_points: number;
+  /** Amortecedor de dano à parte do PV normal — pode deixar o total acima do máximo. */
+  temporary_hit_points: number;
   experience_points: number;
   avatar_preset?: import('./avatar-preset.interface').AvatarPreset | null;
 }
@@ -110,6 +112,9 @@ export interface CombatParticipant {
   initiative_roll: number | null;
   initiative_total: number | null;
   dex_modifier: number;
+  turn_order: number | null;
+  /** Atrasou o próprio turno nesta rodada — volta ao normal na rodada seguinte. */
+  delayed_this_round: boolean;
   is_current_turn: boolean;
 }
 
@@ -118,7 +123,7 @@ export interface CombatEncounter {
   id_game_session: string;
   status: CombatStatus;
   round_number: number;
-  current_turn_index: number;
+  current_turn_participant_id: string | null;
   created_at: string;
 }
 

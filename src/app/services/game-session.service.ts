@@ -71,10 +71,14 @@ export class GameSessionService {
     });
   }
 
-  updatePlayerHp(idPlayerSession: string, currentHitPoints: number): Observable<void> {
+  updatePlayerHp(
+    idPlayerSession: string,
+    currentHitPoints: number,
+    temporaryHitPoints: number,
+  ): Observable<void> {
     return this.http.patch<void>(
       `${this.baseUrl}/api/game-session/player/${idPlayerSession}/hp`,
-      { current_hit_points: currentHitPoints },
+      { current_hit_points: currentHitPoints, temporary_hit_points: temporaryHitPoints },
       { context: this.silentContext() },
     );
   }
@@ -213,6 +217,26 @@ export class GameSessionService {
   endEncounter(idCombatEncounter: string): Observable<void> {
     return this.http.post<void>(
       `${this.baseUrl}/api/game-session/combat/${idCombatEncounter}/end`,
+      {},
+      { context: this.silentContext() },
+    );
+  }
+
+  moveParticipant(
+    idCombatEncounter: string,
+    idCombatParticipant: string,
+    direction: 'up' | 'down',
+  ): Observable<void> {
+    return this.http.post<void>(
+      `${this.baseUrl}/api/game-session/combat/${idCombatEncounter}/move-participant`,
+      { id_combat_participant: idCombatParticipant, direction },
+      { context: this.silentContext() },
+    );
+  }
+
+  delayTurn(idCombatEncounter: string): Observable<void> {
+    return this.http.post<void>(
+      `${this.baseUrl}/api/game-session/combat/${idCombatEncounter}/delay-turn`,
       {},
       { context: this.silentContext() },
     );

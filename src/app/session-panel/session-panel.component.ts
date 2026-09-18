@@ -345,6 +345,12 @@ export class SessionPanelComponent implements OnDestroy {
     return this.hpEdits()[player.id_player_session] ?? player.character!.current_hit_points;
   }
 
+  tempHpEdits = signal<Record<string, number>>({});
+
+  editedTempHp(player: PlayerSession): number {
+    return this.tempHpEdits()[player.id_player_session] ?? player.character!.temporary_hit_points;
+  }
+
   /**
    * Mesmo padrão de dano/cura em lote dos monstros (ver SessionPanelComponent.applyMonsterHpDelta):
    * digita um valor e aplica como dano ou cura de uma vez, já salvando na hora.
@@ -361,35 +367,98 @@ export class SessionPanelComponent implements OnDestroy {
     this.playerDamageInputs.update(v => ({ ...v, [player.id_player_session]: value }));
   }
 
-  applyPlayerDamage(player: PlayerSession) {
-    this.applyPlayerHpDelta(player, -1);
-  }
-
-  applyPlayerHeal(player: PlayerSession) {
-    this.applyPlayerHpDelta(player, 1);
-  }
-
-  private applyPlayerHpDelta(player: PlayerSession, sign: 1 | -1) {
+  private clearPlayerDamageInput(player: PlayerSession): void {
     const id = player.id_player_session;
-    const amount = this.playerDamageInput(player);
-    if (!amount || this.savingHp().has(id)) return;
-
-    const max = player.character!.max_hit_points;
-    const next = Math.min(max, Math.max(0, this.editedHp(player) + sign * amount));
-    this.hpEdits.update(edits => ({ ...edits, [id]: next }));
     this.playerDamageInputs.update(v => {
       const n = { ...v };
       delete n[id];
       return n;
     });
+  }
+
+  /** Dano consome primeiro a vida temporária, só sobrando pra vida normal depois que ela zera
+   *  (regra do livro — PV temporários são um amortecedor à parte do PV real). */
+  applyPlayerDamage(player: PlayerSession) {
+    const id = player.id_player_session;
+    const amount = this.playerDamageInput(player);
+    if (!amount || this.savingHp().has(id)) return;
+
+    const currentTemp = this.editedTempHp(player);
+    const nextTemp = Math.max(0, currentTemp - amount);
+    const spillover = Math.max(0, amount - currentTemp);
+    const nextHp = Math.max(0, this.editedHp(player) - spillover);
+
+    this.clearPlayerDamageInput(player);
+    this.commitPlayerHp(player, nextHp, nextTemp);
+  }
+
+  /**
+   * Cura nunca restaura vida temporária (regra do livro). Se o valor curado ultrapassar o
+   * máximo de PV, o excedente vira um pedido de vida temporária nova — como ela não acumula com
+   * uma já existente, abre confirmação em vez de aplicar direto.
+   */
+  applyPlayerHeal(player: PlayerSession) {
+    const id = player.id_player_session;
+    const amount = this.playerDamageInput(player);
+    if (!amount || this.savingHp().has(id)) return;
+
+    const max = player.character!.max_hit_points;
+    const wouldBe = this.editedHp(player) + amount;
+    this.clearPlayerDamageInput(player);
+
+    if (wouldBe <= max) {
+      this.commitPlayerHp(player, wouldBe, this.editedTempHp(player));
+      return;
+    }
+
+    this.pendingTempHp.set({
+      player,
+      newAmount: wouldBe - max,
+      existingAmount: this.editedTempHp(player),
+    });
+  }
+
+  /** ========================= CONFIRMAÇÃO DE VIDA TEMPORÁRIA ========================= */
+
+  pendingTempHp = signal<{ player: PlayerSession; newAmount: number; existingAmount: number } | null>(
+    null,
+  );
+
+  /** Cura até o máximo, mas recusa a vida temporária proposta. */
+  declineTempHp(): void {
+    const pending = this.pendingTempHp();
+    this.pendingTempHp.set(null);
+    if (!pending) return;
+    this.commitPlayerHp(
+      pending.player,
+      pending.player.character!.max_hit_points,
+      this.editedTempHp(pending.player),
+    );
+  }
+
+  /** Cura até o máximo e aplica a vida temporária escolhida — a nova, ou mantém a já existente
+   *  (nunca soma as duas, regra do livro). */
+  confirmTempHp(useNew: boolean): void {
+    const pending = this.pendingTempHp();
+    this.pendingTempHp.set(null);
+    if (!pending) return;
+    const temp = useNew ? pending.newAmount : pending.existingAmount;
+    this.commitPlayerHp(pending.player, pending.player.character!.max_hit_points, temp);
+  }
+
+  private commitPlayerHp(player: PlayerSession, newHp: number, newTempHp: number): void {
+    const id = player.id_player_session;
+    this.hpEdits.update(edits => ({ ...edits, [id]: newHp }));
+    this.tempHpEdits.update(edits => ({ ...edits, [id]: newTempHp }));
     this.saveHp(player);
   }
 
   saveHp(player: PlayerSession) {
     const newHp = this.editedHp(player);
+    const newTempHp = this.editedTempHp(player);
     const id = player.id_player_session;
     this.savingHp.update(s => { const n = new Set(s); n.add(id); return n; });
-    this.gameSessionService.updatePlayerHp(id, newHp).pipe(
+    this.gameSessionService.updatePlayerHp(id, newHp, newTempHp).pipe(
       finalize(() => this.savingHp.update(s => { const n = new Set(s); n.delete(id); return n; })),
     ).subscribe({
       next: () => {
@@ -397,11 +466,21 @@ export class SessionPanelComponent implements OnDestroy {
           ...detail,
           players: detail.players.map(p =>
             p.id_player_session === id
-              ? { ...p, character: p.character ? { ...p.character, current_hit_points: newHp } : p.character }
+              ? {
+                  ...p,
+                  character: p.character
+                    ? { ...p.character, current_hit_points: newHp, temporary_hit_points: newTempHp }
+                    : p.character,
+                }
               : p,
           ),
         }));
         this.hpEdits.update(edits => {
+          const n = { ...edits };
+          delete n[id];
+          return n;
+        });
+        this.tempHpEdits.update(edits => {
           const n = { ...edits };
           delete n[id];
           return n;
@@ -892,6 +971,23 @@ export class SessionPanelComponent implements OnDestroy {
     return Math.max(0, Math.min(100, Math.round((current / max) * 100)));
   }
 
+  /**
+   * Barra de PV com dois segmentos (verde = vida real, azul = vida temporária). As larguras são
+   * relativas a max+tempHp (não a max sozinho) pra nunca estourar 100% de largura somados, mesmo
+   * com muita vida temporária — o texto ao lado (ex: "12/20 +8") mostra os valores exatos.
+   */
+  hpGreenPercent(current: number, max: number, tempHp: number): number {
+    const total = max + tempHp;
+    if (total <= 0) return 0;
+    return Math.max(0, Math.min(100, Math.round((current / total) * 100)));
+  }
+
+  hpTempPercent(current: number, max: number, tempHp: number): number {
+    const total = max + tempHp;
+    if (total <= 0 || tempHp <= 0) return 0;
+    return Math.max(0, Math.min(100, Math.round((tempHp / total) * 100)));
+  }
+
   hpColor(current: number, max: number): string {
     const pct = max <= 0 ? 0 : Math.max(0, Math.min(1, current / max));
     let r: number, g: number, b: number;
@@ -1191,6 +1287,8 @@ export class SessionPanelComponent implements OnDestroy {
   combatStartOpen = signal(false);
   endingTurn = signal(false);
   endingCombat = signal(false);
+  movingParticipantId = signal<string | null>(null);
+  delayingTurn = signal(false);
   activeInitiativeRoll = signal<{
     idCombatParticipant: string;
     idCharacter: number;
@@ -1243,6 +1341,13 @@ export class SessionPanelComponent implements OnDestroy {
       !!detail &&
       detail.players.some((pl) => pl.id_player_session === current.id_player_session && pl.user_id === user.id)
     );
+  });
+
+  /** Mesma permissão de "finalizar turno" (mestre, ou o dono do turno atual) — só falta ainda
+   *  não ter sido atrasado nesta rodada (só dá pra atrasar uma vez por rodada). */
+  canDelayCurrentTurn = computed(() => {
+    const current = this.currentTurnParticipant();
+    return !!current && !current.delayed_this_round;
   });
 
   /** ========================= ROLAGEM DO MESTRE (pública ou oculta) ========================= */
@@ -1371,6 +1476,30 @@ export class SessionPanelComponent implements OnDestroy {
     this.gameSessionService
       .endTurn(combat.encounter.id_combat_encounter)
       .pipe(finalize(() => this.endingTurn.set(false)))
+      .subscribe();
+  }
+
+  /** Mestre reordena a iniciativa — move um participante uma posição pra cima/baixo. Sem
+   *  refetch, mesmo padrão de endTurn. */
+  moveParticipant(idCombatParticipant: string, direction: 'up' | 'down'): void {
+    const combat = this.combat();
+    if (!combat || this.movingParticipantId()) return;
+    this.movingParticipantId.set(idCombatParticipant);
+    this.gameSessionService
+      .moveParticipant(combat.encounter.id_combat_encounter, idCombatParticipant, direction)
+      .pipe(finalize(() => this.movingParticipantId.set(null)))
+      .subscribe();
+  }
+
+  /** Jogador (ou mestre, pelo NPC/monstro da vez) atrasa o turno atual — passa a agir por
+   *  último nesta rodada. Sem refetch, mesmo padrão de endTurn. */
+  delayTurn(): void {
+    const combat = this.combat();
+    if (!combat || this.delayingTurn()) return;
+    this.delayingTurn.set(true);
+    this.gameSessionService
+      .delayTurn(combat.encounter.id_combat_encounter)
+      .pipe(finalize(() => this.delayingTurn.set(false)))
       .subscribe();
   }
 

@@ -48,7 +48,14 @@ export function applySessionEvent(
         ...detail,
         players: detail.players.map((p) =>
           p.id_player_session === event.id_player_session && p.character
-            ? { ...p, character: { ...p.character, current_hit_points: event.current_hit_points } }
+            ? {
+                ...p,
+                character: {
+                  ...p.character,
+                  current_hit_points: event.current_hit_points,
+                  temporary_hit_points: event.temporary_hit_points,
+                },
+              }
             : p,
         ),
       };
@@ -160,6 +167,8 @@ export function applySessionEvent(
     case 'combat_started':
     case 'initiative_submitted':
     case 'turn_ended':
+    case 'turn_order_changed':
+    case 'turn_delayed':
       return { ...detail, combat: event.combat };
 
     case 'combat_ended': {

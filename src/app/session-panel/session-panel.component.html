@@ -68,10 +68,22 @@
           }
 
           <div class="combat-order-list">
-            @for (p of c.participants; track p.id_combat_participant) {
+            @for (p of c.participants; track p.id_combat_participant; let first = $first; let last = $last) {
               <div class="combat-order-item" [class.combat-order-item--current]="p.is_current_turn">
-                <span class="combat-order-name">{{ combatParticipantName(p) }}</span>
+                <span class="combat-order-name">
+                  {{ combatParticipantName(p) }}{{ p.delayed_this_round ? ' ⏳' : '' }}
+                </span>
                 <span class="combat-order-initiative">{{ p.initiative_total === null ? '...' : p.initiative_total }}</span>
+                @if (isOwner() && c.encounter.status === 'active') {
+                  <div class="combat-order-move-controls">
+                    <button class="combat-order-move-btn" title="Mover para cima"
+                      [disabled]="first || movingParticipantId() === p.id_combat_participant"
+                      (click)="moveParticipant(p.id_combat_participant, 'up')">▲</button>
+                    <button class="combat-order-move-btn" title="Mover para baixo"
+                      [disabled]="last || movingParticipantId() === p.id_combat_participant"
+                      (click)="moveParticipant(p.id_combat_participant, 'down')">▼</button>
+                  </div>
+                }
               </div>
             }
           </div>
@@ -152,12 +164,17 @@
                   <div class="mobile-hp">
                     <div class="mobile-hp-bar">
                       <div class="mobile-hp-fill"
-                        [style.width.%]="hpPercent(editedHp(player), player.character.max_hit_points)"
+                        [style.width.%]="hpGreenPercent(editedHp(player), player.character.max_hit_points, editedTempHp(player))"
                         [style.background-color]="hpColor(editedHp(player), player.character.max_hit_points)">
                       </div>
+                      @if (editedTempHp(player) > 0) {
+                        <div class="mobile-hp-fill-temp"
+                          [style.width.%]="hpTempPercent(editedHp(player), player.character.max_hit_points, editedTempHp(player))">
+                        </div>
+                      }
                     </div>
                     <span class="mobile-hp-value">
-                      ❤ {{ editedHp(player) }}/{{ player.character.max_hit_points }}
+                      ❤ {{ editedHp(player) }}/{{ player.character.max_hit_points }}{{ editedTempHp(player) > 0 ? ' +' + editedTempHp(player) : '' }}
                     </span>
                     @if (canEditHp(player)) {
                       <div class="hp-delta-controls">
@@ -182,6 +199,11 @@
                       <button class="retro-btn turn-end-btn" [disabled]="endingTurn()" (click)="endTurn()">
                         {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
                       </button>
+                      @if (canDelayCurrentTurn()) {
+                        <button class="retro-btn turn-delay-btn" [disabled]="delayingTurn()" (click)="delayTurn()">
+                          {{ delayingTurn() ? '...' : 'ATRASAR TURNO' }}
+                        </button>
+                      }
                     }
                     <button class="retro-btn mobile-sheet-btn" (click)="viewCharacterSheet(player.id_character)">
                       VER FICHA
@@ -389,10 +411,22 @@
           }
 
           <div class="combat-order-list">
-            @for (p of c.participants; track p.id_combat_participant) {
+            @for (p of c.participants; track p.id_combat_participant; let first = $first; let last = $last) {
               <div class="combat-order-item" [class.combat-order-item--current]="p.is_current_turn">
-                <span class="combat-order-name">{{ combatParticipantName(p) }}</span>
+                <span class="combat-order-name">
+                  {{ combatParticipantName(p) }}{{ p.delayed_this_round ? ' ⏳' : '' }}
+                </span>
                 <span class="combat-order-initiative">{{ p.initiative_total === null ? '...' : p.initiative_total }}</span>
+                @if (isOwner() && c.encounter.status === 'active') {
+                  <div class="combat-order-move-controls">
+                    <button class="combat-order-move-btn" title="Mover para cima"
+                      [disabled]="first || movingParticipantId() === p.id_combat_participant"
+                      (click)="moveParticipant(p.id_combat_participant, 'up')">▲</button>
+                    <button class="combat-order-move-btn" title="Mover para baixo"
+                      [disabled]="last || movingParticipantId() === p.id_combat_participant"
+                      (click)="moveParticipant(p.id_combat_participant, 'down')">▼</button>
+                  </div>
+                }
               </div>
             }
           </div>
@@ -477,12 +511,17 @@
                   <div class="hp-section">
                     <div class="hp-bar">
                       <div class="hp-fill"
-                        [style.width.%]="hpPercent(editedHp(player), player.character.max_hit_points)"
+                        [style.width.%]="hpGreenPercent(editedHp(player), player.character.max_hit_points, editedTempHp(player))"
                         [style.background-color]="hpColor(editedHp(player), player.character.max_hit_points)">
                       </div>
+                      @if (editedTempHp(player) > 0) {
+                        <div class="hp-fill-temp"
+                          [style.width.%]="hpTempPercent(editedHp(player), player.character.max_hit_points, editedTempHp(player))">
+                        </div>
+                      }
                     </div>
                     <span class="hp-text">
-                      ❤ {{ editedHp(player) }}/{{ player.character.max_hit_points }}
+                      ❤ {{ editedHp(player) }}/{{ player.character.max_hit_points }}{{ editedTempHp(player) > 0 ? ' +' + editedTempHp(player) : '' }}
                     </span>
                     @if (canEditHp(player)) {
                       <div class="hp-delta-controls">
@@ -507,6 +546,11 @@
                       <button class="retro-btn turn-end-btn" [disabled]="endingTurn()" (click)="endTurn()">
                         {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
                       </button>
+                      @if (canDelayCurrentTurn()) {
+                        <button class="retro-btn turn-delay-btn" [disabled]="delayingTurn()" (click)="delayTurn()">
+                          {{ delayingTurn() ? '...' : 'ATRASAR TURNO' }}
+                        </button>
+                      }
                     }
                     <button class="retro-btn sheet-btn" (click)="viewCharacterSheet(player.id_character)">
                       VER FICHA ▶
@@ -791,6 +835,31 @@
         <button class="retro-btn" (click)="confirmMonstersDefeated()">SIM</button>
         <button class="retro-btn end-combat-confirm-no" (click)="declineMonstersDefeated()">NÃO</button>
       </div>
+    </div>
+  </div>
+}
+
+<!-- ===== CONFIRMAÇÃO: VIDA TEMPORÁRIA ===== -->
+@if (pendingTempHp(); as pending) {
+  <div class="overlay temp-hp-confirm-overlay" (click)="declineTempHp()">
+    <div class="retro-panel temp-hp-confirm-panel" (click)="$event.stopPropagation()">
+      @if (pending.existingAmount > 0) {
+        <p class="temp-hp-confirm-question">
+          {{ pending.player.character?.name }} JÁ TEM {{ pending.existingAmount }} DE VIDA TEMPORÁRIA. A NOVA SERIA {{ pending.newAmount }}. VIDA TEMPORÁRIA NÃO ACUMULA — QUAL MANTER?
+        </p>
+        <div class="temp-hp-confirm-actions">
+          <button class="retro-btn" (click)="confirmTempHp(false)">MANTER {{ pending.existingAmount }}</button>
+          <button class="retro-btn" (click)="confirmTempHp(true)">USAR {{ pending.newAmount }}</button>
+        </div>
+      } @else {
+        <p class="temp-hp-confirm-question">
+          ISSO DÁ {{ pending.newAmount }} DE VIDA TEMPORÁRIA A {{ pending.player.character?.name }}. CONFIRMA?
+        </p>
+        <div class="temp-hp-confirm-actions">
+          <button class="retro-btn" (click)="confirmTempHp(true)">SIM</button>
+          <button class="retro-btn temp-hp-confirm-no" (click)="declineTempHp()">NÃO</button>
+        </div>
+      }
     </div>
   </div>
 }

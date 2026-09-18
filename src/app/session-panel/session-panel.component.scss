@@ -309,11 +309,18 @@
   height: 6px;
   background-color: var(--panel-bg);
   border: 1px solid var(--border-color);
+  display: flex;
 }
 
 .hp-fill {
   height: 100%;
   background-color: #4caf50; /* fallback; sobrescrito pelo binding hpColor() */
+  transition: width 0.3s;
+}
+
+.hp-fill-temp {
+  height: 100%;
+  background-color: #2196f3;
   transition: width 0.3s;
 }
 
@@ -1015,11 +1022,18 @@
   height: 5px;
   background-color: var(--panel-bg);
   border: 1px solid var(--border-color);
+  display: flex;
 }
 
 .mobile-hp-fill {
   height: 100%;
   background-color: #4caf50; /* fallback; sobrescrito pelo binding hpColor() */
+  transition: width 0.3s;
+}
+
+.mobile-hp-fill-temp {
+  height: 100%;
+  background-color: #2196f3;
   transition: width 0.3s;
 }
 
@@ -1410,6 +1424,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
   padding: 6px 10px;
   border: 2px solid var(--border-color);
   background-color: var(--bg-color);
@@ -1423,6 +1438,7 @@
 }
 
 .combat-order-name {
+  flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1431,6 +1447,37 @@
 .combat-order-initiative {
   flex-shrink: 0;
   color: var(--accent-color);
+}
+
+.combat-order-move-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.combat-order-move-btn {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  font-size: 7px;
+  width: 16px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  &:hover:not(:disabled) {
+    background-color: var(--btn-color);
+  }
 }
 
 .combat-actions {
@@ -1463,6 +1510,26 @@
 }
 
 .mobile-player-card .turn-end-btn {
+  font-size: 6px;
+  padding: 6px 8px;
+}
+
+.turn-delay-btn {
+  border-color: var(--label-title-color);
+  color: var(--label-title-color);
+  float: none;
+  width: 100%;
+  margin-top: 4px;
+  font-size: 7px;
+  padding: 7px 12px;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    background-color: var(--btn-color-hover);
+  }
+}
+
+.mobile-player-card .turn-delay-btn {
   font-size: 6px;
   padding: 6px 8px;
 }
@@ -1758,6 +1825,45 @@
 }
 
 .end-combat-confirm-no {
+  background-color: transparent;
+  color: var(--label-title-color);
+}
+
+.temp-hp-confirm-overlay {
+  z-index: 1100;
+}
+
+.temp-hp-confirm-panel {
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 28px;
+  width: 92vw;
+  max-width: 380px;
+  text-align: center;
+}
+
+.temp-hp-confirm-question {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+.temp-hp-confirm-actions {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+
+  .retro-btn {
+    flex: 1;
+  }
+}
+
+.temp-hp-confirm-no {
   background-color: transparent;
   color: var(--label-title-color);
 }
