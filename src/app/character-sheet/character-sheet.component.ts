@@ -591,6 +591,51 @@ export class CharacterSheetComponent {
     this.editingPreset.set(null);
   }
 
+  /** ========================= UPLOAD DE IMAGEM ========================= */
+
+  uploadingImage = signal(false);
+  imageUploadError = signal<string | null>(null);
+
+  private static readonly MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+
+  onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = ''; // permite selecionar o mesmo arquivo de novo depois de um erro
+    if (!file) return;
+
+    const id = this.sheetData()?.character_sheet.id_character;
+    if (!id || this.uploadingImage()) return;
+
+    if (!file.type.startsWith('image/')) {
+      this.imageUploadError.set('O arquivo precisa ser uma imagem.');
+      return;
+    }
+    if (file.size > CharacterSheetComponent.MAX_IMAGE_BYTES) {
+      this.imageUploadError.set('Imagem muito grande — o limite é 10 MB.');
+      return;
+    }
+
+    this.imageUploadError.set(null);
+    this.uploadingImage.set(true);
+    this.charService.uploadCharacterImage(id, file).subscribe({
+      next: ({ image_url }) => {
+        const sheet = this.sheetData();
+        if (sheet) {
+          this.charService.currentCharacter.set({
+            ...sheet,
+            character_sheet: { ...sheet.character_sheet, image_url },
+          });
+        }
+        this.uploadingImage.set(false);
+      },
+      error: () => {
+        this.imageUploadError.set('Não foi possível enviar a imagem. Tente novamente.');
+        this.uploadingImage.set(false);
+      },
+    });
+  }
+
   /** ========================= SUBIR DE NÍVEL ========================= */
 
   showLevelUpModal = signal(false);

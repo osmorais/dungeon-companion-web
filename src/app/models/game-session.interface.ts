@@ -49,6 +49,8 @@ export interface PlayerCharacterSummary {
   temporary_hit_points: number;
   experience_points: number;
   avatar_preset?: import('./avatar-preset.interface').AvatarPreset | null;
+  /** Foto de verdade, à parte do avatar_preset — usada como fundo do toast de rolagem. */
+  image_url: string | null;
 }
 
 export interface PlayerSession {

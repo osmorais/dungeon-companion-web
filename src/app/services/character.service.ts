@@ -63,6 +63,15 @@ export class CharacterService {
     return this.http.patch<{success: boolean}>(`${this.baseUrl}/api/character-sheet/${id}/avatar`, { avatar_preset: preset });
   }
 
+  uploadCharacterImage(id: number, file: File): Observable<{ image_url: string }> {
+    const formData = new FormData();
+    formData.append('image', file);
+    return this.http.post<{ image_url: string }>(
+      `${this.baseUrl}/api/character-sheet/${id}/image`,
+      formData,
+    );
+  }
+
   getCharacters(page: number, pageSize: number): Observable<CharacterPagedList> {
     return this.http.get<CharacterPagedList>(`${this.baseUrl}/api/character-sheet`, {
       params: { page: page.toString(), pageSize: pageSize.toString() },

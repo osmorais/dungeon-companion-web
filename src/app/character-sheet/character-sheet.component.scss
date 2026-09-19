@@ -32,6 +32,31 @@
 
 .portrait-section {
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.image-upload-btn {
+  display: inline-block;
+  cursor: pointer;
+  font-size: 6px;
+  text-align: center;
+  padding: 5px 6px;
+
+  &:has(input:disabled) {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.image-upload-error {
+  margin: 0;
+  font-size: 6px;
+  color: #ff6b6b;
+  text-align: center;
+  max-width: 90px;
 }
 
 .portrait-box {
@@ -795,6 +820,19 @@ tr.spell-circle-header-row {
   line-height: 1;
   float: none !important;
   margin-top: 0 !important;
+}
+
+.mobile-portrait-wrap {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.mobile-image-upload-btn {
+  font-size: 5px;
+  padding: 3px 4px;
 }
 
 .mobile-portrait {

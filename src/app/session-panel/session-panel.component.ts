@@ -1282,6 +1282,18 @@ export class SessionPanelComponent implements OnDestroy {
     return npc?.character?.avatar_preset ?? null;
   }
 
+  /** Foto de fundo do painel de rolagem (à parte do avatar_preset) — mesma busca de
+   *  rollToastAvatarPreset, retornando a imagem de verdade em vez do preset. */
+  rollToastImageUrl(roll: RollLogEntry): string | null {
+    if (roll.id_character === null) return null;
+    const detail = this.sessionDetail();
+    if (!detail) return null;
+    const player = detail.players.find((p) => p.id_character === roll.id_character);
+    if (player) return player.character?.image_url ?? null;
+    const npc = detail.npcs.find((n) => n.id_character === roll.id_character);
+    return npc?.character?.image_url ?? null;
+  }
+
   /** ========================= COMBATE / TURNOS ========================= */
 
   combatStartOpen = signal(false);

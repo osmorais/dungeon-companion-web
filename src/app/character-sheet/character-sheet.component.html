@@ -6,9 +6,18 @@
 
       <div class="mobile-header">
         <button class="mobile-back-arrow retro-btn" (click)="goBack()">←</button>
-        <div class="mobile-portrait avatar-editable" (click)="openAvatarEditor()" title="Editar avatar">
-          <app-avatar-display [preset]="data.character_sheet.avatar_preset" />
-          <div class="avatar-edit-hint">✎</div>
+        <div class="mobile-portrait-wrap">
+          <div class="mobile-portrait avatar-editable" (click)="openAvatarEditor()" title="Editar avatar">
+            <app-avatar-display [preset]="data.character_sheet.avatar_preset" />
+            <div class="avatar-edit-hint">✎</div>
+          </div>
+          <label class="retro-btn image-upload-btn mobile-image-upload-btn">
+            {{ uploadingImage() ? 'ENVIANDO...' : data.character_sheet.image_url ? 'TROCAR IMAGEM' : 'UPLOAD IMAGEM' }}
+            <input type="file" accept="image/*" hidden [disabled]="uploadingImage()" (change)="onImageSelected($event)" />
+          </label>
+          @if (imageUploadError()) {
+            <p class="image-upload-error">{{ imageUploadError() }}</p>
+          }
         </div>
         <div class="mobile-char-info">
           <h2>{{ data.character_sheet.header.name }}</h2>
@@ -414,6 +423,13 @@
             <app-avatar-display [preset]="data.character_sheet.avatar_preset" />
             <div class="avatar-edit-hint">✎</div>
           </div>
+          <label class="retro-btn image-upload-btn">
+            {{ uploadingImage() ? 'ENVIANDO...' : data.character_sheet.image_url ? 'TROCAR IMAGEM' : 'UPLOAD IMAGEM' }}
+            <input type="file" accept="image/*" hidden [disabled]="uploadingImage()" (change)="onImageSelected($event)" />
+          </label>
+          @if (imageUploadError()) {
+            <p class="image-upload-error">{{ imageUploadError() }}</p>
+          }
         </div>
         <div class="char-title">
           <h1>{{ data.character_sheet.header.name }}</h1>

@@ -82,6 +82,7 @@ export interface CharacterSheetResponse {
     };
     spells?: Spell[];
     avatar_preset?: AvatarPreset | null;
+    image_url?: string | null;
     /** Vazio se a classe não tiver nenhum recurso rastreável neste nível. Uma classe pode ter mais de um ao mesmo tempo. */
     resource_trackers: ResourceTracker[];
     /** Vazio se a classe não tiver nenhuma característica ativável neste nível. */

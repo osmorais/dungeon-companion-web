@@ -923,7 +923,10 @@
          isso, indo de uma rolagem direto pra outra (sem passar por null), o @if reaproveita o
          mesmo elemento .roll-toast-timer-fill e a animação CSS da barra de tempo não reinicia. -->
     @for (toast of [rollToast]; track toast.id_roll) {
-      <div class="retro-panel roll-toast-panel" (click)="$event.stopPropagation()">
+      <div class="retro-panel roll-toast-panel"
+        [class.roll-toast-panel--has-bg]="rollToastImageUrl(toast)"
+        [style.background-image]="rollToastImageUrl(toast) ? ('linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(' + rollToastImageUrl(toast) + ')') : null"
+        (click)="$event.stopPropagation()">
         <button class="modal-close-btn" (click)="closeRollToast()">✕</button>
         <span class="roll-toast-label">{{ toast.label }}{{ advantageSuffix(toast) }}</span>
         <div class="roll-toast-avatar-circle">
