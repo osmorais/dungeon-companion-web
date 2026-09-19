@@ -145,6 +145,12 @@ export class SessionPanelComponent implements OnDestroy {
     if (this.monsterDefeatedToastTimer) clearTimeout(this.monsterDefeatedToastTimer);
     if (this.monsterAnnouncementTimer) clearTimeout(this.monsterAnnouncementTimer);
     if (this.levelUpEligibleToastTimer) clearTimeout(this.levelUpEligibleToastTimer);
+    // SessionStateService é singleton (providedIn: 'root') — sem isso, o `detail` de uma sessão
+    // visitada antes fica no signal. Ao entrar numa sessão nova, o efeito de "primeira carga"
+    // (rollToastFirstLoad) consumiria esse valor obsoleto, e as rolagens de verdade da sessão
+    // acabariam todas sendo tratadas como "novas" quando o fetch real chegasse — flood de toast
+    // retroativo. Limpar aqui garante que toda entrada em sessão começa de detail === null.
+    this.sessionState.detail.set(null);
   }
 
   /** Guarda a busca silenciosa (independente de `refreshing`, que é só pro botão/estado visível). */
