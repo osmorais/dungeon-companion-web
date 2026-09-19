@@ -426,7 +426,13 @@ export class PlayerActionsModalComponent implements OnInit {
     return this.preparedCount() < this.maxPrepared();
   }
 
+  /** Em combate não dá pra trocar o que está preparado — backend também trava, isso só desabilita a UI. */
+  isInActiveCombat(): boolean {
+    return !!this.sheet()?.character_sheet.in_active_combat;
+  }
+
   togglePrepared(spell: Spell): void {
+    if (this.isInActiveCombat()) return;
     const next = !spell.is_prepared;
     if (next && !this.canPrepareMore()) return;
     this.actionError.set(null);

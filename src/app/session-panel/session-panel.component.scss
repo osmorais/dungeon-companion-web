@@ -1936,6 +1936,83 @@
   text-align: center;
 }
 
+.battle-prepare-prompt-panel {
+  width: 92vw;
+  max-width: 380px;
+}
+
+.battle-prepare-question {
+  margin: 0;
+  font-size: 10px;
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+.battle-prepare-actions {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+
+  .retro-btn {
+    flex: 1;
+    float: none;
+    margin-top: 0;
+  }
+}
+
+.battle-prepare-no {
+  background-color: transparent;
+  color: var(--label-title-color);
+}
+
+.battle-prepare-modal {
+  /* "fieldset.retro-panel" (styles.scss) só vale pra <fieldset> — como este painel é uma
+     <div>, precisa repetir fundo/borda aqui. */
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+
+  position: relative;
+  width: 480px;
+  max-width: 92vw;
+  padding: 24px;
+  max-height: 85vh;
+  overflow-y: auto;
+  text-align: center;
+}
+
+.battle-prepare-circle-label {
+  margin: 14px 0 6px;
+  font-size: 8px;
+  color: var(--label-title-color);
+  text-align: left;
+
+  &:first-of-type {
+    margin-top: 0;
+  }
+}
+
+.battle-prepare-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.battle-prepare-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 8px;
+  color: var(--text-color);
+  text-align: left;
+  cursor: pointer;
+}
+
+.battle-prepare-done-btn {
+  width: 100%;
+  float: none;
+  margin-top: 18px;
+}
+
 /* ===== MODAL: DETALHE DO MONSTRO ===== */
 
 .monster-detail-modal {

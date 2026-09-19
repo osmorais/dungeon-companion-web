@@ -1548,6 +1548,76 @@ tr.spell-circle-header-row {
   }
 }
 
+/* ===== PREPARAR MAGIAS APÓS DESCANSO LONGO ===== */
+
+.rest-prepare-prompt-modal {
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  width: 92vw;
+  max-width: 360px;
+  text-align: center;
+}
+
+.rest-prepare-prompt-question {
+  margin: 0;
+  font-size: 10px;
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+.rest-prepare-prompt-actions {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+
+  .retro-btn {
+    flex: 1;
+    float: none;
+    margin-top: 0;
+  }
+}
+
+.rest-prepare-prompt-no {
+  background-color: transparent;
+  color: var(--label-title-color);
+}
+
+.prepare-spells-circle-label {
+  margin: 14px 0 6px;
+  font-size: 8px;
+  color: var(--label-title-color);
+
+  &:first-of-type {
+    margin-top: 0;
+  }
+}
+
+.prepare-spells-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.prepare-spells-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 8px;
+  color: var(--text-color);
+  cursor: pointer;
+}
+
+.prepare-spells-done-btn {
+  width: 100%;
+  float: none;
+  margin-top: 18px;
+}
+
 /* ===== AVATAR EDITOR MODAL ===== */
 
 .avatar-editor-modal {

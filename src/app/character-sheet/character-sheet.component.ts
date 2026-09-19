@@ -328,9 +328,37 @@ export class CharacterSheetComponent {
         this.patchResourceTrackers(resource_trackers);
         this.lastHitDieResult.set(null);
         this.restingLong.set(false);
+        // Descanso longo não mexe em quem está preparado (fica como o jogador deixou) — só
+        // classes que preparam magia (Clérigo/Druida/Paladino/Mago) ganham a chance de revisar.
+        if (this.sheetData()?.character_sheet.spellcasting_info?.prepares_spells) {
+          this.showPrepareSpellsPrompt.set(true);
+        }
       },
       error: () => this.restingLong.set(false),
     });
+  }
+
+  /** ========================= PREPARAR MAGIAS APÓS DESCANSO LONGO ========================= */
+
+  showPrepareSpellsPrompt = signal(false);
+  showPrepareSpellsModal = signal(false);
+
+  closePrepareSpellsPrompt(): void {
+    this.showPrepareSpellsPrompt.set(false);
+  }
+
+  openPrepareSpellsModal(): void {
+    this.showPrepareSpellsPrompt.set(false);
+    this.showPrepareSpellsModal.set(true);
+  }
+
+  closePrepareSpellsModal(): void {
+    this.showPrepareSpellsModal.set(false);
+  }
+
+  /** Mesmo agrupamento de spellsByCircle, sem os truques (nível 0 nunca precisa de preparo). */
+  leveledSpellGroups(): { circle: number; spells: Spell[] }[] {
+    return this.spellsByCircle().filter(g => g.circle > 0);
   }
 
   private patchSpellcastingInfo(
@@ -500,9 +528,15 @@ export class CharacterSheetComponent {
     return this.preparedCount() < this.maxPrepared();
   }
 
+  /** Em combate não dá pra trocar o que está preparado (regra nova — ver session-panel, prompt
+   *  de "a luta vai começar"). Backend também trava isso; aqui é só pra desabilitar a UI. */
+  isInActiveCombat(): boolean {
+    return !!this.sheetData()?.character_sheet.in_active_combat;
+  }
+
   togglePrepared(spell: Spell): void {
     const id = this.sheetData()?.character_sheet.id_character;
-    if (!id) return;
+    if (!id || this.isInActiveCombat()) return;
     const next = !spell.is_prepared;
     if (next && !this.canPrepareMore()) return;
 

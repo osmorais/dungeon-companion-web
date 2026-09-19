@@ -18,6 +18,8 @@ import {
 } from '../models/game-session.interface';
 import { CharacterSummary } from '../models/character-summary.interface';
 import { AvatarPreset } from '../models/avatar-preset.interface';
+import { CharacterSheetResponse } from '../models/character-response.interface';
+import { Spell } from '../models/character-options.interface';
 import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
 import { PixelDieComponent } from '../pixel-die/pixel-die.component';
 import { PixelNumericDieComponent } from '../pixel-numeric-die/pixel-numeric-die.component';
@@ -134,6 +136,15 @@ export class SessionPanelComponent implements OnDestroy {
         if (current?.participant_type === 'monster') {
           this.spotlightMonsterId.set(current.id_monster_session);
         }
+      });
+    });
+
+    /** Antes de pedir a rolagem de iniciativa, personagens que preparam magia (Clérigo/Druida/
+     *  Paladino/Mago) têm a chance de revisar o que está preparado — ver checkBattlePrepareSpells. */
+    effect(() => {
+      const pending = this.myPendingInitiativeParticipant();
+      untracked(() => {
+        if (pending) this.checkBattlePrepareSpells(pending);
       });
     });
   }
@@ -1346,6 +1357,113 @@ export class SessionPanelComponent implements OnDestroy {
     if (!combat || combat.encounter.status !== 'active') return null;
     return combat.participants.find((p) => p.is_current_turn) ?? null;
   });
+
+  /** ========================= PREPARAR MAGIAS ANTES DA LUTA ========================= */
+
+  /** Já verificado (ou em verificação) pra esse participante — evita reconsultar a cada
+   *  re-render enquanto a rolagem de iniciativa continuar pendente. */
+  private battlePrepareCheckedFor = new Set<string>();
+  checkingBattlePrepare = signal(false);
+  showBattlePreparePrompt = signal(false);
+  showBattlePrepareModal = signal(false);
+  private battlePrepareSheet = signal<CharacterSheetResponse | null>(null);
+
+  private checkBattlePrepareSpells(pending: CombatParticipant): void {
+    if (this.battlePrepareCheckedFor.has(pending.id_combat_participant)) return;
+    const detail = this.sessionDetail();
+    const player = detail?.players.find((p) => p.id_player_session === pending.id_player_session);
+    if (!player) return;
+    this.battlePrepareCheckedFor.add(pending.id_combat_participant);
+
+    this.checkingBattlePrepare.set(true);
+    this.charService.getCharacterById(player.id_character).subscribe({
+      next: (sheet) => {
+        this.checkingBattlePrepare.set(false);
+        const info = sheet.character_sheet.spellcasting_info;
+        const hasLeveledSpells = (sheet.character_sheet.spells ?? []).some((s) => s.spellLevel > 0);
+        if (info?.prepares_spells && hasLeveledSpells) {
+          this.battlePrepareSheet.set(sheet);
+          this.showBattlePreparePrompt.set(true);
+        }
+      },
+      error: () => this.checkingBattlePrepare.set(false),
+    });
+  }
+
+  declineBattlePrepare(): void {
+    this.showBattlePreparePrompt.set(false);
+    this.battlePrepareSheet.set(null);
+  }
+
+  openBattlePrepareModal(): void {
+    this.showBattlePreparePrompt.set(false);
+    this.showBattlePrepareModal.set(true);
+  }
+
+  closeBattlePrepareModal(): void {
+    this.showBattlePrepareModal.set(false);
+    this.battlePrepareSheet.set(null);
+  }
+
+  battlePrepareCircleName(circle: number): string {
+    return `${circle}º CÍRCULO`;
+  }
+
+  /** Mesmo agrupamento de spellsByCircle (character-sheet.component), sem os truques — nível 0
+   *  nunca precisa de preparo. */
+  battlePrepareGroups(): { circle: number; spells: Spell[] }[] {
+    const spells = this.battlePrepareSheet()?.character_sheet.spells ?? [];
+    const map = new Map<number, Spell[]>();
+    for (const spell of spells) {
+      if (spell.spellLevel === 0) continue;
+      const list = map.get(spell.spellLevel) ?? [];
+      list.push(spell);
+      map.set(spell.spellLevel, list);
+    }
+    return [...map.entries()]
+      .sort(([a], [b]) => a - b)
+      .map(([circle, list]) => ({
+        circle,
+        spells: [...list].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')),
+      }));
+  }
+
+  battlePreparedCount(): number {
+    return (this.battlePrepareSheet()?.character_sheet.spells ?? []).filter((s) => s.is_prepared).length;
+  }
+
+  battlePrepareMax(): number {
+    return this.battlePrepareSheet()?.character_sheet.spellcasting_info?.max_prepared_spells ?? 0;
+  }
+
+  battleCanPrepareMore(): boolean {
+    return this.battlePreparedCount() < this.battlePrepareMax();
+  }
+
+  battleTogglePrepared(spell: Spell): void {
+    const id = this.battlePrepareSheet()?.character_sheet.id_character;
+    if (!id) return;
+    const next = !spell.is_prepared;
+    if (next && !this.battleCanPrepareMore()) return;
+
+    this.charService.setSpellPrepared(id, spell.id_spell, next).subscribe({
+      next: () => {
+        this.battlePrepareSheet.update((sheet) =>
+          sheet
+            ? {
+                ...sheet,
+                character_sheet: {
+                  ...sheet.character_sheet,
+                  spells: (sheet.character_sheet.spells ?? []).map((s) =>
+                    s.id_spell === spell.id_spell ? { ...s, is_prepared: next } : s,
+                  ),
+                },
+              }
+            : sheet,
+        );
+      },
+    });
+  }
 
   canEndCurrentTurn = computed(() => {
     const current = this.currentTurnParticipant();

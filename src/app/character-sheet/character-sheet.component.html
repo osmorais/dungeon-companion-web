@@ -932,10 +932,13 @@
             <label class="spell-prepare-toggle">
               <input type="checkbox" class="retro-checkbox"
                      [checked]="selectedSpell.is_prepared"
-                     [disabled]="!selectedSpell.is_prepared && !canPrepareMore()"
+                     [disabled]="isInActiveCombat() || (!selectedSpell.is_prepared && !canPrepareMore())"
                      (change)="togglePrepared(selectedSpell)">
               PREPARADA ({{ preparedCount() }}/{{ maxPrepared() }})
             </label>
+            @if (isInActiveCombat()) {
+              <p class="spell-no-slots">Em combate não é possível preparar magias.</p>
+            }
           }
           @if (isCastable(selectedSpell)) {
             <div class="spell-cast-section">
@@ -999,6 +1002,43 @@
           {{ savingAvatar() ? 'SALVANDO...' : 'SALVAR' }}
         </button>
       </div>
+    </div>
+  </div>
+}
+
+@if (showPrepareSpellsPrompt()) {
+  <div class="overlay modal-overlay" (click)="closePrepareSpellsPrompt()">
+    <div class="retro-panel rest-prepare-prompt-modal" (click)="$event.stopPropagation()">
+      <h3 class="item-modal-title">DESCANSO LONGO</h3>
+      <p class="rest-prepare-prompt-question">Deseja selecionar as magias preparadas agora?</p>
+      <div class="rest-prepare-prompt-actions">
+        <button class="retro-btn" (click)="openPrepareSpellsModal()">SIM</button>
+        <button class="retro-btn rest-prepare-prompt-no" (click)="closePrepareSpellsPrompt()">NÃO</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showPrepareSpellsModal()) {
+  <div class="overlay modal-overlay" (click)="closePrepareSpellsModal()">
+    <div class="retro-panel item-modal prepare-spells-modal" (click)="$event.stopPropagation()">
+      <button class="item-modal-close" (click)="closePrepareSpellsModal()">✕</button>
+      <h3 class="item-modal-title">MAGIAS PREPARADAS ({{ preparedCount() }}/{{ maxPrepared() }})</h3>
+      @for (group of leveledSpellGroups(); track group.circle) {
+        <p class="prepare-spells-circle-label">{{ circleName(group.circle) }}</p>
+        <div class="prepare-spells-list">
+          @for (spell of group.spells; track spell.id_spell) {
+            <label class="prepare-spells-row">
+              <input type="checkbox" class="retro-checkbox"
+                     [checked]="spell.is_prepared"
+                     [disabled]="isInActiveCombat() || (!spell.is_prepared && !canPrepareMore())"
+                     (change)="togglePrepared(spell)">
+              {{ spell.name }}
+            </label>
+          }
+        </div>
+      }
+      <button class="retro-btn prepare-spells-done-btn" (click)="closePrepareSpellsModal()">CONCLUÍDO</button>
     </div>
   </div>
 }

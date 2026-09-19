@@ -879,9 +879,10 @@
 
 <!-- ===== BANNER: A BATALHA VAI COMEÇAR (aguardando rolagem de iniciativa) ===== -->
 <!-- Só aparece depois do(s) anúncio(s) de monstro revelado terminar(em) — ver comentário em
-     queueMonsterAnnouncement no componente. -->
+     queueMonsterAnnouncement no componente — e depois de resolvido o prompt de preparar magias
+     (checkingBattlePrepare/showBattlePreparePrompt/showBattlePrepareModal), quando aplicável. -->
 @if (myPendingInitiativeParticipant(); as pending) {
-  @if (!activeInitiativeRoll() && !activeMonsterAnnouncement()) {
+  @if (!activeInitiativeRoll() && !activeMonsterAnnouncement() && !checkingBattlePrepare() && !showBattlePreparePrompt() && !showBattlePrepareModal()) {
     <div class="overlay modal-overlay">
       <div class="retro-panel battle-start-panel">
         <h3 class="modal-title">⚔ A BATALHA VAI COMEÇAR!</h3>
@@ -889,6 +890,47 @@
       </div>
     </div>
   }
+}
+
+<!-- ===== PROMPT: PREPARAR MAGIAS ANTES DA LUTA ===== -->
+@if (showBattlePreparePrompt()) {
+  <div class="overlay modal-overlay">
+    <div class="retro-panel battle-start-panel battle-prepare-prompt-panel">
+      <h3 class="modal-title">⚔ A LUTA VAI COMEÇAR!</h3>
+      <p class="battle-prepare-question">
+        Deseja selecionar suas magias preparadas? Em combate não é possível preparar magias.
+      </p>
+      <div class="battle-prepare-actions">
+        <button class="retro-btn" (click)="openBattlePrepareModal()">SIM</button>
+        <button class="retro-btn battle-prepare-no" (click)="declineBattlePrepare()">NÃO</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ===== MODAL: SELECIONAR MAGIAS PREPARADAS ANTES DA LUTA ===== -->
+@if (showBattlePrepareModal()) {
+  <div class="overlay modal-overlay" (click)="closeBattlePrepareModal()">
+    <div class="retro-panel battle-prepare-modal" (click)="$event.stopPropagation()">
+      <button class="modal-close-btn" (click)="closeBattlePrepareModal()">✕</button>
+      <h3 class="modal-title">MAGIAS PREPARADAS ({{ battlePreparedCount() }}/{{ battlePrepareMax() }})</h3>
+      @for (group of battlePrepareGroups(); track group.circle) {
+        <p class="battle-prepare-circle-label">{{ battlePrepareCircleName(group.circle) }}</p>
+        <div class="battle-prepare-list">
+          @for (spell of group.spells; track spell.id_spell) {
+            <label class="battle-prepare-row">
+              <input type="checkbox" class="retro-checkbox"
+                     [checked]="spell.is_prepared"
+                     [disabled]="!spell.is_prepared && !battleCanPrepareMore()"
+                     (change)="battleTogglePrepared(spell)">
+              {{ spell.name }}
+            </label>
+          }
+        </div>
+      }
+      <button class="retro-btn battle-prepare-done-btn" (click)="closeBattlePrepareModal()">CONCLUÍDO</button>
+    </div>
+  </div>
 }
 
 <!-- ===== MODAL: ROLAGEM DE INICIATIVA ===== -->

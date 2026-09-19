@@ -161,7 +161,7 @@
                             type="checkbox"
                             class="retro-checkbox"
                             [checked]="spell.is_prepared"
-                            [disabled]="!spell.is_prepared && !canPrepareMore()"
+                            [disabled]="isInActiveCombat() || (!spell.is_prepared && !canPrepareMore())"
                             (change)="togglePrepared(spell)"
                           />
                           <span class="pa-prepare-toggle-label">Preparar</span>
