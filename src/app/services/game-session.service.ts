@@ -171,6 +171,15 @@ export class GameSessionService {
     );
   }
 
+  /** Cria uma cópia do monstro na sessão com todos os dados atuais (inclusive o PV já sofrido). */
+  duplicateMonster(idMonsterSession: string): Observable<MonsterSession> {
+    return this.http.post<MonsterSession>(
+      `${this.baseUrl}/api/game-session/monster-session/${idMonsterSession}/duplicate`,
+      {},
+      { context: this.silentContext() },
+    );
+  }
+
   defeatMonster(idMonsterSession: string): Observable<void> {
     return this.http.post<void>(
       `${this.baseUrl}/api/game-session/monster-session/${idMonsterSession}/defeat`,

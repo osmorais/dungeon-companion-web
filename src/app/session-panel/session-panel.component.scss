@@ -890,6 +890,28 @@
   }
 }
 
+.monster-duplicate-btn {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  font-size: 12px;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+
+  &:hover:not(:disabled) {
+    background-color: var(--btn-color);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
 /* ===== MOBILE ===== */
 
 .mobile-container {

@@ -659,6 +659,20 @@ export class SessionPanelComponent implements OnDestroy {
     });
   }
 
+  duplicatingMonsterId = signal<string | null>(null);
+
+  /** A cópia entra na sessão via o evento `monster_added` (socket) — mesmo padrão de
+   *  add-monster-modal, sem patch manual de estado aqui. */
+  duplicateMonster(monster: MonsterSession, event: Event): void {
+    event.stopPropagation();
+    if (this.duplicatingMonsterId()) return;
+    this.duplicatingMonsterId.set(monster.id_monster_session);
+    this.gameSessionService
+      .duplicateMonster(monster.id_monster_session)
+      .pipe(finalize(() => this.duplicatingMonsterId.set(null)))
+      .subscribe();
+  }
+
   defeatingMonsterId = signal<string | null>(null);
 
   /** Marca o monstro como derrotado depois de conceder XP (sempre passa pelo modal de distribuição primeiro). */

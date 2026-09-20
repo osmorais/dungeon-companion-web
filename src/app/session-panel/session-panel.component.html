@@ -351,6 +351,14 @@
                   >
                     ✎
                   </button>
+                  <button
+                    class="monster-duplicate-btn"
+                    title="Duplicar monstro"
+                    [disabled]="duplicatingMonsterId() === monster.id_monster_session"
+                    (click)="duplicateMonster(monster, $event)"
+                  >
+                    ⧉
+                  </button>
                   @if (isMonsterCurrentTurn(monster) && canEndCurrentTurn()) {
                     <button class="retro-btn turn-end-btn" [disabled]="endingTurn()"
                       (click)="$event.stopPropagation(); endTurn()">
@@ -740,6 +748,14 @@
                     (click)="$event.stopPropagation(); openMonsterDetail(monster)"
                   >
                     ✎
+                  </button>
+                  <button
+                    class="monster-duplicate-btn"
+                    title="Duplicar monstro"
+                    [disabled]="duplicatingMonsterId() === monster.id_monster_session"
+                    (click)="duplicateMonster(monster, $event)"
+                  >
+                    ⧉
                   </button>
                   @if (isMonsterCurrentTurn(monster) && canEndCurrentTurn()) {
                     <button class="retro-btn turn-end-btn" [disabled]="endingTurn()"
