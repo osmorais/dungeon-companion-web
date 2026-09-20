@@ -1300,33 +1300,67 @@ export class SessionPanelComponent implements OnDestroy {
     this.tomReactionTimer = setTimeout(() => this.tomState.set(this.tomIdleState), this.TOM_REACTION_MS);
   }
 
+  /** Uma das opções, sorteada — evita que a mesma piada apareça toda vez que alguém tira o
+   *  mesmo resultado. */
+  private pickTomLine(options: string[]): string {
+    return options[Math.floor(Math.random() * options.length)];
+  }
+
   /** Só comenta rolagens de d20 (ataque/perícia/resistência/iniciativa) — dano e dados livres
    *  ficam de fora pra não reagir a todo dado rolado na sessão. Vantagem/desvantagem: o valor
    *  "puro" do dado escolhido é `total - modifier`, já que só o dado contado entra na soma.
-   *  Nat 20/1 usam o dado puro (regra do d20); "bom"/"ruim" usa `total` com bônus incluído —
-   *  um 11 com +6 de bônus (total 17) é uma rolagem boa, mesmo o dado puro não sendo alto. */
+   *  Nat 20/1 têm reação própria (regra do d20, usa o dado puro); fora isso, a escala usa
+   *  `total` com bônus incluído: <8 ruim, 8-14 mais ou menos, 15+ bem — Tom é irônico/sarcástico
+   *  o tempo todo e ri abertamente das rolagens ruins. */
   private reactTomToRoll(roll: RollLogEntry): void {
     if (!['attack', 'skill', 'save', 'initiative'].includes(roll.roll_type)) return;
+    const name = roll.actor_name;
     const natural = roll.total - roll.modifier;
     if (natural === 20) {
-      this.reactTom('tom-celebrating.png', `20 natural de ${roll.actor_name}! Incrível!`);
+      this.reactTom('tom-celebrating.png', this.pickTomLine([
+        `NAT 20, ${name}?! Guarda essa data no calendário.`,
+        `Uau. ${name} acertou o crítico. Nem eu esperava por essa.`,
+        `20 natural! Até relógio parado acerta a hora, ${name}.`,
+      ]));
     } else if (natural === 1) {
-      this.reactTom('tom-stop.png', `1 natural... que azar, ${roll.actor_name}.`);
+      this.reactTom('tom-stop.png', this.pickTomLine([
+        `HAHAHA! Nat 1, ${name}? Isso vai ficar guardado.`,
+        `1 natural... desculpa, eu ri. De verdade, ${name}.`,
+        `Que vergonha alheia, ${name}. NAT 1!`,
+      ]));
     } else if (roll.total >= 15) {
-      this.reactTom('tom-like.png', `Boa rolagem, ${roll.actor_name}!`);
-    } else if (roll.total <= 5) {
-      this.reactTom('tom-stop.png', `Hmm, não foi dessa vez, ${roll.actor_name}.`);
+      this.reactTom('tom-like.png', this.pickTomLine([
+        `Ora ora, ${name} mandou bem (${roll.total}). Quem diria.`,
+        `${roll.total}! Olha só quem resolveu aparecer hoje, ${name}.`,
+        `Nada mal, ${name}. ${roll.total} até que impressiona.`,
+      ]));
+    } else if (roll.total < 8) {
+      this.reactTom('tom-stop.png', this.pickTomLine([
+        `HAHA, ${roll.total}? Isso foi memorável, ${name}.`,
+        `Ai, ${name}... ${roll.total}. Eu avisei pra treinar mais.`,
+        `${roll.total}?! Eu ri igual, relaxa, ${name}.`,
+      ]));
     } else {
-      this.reactTom('tom.png', `${roll.actor_name} tirou ${roll.total}. Nem tão bem, nem tão mal.`);
+      this.reactTom('tom.png', this.pickTomLine([
+        `${roll.total}, ${name}. Nem herói, nem vilão da história.`,
+        `${roll.total}... mediano que nem meu dia, ${name}.`,
+        `${name} tirou ${roll.total}. Vai que cola.`,
+      ]));
     }
   }
 
   /** Confirmação de acerto/erro contra a CA do alvo, vinda do roll-modal (via player-actions-modal). */
   onAttackResolved(actorName: string, hit: boolean): void {
     if (hit) {
-      this.reactTom('tom-celebrating.png', `${actorName} acertou o ataque!`);
+      this.reactTom('tom-celebrating.png', this.pickTomLine([
+        `${actorName} acertou! Nem tudo está perdido.`,
+        `Olha isso, ${actorName} acertou o ataque. Impressionante, por incrível que pareça.`,
+      ]));
     } else {
-      this.reactTom('tom-stop.png', `${actorName} errou o ataque...`);
+      this.reactTom('tom-stop.png', this.pickTomLine([
+        `HAHA, ${actorName} errou feio. Bora, tenta de novo.`,
+        `Ih, errou, ${actorName}. Vou fingir que não vi isso.`,
+      ]));
     }
   }
 
