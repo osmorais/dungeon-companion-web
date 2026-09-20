@@ -266,17 +266,19 @@
                   }
                 </div>
                 @if (isOwner()) {
-                  <button class="retro-btn mobile-npc-actions-btn" (click)="openPlayerActions(npc.id_character, npc.character?.name ?? ('NPC #' + npc.id_character))">
-                    🎲 AÇÕES
-                  </button>
-                  @if (isNpcCurrentTurn(npc) && canEndCurrentTurn()) {
-                    <button class="retro-btn turn-end-btn" [disabled]="endingTurn()" (click)="endTurn()">
-                      {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
+                  <div class="mobile-npc-row-actions">
+                    <button class="retro-btn mobile-npc-actions-btn" (click)="openPlayerActions(npc.id_character, npc.character?.name ?? ('NPC #' + npc.id_character))">
+                      🎲 AÇÕES
                     </button>
-                  }
-                  <button class="retro-btn mobile-npc-btn" (click)="viewCharacterSheet(npc.id_character)">
-                    VER FICHA
-                  </button>
+                    @if (isNpcCurrentTurn(npc) && canEndCurrentTurn()) {
+                      <button class="retro-btn turn-end-btn" [disabled]="endingTurn()" (click)="endTurn()">
+                        {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
+                      </button>
+                    }
+                    <button class="retro-btn mobile-npc-btn" (click)="viewCharacterSheet(npc.id_character)">
+                      VER FICHA
+                    </button>
+                  </div>
                 }
               </div>
             }
@@ -332,44 +334,46 @@
                     </div>
                   }
                 </div>
-                <button
-                  class="reveal-toggle-btn"
-                  [class.reveal-toggle-btn--on]="monster.is_revealed"
-                  [disabled]="revealingMonsterId() === monster.id_monster_session"
-                  [title]="monster.is_revealed ? 'Esconder monstro dos jogadores' : 'Revelar monstro aos jogadores'"
-                  (click)="toggleMonsterReveal(monster, $event)"
-                ></button>
-                @if (isOwner()) {
+                <div class="mobile-monster-row-actions">
                   <button
-                    class="monster-defeat-btn"
-                    title="Marcar monstro como derrotado"
-                    [disabled]="defeatingMonsterId() === monster.id_monster_session"
-                    (click)="$event.stopPropagation(); openDefeatMonsterXpModal(monster)"
-                  >
-                    ⚔
-                  </button>
-                  <button
-                    class="monster-edit-btn"
-                    title="Editar monstro"
-                    (click)="$event.stopPropagation(); openMonsterDetail(monster)"
-                  >
-                    ✎
-                  </button>
-                  <button
-                    class="monster-duplicate-btn"
-                    title="Duplicar monstro"
-                    [disabled]="duplicatingMonsterId() === monster.id_monster_session"
-                    (click)="duplicateMonster(monster, $event)"
-                  >
-                    ⧉
-                  </button>
-                  @if (isMonsterCurrentTurn(monster) && canEndCurrentTurn()) {
-                    <button class="retro-btn turn-end-btn" [disabled]="endingTurn()"
-                      (click)="$event.stopPropagation(); endTurn()">
-                      {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
+                    class="reveal-toggle-btn"
+                    [class.reveal-toggle-btn--on]="monster.is_revealed"
+                    [disabled]="revealingMonsterId() === monster.id_monster_session"
+                    [title]="monster.is_revealed ? 'Esconder monstro dos jogadores' : 'Revelar monstro aos jogadores'"
+                    (click)="toggleMonsterReveal(monster, $event)"
+                  ></button>
+                  @if (isOwner()) {
+                    <button
+                      class="monster-defeat-btn"
+                      title="Marcar monstro como derrotado"
+                      [disabled]="defeatingMonsterId() === monster.id_monster_session"
+                      (click)="$event.stopPropagation(); openDefeatMonsterXpModal(monster)"
+                    >
+                      ⚔
                     </button>
+                    <button
+                      class="monster-edit-btn"
+                      title="Editar monstro"
+                      (click)="$event.stopPropagation(); openMonsterDetail(monster)"
+                    >
+                      ✎
+                    </button>
+                    <button
+                      class="monster-duplicate-btn"
+                      title="Duplicar monstro"
+                      [disabled]="duplicatingMonsterId() === monster.id_monster_session"
+                      (click)="duplicateMonster(monster, $event)"
+                    >
+                      ⧉
+                    </button>
+                    @if (isMonsterCurrentTurn(monster) && canEndCurrentTurn()) {
+                      <button class="retro-btn turn-end-btn" [disabled]="endingTurn()"
+                        (click)="$event.stopPropagation(); endTurn()">
+                        {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
+                      </button>
+                    }
                   }
-                }
+                </div>
               </div>
             }
           </div>
@@ -666,17 +670,19 @@
                   }
                 </div>
                 @if (isOwner()) {
-                  <button class="retro-btn npc-actions-btn" (click)="openPlayerActions(npc.id_character, npc.character?.name ?? ('NPC #' + npc.id_character))">
-                    🎲 AÇÕES
-                  </button>
-                  @if (isNpcCurrentTurn(npc) && canEndCurrentTurn()) {
-                    <button class="retro-btn turn-end-btn" [disabled]="endingTurn()" (click)="endTurn()">
-                      {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
+                  <div class="npc-row-actions">
+                    <button class="retro-btn npc-actions-btn" (click)="openPlayerActions(npc.id_character, npc.character?.name ?? ('NPC #' + npc.id_character))">
+                      🎲 AÇÕES
                     </button>
-                  }
-                  <button class="retro-btn npc-sheet-btn" (click)="viewCharacterSheet(npc.id_character)">
-                    VER FICHA ▶
-                  </button>
+                    @if (isNpcCurrentTurn(npc) && canEndCurrentTurn()) {
+                      <button class="retro-btn turn-end-btn" [disabled]="endingTurn()" (click)="endTurn()">
+                        {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
+                      </button>
+                    }
+                    <button class="retro-btn npc-sheet-btn" (click)="viewCharacterSheet(npc.id_character)">
+                      VER FICHA ▶
+                    </button>
+                  </div>
                 }
               </div>
             }
@@ -734,44 +740,46 @@
                     </div>
                   }
                 </div>
-                <button
-                  class="reveal-toggle-btn"
-                  [class.reveal-toggle-btn--on]="monster.is_revealed"
-                  [disabled]="revealingMonsterId() === monster.id_monster_session"
-                  [title]="monster.is_revealed ? 'Esconder monstro dos jogadores' : 'Revelar monstro aos jogadores'"
-                  (click)="toggleMonsterReveal(monster, $event)"
-                ></button>
-                @if (isOwner()) {
+                <div class="monster-row-actions">
                   <button
-                    class="monster-defeat-btn"
-                    title="Marcar monstro como derrotado"
-                    [disabled]="defeatingMonsterId() === monster.id_monster_session"
-                    (click)="$event.stopPropagation(); openDefeatMonsterXpModal(monster)"
-                  >
-                    ⚔
-                  </button>
-                  <button
-                    class="monster-edit-btn"
-                    title="Editar monstro"
-                    (click)="$event.stopPropagation(); openMonsterDetail(monster)"
-                  >
-                    ✎
-                  </button>
-                  <button
-                    class="monster-duplicate-btn"
-                    title="Duplicar monstro"
-                    [disabled]="duplicatingMonsterId() === monster.id_monster_session"
-                    (click)="duplicateMonster(monster, $event)"
-                  >
-                    ⧉
-                  </button>
-                  @if (isMonsterCurrentTurn(monster) && canEndCurrentTurn()) {
-                    <button class="retro-btn turn-end-btn" [disabled]="endingTurn()"
-                      (click)="$event.stopPropagation(); endTurn()">
-                      {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
+                    class="reveal-toggle-btn"
+                    [class.reveal-toggle-btn--on]="monster.is_revealed"
+                    [disabled]="revealingMonsterId() === monster.id_monster_session"
+                    [title]="monster.is_revealed ? 'Esconder monstro dos jogadores' : 'Revelar monstro aos jogadores'"
+                    (click)="toggleMonsterReveal(monster, $event)"
+                  ></button>
+                  @if (isOwner()) {
+                    <button
+                      class="monster-defeat-btn"
+                      title="Marcar monstro como derrotado"
+                      [disabled]="defeatingMonsterId() === monster.id_monster_session"
+                      (click)="$event.stopPropagation(); openDefeatMonsterXpModal(monster)"
+                    >
+                      ⚔
                     </button>
+                    <button
+                      class="monster-edit-btn"
+                      title="Editar monstro"
+                      (click)="$event.stopPropagation(); openMonsterDetail(monster)"
+                    >
+                      ✎
+                    </button>
+                    <button
+                      class="monster-duplicate-btn"
+                      title="Duplicar monstro"
+                      [disabled]="duplicatingMonsterId() === monster.id_monster_session"
+                      (click)="duplicateMonster(monster, $event)"
+                    >
+                      ⧉
+                    </button>
+                    @if (isMonsterCurrentTurn(monster) && canEndCurrentTurn()) {
+                      <button class="retro-btn turn-end-btn" [disabled]="endingTurn()"
+                        (click)="$event.stopPropagation(); endTurn()">
+                        {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
+                      </button>
+                    }
                   }
-                }
+                </div>
               </div>
             }
           </div>
