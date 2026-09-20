@@ -261,7 +261,10 @@ export class PlayerActionsModalComponent implements OnInit {
     return Array.from({ length: this.slotsTotal(key) }, (_, i) => i);
   }
 
-  expendSlot(level: number, delta: number): void {
+  /** `closeAfter` fecha o modal ao terminar — usado pelo fluxo de conjurar magia (castSpell), já
+   *  que aí a interação acabou. Ajuste manual de espaço (spell-slot-adjust-btn) passa `false`,
+   *  pra deixar o jogador continuar ajustando outros níveis sem reabrir a tela. */
+  expendSlot(level: number, delta: number, closeAfter = true): void {
     if (this.expendingSlot()) return;
     this.expendingSlot.set(true);
     this.actionError.set(null);
@@ -269,7 +272,7 @@ export class PlayerActionsModalComponent implements OnInit {
       next: ({ slots_expended }) => {
         this.patchSpellcasting({ slots_expended });
         this.expendingSlot.set(false);
-        this.closed.emit();
+        if (closeAfter) this.closed.emit();
       },
       error: (err) => {
         this.expendingSlot.set(false);

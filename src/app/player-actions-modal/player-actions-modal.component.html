@@ -119,6 +119,14 @@
                     }
                   </div>
                   <span class="pa-slot-count">{{ slotsAvailable(key) }}/{{ slotsTotal(key) }}</span>
+                  <div class="pa-slot-adjust">
+                    <button class="pa-slot-adjust-btn" title="Gastar um espaço"
+                      [disabled]="expendingSlot() || slotsAvailable(key) === 0"
+                      (click)="expendSlot(slotLevelNumber(key), 1, false)">−</button>
+                    <button class="pa-slot-adjust-btn" title="Recuperar um espaço"
+                      [disabled]="expendingSlot() || slotsAvailable(key) >= slotsTotal(key)"
+                      (click)="expendSlot(slotLevelNumber(key), -1, false)">+</button>
+                  </div>
                 </div>
               }
             </div>

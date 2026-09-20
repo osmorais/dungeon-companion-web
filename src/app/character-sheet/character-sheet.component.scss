@@ -502,6 +502,40 @@ ul {
   flex-shrink: 0;
 }
 
+/* Único jeito de gastar/recuperar um espaço de magia manualmente (ex: depois de usar
+   Recuperação Arcana/Natural, que dizem no texto "ajuste manualmente os espaços" mas não
+   tinham nenhum controle pra isso). */
+.spell-slot-adjust {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.spell-slot-adjust-btn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 10px;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover:not(:disabled) {
+    background-color: var(--btn-color);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
 .spell-rest-btn {
   float: none !important;
   align-self: center;

@@ -309,6 +309,14 @@
                       }
                     </div>
                     <span class="spell-slot-count">{{ slotsAvailable(key) }}/{{ slotsTotal(key) }}</span>
+                    <div class="spell-slot-adjust">
+                      <button class="spell-slot-adjust-btn" title="Gastar um espaço"
+                        [disabled]="expendingSlot() || slotsAvailable(key) === 0"
+                        (click)="expendSlot(slotLevelNumber(key), 1)">−</button>
+                      <button class="spell-slot-adjust-btn" title="Recuperar um espaço"
+                        [disabled]="expendingSlot() || slotsAvailable(key) >= slotsTotal(key)"
+                        (click)="expendSlot(slotLevelNumber(key), -1)">+</button>
+                    </div>
                   </div>
                 }
               </div>
@@ -746,6 +754,14 @@
                       }
                     </div>
                     <span class="spell-slot-count">{{ slotsAvailable(key) }}/{{ slotsTotal(key) }}</span>
+                    <div class="spell-slot-adjust">
+                      <button class="spell-slot-adjust-btn" title="Gastar um espaço"
+                        [disabled]="expendingSlot() || slotsAvailable(key) === 0"
+                        (click)="expendSlot(slotLevelNumber(key), 1)">−</button>
+                      <button class="spell-slot-adjust-btn" title="Recuperar um espaço"
+                        [disabled]="expendingSlot() || slotsAvailable(key) >= slotsTotal(key)"
+                        (click)="expendSlot(slotLevelNumber(key), -1)">+</button>
+                    </div>
                   </div>
                 }
               </div>
