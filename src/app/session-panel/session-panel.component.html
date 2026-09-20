@@ -499,13 +499,42 @@
               <div class="player-card"
                 [class.player-card--current-turn]="isPlayerCurrentTurn(player)"
                 [class.player-card--has-bg]="player.character?.image_url"
+                [class.player-card--tooltip-active]="avatarTooltipVisibleFor(player.id_character)"
                 [style.background-image]="player.character?.image_url ? ('linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(' + player.character?.image_url + ')') : null">
                 @if (isOwner()) {
                   <button class="delete-btn" title="Remover jogador" (click)="deletePlayer(player.id_player_session)">✕</button>
                 }
 
-                <div class="avatar-circle">
-                  <app-avatar-display [preset]="player.character?.avatar_preset ?? null" />
+                <div class="avatar-hover-wrap"
+                  (mouseenter)="onAvatarHoverStart(player.id_character, canViewSheet(player))"
+                  (mouseleave)="onAvatarHoverEnd()">
+                  <div class="avatar-circle">
+                    <app-avatar-display [preset]="player.character?.avatar_preset ?? null" />
+                  </div>
+                  @if (avatarTooltipVisibleFor(player.id_character)) {
+                    <div class="avatar-tooltip">
+                      @if (avatarTooltipSheet(); as tSheet) {
+                        <p class="avatar-tooltip-title">{{ tSheet.character_sheet.header.name }}</p>
+                        <div class="avatar-tooltip-quick-stats">
+                          <span>CA {{ tSheet.character_sheet.combat_stats.armor_class }}</span>
+                          <span>INIC. {{ formatMod(tSheet.character_sheet.combat_stats.initiative) }}</span>
+                          <span>DESL. {{ tSheet.character_sheet.combat_stats.speed }}</span>
+                          <span>PERC. {{ tSheet.character_sheet.combat_stats.passive_perception }}</span>
+                          <span>{{ tSheet.character_sheet.equipment.currency.gp }} PO</span>
+                        </div>
+                        <div class="avatar-tooltip-attrs">
+                          @for (attr of avatarTooltipAttrs(tSheet); track attr.key) {
+                            <div class="avatar-tooltip-attr">
+                              <span class="avatar-tooltip-attr-label">{{ attrLabel(attr.key) }}</span>
+                              <span class="avatar-tooltip-attr-value">{{ attr.score }} ({{ formatMod(attr.modifier) }})</span>
+                            </div>
+                          }
+                        </div>
+                      } @else {
+                        <p class="avatar-tooltip-loading">Carregando...</p>
+                      }
+                    </div>
+                  }
                 </div>
 
                 @if (player.character) {

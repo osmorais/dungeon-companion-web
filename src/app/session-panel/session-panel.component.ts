@@ -29,6 +29,7 @@ import { DistributeXpModalComponent } from '../distribute-xp-modal/distribute-xp
 import { AbilityRollConfig, RollModalComponent } from '../roll-modal/roll-modal.component';
 import { AddMonsterModalComponent } from '../add-monster-modal/add-monster-modal.component';
 import { TomAssistantComponent } from '../tom-assistant/tom-assistant.component';
+import { attrLabel } from '../models/level-up.interface';
 
 @Component({
   selector: 'app-session-panel',
@@ -1055,6 +1056,60 @@ export class SessionPanelComponent implements OnDestroy {
 
   formatMod(value: number): string {
     return value >= 0 ? `+${value}` : `${value}`;
+  }
+
+  /** ========================= TOOLTIP DE ATRIBUTOS (HOVER NO AVATAR) =========================
+   *  Só desktop (mouse) — busca a ficha completa sob demanda (com cache), já que CA/iniciativa/
+   *  deslocamento/atributos/ouro não vêm no resumo leve da sessão, só na ficha completa. */
+
+  private avatarTooltipCache = new Map<number, CharacterSheetResponse>();
+  private avatarTooltipTimeout: ReturnType<typeof setTimeout> | null = null;
+  avatarTooltipCharacterId = signal<number | null>(null);
+  avatarTooltipSheet = signal<CharacterSheetResponse | null>(null);
+
+  readonly attrLabel = attrLabel;
+
+  onAvatarHoverStart(idCharacter: number, canView: boolean): void {
+    if (!canView) return;
+    this.avatarTooltipCharacterId.set(idCharacter);
+    const cached = this.avatarTooltipCache.get(idCharacter);
+    if (cached) {
+      this.avatarTooltipSheet.set(cached);
+      return;
+    }
+    this.avatarTooltipSheet.set(null);
+    if (this.avatarTooltipTimeout) clearTimeout(this.avatarTooltipTimeout);
+    // Pequeno atraso pra não disparar uma requisição a cada hover rápido passando pela linha de cards.
+    this.avatarTooltipTimeout = setTimeout(() => {
+      if (this.avatarTooltipCharacterId() !== idCharacter) return;
+      this.charService.getCharacterById(idCharacter).subscribe({
+        next: (sheet) => {
+          this.avatarTooltipCache.set(idCharacter, sheet);
+          if (this.avatarTooltipCharacterId() === idCharacter) this.avatarTooltipSheet.set(sheet);
+        },
+      });
+    }, 300);
+  }
+
+  onAvatarHoverEnd(): void {
+    if (this.avatarTooltipTimeout) {
+      clearTimeout(this.avatarTooltipTimeout);
+      this.avatarTooltipTimeout = null;
+    }
+    this.avatarTooltipCharacterId.set(null);
+    this.avatarTooltipSheet.set(null);
+  }
+
+  avatarTooltipVisibleFor(idCharacter: number): boolean {
+    return this.avatarTooltipCharacterId() === idCharacter;
+  }
+
+  /** Mesma ordem alfabética (CAR/CON/DES/FOR/INT/SAB) já usada na ficha completa (via `| keyvalue`). */
+  avatarTooltipAttrs(sheet: CharacterSheetResponse): { key: string; score: number; modifier: number }[] {
+    const attrs = sheet.character_sheet.attributes_and_saves;
+    return Object.keys(attrs)
+      .sort()
+      .map((key) => ({ key, score: attrs[key].score, modifier: attrs[key].modifier }));
   }
 
   /** ========================= TOAST DE ROLAGEM (broadcast) ========================= */

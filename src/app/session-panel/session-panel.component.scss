@@ -238,6 +238,13 @@
     background-size: cover;
     background-position: center;
   }
+
+  /* Sobe o card acima dos vizinhos no grid enquanto o tooltip de atributos estiver aberto —
+     sem isso, um card mais adiante no DOM pintaria por cima do tooltip que vaza pra fora da
+     largura do card. */
+  &.player-card--tooltip-active {
+    z-index: 50;
+  }
 }
 
 .delete-btn {
@@ -265,6 +272,11 @@
   }
 }
 
+.avatar-hover-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
 .avatar-circle {
   width: 100px;
   height: 100px;
@@ -272,6 +284,67 @@
   overflow: hidden;
   border: 3px solid var(--border-color);
   flex-shrink: 0;
+}
+
+.avatar-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  border: 2px solid var(--accent-color);
+  background-color: var(--panel-bg);
+  padding: 10px 12px;
+  text-align: left;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  cursor: default;
+}
+
+.avatar-tooltip-title {
+  margin: 0 0 6px;
+  font-size: 9px;
+  color: var(--accent-color);
+  text-align: center;
+}
+
+.avatar-tooltip-quick-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 8px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 7px;
+  color: var(--text-color);
+}
+
+.avatar-tooltip-attrs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 10px;
+}
+
+.avatar-tooltip-attr {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 7px;
+}
+
+.avatar-tooltip-attr-label {
+  color: var(--label-title-color);
+}
+
+.avatar-tooltip-attr-value {
+  color: var(--text-color);
+}
+
+.avatar-tooltip-loading {
+  margin: 0;
+  font-size: 7px;
+  color: var(--label-title-color);
+  text-align: center;
 }
 
 .player-label {
