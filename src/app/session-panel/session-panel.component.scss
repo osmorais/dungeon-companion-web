@@ -233,6 +233,11 @@
   border: 2px solid var(--border-color);
   background-color: var(--bg-color);
   text-align: center;
+
+  &.player-card--has-bg {
+    background-size: cover;
+    background-position: center;
+  }
 }
 
 .delete-btn {
@@ -970,6 +975,11 @@
   border: 1px solid var(--border-color);
   background-color: var(--bg-color);
   text-align: center;
+
+  &.mobile-player-card--has-bg {
+    background-size: cover;
+    background-position: center;
+  }
 }
 
 .mobile-avatar-circle {

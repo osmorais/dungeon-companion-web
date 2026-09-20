@@ -145,7 +145,10 @@
         } @else {
           <div class="mobile-players-grid">
             @for (player of sessionDetail()!.players; track player.id_player_session) {
-              <div class="mobile-player-card" [class.mobile-player-card--current-turn]="isPlayerCurrentTurn(player)">
+              <div class="mobile-player-card"
+                [class.mobile-player-card--current-turn]="isPlayerCurrentTurn(player)"
+                [class.mobile-player-card--has-bg]="player.character?.image_url"
+                [style.background-image]="player.character?.image_url ? ('linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(' + player.character?.image_url + ')') : null">
                 @if (isOwner()) {
                   <button class="delete-btn" title="Remover jogador" (click)="deletePlayer(player.id_player_session)">✕</button>
                 }
@@ -493,7 +496,10 @@
         } @else {
           <div class="players-grid">
             @for (player of sessionDetail()!.players; track player.id_player_session) {
-              <div class="player-card" [class.player-card--current-turn]="isPlayerCurrentTurn(player)">
+              <div class="player-card"
+                [class.player-card--current-turn]="isPlayerCurrentTurn(player)"
+                [class.player-card--has-bg]="player.character?.image_url"
+                [style.background-image]="player.character?.image_url ? ('linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(' + player.character?.image_url + ')') : null">
                 @if (isOwner()) {
                   <button class="delete-btn" title="Remover jogador" (click)="deletePlayer(player.id_player_session)">✕</button>
                 }
