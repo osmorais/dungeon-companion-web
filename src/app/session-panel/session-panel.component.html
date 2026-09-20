@@ -1056,6 +1056,30 @@
   </div>
 }
 
+<!-- ===== TOAST: MAGIA LANÇADA (broadcast pra todos na sessão) ===== -->
+@if (activeSpellCastToast(); as cast) {
+  <div class="overlay spell-cast-overlay" (click)="closeSpellCastToast()">
+    <!-- @for com track (key) força recriar o painel — mesmo motivo dos outros toasts acima. -->
+    @for (c of [cast]; track c.key) {
+      <div class="retro-panel spell-cast-panel"
+        [class.spell-cast-panel--has-bg]="imageUrlForCharacter(c.idCharacter)"
+        [style.background-image]="imageUrlForCharacter(c.idCharacter) ? ('linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(' + imageUrlForCharacter(c.idCharacter) + ')') : null"
+        (click)="$event.stopPropagation()">
+        <button class="modal-close-btn" (click)="closeSpellCastToast()">✕</button>
+        <div class="spell-cast-avatar-circle">
+          <app-avatar-display [preset]="avatarPresetForCharacter(c.idCharacter)" />
+        </div>
+        <span class="spell-cast-actor">{{ c.actorName }}</span>
+        <span class="spell-cast-label">LANÇOU</span>
+        <span class="spell-cast-spell-name">{{ c.spellName }}</span>
+        <div class="roll-toast-timer-bar">
+          <div class="roll-toast-timer-fill" [style.animation-duration.ms]="SPELL_CAST_TOAST_MS"></div>
+        </div>
+      </div>
+    }
+  </div>
+}
+
 <!-- ===== TOAST: PERSONAGEM PODE SUBIR DE NÍVEL (broadcast pra todos na sessão) ===== -->
 @if (activeLevelUpEligibleToast(); as leveled) {
   <div class="overlay level-up-eligible-overlay" (click)="closeLevelUpEligibleToast()">

@@ -176,6 +176,14 @@ export interface RollLogPayload {
   is_hidden?: boolean;
 }
 
+/** Anúncio de "personagem lançou uma magia" — só informativo, não persiste no backend (ao
+ *  contrário da rolagem), só dispara o toast em tela de todo mundo na sessão. */
+export interface SpellCastPayload {
+  id_character: number;
+  actor_name: string;
+  spell_name: string;
+}
+
 export interface GameSessionDetail {
   game_session: GameSession;
   players: PlayerSession[];

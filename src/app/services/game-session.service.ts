@@ -17,6 +17,7 @@ import {
   PlayerSession,
   RollLogEntry,
   RollLogPayload,
+  SpellCastPayload,
   StartEncounterParticipantInput,
   SubmitInitiativePayload,
 } from '../models/game-session.interface';
@@ -187,6 +188,11 @@ export class GameSessionService {
 
   postRoll(sessionId: string, payload: RollLogPayload): Observable<RollLogEntry> {
     return this.http.post<RollLogEntry>(`${this.baseUrl}/api/game-session/${sessionId}/roll`, payload);
+  }
+
+  /** Só anuncia (broadcast via socket) pro toast de todo mundo na sessão — não persiste nada. */
+  announceSpellCast(sessionId: string, payload: SpellCastPayload): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/api/game-session/${sessionId}/spell-cast`, payload);
   }
 
   /** ========================= COMBATE / TURNOS ========================= */

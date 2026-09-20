@@ -157,6 +157,7 @@ export class SessionPanelComponent implements OnDestroy {
     if (this.monsterDefeatedToastTimer) clearTimeout(this.monsterDefeatedToastTimer);
     if (this.monsterAnnouncementTimer) clearTimeout(this.monsterAnnouncementTimer);
     if (this.levelUpEligibleToastTimer) clearTimeout(this.levelUpEligibleToastTimer);
+    if (this.spellCastToastTimer) clearTimeout(this.spellCastToastTimer);
     // SessionStateService é singleton (providedIn: 'root') — sem isso, o `detail` de uma sessão
     // visitada antes fica no signal. Ao entrar numa sessão nova, o efeito de "primeira carga"
     // (rollToastFirstLoad) consumiria esse valor obsoleto, e as rolagens de verdade da sessão
@@ -187,6 +188,9 @@ export class SessionPanelComponent implements OnDestroy {
       if (event.type === 'npc_xp_granted' && event.can_level_up) {
         const npc = this.sessionDetail()?.npcs.find((n) => n.id_npc_session === event.id_npc_session);
         this.showLevelUpEligibleToast(event.character_name, npc?.character?.avatar_preset ?? null);
+      }
+      if (event.type === 'spell_cast') {
+        this.showSpellCastToast(event.id_character, event.actor_name, event.spell_name);
       }
     });
     this.safetyNetSub = interval(this.SAFETY_NET_MS).subscribe(() => {
@@ -1228,6 +1232,41 @@ export class SessionPanelComponent implements OnDestroy {
     this.activeMonsterDefeatedToast.set(null);
   }
 
+  /** ========================= TOAST: MAGIA LANÇADA (broadcast) =========================
+   *  Puramente informativo — não persiste nada (ao contrário da rolagem), só o socket
+   *  `spell_cast` reflete pra todo mundo na sessão, autor incluso. */
+
+  readonly SPELL_CAST_TOAST_MS = 6_000;
+
+  activeSpellCastToast = signal<{
+    idCharacter: number;
+    actorName: string;
+    spellName: string;
+    key: number;
+  } | null>(null);
+  private spellCastToastTimer: ReturnType<typeof setTimeout> | null = null;
+  private spellCastToastCounter = 0;
+
+  private showSpellCastToast(idCharacter: number, actorName: string, spellName: string): void {
+    if (this.spellCastToastTimer) clearTimeout(this.spellCastToastTimer);
+    this.spellCastToastCounter++;
+    this.activeSpellCastToast.set({
+      idCharacter,
+      actorName,
+      spellName,
+      key: this.spellCastToastCounter,
+    });
+    this.spellCastToastTimer = setTimeout(
+      () => this.activeSpellCastToast.set(null),
+      this.SPELL_CAST_TOAST_MS,
+    );
+  }
+
+  closeSpellCastToast(): void {
+    if (this.spellCastToastTimer) clearTimeout(this.spellCastToastTimer);
+    this.activeSpellCastToast.set(null);
+  }
+
   /** ========================= TOM: REAÇÕES A EVENTOS DA SESSÃO =========================
    *  Mesmo mascote da criação de personagem, mas aqui ele só comenta o que está acontecendo —
    *  parado no canto esquerdo (variant="left"), sem guiar nenhum fluxo. Volta pro estado neutro
@@ -1343,27 +1382,39 @@ export class SessionPanelComponent implements OnDestroy {
     this.showNextMonsterAnnouncement();
   }
 
-  /** Avatar de quem rolou, buscando entre jogadores e NPCs da sessão pelo id_character da rolagem. */
-  rollToastAvatarPreset(roll: RollLogEntry): AvatarPreset | null {
-    if (roll.id_character === null) return null;
+  /** Avatar de um personagem da sessão (jogador ou NPC), buscando pelo id_character — base de
+   *  rollToastAvatarPreset e do toast de magia lançada. */
+  avatarPresetForCharacter(idCharacter: number | null): AvatarPreset | null {
+    if (idCharacter === null) return null;
     const detail = this.sessionDetail();
     if (!detail) return null;
-    const player = detail.players.find((p) => p.id_character === roll.id_character);
+    const player = detail.players.find((p) => p.id_character === idCharacter);
     if (player) return player.character?.avatar_preset ?? null;
-    const npc = detail.npcs.find((n) => n.id_character === roll.id_character);
+    const npc = detail.npcs.find((n) => n.id_character === idCharacter);
     return npc?.character?.avatar_preset ?? null;
+  }
+
+  /** Foto de fundo de um personagem da sessão (à parte do avatar_preset) — mesma busca de
+   *  avatarPresetForCharacter, retornando a imagem de verdade em vez do preset. */
+  imageUrlForCharacter(idCharacter: number | null): string | null {
+    if (idCharacter === null) return null;
+    const detail = this.sessionDetail();
+    if (!detail) return null;
+    const player = detail.players.find((p) => p.id_character === idCharacter);
+    if (player) return player.character?.image_url ?? null;
+    const npc = detail.npcs.find((n) => n.id_character === idCharacter);
+    return npc?.character?.image_url ?? null;
+  }
+
+  /** Avatar de quem rolou, buscando entre jogadores e NPCs da sessão pelo id_character da rolagem. */
+  rollToastAvatarPreset(roll: RollLogEntry): AvatarPreset | null {
+    return this.avatarPresetForCharacter(roll.id_character);
   }
 
   /** Foto de fundo do painel de rolagem (à parte do avatar_preset) — mesma busca de
    *  rollToastAvatarPreset, retornando a imagem de verdade em vez do preset. */
   rollToastImageUrl(roll: RollLogEntry): string | null {
-    if (roll.id_character === null) return null;
-    const detail = this.sessionDetail();
-    if (!detail) return null;
-    const player = detail.players.find((p) => p.id_character === roll.id_character);
-    if (player) return player.character?.image_url ?? null;
-    const npc = detail.npcs.find((n) => n.id_character === roll.id_character);
-    return npc?.character?.image_url ?? null;
+    return this.imageUrlForCharacter(roll.id_character);
   }
 
   /** ========================= COMBATE / TURNOS ========================= */

@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output, inject, signal } from '@angular/core';
 import { CommonModule, KeyValuePipe } from '@angular/common';
 import { CharacterService, HitDieRollResult } from '../services/character.service';
+import { GameSessionService } from '../services/game-session.service';
 import { CharacterSheetResponse, ClassAbility, ResourceTracker } from '../models/character-response.interface';
 import { Skill, Spell, WeaponRow } from '../models/character-options.interface';
 import {
@@ -23,6 +24,7 @@ import { attrLabel } from '../models/level-up.interface';
 })
 export class PlayerActionsModalComponent implements OnInit {
   private charService = inject(CharacterService);
+  private gameSessionService = inject(GameSessionService);
 
   @Input({ required: true }) idCharacter!: number;
   @Input() fallbackName = 'Personagem';
@@ -515,5 +517,16 @@ export class PlayerActionsModalComponent implements OnInit {
 
   castSpell(spell: Spell, slotLevel: number): void {
     this.expendSlot(slotLevel, 1);
+    // Anúncio best-effort — só dispara o toast informativo de todo mundo na sessão, não trava
+    // o fluxo de gasto de espaço se falhar.
+    if (this.sessionId) {
+      this.gameSessionService
+        .announceSpellCast(this.sessionId, {
+          id_character: this.idCharacter,
+          actor_name: this.actorName,
+          spell_name: spell.name,
+        })
+        .subscribe({ error: () => undefined });
+    }
   }
 }

@@ -164,6 +164,11 @@ export function applySessionEvent(
       // 30 = mesmo LIMIT de GameSessionRepository.findRecentRolls no backend.
       return { ...detail, recent_rolls: [event.roll, ...detail.recent_rolls].slice(0, 30) };
 
+    case 'spell_cast':
+      // Não persiste nada no estado — só dispara o toast (efeito colateral tratado em
+      // session-panel.component.ts, no connectRealtime).
+      return detail;
+
     case 'combat_started':
     case 'initiative_submitted':
     case 'turn_ended':

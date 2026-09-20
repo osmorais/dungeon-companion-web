@@ -1775,6 +1775,60 @@
   to { transform: scaleX(0); }
 }
 
+.spell-cast-overlay {
+  /* Acima dos demais overlays, mesmo motivo do roll-toast-overlay — é um aviso global. */
+  z-index: 1100;
+}
+
+.spell-cast-panel {
+  /* "fieldset.retro-panel" (styles.scss) só vale pra <fieldset> — como este painel é uma
+     <div>, precisa repetir fundo/borda aqui. */
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 40px 48px 28px;
+  min-width: 320px;
+  max-width: 92vw;
+  text-align: center;
+  animation: roll-toast-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.spell-cast-panel--has-bg {
+  background-size: cover;
+  background-position: center;
+}
+
+.spell-cast-avatar-circle {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.spell-cast-actor {
+  font-size: 12px;
+  color: var(--accent-color);
+}
+
+.spell-cast-label {
+  font-size: 8px;
+  color: var(--label-title-color);
+  letter-spacing: 0.15em;
+}
+
+.spell-cast-spell-name {
+  font-size: 16px;
+  color: var(--text-color);
+  text-shadow: 0 0 12px var(--accent-color);
+}
+
 .monster-defeated-overlay {
   /* Acima dos demais overlays, mesmo motivo do roll-toast-overlay — é um aviso global. */
   z-index: 1100;
