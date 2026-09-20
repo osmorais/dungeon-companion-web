@@ -194,6 +194,24 @@
   text-align: center;
 }
 
+.smite-special-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 7px;
+  color: var(--label-title-color);
+  cursor: pointer;
+  text-align: center;
+
+  input[type='checkbox'] {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+}
+
 .roll-modal-actions {
   display: flex;
   gap: 10px;

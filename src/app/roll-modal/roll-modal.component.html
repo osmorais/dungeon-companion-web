@@ -154,6 +154,41 @@
         <button class="roll-btn-primary" (click)="rollDamageNow()">🎲 ROLAR DANO</button>
         <button class="roll-btn-secondary" (click)="confirmMiss()">NÃO ACERTEI</button>
       </div>
+    } @else if (isChoosingSmite) {
+      <p class="roll-hit-question">Usar Destruição Divina?</p>
+      <div class="roll-toggle-row">
+        <button
+          class="roll-toggle-btn"
+          [class.active]="selectedSmiteOption() === null"
+          (click)="selectSmiteOption(null)"
+        >
+          NÃO USAR
+        </button>
+        @for (option of smiteOptions; track option.slotKey) {
+          <button
+            class="roll-toggle-btn"
+            [class.active]="selectedSmiteOption() === option"
+            (click)="selectSmiteOption(option)"
+          >
+            {{ option.levelLabel }} ({{ option.bonusDice }}d8)
+          </button>
+        }
+      </div>
+      @if (selectedSmiteOption()) {
+        <label class="smite-special-toggle">
+          <input
+            type="checkbox"
+            [checked]="smiteTargetSpecial()"
+            (change)="toggleSmiteTargetSpecial()"
+          />
+          Alvo é morto-vivo ou aberração (+1d8)
+        </label>
+      }
+      <div class="roll-modal-actions">
+        <button class="roll-btn-primary" (click)="confirmSmiteChoice()">
+          {{ selectedSmiteOption() ? '🎲 ROLAR DANO' : 'CONTINUAR' }}
+        </button>
+      </div>
     } @else {
       <div class="roll-modal-actions">
         <button

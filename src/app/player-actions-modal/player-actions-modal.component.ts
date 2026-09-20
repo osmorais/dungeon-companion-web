@@ -7,7 +7,11 @@ import {
   AbilityRollConfig,
   RollConfig,
   RollModalComponent,
+  SmiteOption,
 } from '../roll-modal/roll-modal.component';
+
+/** id_class do Paladino em rules.ts — único com Destruição Divina. */
+const PALADIN_CLASS_ID = 11;
 import { attrLabel } from '../models/level-up.interface';
 
 @Component({
@@ -105,10 +109,40 @@ export class PlayerActionsModalComponent implements OnInit {
             diceSides: parseInt(match[2], 10),
             modifier: weapon.damage_modifier,
             label: `Dano: ${weapon.name}`,
+            smite: this.smiteOptionsFor(weapon),
           }
         : undefined,
     };
     this.activeRoll.set(config);
+  }
+
+  /** Destruição Divina: só Paladino nv2+, ataque corpo a corpo, com espaço de magia disponível. */
+  private smiteOptionsFor(weapon: WeaponRow): SmiteOption[] | undefined {
+    const sheetData = this.sheet();
+    if (!sheetData || weapon.isRanged) return undefined;
+    if (sheetData.character_sheet.header.id_class !== PALADIN_CLASS_ID) return undefined;
+    if (sheetData.character_sheet.combat_stats.hit_dice_total < 2) return undefined;
+
+    const options = this.slotLevels()
+      .map((key) => ({ key, level: this.slotLevelNumber(key) }))
+      .filter(({ key }) => this.slotsAvailable(key) > 0)
+      .map(({ key, level }) => ({
+        slotKey: key,
+        levelLabel: `${level}º Nível`,
+        bonusDice: Math.min(5, level + 1),
+      }));
+
+    return options.length > 0 ? options : undefined;
+  }
+
+  /** O jogador escolheu gastar um espaço em Destruição Divina — debita o espaço sem fechar o
+   *  modal, já que a rolagem de dano ainda está em andamento no roll-modal. */
+  onSmiteUsed(event: { slotKey: string }): void {
+    const level = this.slotLevelNumber(event.slotKey);
+    this.charService.updateSpellSlots(this.idCharacter, level, 1).subscribe({
+      next: ({ slots_expended }) => this.patchSpellcasting({ slots_expended }),
+      error: (err) => this.handleActionError(err),
+    });
   }
 
   openFreeformRoll(): void {

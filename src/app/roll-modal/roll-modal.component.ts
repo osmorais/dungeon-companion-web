@@ -4,6 +4,15 @@ import { AdvantageState, RollLogPayload, RollType } from '../models/game-session
 import { PixelDieComponent } from '../pixel-die/pixel-die.component';
 import { PixelNumericDieComponent } from '../pixel-numeric-die/pixel-numeric-die.component';
 
+/** Uma opção de espaço de magia pra gastar em Destruição Divina — ver `AbilityRollConfig.damage.smite`. */
+export interface SmiteOption {
+  /** Chave do nível de espaço (ex: "level_2") — repassada em `smiteUsed` pro chamador debitar o espaço certo. */
+  slotKey: string;
+  levelLabel: string;
+  /** Quantos d8 esse nível de espaço soma ao dano (2 pro espaço de 1º nível, +1 por nível acima, limitado a 5). */
+  bonusDice: number;
+}
+
 export interface AbilityRollConfig {
   mode: 'ability';
   rollType: 'attack' | 'skill' | 'save' | 'initiative';
@@ -14,7 +23,15 @@ export interface AbilityRollConfig {
    * resultado do d20 o modal pergunta "passou da CA?" e, se sim, rola esse dado — tudo no
    * mesmo modal, sem fechar e reabrir.
    */
-  damage?: { diceCount: number; diceSides: number; modifier: number; label: string };
+  damage?: {
+    diceCount: number;
+    diceSides: number;
+    modifier: number;
+    label: string;
+    /** Só ataque corpo a corpo de Paladino nv2+ com espaço de magia disponível: antes de rolar
+     *  o dano, o modal pergunta se quer gastar um espaço em Destruição Divina. */
+    smite?: SmiteOption[];
+  };
 }
 
 export interface FreeformRollConfig {
@@ -29,7 +46,7 @@ interface RollResult {
   total: number;
 }
 
-type AttackPhase = 'attack' | 'awaiting-hit' | 'damage';
+type AttackPhase = 'attack' | 'awaiting-hit' | 'smite-choice' | 'damage';
 
 const DIE_OPTIONS = [4, 6, 8, 10, 12, 20, 100];
 const MAX_PER_DIE_TYPE = 9;
@@ -58,6 +75,9 @@ export class RollModalComponent {
   /** Só emite pro fluxo de ataque com dano (`config.damage` presente): `true` quando o mestre
    *  confirma que passou da CA (rollDamageNow), `false` quando confirma que não acertou (confirmMiss). */
   @Output() attackResolved = new EventEmitter<boolean>();
+  /** Emite quando o jogador escolhe um espaço de magia em Destruição Divina — o pai é
+   *  responsável por debitar o espaço (`slotKey`), o modal só cuida do dado extra. */
+  @Output() smiteUsed = new EventEmitter<{ slotKey: string }>();
 
   readonly dieOptions = DIE_OPTIONS;
 
@@ -73,6 +93,12 @@ export class RollModalComponent {
 
   /** Fase do fluxo de ataque — só avança além de 'attack' quando config.damage existe. */
   attackPhase = signal<AttackPhase>('attack');
+
+  /** Estado da escolha de Destruição Divina (fase 'smite-choice'). */
+  selectedSmiteOption = signal<SmiteOption | null>(null);
+  smiteTargetSpecial = signal(false);
+  /** Quantos d8 extras somar à rolagem de dano — 0 se Destruição Divina não foi usada. */
+  private smiteExtraDice = signal(0);
 
   isRolling = signal(false);
   displayValues = signal<number[]>([]);
@@ -93,13 +119,31 @@ export class RollModalComponent {
     return this.attackPhase() === 'awaiting-hit';
   }
 
-  /** true só pro d20 de teste de habilidade — falso durante a sub-rolagem de dano do ataque. */
+  get isChoosingSmite(): boolean {
+    return this.attackPhase() === 'smite-choice';
+  }
+
+  get smiteOptions(): SmiteOption[] {
+    return this.pendingDamage?.smite ?? [];
+  }
+
+  /** true só pro d20 de teste de habilidade — falso durante a sub-rolagem de dano do ataque
+   *  e durante a escolha de Destruição Divina. */
   get isAbility(): boolean {
-    return this.config.mode === 'ability' && this.attackPhase() !== 'damage';
+    return (
+      this.config.mode === 'ability' &&
+      this.attackPhase() !== 'damage' &&
+      this.attackPhase() !== 'smite-choice'
+    );
   }
 
   get title(): string {
-    if (this.attackPhase() === 'damage' && this.pendingDamage) return this.pendingDamage.label;
+    if (this.attackPhase() === 'smite-choice') return 'Destruição Divina';
+    if (this.attackPhase() === 'damage' && this.pendingDamage) {
+      return this.smiteExtraDice() > 0
+        ? `${this.pendingDamage.label} + Destruição Divina`
+        : this.pendingDamage.label;
+    }
     return this.config.mode === 'ability' ? this.config.label : 'Rolagem de Dados';
   }
 
@@ -181,10 +225,35 @@ export class RollModalComponent {
     }, ROLL_TICK_MS);
   }
 
-  /** O mestre confirmou que o ataque passou da CA — rola o dado de dano da arma, no mesmo modal. */
+  /** O mestre confirmou que o ataque passou da CA — se houver opções de Destruição Divina,
+   *  pergunta antes; senão já rola o dado de dano da arma, no mesmo modal. */
   rollDamageNow(): void {
     if (!this.pendingDamage) return;
     this.attackResolved.emit(true);
+    if (this.pendingDamage.smite?.length) {
+      this.attackPhase.set('smite-choice');
+      return;
+    }
+    this.beginDamageRoll();
+  }
+
+  selectSmiteOption(option: SmiteOption | null): void {
+    this.selectedSmiteOption.set(option);
+  }
+
+  toggleSmiteTargetSpecial(): void {
+    this.smiteTargetSpecial.update((v) => !v);
+  }
+
+  /** Fecha a escolha de Destruição Divina e rola o dano (arma + d8s extras, se usada). */
+  confirmSmiteChoice(): void {
+    const option = this.selectedSmiteOption();
+    this.smiteExtraDice.set(option ? option.bonusDice + (this.smiteTargetSpecial() ? 1 : 0) : 0);
+    if (option) this.smiteUsed.emit({ slotKey: option.slotKey });
+    this.beginDamageRoll();
+  }
+
+  private beginDamageRoll(): void {
     this.attackPhase.set('damage');
     this.result.set(null);
     this.roll();
@@ -224,7 +293,9 @@ export class RollModalComponent {
   private currentDiceSides(): number[] {
     if (this.attackPhase() === 'damage' && this.pendingDamage) {
       const { diceCount, diceSides } = this.pendingDamage;
-      return Array.from({ length: diceCount }, () => diceSides);
+      const weaponDice = Array.from({ length: diceCount }, () => diceSides);
+      const smiteDice = Array.from({ length: this.smiteExtraDice() }, () => 8);
+      return [...weaponDice, ...smiteDice];
     }
     if (this.config.mode === 'ability') {
       const count = this.advantageState() === 'normal' ? 1 : 2;
