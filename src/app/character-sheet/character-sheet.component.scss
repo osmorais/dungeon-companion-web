@@ -431,6 +431,52 @@ ul {
   flex-shrink: 0;
 }
 
+/* Nome de recurso rastreável (ex: "CANALIZAR DIVINDADE") — mais longo que "NV1"/"CHI", não cabe
+   na largura fixa padrão de .spell-slot-label. */
+.spell-slot-label--wide {
+  width: auto;
+  min-width: 90px;
+}
+
+.prepared-spells-quickview {
+  border: 1px solid var(--border-color);
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.prepared-spells-quickview-title {
+  margin: 0 0 8px;
+  font-size: 8px;
+  color: var(--label-title-color);
+}
+
+.prepared-spells-quickview-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.prepared-spell-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--btn-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  padding: 5px 8px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--btn-color-hover);
+  }
+}
+
+.prepared-spell-chip-level {
+  color: var(--accent-color);
+}
+
 .spell-slot-pips {
   display: flex;
   gap: 3px;

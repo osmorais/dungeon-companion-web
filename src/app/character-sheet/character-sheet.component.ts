@@ -240,6 +240,14 @@ export class CharacterSheetComponent {
     return circle === 0 ? 'TRUQUES' : `${circle}º CÍRCULO`;
   }
 
+  /** Magias preparadas, ordenadas por círculo e nome — lista rápida separada no topo da tela de
+   *  magias, além do agrupamento por círculo já existente. */
+  preparedSpells(): Spell[] {
+    return (this.sheetData()?.character_sheet.spells ?? [])
+      .filter((s) => s.is_prepared)
+      .sort((a, b) => a.spellLevel - b.spellLevel || a.name.localeCompare(b.name, 'pt-BR'));
+  }
+
   private collapsedCircles = signal<Set<number>>(new Set());
 
   isCircleCollapsed(circle: number): boolean {
@@ -486,6 +494,12 @@ export class CharacterSheetComponent {
 
   chiAbilities(): ClassAbility[] {
     return this.sheetData()?.character_sheet.class_abilities ?? [];
+  }
+
+  /** Recursos distintos usados pelas habilidades ativáveis (uma classe pode ter mais de um ao
+   *  mesmo tempo — ex: Guerreiro tem Retomar Fôlego/Surto de Ação/Indomável). */
+  chiAbilityResourceKeys(): string[] {
+    return [...new Set(this.chiAbilities().map((a) => a.resource_key))];
   }
 
   selectedChiAbility: ClassAbility | null = null;

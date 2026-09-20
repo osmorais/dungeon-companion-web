@@ -313,6 +313,19 @@
                 }
               </div>
             }
+            @if (data.character_sheet.spellcasting_info?.prepares_spells && preparedSpells().length > 0) {
+              <div class="prepared-spells-quickview">
+                <p class="prepared-spells-quickview-title">MAGIAS PREPARADAS ({{ preparedCount() }}/{{ maxPrepared() }})</p>
+                <div class="prepared-spells-quickview-list">
+                  @for (spell of preparedSpells(); track spell.id_spell) {
+                    <button type="button" class="prepared-spell-chip" (click)="openSpellModal(spell)">
+                      <span class="prepared-spell-chip-level">{{ spell.spellLevel === 0 ? 'T' : spell.spellLevel }}</span>
+                      {{ spell.name }}
+                    </button>
+                  }
+                </div>
+              </div>
+            }
             <div class="mobile-spell-cards">
               @for (group of spellsByCircle(); track group.circle) {
                 <button
@@ -349,20 +362,22 @@
 
             @if (chiAbilities().length > 0) {
               <div class="chi-panel-mobile">
-                <p class="chi-panel-title">PONTOS DE CHI</p>
-                @if (resourceTrackerByKey('Pontos de Chi'); as res) {
-                  @if (res.max !== 'unlimited') {
-                    <div class="spell-slots-bar">
-                      <div class="spell-slot-row">
-                        <span class="spell-slot-label">CHI</span>
-                        <div class="spell-slot-pips">
-                          @for (i of resourcePips(res); track i) {
-                            <span class="spell-slot-pip" [class.spent]="i >= resourceAvailable(res)"></span>
-                          }
+                <p class="chi-panel-title">PODERES DE CLASSE</p>
+                @for (key of chiAbilityResourceKeys(); track key) {
+                  @if (resourceTrackerByKey(key); as res) {
+                    @if (res.max !== 'unlimited') {
+                      <div class="spell-slots-bar">
+                        <div class="spell-slot-row">
+                          <span class="spell-slot-label spell-slot-label--wide">{{ key.toUpperCase() }}</span>
+                          <div class="spell-slot-pips">
+                            @for (i of resourcePips(res); track i) {
+                              <span class="spell-slot-pip" [class.spent]="i >= resourceAvailable(res)"></span>
+                            }
+                          </div>
+                          <span class="spell-slot-count">{{ resourceAvailable(res) }}/{{ res.max }}</span>
                         </div>
-                        <span class="spell-slot-count">{{ resourceAvailable(res) }}/{{ res.max }}</span>
                       </div>
-                    </div>
+                    }
                   }
                 }
                 <div class="mobile-spell-cards">
@@ -370,6 +385,7 @@
                     <div class="mobile-spell-card" (click)="openChiAbilityModal(ability)">
                       <div class="spell-card-left">
                         <div class="spell-card-name">{{ ability.name }}</div>
+                        <div class="spell-card-meta">{{ ability.resource_key }}</div>
                       </div>
                       <div class="spell-card-level">{{ ability.cost }}</div>
                     </div>
@@ -734,6 +750,19 @@
                 }
               </div>
             }
+            @if (data.character_sheet.spellcasting_info?.prepares_spells && preparedSpells().length > 0) {
+              <div class="prepared-spells-quickview">
+                <p class="prepared-spells-quickview-title">MAGIAS PREPARADAS ({{ preparedCount() }}/{{ maxPrepared() }})</p>
+                <div class="prepared-spells-quickview-list">
+                  @for (spell of preparedSpells(); track spell.id_spell) {
+                    <button type="button" class="prepared-spell-chip" (click)="openSpellModal(spell)">
+                      <span class="prepared-spell-chip-level">{{ spell.spellLevel === 0 ? 'T' : spell.spellLevel }}</span>
+                      {{ spell.name }}
+                    </button>
+                  }
+                </div>
+              </div>
+            }
             <table class="weapons-table spells-table">
               <thead>
                 <tr>
@@ -788,26 +817,29 @@
 
         @if (chiAbilities().length > 0) {
           <fieldset class="retro-panel magic-panel">
-            <legend>PONTOS DE CHI</legend>
-            @if (resourceTrackerByKey('Pontos de Chi'); as res) {
-              @if (res.max !== 'unlimited') {
-                <div class="spell-slots-bar">
-                  <div class="spell-slot-row">
-                    <span class="spell-slot-label">CHI</span>
-                    <div class="spell-slot-pips">
-                      @for (i of resourcePips(res); track i) {
-                        <span class="spell-slot-pip" [class.spent]="i >= resourceAvailable(res)"></span>
-                      }
+            <legend>PODERES DE CLASSE</legend>
+            @for (key of chiAbilityResourceKeys(); track key) {
+              @if (resourceTrackerByKey(key); as res) {
+                @if (res.max !== 'unlimited') {
+                  <div class="spell-slots-bar">
+                    <div class="spell-slot-row">
+                      <span class="spell-slot-label spell-slot-label--wide">{{ key.toUpperCase() }}</span>
+                      <div class="spell-slot-pips">
+                        @for (i of resourcePips(res); track i) {
+                          <span class="spell-slot-pip" [class.spent]="i >= resourceAvailable(res)"></span>
+                        }
+                      </div>
+                      <span class="spell-slot-count">{{ resourceAvailable(res) }}/{{ res.max }}</span>
                     </div>
-                    <span class="spell-slot-count">{{ resourceAvailable(res) }}/{{ res.max }}</span>
                   </div>
-                </div>
+                }
               }
             }
             <table class="weapons-table spells-table">
               <thead>
                 <tr>
                   <th>NOME</th>
+                  <th>RECURSO</th>
                   <th>CUSTO</th>
                 </tr>
               </thead>
@@ -815,7 +847,8 @@
                 @for (ability of chiAbilities(); track ability.name) {
                   <tr class="clickable-row" (click)="openChiAbilityModal(ability)">
                     <td>{{ ability.name }}</td>
-                    <td class="text-center">{{ ability.cost }} chi</td>
+                    <td>{{ ability.resource_key }}</td>
+                    <td class="text-center">{{ ability.cost }}</td>
                   </tr>
                 }
               </tbody>
@@ -970,7 +1003,7 @@
       <div class="retro-panel item-modal" (click)="$event.stopPropagation()">
         <button class="item-modal-close" (click)="closeChiAbilityModal()">✕</button>
         <h3 class="item-modal-title">{{ ability.name }}</h3>
-        <p class="spell-school">Custo: {{ ability.cost }} ponto(s) de chi</p>
+        <p class="spell-school">Custo: {{ ability.cost }} ({{ ability.resource_key }})</p>
         <div class="item-modal-info">
           @if (ability.description) {
             <div class="spell-description">{{ ability.description }}</div>
@@ -980,10 +1013,10 @@
           <button class="retro-btn spell-slot-btn"
                   [disabled]="!canUseChiAbility(ability)"
                   (click)="useChiAbility(ability); closeChiAbilityModal()">
-            USAR ({{ ability.cost }} chi)
+            USAR ({{ ability.cost }})
           </button>
           @if (resourceAvailableForAbility(ability) < ability.cost) {
-            <p class="spell-no-slots">Chi insuficiente.</p>
+            <p class="spell-no-slots">{{ ability.resource_key }} insuficiente.</p>
           }
         </div>
       </div>
