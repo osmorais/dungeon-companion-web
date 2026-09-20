@@ -124,6 +124,20 @@
             </div>
           }
 
+          @if (spellInfo.prepares_spells && preparedSpells().length > 0) {
+            <div class="pa-prepared-quickview">
+              <p class="pa-prepared-quickview-title">MAGIAS PREPARADAS</p>
+              <div class="pa-prepared-quickview-list">
+                @for (spell of preparedSpells(); track spell.id_spell) {
+                  <button type="button" class="pa-prepared-chip" (click)="openSpellDetail(spell)">
+                    <span class="pa-prepared-chip-level">{{ spell.spellLevel === 0 ? 'T' : spell.spellLevel }}</span>
+                    {{ spell.name }}
+                  </button>
+                }
+              </div>
+            </div>
+          }
+
           <div class="pa-spell-list">
             @for (group of spellsByCircle(); track group.circle) {
               <button

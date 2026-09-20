@@ -243,6 +243,44 @@
   overflow-y: auto;
 }
 
+.pa-prepared-quickview {
+  border: 1px solid var(--border-color);
+  padding: 8px 10px;
+}
+
+.pa-prepared-quickview-title {
+  margin: 0 0 6px;
+  font-size: 7px;
+  color: var(--label-title-color);
+}
+
+.pa-prepared-quickview-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pa-prepared-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--btn-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  padding: 5px 8px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--btn-color-hover);
+  }
+}
+
+.pa-prepared-chip-level {
+  color: var(--accent-color);
+}
+
 .pa-spell-row {
   border: 1px solid var(--border-color);
   padding: 6px 10px;

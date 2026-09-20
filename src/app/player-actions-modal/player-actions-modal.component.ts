@@ -191,6 +191,14 @@ export class PlayerActionsModalComponent implements OnInit {
     return circle === 0 ? 'TRUQUES' : `${circle}º CÍRCULO`;
   }
 
+  /** Magias preparadas, ordenadas por círculo e nome — lista rápida separada no topo, além do
+   *  agrupamento por círculo já existente. */
+  preparedSpells(): Spell[] {
+    return (this.sheet()?.character_sheet.spells ?? [])
+      .filter((s) => s.is_prepared)
+      .sort((a, b) => a.spellLevel - b.spellLevel || a.name.localeCompare(b.name, 'pt-BR'));
+  }
+
   /** Vazio por padrão = todos os círculos vêm colapsados ao abrir a ficha. */
   private expandedCircles = signal<Set<number>>(new Set());
 
