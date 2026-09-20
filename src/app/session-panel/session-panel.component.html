@@ -506,7 +506,7 @@
                 }
 
                 <div class="avatar-hover-wrap"
-                  (mouseenter)="onAvatarHoverStart(player.id_character, canViewSheet(player))"
+                  (mouseenter)="onAvatarHoverStart(player.id_character)"
                   (mouseleave)="onAvatarHoverEnd()">
                   <div class="avatar-circle">
                     <app-avatar-display [preset]="player.character?.avatar_preset ?? null" />

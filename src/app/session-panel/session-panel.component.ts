@@ -1064,7 +1064,10 @@ export class SessionPanelComponent implements OnDestroy {
 
   /** ========================= TOOLTIP DE ATRIBUTOS (HOVER NO AVATAR) =========================
    *  Só desktop (mouse) — busca a ficha completa sob demanda (com cache), já que CA/iniciativa/
-   *  deslocamento/atributos/ouro não vêm no resumo leve da sessão, só na ficha completa. */
+   *  deslocamento/atributos/ouro não vêm no resumo leve da sessão, só na ficha completa. Qualquer
+   *  colega de sessão pode ver o de qualquer outro (backend: CharacterSheetService.loadCharacter
+   *  libera pra "colega de sessão", não só dono/mestre) — ao contrário de canViewSheet, que
+   *  continua restrito ao botão "VER FICHA"/"AÇÕES". */
 
   private avatarTooltipCache = new Map<number, CharacterSheetResponse>();
   private avatarTooltipTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -1073,8 +1076,7 @@ export class SessionPanelComponent implements OnDestroy {
 
   readonly attrLabel = attrLabel;
 
-  onAvatarHoverStart(idCharacter: number, canView: boolean): void {
-    if (!canView) return;
+  onAvatarHoverStart(idCharacter: number): void {
     this.avatarTooltipCharacterId.set(idCharacter);
     const cached = this.avatarTooltipCache.get(idCharacter);
     if (cached) {
