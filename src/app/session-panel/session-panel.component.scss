@@ -907,6 +907,11 @@
 .mobile-panel {
   width: 100%;
   box-sizing: border-box;
+  /* <fieldset> tem min-width: min-content por padrão do browser (mesma causa já documentada em
+     .rolls-sidebar no desktop) — sem zerar isso, uma linha de rolagem com dados/texto que não
+     quebram linha empurra o quadro pra além da tela, cortado pelo overflow-x: hidden do
+     .mobile-container. */
+  min-width: 0;
   border: 2px solid var(--border-color);
   background-color: var(--panel-bg);
   padding: 16px 14px;
@@ -1311,7 +1316,13 @@
 .roll-log-dice {
   display: flex;
   gap: 3px;
-  flex-shrink: 0;
+  /* Rolagens com muitos dados (bandeja livre, dano com vários dados) não cabem numa linha só
+     em telas estreitas — em vez de vazar pra fora do card e ser cortado pelo overflow-x:hidden
+     do .mobile-container, os dados quebram linha dentro do próprio espaço reservado. */
+  flex-wrap: wrap;
+  flex-shrink: 1;
+  min-width: 0;
+  justify-content: flex-end;
 }
 
 .roll-log-total {
