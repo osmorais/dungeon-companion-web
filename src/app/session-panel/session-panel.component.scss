@@ -1565,6 +1565,12 @@
   color: var(--accent-color);
 }
 
+.combat-order-roll-for-btn {
+  flex-shrink: 0;
+  padding: 3px 6px;
+  font-size: 6px;
+}
+
 .combat-order-move-controls {
   display: flex;
   flex-direction: column;

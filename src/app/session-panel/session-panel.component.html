@@ -74,6 +74,10 @@
                   {{ combatParticipantName(p) }}{{ p.delayed_this_round ? ' ⏳' : '' }}
                 </span>
                 <span class="combat-order-initiative">{{ p.initiative_total === null ? '...' : p.initiative_total }}</span>
+                @if (isOwner() && c.encounter.status === 'rolling_initiative' && p.participant_type === 'player' && p.initiative_total === null) {
+                  <button class="retro-btn combat-order-roll-for-btn" title="Rolar iniciativa pelo jogador"
+                    (click)="openInitiativeRoll(p)">ROLAR</button>
+                }
                 @if (isOwner() && c.encounter.status === 'active') {
                   <div class="combat-order-move-controls">
                     <button class="combat-order-move-btn" title="Mover para cima"
@@ -428,6 +432,10 @@
                   {{ combatParticipantName(p) }}{{ p.delayed_this_round ? ' ⏳' : '' }}
                 </span>
                 <span class="combat-order-initiative">{{ p.initiative_total === null ? '...' : p.initiative_total }}</span>
+                @if (isOwner() && c.encounter.status === 'rolling_initiative' && p.participant_type === 'player' && p.initiative_total === null) {
+                  <button class="retro-btn combat-order-roll-for-btn" title="Rolar iniciativa pelo jogador"
+                    (click)="openInitiativeRoll(p)">ROLAR</button>
+                }
                 @if (isOwner() && c.encounter.status === 'active') {
                   <div class="combat-order-move-controls">
                     <button class="combat-order-move-btn" title="Mover para cima"
