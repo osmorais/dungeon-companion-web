@@ -1088,7 +1088,7 @@ export class SessionPanelComponent implements OnDestroy {
     // Pequeno atraso pra não disparar uma requisição a cada hover rápido passando pela linha de cards.
     this.avatarTooltipTimeout = setTimeout(() => {
       if (this.avatarTooltipCharacterId() !== idCharacter) return;
-      this.charService.getCharacterById(idCharacter).subscribe({
+      this.charService.getCharacterById(idCharacter, true).subscribe({
         next: (sheet) => {
           this.avatarTooltipCache.set(idCharacter, sheet);
           if (this.avatarTooltipCharacterId() === idCharacter) this.avatarTooltipSheet.set(sheet);

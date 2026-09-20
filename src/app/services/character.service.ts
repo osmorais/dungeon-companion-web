@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { CharacterSheetData } from '../models/character.interface';
 import { CharacterBackground, CharacterSheetResponse, ResourceTracker } from '../models/character-response.interface';
@@ -8,6 +8,7 @@ import { CharacterOptions } from '../models/character-options.interface';
 import { CharacterSummary, CharacterPagedList } from '../models/character-summary.interface';
 import { LevelUpConfirmInput, LevelUpHitDieRoll, LevelUpPreview, LevelUpResult } from '../models/level-up.interface';
 import { environment } from '../../environments/environment';
+import { SKIP_LOADING_OVERLAY } from '../loading-overlay/loading.interceptor';
 
 export interface LongRestResult {
   slots_expended: Record<string, number>;
@@ -51,8 +52,11 @@ export class CharacterService {
     return this.http.post<CharacterSheetResponse>(`${this.baseUrl}/api/character-sheet`, payload);
   }
 
-  getCharacterById(id: number): Observable<CharacterSheetResponse> {
-    return this.http.get<CharacterSheetResponse>(`${this.baseUrl}/api/character-sheet/${id}`);
+  /** `silent` evita o overlay de carregamento em tela cheia — usado pelo tooltip de hover no avatar. */
+  getCharacterById(id: number, silent = false): Observable<CharacterSheetResponse> {
+    return this.http.get<CharacterSheetResponse>(`${this.baseUrl}/api/character-sheet/${id}`, {
+      context: silent ? new HttpContext().set(SKIP_LOADING_OVERLAY, true) : undefined,
+    });
   }
 
   getCharacterOptions(): Observable<CharacterOptions> {
