@@ -2,6 +2,7 @@
   <div class="retro-panel inventory-modal" (click)="$event.stopPropagation()">
     <button class="modal-close-btn" (click)="close()">✕</button>
     <h3 class="modal-title">INVENTÁRIO — {{ playerName.toUpperCase() }}</h3>
+    <p class="inventory-gold">PO atual: {{ playerGold() ?? '—' }}</p>
 
     <div class="mode-tabs">
       <button
@@ -16,7 +17,7 @@
         [class.mode-tab--active]="mode() === 'catalog'"
         (click)="setMode('catalog')"
       >
-        + ADICIONAR ITEM
+        🛒 MERCADO DE ITENS
       </button>
     </div>
 
@@ -26,7 +27,7 @@
       } @else if (itemsError()) {
         <p class="modal-empty">Erro ao carregar o inventário.</p>
       } @else if (items().length === 0) {
-        <p class="modal-empty">Nenhum item ainda. Use a aba "+ ADICIONAR ITEM".</p>
+        <p class="modal-empty">Nenhum item ainda. Use a aba "🛒 MERCADO DE ITENS".</p>
       } @else {
         <p class="inventory-total-weight">Peso total: {{ totalWeight() }}kg</p>
         <div class="inventory-list">
@@ -93,20 +94,61 @@
         } @else {
           <div class="inventory-list catalog-list">
             @for (item of filteredCatalog(); track item.id_item) {
-              <div
-                class="inventory-item catalog-item"
-                [class.inventory-item--busy]="addingItemId() === item.id_item"
-                (click)="addFromCatalog(item)"
-              >
-                <div class="inventory-item-info">
-                  <span class="inventory-item-name">{{ item.name }}</span>
-                  <span class="inventory-item-meta">
-                    Peso: {{ item.weight ?? '—' }}kg &middot; Custo: {{ item.price_value ?? '—' }}po
-                  </span>
+              <div class="inventory-item catalog-item">
+                <div class="inventory-item-main" (click)="toggleCatalogItemDetails(item.id_item)">
+                  <div class="inventory-item-info">
+                    <span class="inventory-item-name">{{ item.name }}</span>
+                    <span class="inventory-item-meta">
+                      Peso: {{ item.weight ?? '—' }}kg &middot; Custo:
+                      {{ item.price_value ?? '—' }}po
+                    </span>
+                  </div>
+                  <button
+                    class="catalog-add-btn"
+                    title="Adicionar"
+                    [disabled]="addingItem()"
+                    (click)="onAddClick(item, $event)"
+                  >
+                    +
+                  </button>
                 </div>
-                <span class="inventory-item-qty">{{
-                  addingItemId() === item.id_item ? '...' : '+'
-                }}</span>
+                @if (isCatalogItemExpanded(item.id_item) && item.description) {
+                  <p class="inventory-item-description">{{ item.description }}</p>
+                }
+                @if (pendingAddItem()?.id_item === item.id_item) {
+                  <div class="catalog-confirm-bar" (click)="$event.stopPropagation()">
+                    <p class="catalog-confirm-question">
+                      Debitar {{ item.price_value }}po do seu PO ({{ playerGold() ?? '—' }}po
+                      disponíveis)?
+                    </p>
+                    @if (insufficientFunds()) {
+                      <p class="catalog-confirm-error">PO insuficiente pra comprar esse item.</p>
+                    }
+                    <div class="catalog-confirm-actions">
+                      <button
+                        class="retro-btn"
+                        [disabled]="addingItem()"
+                        (click)="confirmAdd(item, true)"
+                      >
+                        SIM, DEBITAR
+                      </button>
+                      <button
+                        class="retro-btn"
+                        [disabled]="addingItem()"
+                        (click)="confirmAdd(item, false)"
+                      >
+                        SÓ ADICIONAR
+                      </button>
+                      <button
+                        class="retro-btn catalog-confirm-cancel"
+                        [disabled]="addingItem()"
+                        (click)="cancelPendingAdd()"
+                      >
+                        CANCELAR
+                      </button>
+                    </div>
+                  </div>
+                }
               </div>
             }
             @if (filteredCatalog().length === 0) {

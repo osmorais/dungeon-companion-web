@@ -22,11 +22,18 @@ export class PlayerInventoryService {
     );
   }
 
-  /** Soma na quantidade se o jogador já tiver esse item (upsert no backend). */
-  addItem(idPlayerSession: string, idItem: number, quantity = 1): Observable<InventoryItem> {
+  /** Soma na quantidade se o jogador já tiver esse item (upsert no backend). `debitCurrency`:
+   *  desconta preço×quantidade do PO do personagem antes de adicionar — o backend rejeita (422)
+   *  sem adicionar nada se não houver PO suficiente. */
+  addItem(
+    idPlayerSession: string,
+    idItem: number,
+    quantity = 1,
+    debitCurrency = false,
+  ): Observable<InventoryItem> {
     return this.http.post<InventoryItem>(
       `${this.baseUrl}/api/player-session/${idPlayerSession}/inventory`,
-      { id_item: idItem, quantity },
+      { id_item: idItem, quantity, debit_currency: debitCurrency },
     );
   }
 

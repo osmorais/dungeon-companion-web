@@ -216,7 +216,7 @@
                       VER FICHA
                     </button>
                     <button class="retro-btn mobile-inventory-btn"
-                      (click)="openPlayerInventory(player.id_player_session, player.character.name)">
+                      (click)="openPlayerInventory(player.id_player_session, player.id_character, player.character.name)">
                       🎒 INVENTÁRIO
                     </button>
                   }
@@ -615,7 +615,7 @@
                       VER FICHA ▶
                     </button>
                     <button class="retro-btn inventory-btn"
-                      (click)="openPlayerInventory(player.id_player_session, player.character.name)">
+                      (click)="openPlayerInventory(player.id_player_session, player.id_character, player.character.name)">
                       🎒 INVENTÁRIO
                     </button>
                   }
@@ -855,6 +855,7 @@
 @if (activeInventoryPlayer(); as inv) {
   <app-player-inventory-modal
     [idPlayerSession]="inv.idPlayerSession"
+    [idCharacter]="inv.idCharacter"
     [playerName]="inv.playerName"
     (closed)="closePlayerInventory()" />
 }

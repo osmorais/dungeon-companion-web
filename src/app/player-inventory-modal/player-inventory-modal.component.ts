@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PlayerInventoryService } from '../services/player-inventory.service';
+import { CharacterService } from '../services/character.service';
 import { InventoryItem, ItemCatalogEntry } from '../models/player-inventory.interface';
 
 type InventoryModalMode = 'items' | 'catalog';
@@ -23,12 +24,18 @@ type InventoryModalMode = 'items' | 'catalog';
 })
 export class PlayerInventoryModalComponent implements OnInit {
   private inventoryService = inject(PlayerInventoryService);
+  private charService = inject(CharacterService);
 
   @Input({ required: true }) idPlayerSession!: string;
+  @Input({ required: true }) idCharacter!: number;
   @Input() playerName = 'Jogador';
   @Output() closed = new EventEmitter<void>();
 
   mode = signal<InventoryModalMode>('items');
+
+  /** PO atual do personagem — só pra exibir/decidir no fluxo de compra; quem valida de verdade
+   *  é o backend (evita ficar dessincronizado se o PO mudar por outro caminho). */
+  playerGold = signal<number | null>(null);
 
   // --- Inventário do jogador ---
   loadingItems = signal(true);
@@ -38,13 +45,18 @@ export class PlayerInventoryModalComponent implements OnInit {
   busyItemId = signal<string | null>(null);
   private expandedItemIds = new Set<string>();
 
-  // --- Catálogo (aba "adicionar item") ---
+  // --- Catálogo (aba "mercado de itens") ---
   loadingCatalog = signal(false);
   catalogError = signal(false);
   private catalogLoaded = false;
   catalog = signal<ItemCatalogEntry[]>([]);
   searchText = signal('');
-  addingItemId = signal<number | null>(null);
+  private expandedCatalogItemIds = new Set<number>();
+
+  /** Item aguardando confirmação de "debitar PO?" (aparece depois de clicar no "+"). */
+  pendingAddItem = signal<ItemCatalogEntry | null>(null);
+  addingItem = signal(false);
+  insufficientFunds = signal(false);
 
   filteredCatalog = computed(() => {
     const term = this.searchText().trim().toLowerCase();
@@ -59,6 +71,14 @@ export class PlayerInventoryModalComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadItems();
+    this.loadGold();
+  }
+
+  private loadGold(): void {
+    this.charService.getCharacterById(this.idCharacter, true).subscribe({
+      next: (sheet) => this.playerGold.set(sheet.character_sheet.equipment.currency.gp),
+      error: () => this.playerGold.set(null),
+    });
   }
 
   private loadItems(): void {
@@ -106,16 +126,51 @@ export class PlayerInventoryModalComponent implements OnInit {
     else this.expandedItemIds.add(id);
   }
 
-  addFromCatalog(item: ItemCatalogEntry): void {
-    if (this.addingItemId()) return;
-    this.addingItemId.set(item.id_item);
-    this.inventoryService.addItem(this.idPlayerSession, item.id_item).subscribe({
+  isCatalogItemExpanded(idItem: number): boolean {
+    return this.expandedCatalogItemIds.has(idItem);
+  }
+
+  toggleCatalogItemDetails(idItem: number): void {
+    if (this.expandedCatalogItemIds.has(idItem)) this.expandedCatalogItemIds.delete(idItem);
+    else this.expandedCatalogItemIds.add(idItem);
+  }
+
+  /** Clique no "+": itens sem preço (ou preço zero) entram direto, sem perguntar nada — não há
+   *  o que debitar. Os demais abrem a confirmação de "debitar do PO?" antes de adicionar. */
+  onAddClick(item: ItemCatalogEntry, event: Event): void {
+    event.stopPropagation();
+    if (this.addingItem()) return;
+    this.insufficientFunds.set(false);
+    if (!item.price_value) {
+      this.confirmAdd(item, false);
+      return;
+    }
+    this.pendingAddItem.set(item);
+  }
+
+  cancelPendingAdd(): void {
+    this.pendingAddItem.set(null);
+    this.insufficientFunds.set(false);
+  }
+
+  confirmAdd(item: ItemCatalogEntry, debitCurrency: boolean): void {
+    if (this.addingItem()) return;
+    this.addingItem.set(true);
+    this.insufficientFunds.set(false);
+    this.inventoryService.addItem(this.idPlayerSession, item.id_item, 1, debitCurrency).subscribe({
       next: (added) => {
         this.upsertLocalItem(added);
-        this.addingItemId.set(null);
+        if (debitCurrency && item.price_value) {
+          this.playerGold.update((gold) => (gold !== null ? gold - item.price_value! : gold));
+        }
+        this.addingItem.set(false);
+        this.pendingAddItem.set(null);
         this.mode.set('items');
       },
-      error: () => this.addingItemId.set(null),
+      error: (err) => {
+        this.addingItem.set(false);
+        if (err.status === 422) this.insufficientFunds.set(true);
+      },
     });
   }
 

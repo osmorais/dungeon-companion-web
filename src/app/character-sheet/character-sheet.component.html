@@ -261,7 +261,7 @@
               <p class="mobile-panel-subtitle">DINHEIRO</p>
               @if (currencyDraft() !== null) {
                 <div class="currency-edit-row">
-                  <input type="number" min="0" class="currency-input"
+                  <input type="number" min="0" step="0.01" class="currency-input"
                          [value]="currencyDraft()"
                          (input)="currencyDraft.set($any($event.target).valueAsNumber)">
                   <button class="retro-btn" (click)="saveCurrency()" [disabled]="savingCurrency()">
@@ -876,7 +876,7 @@
           <legend>DINHEIRO</legend>
           @if (currencyDraft() !== null) {
             <div class="currency-edit-row">
-              <input type="number" min="0" class="currency-input"
+              <input type="number" min="0" step="0.01" class="currency-input"
                      [value]="currencyDraft()"
                      (input)="currencyDraft.set($any($event.target).valueAsNumber)">
               <button class="retro-btn" (click)="saveCurrency()" [disabled]="savingCurrency()">

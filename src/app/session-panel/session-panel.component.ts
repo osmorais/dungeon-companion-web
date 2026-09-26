@@ -357,10 +357,14 @@ export class SessionPanelComponent implements OnDestroy {
 
   /** ========================= INVENTÁRIO DO JOGADOR ========================= */
 
-  activeInventoryPlayer = signal<{ idPlayerSession: string; playerName: string } | null>(null);
+  activeInventoryPlayer = signal<{
+    idPlayerSession: string;
+    idCharacter: number;
+    playerName: string;
+  } | null>(null);
 
-  openPlayerInventory(idPlayerSession: string, playerName: string): void {
-    this.activeInventoryPlayer.set({ idPlayerSession, playerName });
+  openPlayerInventory(idPlayerSession: string, idCharacter: number, playerName: string): void {
+    this.activeInventoryPlayer.set({ idPlayerSession, idCharacter, playerName });
   }
 
   closePlayerInventory(): void {
