@@ -423,6 +423,8 @@
   background-color: var(--btn-color);
   color: var(--text-color);
   border: 1px solid var(--border-color);
+  box-sizing: border-box;
+  overflow: hidden;
   font-family: inherit;
   padding: 0;
   line-height: 1;
@@ -431,6 +433,14 @@
   align-items: center;
   justify-content: center;
 
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    image-rendering: pixelated;
+    display: block;
+  }
+
   &:disabled {
     opacity: 0.5;
     cursor: default;
@@ -438,9 +448,9 @@
 }
 
 .player-icon-btn {
-  font-size: 12px;
-  width: 28px;
-  height: 28px;
+  font-size: 18px;
+  width: 40px;
+  height: 40px;
 
   &:hover:not(:disabled) {
     background-color: var(--btn-color-hover);
@@ -1185,9 +1195,9 @@
 }
 
 .mobile-player-icon-btn {
-  font-size: 10px;
-  width: 24px;
-  height: 24px;
+  font-size: 14px;
+  width: 32px;
+  height: 32px;
 
   &:active:not(:disabled) {
     background-color: var(--btn-color-hover);

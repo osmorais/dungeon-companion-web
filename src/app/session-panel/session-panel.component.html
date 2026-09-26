@@ -201,7 +201,9 @@
                   @if (canViewSheet(player)) {
                     <div class="mobile-player-card-actions">
                       <button class="mobile-player-icon-btn" title="Ações"
-                        (click)="openPlayerActions(player.id_character, player.character.name)">🎲</button>
+                        (click)="openPlayerActions(player.id_character, player.character.name)">
+                        <img src="assets/icons/actions.png" alt="Ações" />
+                      </button>
                       @if (isPlayerCurrentTurn(player) && canEndCurrentTurn()) {
                         <button class="mobile-player-icon-btn" title="Finalizar turno"
                           [disabled]="endingTurn()" (click)="endTurn()">
@@ -215,9 +217,13 @@
                         }
                       }
                       <button class="mobile-player-icon-btn" title="Ver ficha"
-                        (click)="viewCharacterSheet(player.id_character)">📜</button>
+                        (click)="viewCharacterSheet(player.id_character)">
+                        <img src="assets/icons/sheet.png" alt="Ver ficha" />
+                      </button>
                       <button class="mobile-player-icon-btn" title="Inventário"
-                        (click)="openPlayerInventory(player.id_player_session, player.id_character, player.character.name)">🎒</button>
+                        (click)="openPlayerInventory(player.id_player_session, player.id_character, player.character.name)">
+                        <img src="assets/icons/inventory.png" alt="Inventário" />
+                      </button>
                     </div>
                   }
                 } @else {
@@ -600,7 +606,9 @@
                   @if (canViewSheet(player)) {
                     <div class="player-card-actions">
                       <button class="player-icon-btn" title="Ações"
-                        (click)="openPlayerActions(player.id_character, player.character.name)">🎲</button>
+                        (click)="openPlayerActions(player.id_character, player.character.name)">
+                        <img src="assets/icons/actions.png" alt="Ações" />
+                      </button>
                       @if (isPlayerCurrentTurn(player) && canEndCurrentTurn()) {
                         <button class="player-icon-btn" title="Finalizar turno"
                           [disabled]="endingTurn()" (click)="endTurn()">
@@ -614,9 +622,13 @@
                         }
                       }
                       <button class="player-icon-btn" title="Ver ficha"
-                        (click)="viewCharacterSheet(player.id_character)">📜</button>
+                        (click)="viewCharacterSheet(player.id_character)">
+                        <img src="assets/icons/sheet.png" alt="Ver ficha" />
+                      </button>
                       <button class="player-icon-btn" title="Inventário"
-                        (click)="openPlayerInventory(player.id_player_session, player.id_character, player.character.name)">🎒</button>
+                        (click)="openPlayerInventory(player.id_player_session, player.id_character, player.character.name)">
+                        <img src="assets/icons/inventory.png" alt="Inventário" />
+                      </button>
                     </div>
                   }
                 } @else {
