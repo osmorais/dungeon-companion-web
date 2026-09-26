@@ -199,26 +199,26 @@
                   </div>
 
                   @if (canViewSheet(player)) {
-                    <button class="retro-btn mobile-actions-btn" (click)="openPlayerActions(player.id_character, player.character.name)">
-                      🎲 AÇÕES
-                    </button>
-                    @if (isPlayerCurrentTurn(player) && canEndCurrentTurn()) {
-                      <button class="retro-btn turn-end-btn" [disabled]="endingTurn()" (click)="endTurn()">
-                        {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
-                      </button>
-                      @if (canDelayCurrentTurn()) {
-                        <button class="retro-btn turn-delay-btn" [disabled]="delayingTurn()" (click)="delayTurn()">
-                          {{ delayingTurn() ? '...' : 'ATRASAR TURNO' }}
+                    <div class="mobile-player-card-actions">
+                      <button class="mobile-player-icon-btn" title="Ações"
+                        (click)="openPlayerActions(player.id_character, player.character.name)">🎲</button>
+                      @if (isPlayerCurrentTurn(player) && canEndCurrentTurn()) {
+                        <button class="mobile-player-icon-btn" title="Finalizar turno"
+                          [disabled]="endingTurn()" (click)="endTurn()">
+                          {{ endingTurn() ? '…' : '⏭' }}
                         </button>
+                        @if (canDelayCurrentTurn()) {
+                          <button class="mobile-player-icon-btn" title="Atrasar turno"
+                            [disabled]="delayingTurn()" (click)="delayTurn()">
+                            {{ delayingTurn() ? '…' : '⏳' }}
+                          </button>
+                        }
                       }
-                    }
-                    <button class="retro-btn mobile-sheet-btn" (click)="viewCharacterSheet(player.id_character)">
-                      VER FICHA
-                    </button>
-                    <button class="retro-btn mobile-inventory-btn"
-                      (click)="openPlayerInventory(player.id_player_session, player.id_character, player.character.name)">
-                      🎒 INVENTÁRIO
-                    </button>
+                      <button class="mobile-player-icon-btn" title="Ver ficha"
+                        (click)="viewCharacterSheet(player.id_character)">📜</button>
+                      <button class="mobile-player-icon-btn" title="Inventário"
+                        (click)="openPlayerInventory(player.id_player_session, player.id_character, player.character.name)">🎒</button>
+                    </div>
                   }
                 } @else {
                   <span class="mobile-char-name">{{ player.player_name }}</span>
@@ -598,26 +598,26 @@
                   </div>
 
                   @if (canViewSheet(player)) {
-                    <button class="retro-btn actions-btn" (click)="openPlayerActions(player.id_character, player.character.name)">
-                      🎲 AÇÕES
-                    </button>
-                    @if (isPlayerCurrentTurn(player) && canEndCurrentTurn()) {
-                      <button class="retro-btn turn-end-btn" [disabled]="endingTurn()" (click)="endTurn()">
-                        {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
-                      </button>
-                      @if (canDelayCurrentTurn()) {
-                        <button class="retro-btn turn-delay-btn" [disabled]="delayingTurn()" (click)="delayTurn()">
-                          {{ delayingTurn() ? '...' : 'ATRASAR TURNO' }}
+                    <div class="player-card-actions">
+                      <button class="player-icon-btn" title="Ações"
+                        (click)="openPlayerActions(player.id_character, player.character.name)">🎲</button>
+                      @if (isPlayerCurrentTurn(player) && canEndCurrentTurn()) {
+                        <button class="player-icon-btn" title="Finalizar turno"
+                          [disabled]="endingTurn()" (click)="endTurn()">
+                          {{ endingTurn() ? '…' : '⏭' }}
                         </button>
+                        @if (canDelayCurrentTurn()) {
+                          <button class="player-icon-btn" title="Atrasar turno"
+                            [disabled]="delayingTurn()" (click)="delayTurn()">
+                            {{ delayingTurn() ? '…' : '⏳' }}
+                          </button>
+                        }
                       }
-                    }
-                    <button class="retro-btn sheet-btn" (click)="viewCharacterSheet(player.id_character)">
-                      VER FICHA ▶
-                    </button>
-                    <button class="retro-btn inventory-btn"
-                      (click)="openPlayerInventory(player.id_player_session, player.id_character, player.character.name)">
-                      🎒 INVENTÁRIO
-                    </button>
+                      <button class="player-icon-btn" title="Ver ficha"
+                        (click)="viewCharacterSheet(player.id_character)">📜</button>
+                      <button class="player-icon-btn" title="Inventário"
+                        (click)="openPlayerInventory(player.id_player_session, player.id_character, player.character.name)">🎒</button>
+                    </div>
                   }
                 } @else {
                   <span class="char-name">{{ player.player_name }}</span>

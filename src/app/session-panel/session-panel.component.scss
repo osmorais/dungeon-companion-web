@@ -407,21 +407,44 @@
   color: var(--text-color);
 }
 
-.sheet-btn,
-.inventory-btn {
-  float: none;
+/* Botões-ícone do card do jogador — só ícone + tooltip (title), pra não deixar o card do
+   próprio personagem mais alto que os outros por causa dos botões extras de canViewSheet. */
+.player-card-actions,
+.mobile-player-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
   margin-top: 4px;
-  font-size: 7px;
-  padding: 7px 12px;
-  width: 100%;
 }
 
-.actions-btn {
-  float: none;
-  margin-top: 4px;
-  font-size: 7px;
-  padding: 7px 12px;
-  width: 100%;
+.player-icon-btn,
+.mobile-player-icon-btn {
+  background-color: var(--btn-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  font-family: inherit;
+  padding: 0;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.player-icon-btn {
+  font-size: 12px;
+  width: 28px;
+  height: 28px;
+
+  &:hover:not(:disabled) {
+    background-color: var(--btn-color-hover);
+  }
 }
 
 .empty-msg {
@@ -997,23 +1020,6 @@
   flex-shrink: 0;
 }
 
-.mobile-polling-btn {
-  margin-left: auto;
-  background: none;
-  border: 1px solid var(--border-color);
-  color: var(--accent-color);
-  font-family: 'Press Start 2P', monospace;
-  font-size: 7px;
-  padding: 5px 8px;
-  cursor: pointer;
-  line-height: 1;
-
-  &--on {
-    color: #4caf50;
-    border-color: #4caf50;
-  }
-}
-
 .mobile-title {
   font-size: 10px;
   color: var(--accent-color);
@@ -1178,48 +1184,13 @@
   color: var(--text-color);
 }
 
-.mobile-sheet-btn,
-.mobile-inventory-btn {
-  float: none;
-  margin-top: 4px;
-  font-size: 6px;
-  padding: 6px 8px;
-  width: 100%;
-}
-
-.mobile-actions-btn {
-  float: none;
-  margin-top: 4px;
-  font-size: 6px;
-  padding: 6px 8px;
-  width: 100%;
-}
-
-.mobile-card-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 6px;
-}
-
-.mobile-delete-btn {
-  background: none;
-  border: 1px solid #ff6b6b;
-  color: #ff6b6b;
+.mobile-player-icon-btn {
   font-size: 10px;
-  width: 26px;
-  height: 26px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 0;
-  flex-shrink: 0;
-  transition: background-color 0.15s;
+  width: 24px;
+  height: 24px;
 
-  &:hover {
-    background-color: #ff6b6b;
-    color: var(--bg-color);
+  &:active:not(:disabled) {
+    background-color: var(--btn-color-hover);
   }
 }
 
@@ -1676,30 +1647,6 @@
   }
 }
 
-.mobile-player-card .turn-end-btn {
-  font-size: 6px;
-  padding: 6px 8px;
-}
-
-.turn-delay-btn {
-  border-color: var(--label-title-color);
-  color: var(--label-title-color);
-  float: none;
-  width: 100%;
-  margin-top: 4px;
-  font-size: 7px;
-  padding: 7px 12px;
-  white-space: nowrap;
-
-  &:hover:not(:disabled) {
-    background-color: var(--btn-color-hover);
-  }
-}
-
-.mobile-player-card .turn-delay-btn {
-  font-size: 6px;
-  padding: 6px 8px;
-}
 
 .npc-row .turn-end-btn,
 .mobile-npc-row .turn-end-btn,
@@ -1917,12 +1864,6 @@
   max-width: 720px;
   text-align: center;
   animation: roll-toast-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.monster-defeated-icon {
-  font-size: 56px;
-  color: #ff6b6b;
-  text-shadow: 0 0 16px #ff6b6b;
 }
 
 .monster-defeated-image-wrap {
