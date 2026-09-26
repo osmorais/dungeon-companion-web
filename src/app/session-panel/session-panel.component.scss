@@ -448,9 +448,9 @@
 }
 
 .player-icon-btn {
-  font-size: 18px;
-  width: 40px;
-  height: 40px;
+  font-size: 24px;
+  width: 56px;
+  height: 56px;
 
   &:hover:not(:disabled) {
     background-color: var(--btn-color-hover);
@@ -1195,9 +1195,9 @@
 }
 
 .mobile-player-icon-btn {
-  font-size: 14px;
-  width: 32px;
-  height: 32px;
+  font-size: 18px;
+  width: 42px;
+  height: 42px;
 
   &:active:not(:disabled) {
     background-color: var(--btn-color-hover);
