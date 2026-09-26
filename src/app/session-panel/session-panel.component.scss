@@ -407,13 +407,13 @@
   color: var(--text-color);
 }
 
-/* Grade de 2 colunas pros botões do card do jogador (ícone em cima, texto embaixo) — em vez de
+/* Grade de 3 colunas pros botões do card do jogador (ícone em cima, texto embaixo) — em vez de
    empilhar um botão largura-total por linha, o que fazia o card crescer muito na vertical
    durante combate (com FINALIZAR/ATRASAR TURNO somados aos outros 3 botões). */
 .player-card-actions,
 .mobile-player-card-actions {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 5px;
   margin-top: 4px;
 }
@@ -424,7 +424,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 4px;
   background-color: var(--btn-color);
   color: var(--text-color);
   border: 1px solid var(--border-color);
@@ -434,8 +434,8 @@
   line-height: 1.3;
 
   img {
-    width: 14px;
-    height: 14px;
+    width: 18px;
+    height: 18px;
     object-fit: cover;
     image-rendering: pixelated;
     display: block;
@@ -449,13 +449,13 @@
 
 .player-action-emoji,
 .mobile-player-action-emoji {
-  font-size: 14px;
+  font-size: 18px;
   line-height: 1;
 }
 
 .player-action-btn {
   font-size: 6px;
-  padding: 6px 4px;
+  padding: 9px 4px;
 
   &:hover:not(:disabled) {
     background-color: var(--btn-color-hover);
@@ -1201,15 +1201,15 @@
 
 .mobile-player-action-btn {
   font-size: 5px;
-  padding: 5px 3px;
+  padding: 7px 3px;
 
   img {
-    width: 11px;
-    height: 11px;
+    width: 15px;
+    height: 15px;
   }
 
   .mobile-player-action-emoji {
-    font-size: 11px;
+    font-size: 15px;
   }
 
   &:active:not(:disabled) {
