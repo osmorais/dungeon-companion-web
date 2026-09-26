@@ -215,6 +215,10 @@
                     <button class="retro-btn mobile-sheet-btn" (click)="viewCharacterSheet(player.id_character)">
                       VER FICHA
                     </button>
+                    <button class="retro-btn mobile-inventory-btn"
+                      (click)="openPlayerInventory(player.id_player_session, player.character.name)">
+                      🎒 INVENTÁRIO
+                    </button>
                   }
                 } @else {
                   <span class="mobile-char-name">{{ player.player_name }}</span>
@@ -610,6 +614,10 @@
                     <button class="retro-btn sheet-btn" (click)="viewCharacterSheet(player.id_character)">
                       VER FICHA ▶
                     </button>
+                    <button class="retro-btn inventory-btn"
+                      (click)="openPlayerInventory(player.id_player_session, player.character.name)">
+                      🎒 INVENTÁRIO
+                    </button>
                   }
                 } @else {
                   <span class="char-name">{{ player.player_name }}</span>
@@ -841,6 +849,14 @@
     [sessionId]="id()"
     (closed)="closePlayerActions()"
     (attackResolved)="onAttackResolved(actionsChar.name, $event)" />
+}
+
+<!-- ===== MODAL: INVENTÁRIO DO JOGADOR ===== -->
+@if (activeInventoryPlayer(); as inv) {
+  <app-player-inventory-modal
+    [idPlayerSession]="inv.idPlayerSession"
+    [playerName]="inv.playerName"
+    (closed)="closePlayerInventory()" />
 }
 
 <!-- ===== MODAL: ADICIONAR NPC ===== -->

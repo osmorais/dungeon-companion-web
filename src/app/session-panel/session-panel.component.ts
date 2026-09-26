@@ -29,6 +29,7 @@ import { DistributeXpModalComponent } from '../distribute-xp-modal/distribute-xp
 import { AbilityRollConfig, RollModalComponent } from '../roll-modal/roll-modal.component';
 import { AddMonsterModalComponent } from '../add-monster-modal/add-monster-modal.component';
 import { TomAssistantComponent } from '../tom-assistant/tom-assistant.component';
+import { PlayerInventoryModalComponent } from '../player-inventory-modal/player-inventory-modal.component';
 import { attrLabel } from '../models/level-up.interface';
 
 @Component({
@@ -45,6 +46,7 @@ import { attrLabel } from '../models/level-up.interface';
     RollModalComponent,
     AddMonsterModalComponent,
     TomAssistantComponent,
+    PlayerInventoryModalComponent,
   ],
   templateUrl: './session-panel.component.html',
   styleUrls: ['./session-panel.component.scss'],
@@ -351,6 +353,18 @@ export class SessionPanelComponent implements OnDestroy {
 
   closePlayerActions() {
     this.activeActionsCharacter.set(null);
+  }
+
+  /** ========================= INVENTÁRIO DO JOGADOR ========================= */
+
+  activeInventoryPlayer = signal<{ idPlayerSession: string; playerName: string } | null>(null);
+
+  openPlayerInventory(idPlayerSession: string, playerName: string): void {
+    this.activeInventoryPlayer.set({ idPlayerSession, playerName });
+  }
+
+  closePlayerInventory(): void {
+    this.activeInventoryPlayer.set(null);
   }
 
   viewCharacterSheet(idCharacter: number) {

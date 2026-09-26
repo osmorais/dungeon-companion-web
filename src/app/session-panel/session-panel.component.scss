@@ -407,7 +407,8 @@
   color: var(--text-color);
 }
 
-.sheet-btn {
+.sheet-btn,
+.inventory-btn {
   float: none;
   margin-top: 4px;
   font-size: 7px;
@@ -1177,7 +1178,8 @@
   color: var(--text-color);
 }
 
-.mobile-sheet-btn {
+.mobile-sheet-btn,
+.mobile-inventory-btn {
   float: none;
   margin-top: 4px;
   font-size: 6px;

@@ -1,0 +1,120 @@
+<div class="overlay modal-overlay" (click)="close()">
+  <div class="retro-panel inventory-modal" (click)="$event.stopPropagation()">
+    <button class="modal-close-btn" (click)="close()">✕</button>
+    <h3 class="modal-title">INVENTÁRIO — {{ playerName.toUpperCase() }}</h3>
+
+    <div class="mode-tabs">
+      <button
+        class="mode-tab"
+        [class.mode-tab--active]="mode() === 'items'"
+        (click)="setMode('items')"
+      >
+        ITENS ({{ items().length }})
+      </button>
+      <button
+        class="mode-tab"
+        [class.mode-tab--active]="mode() === 'catalog'"
+        (click)="setMode('catalog')"
+      >
+        + ADICIONAR ITEM
+      </button>
+    </div>
+
+    @if (mode() === 'items') {
+      @if (loadingItems()) {
+        <p class="modal-empty">Carregando inventário...</p>
+      } @else if (itemsError()) {
+        <p class="modal-empty">Erro ao carregar o inventário.</p>
+      } @else if (items().length === 0) {
+        <p class="modal-empty">Nenhum item ainda. Use a aba "+ ADICIONAR ITEM".</p>
+      } @else {
+        <p class="inventory-total-weight">Peso total: {{ totalWeight() }}kg</p>
+        <div class="inventory-list">
+          @for (item of items(); track item.id_inventory_item) {
+            <div
+              class="inventory-item"
+              [class.inventory-item--busy]="busyItemId() === item.id_inventory_item"
+            >
+              <div class="inventory-item-main" (click)="toggleItemDetails(item.id_inventory_item)">
+                <div class="inventory-item-info">
+                  <span class="inventory-item-name">{{ item.name }}</span>
+                  <span class="inventory-item-meta">
+                    Peso: {{ item.weight ?? '—' }}kg &middot; Custo: {{ item.price_value ?? '—' }}po
+                  </span>
+                </div>
+                <span class="inventory-item-qty">x{{ item.quantity }}</span>
+              </div>
+              @if (isItemExpanded(item.id_inventory_item) && item.description) {
+                <p class="inventory-item-description">{{ item.description }}</p>
+              }
+              <div class="inventory-item-actions">
+                <button
+                  class="inventory-qty-btn"
+                  title="Diminuir"
+                  [disabled]="busyItemId() === item.id_inventory_item"
+                  (click)="adjustQuantity(item, -1)"
+                >
+                  −
+                </button>
+                <button
+                  class="inventory-qty-btn"
+                  title="Aumentar"
+                  [disabled]="busyItemId() === item.id_inventory_item"
+                  (click)="adjustQuantity(item, 1)"
+                >
+                  +
+                </button>
+                <button
+                  class="retro-btn inventory-remove-btn"
+                  [disabled]="busyItemId() === item.id_inventory_item"
+                  (click)="removeItem(item)"
+                >
+                  REMOVER
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    } @else {
+      <div class="catalog-layout">
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Buscar item..."
+          [ngModel]="searchText()"
+          (ngModelChange)="searchText.set($event)"
+        />
+
+        @if (loadingCatalog()) {
+          <p class="modal-empty">Carregando catálogo...</p>
+        } @else if (catalogError()) {
+          <p class="modal-empty">Erro ao carregar o catálogo.</p>
+        } @else {
+          <div class="inventory-list catalog-list">
+            @for (item of filteredCatalog(); track item.id_item) {
+              <div
+                class="inventory-item catalog-item"
+                [class.inventory-item--busy]="addingItemId() === item.id_item"
+                (click)="addFromCatalog(item)"
+              >
+                <div class="inventory-item-info">
+                  <span class="inventory-item-name">{{ item.name }}</span>
+                  <span class="inventory-item-meta">
+                    Peso: {{ item.weight ?? '—' }}kg &middot; Custo: {{ item.price_value ?? '—' }}po
+                  </span>
+                </div>
+                <span class="inventory-item-qty">{{
+                  addingItemId() === item.id_item ? '...' : '+'
+                }}</span>
+              </div>
+            }
+            @if (filteredCatalog().length === 0) {
+              <p class="modal-empty">Nenhum item encontrado.</p>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
