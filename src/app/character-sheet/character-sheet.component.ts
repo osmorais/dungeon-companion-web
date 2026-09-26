@@ -31,6 +31,9 @@ export class CharacterSheetComponent {
   private router = inject(Router);
 
   id = input<string>();
+  /** Presente só quando a ficha foi aberta a partir de uma sessão (ver session-panel
+   *  viewCharacterSheet) — goBack volta pra lá em vez de ir pra lista de personagens. */
+  sessionId = input<string>();
 
   sheetData = this.charService.currentCharacter;
   avatarUrl = this.charService.avatarUrl;
@@ -125,7 +128,12 @@ export class CharacterSheetComponent {
   }
 
   goBack() {
-    this.router.navigate(['/characters']);
+    const sessionId = this.sessionId();
+    if (sessionId) {
+      this.router.navigate(['/session', sessionId]);
+    } else {
+      this.router.navigate(['/characters']);
+    }
   }
 
   changeHp(delta: number) {

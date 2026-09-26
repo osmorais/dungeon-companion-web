@@ -371,8 +371,12 @@ export class SessionPanelComponent implements OnDestroy {
     this.activeInventoryPlayer.set(null);
   }
 
+  /** Passa a sessão atual via query param pra ficha saber voltar pra cá (goBack), em vez de
+   *  sempre voltar pra lista de personagens. */
   viewCharacterSheet(idCharacter: number) {
-    this.router.navigate(['/character-sheet', idCharacter]);
+    this.router.navigate(['/character-sheet', idCharacter], {
+      queryParams: { sessionId: this.id() },
+    });
   }
 
   canEditHp(player: PlayerSession): boolean {
