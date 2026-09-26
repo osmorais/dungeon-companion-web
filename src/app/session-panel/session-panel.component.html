@@ -202,29 +202,32 @@
                     <div class="mobile-player-card-actions">
                       <button class="mobile-player-action-btn"
                         (click)="openPlayerActions(player.id_character, player.character.name)">
-                        <img src="assets/icons/actions.png" alt="" /> AÇÕES
+                        <img src="assets/icons/actions.png" alt="" />
+                        <span>AÇÕES</span>
                       </button>
                       @if (isPlayerCurrentTurn(player) && canEndCurrentTurn()) {
                         <button class="mobile-player-action-btn"
                           [disabled]="endingTurn()" (click)="endTurn()">
                           <span class="mobile-player-action-emoji">⏭</span>
-                          {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
+                          <span>{{ endingTurn() ? '...' : 'FINALIZAR' }}</span>
                         </button>
                         @if (canDelayCurrentTurn()) {
                           <button class="mobile-player-action-btn"
                             [disabled]="delayingTurn()" (click)="delayTurn()">
                             <span class="mobile-player-action-emoji">⏳</span>
-                            {{ delayingTurn() ? '...' : 'ATRASAR TURNO' }}
+                            <span>{{ delayingTurn() ? '...' : 'ATRASAR' }}</span>
                           </button>
                         }
                       }
                       <button class="mobile-player-action-btn"
                         (click)="viewCharacterSheet(player.id_character)">
-                        <img src="assets/icons/sheet.png" alt="" /> VER FICHA
+                        <img src="assets/icons/sheet.png" alt="" />
+                        <span>FICHA</span>
                       </button>
                       <button class="mobile-player-action-btn"
                         (click)="openPlayerInventory(player.id_player_session, player.id_character, player.character.name)">
-                        <img src="assets/icons/inventory.png" alt="" /> INVENTÁRIO
+                        <img src="assets/icons/inventory.png" alt="" />
+                        <span>ITENS</span>
                       </button>
                     </div>
                   }
@@ -607,31 +610,34 @@
 
                   @if (canViewSheet(player)) {
                     <div class="player-card-actions">
-                      <button class="player-action-btn"
+                      <button class="player-action-btn" title="Ações"
                         (click)="openPlayerActions(player.id_character, player.character.name)">
-                        <img src="assets/icons/actions.png" alt="" /> AÇÕES
+                        <img src="assets/icons/actions.png" alt="" />
+                        <span>AÇÕES</span>
                       </button>
                       @if (isPlayerCurrentTurn(player) && canEndCurrentTurn()) {
-                        <button class="player-action-btn"
+                        <button class="player-action-btn" title="Finalizar turno"
                           [disabled]="endingTurn()" (click)="endTurn()">
                           <span class="player-action-emoji">⏭</span>
-                          {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
+                          <span>{{ endingTurn() ? '...' : 'FINALIZAR' }}</span>
                         </button>
                         @if (canDelayCurrentTurn()) {
-                          <button class="player-action-btn"
+                          <button class="player-action-btn" title="Atrasar turno"
                             [disabled]="delayingTurn()" (click)="delayTurn()">
                             <span class="player-action-emoji">⏳</span>
-                            {{ delayingTurn() ? '...' : 'ATRASAR TURNO' }}
+                            <span>{{ delayingTurn() ? '...' : 'ATRASAR' }}</span>
                           </button>
                         }
                       }
-                      <button class="player-action-btn"
+                      <button class="player-action-btn" title="Ver ficha"
                         (click)="viewCharacterSheet(player.id_character)">
-                        <img src="assets/icons/sheet.png" alt="" /> VER FICHA
+                        <img src="assets/icons/sheet.png" alt="" />
+                        <span>FICHA</span>
                       </button>
-                      <button class="player-action-btn"
+                      <button class="player-action-btn" title="Inventário"
                         (click)="openPlayerInventory(player.id_player_session, player.id_character, player.character.name)">
-                        <img src="assets/icons/inventory.png" alt="" /> INVENTÁRIO
+                        <img src="assets/icons/inventory.png" alt="" />
+                        <span>ITENS</span>
                       </button>
                     </div>
                   }
