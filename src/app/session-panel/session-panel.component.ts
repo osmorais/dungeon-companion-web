@@ -1511,12 +1511,13 @@ export class SessionPanelComponent implements OnDestroy {
 
   combat = computed(() => this.sessionDetail()?.combat ?? null);
 
-  /** Participante (jogador) do usuário atual que ainda não rolou iniciativa nessa luta. */
+  /** Participante (jogador) do usuário atual que ainda não rolou iniciativa nessa luta — inclui
+   *  quem entrou depois num combate já 'active' (ver CombatService.addParticipants no backend). */
   myPendingInitiativeParticipant = computed<CombatParticipant | null>(() => {
     const combat = this.combat();
     const detail = this.sessionDetail();
     const user = this.authService.currentUser();
-    if (!combat || combat.encounter.status !== 'rolling_initiative' || !detail || !user) return null;
+    if (!combat || combat.encounter.status === 'finished' || !detail || !user) return null;
 
     const submitted = this.initiativeSubmitted();
     return (
@@ -1687,6 +1688,17 @@ export class SessionPanelComponent implements OnDestroy {
 
   closeStartFightModal(): void {
     this.combatStartOpen.set(false);
+    this.refreshSession();
+  }
+
+  addToCombatOpen = signal(false);
+
+  openAddToCombatModal(): void {
+    this.addToCombatOpen.set(true);
+  }
+
+  closeAddToCombatModal(): void {
+    this.addToCombatOpen.set(false);
     this.refreshSession();
   }
 

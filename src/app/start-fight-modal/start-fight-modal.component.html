@@ -1,11 +1,23 @@
 <div class="sf-modal-backdrop" (click)="close()">
   <div class="sf-modal" (click)="$event.stopPropagation()">
     <button class="sf-modal-close" (click)="close()">✕</button>
-    <h3 class="sf-modal-title">INICIAR LUTA</h3>
-    <p class="sf-hint">Selecione quem vai participar do combate:</p>
+    <h3 class="sf-modal-title">{{ mode === 'add' ? 'ADICIONAR AO COMBATE' : 'INICIAR LUTA' }}</h3>
+    <p class="sf-hint">
+      {{
+        mode === 'add'
+          ? 'Selecione quem vai entrar no combate em andamento:'
+          : 'Selecione quem vai participar do combate:'
+      }}
+    </p>
 
-    @if (eligiblePlayers.length === 0 && eligibleNpcs.length === 0 && monsters.length === 0) {
-      <p class="sf-empty">Nenhum jogador, NPC ou monstro disponível na sessão.</p>
+    @if (eligiblePlayers.length === 0 && eligibleNpcs.length === 0 && eligibleMonsters.length === 0) {
+      <p class="sf-empty">
+        {{
+          mode === 'add'
+            ? 'Nenhum jogador, NPC ou monstro disponível pra adicionar.'
+            : 'Nenhum jogador, NPC ou monstro disponível na sessão.'
+        }}
+      </p>
     } @else {
       @if (eligiblePlayers.length > 0) {
         <div class="sf-group">
@@ -55,10 +67,10 @@
         </div>
       }
 
-      @if (monsters.length > 0) {
+      @if (eligibleMonsters.length > 0) {
         <div class="sf-group">
           <span class="sf-group-label">MONSTROS</span>
-          @for (monster of monsters; track monster.id_monster_session) {
+          @for (monster of eligibleMonsters; track monster.id_monster_session) {
             <label class="sf-item">
               <input
                 type="checkbox"
@@ -86,9 +98,9 @@
       <button
         class="sf-btn-primary"
         [disabled]="!hasSelection || starting()"
-        (click)="startBattle()"
+        (click)="confirmAction()"
       >
-        {{ starting() ? 'INICIANDO...' : 'INICIAR BATALHA' }}
+        {{ mode === 'add' ? (starting() ? 'ADICIONANDO...' : 'ADICIONAR') : (starting() ? 'INICIANDO...' : 'INICIAR BATALHA') }}
       </button>
       <button class="sf-btn-secondary" [disabled]="starting()" (click)="close()">CANCELAR</button>
     </div>

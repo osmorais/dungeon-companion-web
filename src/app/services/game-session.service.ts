@@ -213,6 +213,16 @@ export class GameSessionService {
     );
   }
 
+  addCombatParticipants(
+    idCombatEncounter: string,
+    participants: StartEncounterParticipantInput[],
+  ): Observable<CombatEncounterDetail> {
+    return this.http.post<CombatEncounterDetail>(
+      `${this.baseUrl}/api/game-session/combat/${idCombatEncounter}/add-participants`,
+      { participants },
+    );
+  }
+
   submitInitiative(idCombatParticipant: string, payload: SubmitInitiativePayload): Observable<void> {
     return this.http.post<void>(
       `${this.baseUrl}/api/game-session/combat-participant/${idCombatParticipant}/initiative`,

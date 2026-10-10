@@ -170,6 +170,7 @@ export function applySessionEvent(
       return detail;
 
     case 'combat_started':
+    case 'combat_participants_added':
     case 'initiative_submitted':
     case 'turn_ended':
     case 'turn_order_changed':

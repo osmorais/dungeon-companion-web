@@ -74,7 +74,7 @@
                   {{ combatParticipantName(p) }}{{ p.delayed_this_round ? ' ⏳' : '' }}
                 </span>
                 <span class="combat-order-initiative">{{ p.initiative_total === null ? '...' : p.initiative_total }}</span>
-                @if (isOwner() && c.encounter.status === 'rolling_initiative' && p.participant_type === 'player' && p.initiative_total === null) {
+                @if (isOwner() && p.participant_type === 'player' && p.initiative_total === null) {
                   <button class="retro-btn combat-order-roll-for-btn" title="Rolar iniciativa pelo jogador"
                     (click)="openInitiativeRoll(p)">ROLAR</button>
                 }
@@ -94,6 +94,9 @@
 
           <div class="combat-actions">
             @if (isOwner()) {
+              <button class="retro-btn combat-add-participant-btn" (click)="openAddToCombatModal()">
+                + ADICIONAR
+              </button>
               <button class="retro-btn combat-end-btn" [disabled]="endingCombat()" (click)="endCombat()">
                 {{ endingCombat() ? '...' : 'ENCERRAR COMBATE' }}
               </button>
@@ -451,7 +454,7 @@
                   {{ combatParticipantName(p) }}{{ p.delayed_this_round ? ' ⏳' : '' }}
                 </span>
                 <span class="combat-order-initiative">{{ p.initiative_total === null ? '...' : p.initiative_total }}</span>
-                @if (isOwner() && c.encounter.status === 'rolling_initiative' && p.participant_type === 'player' && p.initiative_total === null) {
+                @if (isOwner() && p.participant_type === 'player' && p.initiative_total === null) {
                   <button class="retro-btn combat-order-roll-for-btn" title="Rolar iniciativa pelo jogador"
                     (click)="openInitiativeRoll(p)">ROLAR</button>
                 }
@@ -471,6 +474,9 @@
 
           <div class="combat-actions">
             @if (isOwner()) {
+              <button class="retro-btn combat-add-participant-btn" (click)="openAddToCombatModal()">
+                + ADICIONAR
+              </button>
               <button class="retro-btn combat-end-btn" [disabled]="endingCombat()" (click)="endCombat()">
                 {{ endingCombat() ? '...' : 'ENCERRAR COMBATE' }}
               </button>
@@ -932,6 +938,22 @@
   />
 }
 
+<!-- ===== MODAL: ADICIONAR AO COMBATE ===== -->
+@if (addToCombatOpen() && sessionDetail(); as detail) {
+  @if (combat(); as c) {
+    <app-start-fight-modal
+      [sessionId]="id()!"
+      mode="add"
+      [idCombatEncounter]="c.encounter.id_combat_encounter"
+      [players]="detail.players"
+      [npcs]="detail.npcs"
+      [monsters]="detail.monsters"
+      [existingParticipants]="c.participants"
+      (closed)="closeAddToCombatModal()"
+    />
+  }
+}
+
 <!-- ===== CONFIRMAÇÃO: MONSTROS DO COMBATE FORAM DERROTADOS? ===== -->
 @if (showEndCombatConfirm()) {
   <div class="overlay end-combat-confirm-overlay" (click)="declineMonstersDefeated()">
@@ -991,7 +1013,9 @@
   @if (!activeInitiativeRoll() && !activeMonsterAnnouncement() && !checkingBattlePrepare() && !showBattlePreparePrompt() && !showBattlePrepareModal()) {
     <div class="overlay modal-overlay">
       <div class="retro-panel battle-start-panel">
-        <h3 class="modal-title">⚔ A BATALHA VAI COMEÇAR!</h3>
+        <h3 class="modal-title">
+          {{ combat()?.encounter?.status === 'active' ? '⚔ VOCÊ ENTROU NO COMBATE!' : '⚔ A BATALHA VAI COMEÇAR!' }}
+        </h3>
         <button class="retro-btn" (click)="openInitiativeRoll(pending)">ROLAR INICIATIVA</button>
       </div>
     </div>
