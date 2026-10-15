@@ -48,3 +48,7 @@ This is an Angular 21 single-page app for D&D 5e character creation and manageme
 TypeScript strict mode is enabled (`strict`, `strictTemplates`, `noImplicitOverride`, `noImplicitReturns`). Prettier is configured with 100-char line width, single quotes, and the Angular HTML parser (`.prettierrc`). Use 2-space indentation (enforced by `.editorconfig`).
 
 All components are standalone — do not use NgModules.
+
+## Testes
+
+Toda implementação nova termina rodando a suíte existente e criando testes para o que foi implementado — ver `.claude/rules/testes.md`.
