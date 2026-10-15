@@ -181,3 +181,33 @@
   justify-content: center;
   margin-bottom: 4px;
 }
+
+/* ===== DECLARAÇÃO DE IDADE + ACEITE DOS TERMOS ===== */
+
+.terms-check,
+.mobile-terms-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 4px 0 12px;
+  font-size: 7px;
+  line-height: 1.6;
+  color: var(--text-color);
+  cursor: pointer;
+
+  input {
+    flex-shrink: 0;
+    top: 0;
+  }
+
+  a {
+    color: var(--accent-color);
+    text-decoration: underline;
+  }
+}
+
+/* Sem o aceite, o botão do Google (iframe do próprio Google) não pode ser clicado. */
+.google-btn-wrapper--locked {
+  opacity: 0.4;
+  pointer-events: none;
+}

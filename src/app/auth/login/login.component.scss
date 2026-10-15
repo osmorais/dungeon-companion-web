@@ -194,3 +194,19 @@
   justify-content: center;
   margin-bottom: 4px;
 }
+
+/* ===== AVISO DE TERMOS / PRIVACIDADE ===== */
+
+.legal-notice,
+.mobile-legal-notice {
+  margin: 14px 0 0;
+  font-size: 6px;
+  line-height: 1.7;
+  color: var(--label-title-color);
+  text-align: left;
+
+  a {
+    color: var(--accent-color);
+    text-decoration: underline;
+  }
+}

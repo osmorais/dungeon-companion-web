@@ -3,6 +3,9 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environments/environment';
+import { LEGAL_DOC_ROUTES, LEGAL_MINIMUM_AGE } from '../../legal/legal-info';
+
+export const TERMS_NOT_ACCEPTED_MESSAGE = `Para criar a conta, declare ter ${LEGAL_MINIMUM_AGE} anos ou mais e aceite os Termos e a Política de Privacidade.`;
 
 @Component({
   selector: 'app-signup',
@@ -32,6 +35,9 @@ export class SignupComponent implements AfterViewInit {
   errorMessage = signal('');
   loading = signal(false);
   googleEnabled = !!environment.googleClientId;
+  acceptedTerms = signal(false);
+  readonly minimumAge = LEGAL_MINIMUM_AGE;
+  readonly legalRoutes = LEGAL_DOC_ROUTES;
 
   ngAfterViewInit(): void {
     if (!this.googleEnabled) return;
@@ -50,7 +56,17 @@ export class SignupComponent implements AfterViewInit {
     }
   }
 
-  private handleGoogleCredential(idToken: string): void {
+  /** Bloqueia cadastro (e-mail ou Google) sem a declaração de idade + aceite dos termos. */
+  private ensureTermsAccepted(): boolean {
+    if (this.acceptedTerms()) return true;
+    this.errorMessage.set(TERMS_NOT_ACCEPTED_MESSAGE);
+    return false;
+  }
+
+  handleGoogleCredential(idToken: string): void {
+    // O botão do Google já fica travado sem o aceite (ver google-btn-wrapper--locked); isto é a
+    // segunda barreira, caso o callback dispare mesmo assim (ex.: One Tap).
+    if (!this.ensureTermsAccepted()) return;
     this.errorMessage.set('');
     this.loading.set(true);
     this.authService.googleLogin(idToken).subscribe({
@@ -63,6 +79,7 @@ export class SignupComponent implements AfterViewInit {
   }
 
   submit() {
+    if (!this.ensureTermsAccepted()) return;
     if (this.password !== this.confirmPassword) {
       this.errorMessage.set('As senhas não coincidem.');
       return;

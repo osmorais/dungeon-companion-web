@@ -24,6 +24,15 @@
         <input id="mobile-confirmPassword" type="password" [(ngModel)]="confirmPassword" placeholder="••••••••" (keyup.enter)="submit()" />
       </div>
 
+      <label class="mobile-terms-check">
+        <input type="checkbox" class="retro-checkbox" [ngModel]="acceptedTerms()" (ngModelChange)="acceptedTerms.set($event)" />
+        <span>
+          Declaro ter {{ minimumAge }} anos ou mais e concordo com os
+          <a [routerLink]="legalRoutes.terms" target="_blank">Termos de Uso</a> e a
+          <a [routerLink]="legalRoutes.privacy" target="_blank">Política de Privacidade</a>.
+        </span>
+      </label>
+
       @if (errorMessage()) {
         <p class="mobile-error-msg">{{ errorMessage() }}</p>
       }
@@ -36,7 +45,7 @@
         <div class="google-separator">
           <span>OU</span>
         </div>
-        <div class="google-btn-wrapper">
+        <div class="google-btn-wrapper" [class.google-btn-wrapper--locked]="!acceptedTerms()">
           <div #googleBtnMobile></div>
         </div>
       }
@@ -72,6 +81,15 @@
         <input id="confirmPassword" type="password" [(ngModel)]="confirmPassword" placeholder="••••••••" (keyup.enter)="submit()" />
       </div>
 
+      <label class="terms-check">
+        <input type="checkbox" class="retro-checkbox" [ngModel]="acceptedTerms()" (ngModelChange)="acceptedTerms.set($event)" />
+        <span>
+          Declaro ter {{ minimumAge }} anos ou mais e concordo com os
+          <a [routerLink]="legalRoutes.terms" target="_blank">Termos de Uso</a> e a
+          <a [routerLink]="legalRoutes.privacy" target="_blank">Política de Privacidade</a>.
+        </span>
+      </label>
+
       @if (errorMessage()) {
         <p class="error-msg">{{ errorMessage() }}</p>
       }
@@ -84,7 +102,7 @@
         <div class="google-separator">
           <span>OU</span>
         </div>
-        <div class="google-btn-wrapper">
+        <div class="google-btn-wrapper" [class.google-btn-wrapper--locked]="!acceptedTerms()">
           <div #googleBtnDesktop></div>
         </div>
       }

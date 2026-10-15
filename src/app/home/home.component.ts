@@ -1,12 +1,14 @@
 import { Component, HostListener, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { CharacterService } from '../services/character.service';
+import { LEGAL_DOC_ROUTES } from '../legal/legal-info';
 
 type HomeView = 'select' | 'player' | 'master';
 
 @Component({
   selector: 'app-home',
   standalone: true,
+  imports: [RouterLink],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
 })
@@ -16,6 +18,7 @@ export class HomeComponent {
 
   isMobile = signal(typeof window !== 'undefined' && window.innerWidth < 768);
   view = signal<HomeView>('select');
+  readonly legalRoutes = LEGAL_DOC_ROUTES;
 
   @HostListener('window:resize')
   onResize() {

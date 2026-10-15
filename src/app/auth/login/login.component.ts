@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environments/environment';
+import { LEGAL_DOC_ROUTES, LEGAL_MINIMUM_AGE } from '../../legal/legal-info';
 
 @Component({
   selector: 'app-login',
@@ -30,6 +31,8 @@ export class LoginComponent implements AfterViewInit {
   errorMessage = signal('');
   loading = signal(false);
   googleEnabled = !!environment.googleClientId;
+  readonly minimumAge = LEGAL_MINIMUM_AGE;
+  readonly legalRoutes = LEGAL_DOC_ROUTES;
 
   ngAfterViewInit(): void {
     if (!this.googleEnabled) return;

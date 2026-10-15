@@ -235,3 +235,23 @@
   text-align: left;
 }
 
+
+/* ===== LINKS DE PRIVACIDADE / TERMOS ===== */
+
+.legal-links {
+  clear: both;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding-top: 14px;
+
+  a {
+    color: var(--label-title-color);
+    font-size: 6px;
+    text-decoration: underline;
+
+    &:hover {
+      color: var(--accent-color);
+    }
+  }
+}

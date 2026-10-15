@@ -39,6 +39,12 @@
         <a routerLink="/signup">CRIAR CONTA</a>
         <a routerLink="/forgot-password">ESQUECI A SENHA</a>
       </div>
+
+      <p class="mobile-legal-notice">
+        Ao entrar, você declara ter {{ minimumAge }} anos ou mais e concorda com os
+        <a [routerLink]="legalRoutes.terms">Termos de Uso</a> e a
+        <a [routerLink]="legalRoutes.privacy">Política de Privacidade</a>.
+      </p>
     </fieldset>
   </div>
 } @else {
@@ -82,6 +88,12 @@
         <a routerLink="/signup">CRIAR CONTA</a>
         <a routerLink="/forgot-password">ESQUECI A SENHA</a>
       </div>
+
+      <p class="legal-notice">
+        Ao entrar, você declara ter {{ minimumAge }} anos ou mais e concorda com os
+        <a [routerLink]="legalRoutes.terms">Termos de Uso</a> e a
+        <a [routerLink]="legalRoutes.privacy">Política de Privacidade</a>.
+      </p>
     </fieldset>
   </div>
 }

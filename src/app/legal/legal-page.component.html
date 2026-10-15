@@ -1,0 +1,308 @@
+<div class="legal-container">
+  <fieldset class="legal-panel">
+    <legend>{{ title() }}</legend>
+
+    <nav class="legal-nav">
+      <a [routerLink]="routes.privacy" [class.active]="doc() === 'privacy'">PRIVACIDADE</a>
+      <a [routerLink]="routes.terms" [class.active]="doc() === 'terms'">TERMOS</a>
+    </nav>
+
+    <p class="legal-updated">Última atualização: {{ lastUpdated }}</p>
+
+    @if (doc() === 'privacy') {
+      <article class="legal-text">
+        <p>
+          Esta Política explica como o {{ siteName }} ({{ siteUrl }}) trata os seus dados pessoais,
+          em conformidade com a Lei Geral de Proteção de Dados Pessoais (Lei nº 13.709/2018 — LGPD).
+        </p>
+
+        <h2>1. Quem é o responsável pelos seus dados</h2>
+        <p>
+          O controlador dos dados pessoais tratados no {{ siteName }} é
+          <strong>{{ controllerName }}</strong
+          >, pessoa física responsável pelo projeto. Para qualquer assunto relacionado a privacidade
+          e proteção de dados, fale pelo e-mail
+          <a [href]="'mailto:' + contactEmail">{{ contactEmail }}</a
+          >.
+        </p>
+
+        <h2>2. Quais dados coletamos</h2>
+        <ul>
+          <li>
+            <strong>Dados de conta:</strong> e-mail, senha (guardada apenas na forma de hash
+            criptográfico, nunca em texto puro) e, opcionalmente, um nome de exibição. Se você
+            entrar com o Google, recebemos do Google o seu e-mail, nome e um identificador da sua
+            conta Google.
+          </li>
+          <li>
+            <strong>Conteúdo que você cria:</strong> personagens e fichas, anotações, inventário,
+            sessões de jogo, nomes de jogador e de mestre, NPCs, monstros, rolagens de dados e
+            demais informações de jogo.
+          </li>
+          <li><strong>Imagens que você envia:</strong> imagens de personagens e de monstros.</li>
+          <li>
+            <strong>Dados técnicos:</strong> endereço IP e informações de acesso (como data, hora e
+            navegador) registrados automaticamente pelos provedores de hospedagem, para operação e
+            segurança do serviço.
+          </li>
+        </ul>
+        <p>
+          Não pedimos dados pessoais sensíveis (como saúde, religião, origem racial ou biometria).
+          Pedimos que você não os coloque em nomes, anotações ou imagens.
+        </p>
+
+        <h2>3. Para que usamos e com qual base legal</h2>
+        <ul>
+          <li>
+            <strong>Criar e manter sua conta e oferecer as funcionalidades</strong> (fichas,
+            sessões, rolagens, imagens) — execução do contrato com você (art. 7º, V, da LGPD).
+          </li>
+          <li>
+            <strong>Enviar e-mails de serviço</strong>, como o de redefinição de senha — execução do
+            contrato (art. 7º, V).
+          </li>
+          <li>
+            <strong>Garantir a segurança do serviço</strong>, prevenir fraudes e abusos e investigar
+            incidentes — legítimo interesse (art. 7º, IX).
+          </li>
+          <li>
+            <strong>Cumprir obrigações legais</strong> ou atender ordens de autoridades competentes,
+            quando houver — art. 7º, II e VI.
+          </li>
+        </ul>
+        <p>
+          Não vendemos seus dados, não os usamos para publicidade e não fazemos perfilamento ou
+          decisões automatizadas sobre você.
+        </p>
+
+        <h2>4. Quem vê e com quem compartilhamos</h2>
+        <p>
+          <strong>Outros participantes das suas sessões.</strong> Ao entrar numa sessão, o mestre e
+          os demais jogadores daquela sessão veem o nome de jogador que você informou, os dados do
+          seu personagem (incluindo a imagem), seus pontos de vida e suas rolagens. Por isso,
+          recomendamos usar um apelido em vez do seu nome real.
+        </p>
+        <p>
+          <strong>Imagens enviadas</strong> ficam armazenadas num endereço público: qualquer pessoa
+          que tenha o link da imagem consegue abri-la. Não envie fotos de pessoas reais sem
+          autorização delas.
+        </p>
+        <p>
+          <strong>Prestadores de serviço (operadores)</strong> que tratam dados em nosso nome,
+          apenas para fazer o serviço funcionar:
+        </p>
+        <ul>
+          <li><strong>Render</strong> — hospedagem do servidor da aplicação.</li>
+          <li><strong>Neon</strong> — banco de dados.</li>
+          <li><strong>Supabase</strong> — armazenamento das imagens.</li>
+          <li><strong>Hostinger</strong> — hospedagem do site e envio de e-mails.</li>
+          <li>
+            <strong>Google</strong> — login com conta Google e fornecimento da fonte tipográfica do
+            site. Ao carregar o site, seu navegador se conecta aos servidores do Google, que recebem
+            seu endereço IP, conforme a
+            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener"
+              >Política de Privacidade do Google</a
+            >.
+          </li>
+        </ul>
+        <p>
+          Também poderemos compartilhar dados quando exigido por lei ou por ordem de autoridade
+          competente.
+        </p>
+
+        <h2>5. Transferência internacional</h2>
+        <p>
+          Alguns desses prestadores armazenam ou processam dados fora do Brasil (por exemplo, nos
+          Estados Unidos). Essas transferências são feitas com base nas garantias contratuais e de
+          segurança oferecidas por esses prestadores, nos termos do art. 33 da LGPD.
+        </p>
+
+        <h2>6. Cookies e armazenamento local</h2>
+        <p>
+          Usamos apenas o necessário para manter você conectado: um cookie de autenticação
+          (<code>token</code>, válido por 8 horas) e uma cópia desse mesmo token no armazenamento
+          local do navegador. Eles são estritamente necessários para o funcionamento do serviço. Não
+          usamos cookies de análise, de publicidade ou de rastreamento.
+        </p>
+
+        <h2>7. Por quanto tempo guardamos</h2>
+        <p>
+          Seus dados ficam guardados enquanto sua conta existir. Ao excluir sua conta, apagamos os
+          dados de conta, personagens, sessões que você criou, participações em sessões e imagens
+          enviadas. Cópias de segurança mantidas pelos provedores podem levar algum tempo para serem
+          sobrescritas, e alguns dados podem ser mantidos pelo período necessário para cumprir
+          obrigação legal.
+        </p>
+
+        <h2>8. Seus direitos</h2>
+        <p>Conforme o art. 18 da LGPD, você pode, a qualquer momento:</p>
+        <ul>
+          <li>confirmar se tratamos seus dados e acessá-los;</li>
+          <li>corrigir dados incompletos, inexatos ou desatualizados;</li>
+          <li>
+            pedir a anonimização, o bloqueio ou a eliminação de dados desnecessários, excessivos ou
+            tratados em desconformidade com a lei;
+          </li>
+          <li>pedir a portabilidade dos seus dados;</li>
+          <li>pedir a eliminação dos seus dados e a exclusão da sua conta;</li>
+          <li>saber com quem seus dados são compartilhados;</li>
+          <li>opor-se a tratamento feito em desconformidade com a lei;</li>
+          <li>revogar consentimento, quando o tratamento se basear nele.</li>
+        </ul>
+        <p>
+          Para exercer qualquer um desses direitos, envie um e-mail para
+          <a [href]="'mailto:' + contactEmail">{{ contactEmail }}</a> a partir do e-mail cadastrado
+          na sua conta. Responderemos em até 15 dias. Você também pode apresentar reclamação à
+          Autoridade Nacional de Proteção de Dados (ANPD).
+        </p>
+
+        <h2>9. Segurança</h2>
+        <p>
+          Adotamos medidas técnicas para proteger seus dados, como conexão criptografada (HTTPS),
+          senhas guardadas com hash, controle de acesso às sessões e acesso restrito aos sistemas.
+          Nenhum sistema é totalmente imune a falhas; se ocorrer um incidente de segurança que possa
+          causar risco ou dano relevante a você, comunicaremos você e a ANPD, conforme o art. 48 da
+          LGPD.
+        </p>
+
+        <h2>10. Idade mínima</h2>
+        <p>
+          O {{ siteName }} é destinado a pessoas com {{ minimumAge }} anos ou mais. Não coletamos
+          intencionalmente dados de menores de idade. Se identificarmos uma conta de menor de
+          {{ minimumAge }} anos, ela será excluída.
+        </p>
+
+        <h2>11. Alterações desta Política</h2>
+        <p>
+          Esta Política pode ser atualizada. A data da última atualização fica no topo da página.
+          Mudanças relevantes serão comunicadas no site ou por e-mail.
+        </p>
+
+        <h2>12. Contato</h2>
+        <p>
+          {{ controllerName }} —
+          <a [href]="'mailto:' + contactEmail">{{ contactEmail }}</a>
+        </p>
+      </article>
+    } @else {
+      <article class="legal-text">
+        <p>
+          Estes Termos regulam o uso do {{ siteName }} ({{ siteUrl }}), mantido por
+          <strong>{{ controllerName }}</strong
+          >. Ao criar uma conta ou usar o serviço, você concorda com estes Termos e com a
+          <a [routerLink]="routes.privacy">Política de Privacidade</a>.
+        </p>
+
+        <h2>1. Quem pode usar</h2>
+        <p>
+          O serviço é destinado a pessoas com {{ minimumAge }} anos ou mais. Ao criar uma conta,
+          você declara ter pelo menos {{ minimumAge }} anos.
+        </p>
+
+        <h2>2. O serviço</h2>
+        <p>
+          O {{ siteName }} é uma ferramenta de apoio a mesas de RPG de mesa: criação e gestão de
+          fichas de personagem, sessões de jogo, rolagens de dados, catálogo de monstros e de
+          magias. O serviço é oferecido atualmente de forma gratuita e pode ser alterado, suspenso
+          ou descontinuado a qualquer momento.
+        </p>
+
+        <h2>3. Sua conta</h2>
+        <ul>
+          <li>
+            Você é responsável por manter sua senha em sigilo e pelo que é feito na sua conta.
+          </li>
+          <li>Informe um e-mail válido, que é usado para acesso e recuperação da conta.</li>
+          <li>
+            Se perceber uso indevido da sua conta, avise pelo e-mail
+            <a [href]="'mailto:' + contactEmail">{{ contactEmail }}</a
+            >.
+          </li>
+        </ul>
+
+        <h2>4. Conteúdo que você publica</h2>
+        <p>
+          Você continua dono do conteúdo que cria (personagens, anotações, imagens etc.) e nos
+          autoriza a armazená-lo e exibi-lo a você e aos participantes das sessões em que você o
+          compartilhar, apenas para o funcionamento do serviço.
+        </p>
+        <p>Você é responsável pelo que envia e se compromete a não publicar conteúdo que:</p>
+        <ul>
+          <li>
+            seja ilegal, difamatório, discriminatório, de ódio ou que incentive violência real;
+          </li>
+          <li>tenha conteúdo sexual envolvendo menores ou qualquer forma de exploração;</li>
+          <li>use imagem, nome ou dados pessoais de outras pessoas sem autorização delas;</li>
+          <li>viole direitos autorais, marcas ou outros direitos de terceiros;</li>
+          <li>contenha vírus, códigos maliciosos ou links para golpes.</li>
+        </ul>
+        <p>
+          Lembre que imagens enviadas ficam acessíveis por um link público (ver a Política de
+          Privacidade).
+        </p>
+
+        <h2>5. Uso proibido</h2>
+        <ul>
+          <li>tentar acessar contas, sessões ou dados de outras pessoas sem permissão;</li>
+          <li>
+            explorar falhas, burlar controles de acesso ou interferir no funcionamento do site;
+          </li>
+          <li>
+            usar automações para sobrecarregar o serviço, criar contas em massa ou coletar dados.
+          </li>
+        </ul>
+        <p>
+          Se você encontrar uma falha de segurança, por favor nos avise pelo e-mail de contato em
+          vez de explorá-la.
+        </p>
+
+        <h2>6. Suspensão e encerramento</h2>
+        <p>
+          Você pode pedir a exclusão da sua conta a qualquer momento. Podemos suspender ou excluir
+          contas que violem estes Termos ou a lei.
+        </p>
+
+        <h2>7. Propriedade intelectual</h2>
+        <p>
+          Dungeons &amp; Dragons e D&amp;D são marcas da Wizards of the Coast LLC. O
+          {{ siteName }} é um projeto independente de fãs, sem afiliação, patrocínio ou aprovação da
+          Wizards of the Coast. O código, o visual e os demais elementos próprios do
+          {{ siteName }} pertencem ao seu responsável.
+        </p>
+
+        <h2>8. Disponibilidade e responsabilidade</h2>
+        <p>
+          O serviço é oferecido "no estado em que se encontra". Fazemos o possível para mantê-lo
+          funcionando e seus dados seguros, mas não garantimos que ele estará sempre disponível ou
+          livre de erros. Recomendamos guardar uma cópia das fichas importantes (a ficha pode ser
+          impressa ou salva em PDF). Na extensão permitida pela lei, não nos responsabilizamos por
+          perdas decorrentes de indisponibilidade, perda de dados ou uso indevido do serviço por
+          terceiros.
+        </p>
+
+        <h2>9. Alterações destes Termos</h2>
+        <p>
+          Estes Termos podem ser atualizados. A data da última atualização fica no topo da página.
+          Mudanças relevantes serão comunicadas no site ou por e-mail; continuar usando o serviço
+          depois disso significa concordar com a nova versão.
+        </p>
+
+        <h2>10. Lei aplicável</h2>
+        <p>
+          Estes Termos são regidos pelas leis da República Federativa do Brasil. Fica eleito o foro
+          do domicílio do usuário para resolver eventuais conflitos.
+        </p>
+
+        <h2>11. Contato</h2>
+        <p>
+          {{ controllerName }} —
+          <a [href]="'mailto:' + contactEmail">{{ contactEmail }}</a>
+        </p>
+      </article>
+    }
+
+    <div class="legal-back">
+      <button type="button" class="retro-btn back-btn" routerLink="/">← VOLTAR</button>
+    </div>
+  </fieldset>
+</div>

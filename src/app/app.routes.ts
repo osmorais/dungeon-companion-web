@@ -26,6 +26,19 @@ export const routes: Routes = [
       ),
   },
 
+  {
+    path: 'privacidade',
+    data: { doc: 'privacy' },
+    loadComponent: () =>
+      import('./legal/legal-page.component').then(m => m.LegalPageComponent),
+  },
+  {
+    path: 'termos',
+    data: { doc: 'terms' },
+    loadComponent: () =>
+      import('./legal/legal-page.component').then(m => m.LegalPageComponent),
+  },
+
   // Protegidas
   {
     path: '',
