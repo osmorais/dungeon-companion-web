@@ -9,7 +9,10 @@ npm start          # Dev server at http://localhost:4200
 npm run build      # Production build (outputs to dist/)
 npm run watch      # Build in watch/dev mode
 npm test           # Run unit tests with Vitest
+npm run test:run   # Same, single run (no watch) — rodar a cada implementação
 ```
+
+Test data factories live in `src/testing/` (excluded from the app build in `tsconfig.app.json`).
 
 To run a single test file: `npx vitest run src/app/path/to/file.spec.ts`
 
