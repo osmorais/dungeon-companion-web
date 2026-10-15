@@ -5,6 +5,7 @@ import { AccountService } from '../services/account.service';
 import { AuthService } from '../services/auth.service';
 import { AccountProfile } from '../models/account.interface';
 import { LEGAL_CONTACT_EMAIL, LEGAL_DOC_ROUTES } from '../legal/legal-info';
+import { apiErrorMessage } from '../auth/auth-errors';
 
 /** Nome do arquivo baixado na exportação, ex.: forja-arcana-meus-dados-2026-10-14.json */
 export function exportFileName(date: Date): string {
@@ -80,7 +81,7 @@ export class AccountComponent implements OnInit {
         this.savingName.set(false);
       },
       error: (err) => {
-        this.nameMessage.set(err.error?.error?.message ?? 'Não foi possível salvar o nome.');
+        this.nameMessage.set(apiErrorMessage(err, 'Não foi possível salvar o nome.'));
         this.savingName.set(false);
       },
     });
@@ -116,7 +117,7 @@ export class AccountComponent implements OnInit {
         next: () => this.authService.clearSession(),
         error: (err) => {
           this.deleteError.set(
-            err.error?.error?.message ?? 'Não foi possível excluir a conta. Tente novamente.',
+            apiErrorMessage(err, 'Não foi possível excluir a conta. Tente novamente.'),
           );
           this.deleting.set(false);
         },

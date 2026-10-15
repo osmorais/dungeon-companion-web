@@ -2,6 +2,7 @@ import { Component, HostListener, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { apiErrorMessage } from '../auth-errors';
 
 @Component({
   selector: 'app-forgot-password',
@@ -35,7 +36,7 @@ export class ForgotPasswordComponent {
         this.loading.set(false);
       },
       error: err => {
-        this.errorMessage.set(err.error?.message ?? 'Erro ao enviar e-mail. Tente novamente.');
+        this.errorMessage.set(apiErrorMessage(err, 'Erro ao enviar e-mail. Tente novamente.'));
         this.loading.set(false);
       },
     });

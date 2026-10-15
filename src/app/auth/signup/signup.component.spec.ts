@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { SignupComponent, TERMS_NOT_ACCEPTED_MESSAGE } from './signup.component';
 import { AuthService } from '../../services/auth.service';
 
@@ -47,6 +47,28 @@ describe('SignupComponent', () => {
     component.submit();
     expect(authService.signup).not.toHaveBeenCalled();
     expect(component.errorMessage()).toBe('As senhas não coincidem.');
+  });
+
+  it('com o aceite, recusa senha com menos de 8 caracteres', () => {
+    component.acceptedTerms.set(true);
+    component.password = '1234567';
+    component.confirmPassword = '1234567';
+    component.submit();
+    expect(authService.signup).not.toHaveBeenCalled();
+    expect(component.errorMessage()).toBe('A senha precisa ter pelo menos 8 caracteres.');
+  });
+
+  it('mostra a mensagem do limite de tentativas (429) vinda da API', () => {
+    authService.signup.mockReturnValue(
+      throwError(() => ({
+        status: 429,
+        error: { error: { message: 'Muitas tentativas. Tente de novo em 40 minutos.' } },
+      })),
+    );
+    component.acceptedTerms.set(true);
+    component.submit();
+    expect(component.errorMessage()).toBe('Muitas tentativas. Tente de novo em 40 minutos.');
+    expect(component.loading()).toBe(false);
   });
 
   it('com o aceite, cria a conta e vai pra home', () => {

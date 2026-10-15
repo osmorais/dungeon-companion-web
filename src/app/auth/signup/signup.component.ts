@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environments/environment';
 import { LEGAL_DOC_ROUTES, LEGAL_MINIMUM_AGE } from '../../legal/legal-info';
+import { apiErrorMessage, newPasswordError } from '../auth-errors';
 
 export const TERMS_NOT_ACCEPTED_MESSAGE = `Para criar a conta, declare ter ${LEGAL_MINIMUM_AGE} anos ou mais e aceite os Termos e a Política de Privacidade.`;
 
@@ -72,7 +73,7 @@ export class SignupComponent implements AfterViewInit {
     this.authService.googleLogin(idToken).subscribe({
       next: () => this.router.navigate(['/']),
       error: err => {
-        this.errorMessage.set(err.error?.message ?? 'Erro ao entrar com Google. Tente novamente.');
+        this.errorMessage.set(apiErrorMessage(err, 'Erro ao entrar com Google. Tente novamente.'));
         this.loading.set(false);
       },
     });
@@ -80,8 +81,9 @@ export class SignupComponent implements AfterViewInit {
 
   submit() {
     if (!this.ensureTermsAccepted()) return;
-    if (this.password !== this.confirmPassword) {
-      this.errorMessage.set('As senhas não coincidem.');
+    const passwordError = newPasswordError(this.password, this.confirmPassword);
+    if (passwordError) {
+      this.errorMessage.set(passwordError);
       return;
     }
     this.errorMessage.set('');
@@ -89,7 +91,7 @@ export class SignupComponent implements AfterViewInit {
     this.authService.signup(this.email, this.password, this.fullName || undefined).subscribe({
       next: () => this.router.navigate(['/']),
       error: err => {
-        this.errorMessage.set(err.error?.message ?? 'Erro ao criar conta. Tente novamente.');
+        this.errorMessage.set(apiErrorMessage(err, 'Erro ao criar conta. Tente novamente.'));
         this.loading.set(false);
       },
     });

@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environments/environment';
 import { LEGAL_DOC_ROUTES, LEGAL_MINIMUM_AGE } from '../../legal/legal-info';
+import { apiErrorMessage } from '../auth-errors';
 
 @Component({
   selector: 'app-login',
@@ -57,7 +58,7 @@ export class LoginComponent implements AfterViewInit {
     this.authService.googleLogin(idToken).subscribe({
       next: () => this.router.navigate(['/']),
       error: err => {
-        this.errorMessage.set(err.error?.message ?? 'Erro ao entrar com Google. Tente novamente.');
+        this.errorMessage.set(apiErrorMessage(err, 'Erro ao entrar com Google. Tente novamente.'));
         this.loading.set(false);
       },
     });
@@ -69,7 +70,7 @@ export class LoginComponent implements AfterViewInit {
     this.authService.login(this.email, this.password).subscribe({
       next: () => this.router.navigate(['/']),
       error: err => {
-        this.errorMessage.set(err.error?.message ?? 'Erro ao entrar. Tente novamente.');
+        this.errorMessage.set(apiErrorMessage(err, 'Erro ao entrar. Tente novamente.'));
         this.loading.set(false);
       },
     });
