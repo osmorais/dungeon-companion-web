@@ -30,6 +30,8 @@ import { AbilityRollConfig, RollModalComponent } from '../roll-modal/roll-modal.
 import { AddMonsterModalComponent } from '../add-monster-modal/add-monster-modal.component';
 import { TomAssistantComponent } from '../tom-assistant/tom-assistant.component';
 import { PlayerInventoryModalComponent } from '../player-inventory-modal/player-inventory-modal.component';
+import { DamageImpactComponent } from '../damage-impact/damage-impact.component';
+import { DamageImpactService } from '../services/damage-impact.service';
 import { attrLabel } from '../models/level-up.interface';
 
 @Component({
@@ -47,6 +49,7 @@ import { attrLabel } from '../models/level-up.interface';
     AddMonsterModalComponent,
     TomAssistantComponent,
     PlayerInventoryModalComponent,
+    DamageImpactComponent,
   ],
   templateUrl: './session-panel.component.html',
   styleUrls: ['./session-panel.component.scss'],
@@ -57,6 +60,7 @@ export class SessionPanelComponent implements OnDestroy {
   private sessionState = inject(SessionStateService);
   private charService = inject(CharacterService);
   private authService = inject(AuthService);
+  private damageImpact = inject(DamageImpactService);
 
   id = input<string>();
 
@@ -216,6 +220,13 @@ export class SessionPanelComponent implements OnDestroy {
   private stopPolling() {
     this.pollingSub?.unsubscribe();
     this.pollingSub = null;
+  }
+
+  /** Liga/desliga o impacto de dano em tela cheia — preferência só deste navegador. */
+  screenEffectsEnabled = this.damageImpact.enabled;
+
+  toggleScreenEffects(): void {
+    this.damageImpact.toggleEnabled();
   }
 
   togglePolling() {
@@ -1234,6 +1245,8 @@ export class SessionPanelComponent implements OnDestroy {
     if (next) {
       // Só entra no histórico quando o toast realmente aparece em tela, não quando é enfileirado.
       this.revealRolls([next.id_roll]);
+      // Dano: o impacto em tela cheia toca junto com o toast (quem rolou já viu no roll-modal).
+      if (next.roll_type === 'damage' && !next.is_hidden) this.damageImpact.trigger(next);
       this.rollToastTimer = setTimeout(() => this.playNextRollToast(), this.ROLL_TOAST_MS);
     }
   }

@@ -1,0 +1,230 @@
+@use 'sass:list';
+
+// Linha do tempo (1,6 s — mesmo valor de DAMAGE_IMPACT_MS no serviço):
+//   0–175 ms   escurece           150/450/750 ms   golpes (1 a 3, conforme a intensidade)
+//   +40 ms de cada golpe: flash   900 ms           valor do dano      1300–1600 ms   some
+// No máximo 3 flashes em menos de 1 s (limite da WCAG 2.3.1 pra flashes), com opacidade baixa.
+
+$total: 1600ms;
+$slash-delays: (150ms, 450ms, 750ms);
+$slash-angles: (-28deg, 24deg, -4deg);
+
+.damage-impact {
+  position: fixed;
+  inset: 0;
+  z-index: 1500; // acima dos toasts da sessão (1100), abaixo do Tom (2000)
+  pointer-events: none;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0);
+  animation: impact-darken $total linear both;
+}
+
+@keyframes impact-darken {
+  0% {
+    background: rgba(0, 0, 0, 0);
+  }
+  11% {
+    background: rgba(0, 0, 0, 0.75);
+  }
+  82% {
+    background: rgba(0, 0, 0, 0.75);
+  }
+  100% {
+    background: rgba(0, 0, 0, 0);
+  }
+}
+
+.damage-impact__shake {
+  position: absolute;
+  inset: 0;
+}
+
+.damage-impact--1 .damage-impact__shake {
+  animation: impact-shake 260ms 150ms steps(4) 1;
+}
+.damage-impact--2 .damage-impact__shake {
+  animation: impact-shake 260ms 150ms steps(4) 2 alternate;
+}
+.damage-impact--3 .damage-impact__shake {
+  animation: impact-shake-strong 200ms 150ms steps(4) 4 alternate;
+}
+
+@keyframes impact-shake {
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-4px, 2px);
+  }
+  50% {
+    transform: translate(4px, -2px);
+  }
+  75% {
+    transform: translate(-2px, -2px);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes impact-shake-strong {
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-8px, 4px);
+  }
+  50% {
+    transform: translate(8px, -4px);
+  }
+  75% {
+    transform: translate(-4px, -6px);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+// Golpe: faixa branca cortando a tela inteira na diagonal, com borda laranja (sem desfoque, no
+// estilo pixel art). Abre do centro pras bordas e depois afina até sumir.
+.damage-impact__slash {
+  --angle: 0deg;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150vmax;
+  height: 8px;
+  background: #ffffff;
+  box-shadow:
+    0 -3px 0 #ffaa00,
+    0 3px 0 #ffaa00,
+    0 -6px 0 #a32c17,
+    0 6px 0 #a32c17;
+  opacity: 0;
+  animation: impact-slash 300ms linear both;
+}
+
+@keyframes impact-slash {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--angle)) scaleX(0) scaleY(1);
+  }
+  35% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--angle)) scaleX(1) scaleY(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--angle)) scaleX(1) scaleY(0);
+  }
+}
+
+// Flash: clarão branco curto na tela toda, logo depois de cada golpe.
+.damage-impact__flash {
+  position: absolute;
+  inset: 0;
+  background: #ffffff;
+  opacity: 0;
+  animation: impact-flash 140ms linear both;
+}
+
+@keyframes impact-flash {
+  0% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@for $i from 1 through 3 {
+  .damage-impact__slash--#{$i} {
+    --angle: #{list.nth($slash-angles, $i)};
+    animation-delay: list.nth($slash-delays, $i);
+  }
+
+  .damage-impact__flash--#{$i} {
+    animation-delay: list.nth($slash-delays, $i) + 40ms;
+  }
+}
+
+// Valor do dano: "salta" no centro e fica até a tela clarear.
+.damage-impact__value {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(40px, 12vw, 120px);
+  line-height: 1;
+  color: #ffaa00;
+  text-shadow:
+    4px 0 0 #1d0a0a,
+    -4px 0 0 #1d0a0a,
+    0 4px 0 #1d0a0a,
+    0 -4px 0 #1d0a0a,
+    8px 8px 0 #a32c17;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0);
+  animation: impact-value 700ms 900ms linear both;
+}
+
+@keyframes impact-value {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.3);
+  }
+  35% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+// "Reduzir movimento" no sistema: sem golpes, flashes nem tremor — só escurece e mostra o valor.
+@media (prefers-reduced-motion: reduce) {
+  .damage-impact__slash,
+  .damage-impact__flash {
+    display: none;
+  }
+
+  .damage-impact__shake {
+    animation: none !important;
+  }
+
+  .damage-impact__value {
+    animation: impact-value-calm 1300ms 300ms linear both;
+  }
+}
+
+@keyframes impact-value-calm {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}

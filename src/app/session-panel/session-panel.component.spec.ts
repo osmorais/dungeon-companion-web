@@ -19,8 +19,11 @@ import {
   npc,
   participant,
   player,
+  roll,
   sessionDetail,
 } from '../../testing/session-fixtures';
+import { DamageImpactService } from '../services/damage-impact.service';
+import { RollLogEntry } from '../models/game-session.interface';
 
 /**
  * Lógica do painel de sessão sem renderizar o template: sem `id` de entrada o componente não
@@ -230,6 +233,72 @@ describe('SessionPanelComponent', () => {
         }),
       );
       expect(component.currentTurnParticipant()).toBeNull();
+    });
+  });
+
+  describe('impacto de dano junto com o toast de rolagem', () => {
+    let trigger: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+      trigger = vi.spyOn(TestBed.inject(DamageImpactService), 'trigger');
+      // Primeira carga: rolagens existentes só viram "vistas", sem toast nem impacto.
+      detail.set(sessionDetail({ recent_rolls: [roll('antiga')] }));
+      TestBed.tick();
+    });
+
+    afterEach(() => component.ngOnDestroy());
+
+    function arrive(...rolls: RollLogEntry[]) {
+      detail.set(sessionDetail({ recent_rolls: [...rolls, roll('antiga')] }));
+      TestBed.tick();
+    }
+
+    const damage = (
+      id: string,
+      total: number,
+      overrides: Partial<RollLogEntry> = {},
+    ): RollLogEntry => ({
+      ...roll(id),
+      roll_type: 'damage',
+      dice_notation: '2d6',
+      modifier: 2,
+      total,
+      ...overrides,
+    });
+
+    it('rolagem antiga (primeira carga) não dispara', () => {
+      expect(trigger).not.toHaveBeenCalled();
+    });
+
+    it('dano de outro jogador dispara junto com o toast', () => {
+      arrive(damage('d1', 14));
+      expect(component.activeRollToast()?.id_roll).toBe('d1');
+      expect(trigger).toHaveBeenCalledTimes(1);
+      expect(trigger.mock.calls[0][0]).toMatchObject({
+        dice_notation: '2d6',
+        modifier: 2,
+        total: 14,
+      });
+    });
+
+    it('ataque, perícia e dados livres não disparam', () => {
+      arrive(
+        { ...roll('a'), roll_type: 'attack' },
+        { ...roll('b'), roll_type: 'skill' },
+        { ...roll('c'), roll_type: 'dice' },
+      );
+      expect(trigger).not.toHaveBeenCalled();
+    });
+
+    it('vários danos seguidos: cada um dispara quando o seu toast aparece', () => {
+      arrive(
+        damage('d1', 5, { created_at: '2026-01-01T00:00:01Z' }),
+        damage('d2', 9, { created_at: '2026-01-01T00:00:02Z' }),
+      );
+      expect(trigger).toHaveBeenCalledTimes(1);
+      component.closeRollToast();
+      expect(trigger).toHaveBeenCalledTimes(2);
+      expect(trigger.mock.calls[1][0].total).toBe(9);
     });
   });
 });

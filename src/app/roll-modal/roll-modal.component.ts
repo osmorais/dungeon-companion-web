@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, Output, inject, signal } from '@angular/core';
 import { GameSessionService } from '../services/game-session.service';
+import { DamageImpactService } from '../services/damage-impact.service';
 import { AdvantageState, RollLogPayload, RollType } from '../models/game-session.interface';
 import { PixelDieComponent } from '../pixel-die/pixel-die.component';
 import { PixelNumericDieComponent } from '../pixel-numeric-die/pixel-numeric-die.component';
@@ -62,6 +63,7 @@ const ROLL_TICK_MS = 80;
 })
 export class RollModalComponent {
   private gameSessionService = inject(GameSessionService);
+  private damageImpact = inject(DamageImpactService);
 
   @Input({ required: true }) config!: RollConfig;
   @Input() idCharacter: number | null = null;
@@ -326,6 +328,12 @@ export class RollModalComponent {
     this.isRolling.set(false);
     this.result.set({ rolls, chosen, total });
     this.postRoll(rolls, total, sidesList);
+
+    // Impacto de dano em tela cheia — só dentro da sessão (a ficha isolada não tem sessionId).
+    // Quem rola não recebe o toast da própria rolagem; os outros disparam pelo toast (session-panel).
+    if (this.attackPhase() === 'damage' && this.sessionId) {
+      this.damageImpact.trigger({ dice_notation: this.diceNotationFor(sidesList), modifier: this.modifier, total });
+    }
 
     if (this.pendingDamage && this.attackPhase() === 'attack') {
       // Terminou o d20 do ataque — espera a decisão do mestre antes de sinalizar
