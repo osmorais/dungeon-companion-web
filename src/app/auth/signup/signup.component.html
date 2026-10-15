@@ -41,7 +41,7 @@
         {{ loading() ? 'FORJANDO...' : 'FORJAR' }}
       </button>
 
-      @if (googleEnabled) {
+      @if (googleEnabled()) {
         <div class="google-separator">
           <span>OU</span>
         </div>
@@ -98,7 +98,7 @@
         {{ loading() ? 'FORJANDO...' : 'FORJAR' }}
       </button>
 
-      @if (googleEnabled) {
+      @if (googleEnabled()) {
         <div class="google-separator">
           <span>OU</span>
         </div>

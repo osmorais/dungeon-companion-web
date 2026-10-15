@@ -2,6 +2,7 @@ import { AfterViewInit, Component, ElementRef, HostListener, inject, signal, Vie
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { GoogleIdentityService } from '../../services/google-identity.service';
 import { environment } from '../../../environments/environment';
 import { LEGAL_DOC_ROUTES, LEGAL_MINIMUM_AGE } from '../../legal/legal-info';
 import { apiErrorMessage } from '../auth-errors';
@@ -16,6 +17,7 @@ import { apiErrorMessage } from '../auth-errors';
 export class LoginComponent implements AfterViewInit {
   private authService = inject(AuthService);
   private router = inject(Router);
+  private googleIdentity = inject(GoogleIdentityService);
 
   @ViewChild('googleBtnDesktop') googleBtnDesktop!: ElementRef<HTMLDivElement>;
   @ViewChild('googleBtnMobile') googleBtnMobile!: ElementRef<HTMLDivElement>;
@@ -31,12 +33,20 @@ export class LoginComponent implements AfterViewInit {
   password = '';
   errorMessage = signal('');
   loading = signal(false);
-  googleEnabled = !!environment.googleClientId;
+  googleEnabled = signal(!!environment.googleClientId);
   readonly minimumAge = LEGAL_MINIMUM_AGE;
   readonly legalRoutes = LEGAL_DOC_ROUTES;
 
   ngAfterViewInit(): void {
-    if (!this.googleEnabled) return;
+    if (!this.googleEnabled()) return;
+    this.googleIdentity
+      .load()
+      .then(() => this.renderGoogleButtons())
+      // Sem o script (rede/bloqueador), a tela continua funcionando com e-mail e senha.
+      .catch(() => this.googleEnabled.set(false));
+  }
+
+  private renderGoogleButtons(): void {
     google.accounts.id.initialize({
       client_id: environment.googleClientId,
       callback: (res) => this.handleGoogleCredential(res.credential),

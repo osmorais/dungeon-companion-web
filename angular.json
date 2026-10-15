@@ -40,6 +40,8 @@
               }
             ],
             "styles": [
+              "node_modules/@fontsource/press-start-2p/latin-400.css",
+              "node_modules/@fontsource/press-start-2p/latin-ext-400.css",
               "src/styles.scss"
             ]
           },

@@ -26,7 +26,7 @@
         {{ loading() ? 'ENTRANDO...' : 'ENTRAR' }}
       </button>
 
-      @if (googleEnabled) {
+      @if (googleEnabled()) {
         <div class="google-separator">
           <span>OU</span>
         </div>
@@ -75,7 +75,7 @@
         {{ loading() ? 'ENTRANDO...' : 'ENTRAR' }}
       </button>
 
-      @if (googleEnabled) {
+      @if (googleEnabled()) {
         <div class="google-separator">
           <span>OU</span>
         </div>

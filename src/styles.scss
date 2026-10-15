@@ -1,4 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+// A fonte "Press Start 2P" é servida pelo próprio site (pacote @fontsource, em angular.json →
+// styles), não pelo Google Fonts — assim o navegador do visitante não fala com o Google só por
+// abrir a página (LGPD, ver docs/dungeon-companion-lgpd.md item 8).
 
 .app-bg {
   position: fixed;
@@ -183,4 +185,12 @@ input[type="checkbox"].retro-checkbox {
 .empty-slot {
   margin-top: 10px;
   opacity: 0.5;
+}
+
+/* Aviso de privacidade nos campos de nome que ficam visíveis pra mesa toda (mestre/jogador). */
+.name-privacy-hint {
+  font-size: 6px;
+  line-height: 1.6;
+  color: var(--label-title-color);
+  margin: 4px 0 0;
 }

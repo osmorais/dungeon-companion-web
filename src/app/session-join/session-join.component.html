@@ -30,6 +30,7 @@
         [ngModel]="playerName()"
         (ngModelChange)="playerName.set($event)"
       />
+      <p class="name-privacy-hint">Prefira um apelido: este nome aparece para todos da mesa.</p>
     </fieldset>
 
     <!-- Seleção de personagem -->
@@ -112,6 +113,7 @@
             [ngModel]="playerName()"
             (ngModelChange)="playerName.set($event)"
           />
+          <p class="name-privacy-hint">Prefira um apelido: este nome aparece para todos da mesa.</p>
         </div>
       </div>
     </fieldset>
