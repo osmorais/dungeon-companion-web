@@ -68,7 +68,7 @@
   a {
     color: var(--accent-color);
     font-size: 7px;
-    cursor: pointer;
+    cursor: var(--cp);
     text-decoration: underline;
   }
 }
@@ -148,7 +148,7 @@
   a {
     color: var(--accent-color);
     font-size: 7px;
-    cursor: pointer;
+    cursor: var(--cp);
     text-decoration: underline;
   }
 }
@@ -193,7 +193,7 @@
   font-size: 7px;
   line-height: 1.6;
   color: var(--text-color);
-  cursor: pointer;
+  cursor: var(--cp);
 
   input {
     flex-shrink: 0;

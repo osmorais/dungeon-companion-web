@@ -33,7 +33,7 @@
   border: none;
   color: var(--text-color);
   font-size: 12px;
-  cursor: pointer;
+  cursor: var(--cp);
   font-family: inherit;
 
   &:hover {
@@ -93,7 +93,7 @@
   gap: 10px;
   border: 2px solid var(--border-color);
   padding: 8px;
-  cursor: pointer;
+  cursor: var(--cp);
 
   &:hover {
     background-color: var(--btn-color-hover);
@@ -151,7 +151,7 @@
   padding: 10px 12px;
   font-family: 'Press Start 2P', monospace;
   font-size: 9px;
-  cursor: pointer;
+  cursor: var(--cp);
 }
 
 .dx-btn-primary {
@@ -164,7 +164,7 @@
 
   &:disabled {
     opacity: 0.5;
-    cursor: default;
+    cursor: var(--cd);
   }
 }
 
@@ -178,6 +178,6 @@
 
   &:disabled {
     opacity: 0.5;
-    cursor: default;
+    cursor: var(--cd);
   }
 }

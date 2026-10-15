@@ -33,7 +33,7 @@
   border: none;
   color: var(--text-color);
   font-size: 12px;
-  cursor: pointer;
+  cursor: var(--cp);
   font-family: inherit;
 
   &:hover {
@@ -71,7 +71,7 @@
   padding: 10px 12px;
   font-family: 'Press Start 2P', monospace;
   font-size: 9px;
-  cursor: pointer;
+  cursor: var(--cp);
 
   &:hover:not(:disabled) {
     background-color: var(--btn-color-hover);
@@ -79,7 +79,7 @@
 
   &:disabled {
     opacity: 0.5;
-    cursor: default;
+    cursor: var(--cd);
   }
 }
 
@@ -165,7 +165,7 @@
   padding: 6px 10px;
   font-family: 'Press Start 2P', monospace;
   font-size: 8px;
-  cursor: pointer;
+  cursor: var(--cp);
   text-align: left;
 
   &:hover {
@@ -174,7 +174,7 @@
   }
 
   &--static {
-    cursor: default;
+    cursor: var(--cd);
 
     &:hover {
       border-color: var(--border-color);
@@ -254,7 +254,7 @@
   height: 15px;
   padding: 0;
   line-height: 1;
-  cursor: pointer;
+  cursor: var(--cp);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -265,7 +265,7 @@
 
   &:disabled {
     opacity: 0.4;
-    cursor: default;
+    cursor: var(--cd);
   }
 }
 
@@ -304,7 +304,7 @@
   padding: 5px 8px;
   font-family: 'Press Start 2P', monospace;
   font-size: 7px;
-  cursor: pointer;
+  cursor: var(--cp);
 
   &:hover {
     background-color: var(--btn-color-hover);
@@ -348,7 +348,7 @@
   font-family: inherit;
   font-size: 8px;
   padding: 6px 10px;
-  cursor: pointer;
+  cursor: var(--cp);
 
   &:hover {
     color: var(--accent-color);
@@ -396,7 +396,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  cursor: pointer;
+  cursor: var(--cp);
   border: 1px solid var(--border-color);
   padding: 0 8px;
   font-size: 7px;
@@ -425,7 +425,7 @@
   border: 1px solid var(--border-color);
   padding: 5px 7px;
   font-family: 'Press Start 2P', monospace;
-  cursor: pointer;
+  cursor: var(--cp);
 
   &:hover:not(:disabled) {
     background-color: var(--btn-color-hover);
@@ -433,7 +433,7 @@
 
   &:disabled {
     opacity: 0.5;
-    cursor: default;
+    cursor: var(--cd);
   }
 }
 
@@ -484,7 +484,7 @@
     border: none;
     color: var(--text-color);
     font-size: 12px;
-    cursor: pointer;
+    cursor: var(--cp);
     font-family: inherit;
 
     &:hover { color: var(--accent-color); }

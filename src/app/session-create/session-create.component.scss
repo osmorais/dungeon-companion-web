@@ -48,7 +48,7 @@
   color: var(--text-color);
   border: 2px solid var(--border-color);
   font-family: 'Press Start 2P', monospace;
-  cursor: not-allowed;
+  cursor: var(--cx);
   text-align: center;
   opacity: 0.5;
 }
@@ -109,7 +109,7 @@
   align-items: center;
   gap: 10px;
   padding: 8px 14px;
-  cursor: pointer;
+  cursor: var(--cp);
   border-bottom: 1px solid var(--border-color);
   transition: background-color 0.1s;
 
@@ -168,7 +168,7 @@
 
   &:disabled {
     opacity: 0.4;
-    cursor: not-allowed;
+    cursor: var(--cx);
   }
 }
 
@@ -221,7 +221,7 @@
 
   &:disabled {
     opacity: 0.4;
-    cursor: not-allowed;
+    cursor: var(--cx);
   }
 }
 
@@ -251,7 +251,7 @@
   color: var(--accent-color);
   font-size: 16px;
   padding: 4px 10px;
-  cursor: pointer;
+  cursor: var(--cp);
   line-height: 1;
 }
 
@@ -323,7 +323,7 @@
   color: var(--text-color);
   border: 2px solid var(--border-color);
   font-family: 'Press Start 2P', monospace;
-  cursor: not-allowed;
+  cursor: var(--cx);
   text-align: left;
   opacity: 0.5;
 }
@@ -393,7 +393,7 @@
   padding: 8px 10px;
   border: 1px solid var(--border-color);
   background-color: var(--bg-color);
-  cursor: pointer;
+  cursor: var(--cp);
 
   &--selected {
     border-color: var(--accent-color);
@@ -440,7 +440,7 @@
 
   &:disabled {
     opacity: 0.4;
-    cursor: not-allowed;
+    cursor: var(--cx);
   }
 }
 
@@ -483,6 +483,6 @@
 
   &:disabled {
     opacity: 0.4;
-    cursor: not-allowed;
+    cursor: var(--cx);
   }
 }

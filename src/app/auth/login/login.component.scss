@@ -74,7 +74,7 @@
   a {
     color: var(--accent-color);
     font-size: 7px;
-    cursor: pointer;
+    cursor: var(--cp);
     text-decoration: underline;
   }
 }
@@ -161,7 +161,7 @@
   a {
     color: var(--accent-color);
     font-size: 7px;
-    cursor: pointer;
+    cursor: var(--cp);
     text-decoration: underline;
   }
 }

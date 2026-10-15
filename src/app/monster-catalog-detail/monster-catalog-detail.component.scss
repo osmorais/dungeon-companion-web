@@ -61,7 +61,7 @@
 
 .stat-image-upload-btn {
   display: inline-block;
-  cursor: pointer;
+  cursor: var(--cp);
   font-size: 8px;
   text-align: center;
 }
@@ -154,7 +154,7 @@
   color: var(--accent-color);
   font-size: 16px;
   padding: 4px 10px;
-  cursor: pointer;
+  cursor: var(--cp);
   line-height: 1;
 }
 

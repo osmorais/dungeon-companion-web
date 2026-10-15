@@ -38,7 +38,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
+  cursor: var(--cp);
 }
 
 .modal-title {
@@ -112,7 +112,7 @@
 
   &:disabled {
     opacity: 0.6;
-    cursor: not-allowed;
+    cursor: var(--cx);
   }
 }
 
@@ -262,7 +262,7 @@
 
   &:disabled {
     opacity: 0.4;
-    cursor: not-allowed;
+    cursor: var(--cx);
   }
 }
 
@@ -287,7 +287,7 @@
   border: 1px solid var(--border-color);
   background-color: var(--bg-color);
   padding: 8px 10px;
-  cursor: pointer;
+  cursor: var(--cp);
 
   input {
     margin-right: 6px;
@@ -350,10 +350,10 @@
 
   input[type='checkbox'] {
     flex-shrink: 0;
-    cursor: pointer;
+    cursor: var(--cp);
 
     &:disabled {
-      cursor: not-allowed;
+      cursor: var(--cx);
     }
   }
 }
@@ -370,7 +370,7 @@
   margin: 0;
   font-family: inherit;
   text-align: left;
-  cursor: pointer;
+  cursor: var(--cp);
   float: none;
 
   &:hover .lu-spell-name {
@@ -480,6 +480,6 @@
 
   &:disabled {
     opacity: 0.5;
-    cursor: not-allowed;
+    cursor: var(--cx);
   }
 }

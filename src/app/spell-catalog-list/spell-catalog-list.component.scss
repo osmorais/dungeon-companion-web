@@ -30,7 +30,7 @@
   padding: 14px 14px 12px;
   border: 2px solid var(--border-color);
   background-color: var(--bg-color);
-  cursor: pointer;
+  cursor: var(--cp);
   transition: border-color 0.15s;
 
   &:hover {
@@ -78,7 +78,7 @@
 
   &:disabled {
     opacity: 0.35;
-    cursor: not-allowed;
+    cursor: var(--cx);
   }
 }
 
@@ -132,7 +132,7 @@
     border: none;
     color: var(--text-color);
     font-size: 12px;
-    cursor: pointer;
+    cursor: var(--cp);
     font-family: inherit;
 
     &:hover { color: var(--accent-color); }
@@ -230,7 +230,7 @@
   color: var(--accent-color);
   font-size: 16px;
   padding: 4px 10px;
-  cursor: pointer;
+  cursor: var(--cp);
   line-height: 1;
 }
 
@@ -260,7 +260,7 @@
   align-items: center;
   padding: 12px 14px;
   border: 1px solid var(--border-color);
-  cursor: pointer;
+  cursor: var(--cp);
 
   &:active {
     background-color: var(--btn-color);
@@ -299,11 +299,11 @@
   color: var(--accent-color);
   font-size: 12px;
   padding: 6px 14px;
-  cursor: pointer;
+  cursor: var(--cp);
 
   &:disabled {
     opacity: 0.35;
-    cursor: not-allowed;
+    cursor: var(--cx);
   }
 }
 

@@ -45,14 +45,14 @@
 
 .image-upload-btn {
   display: inline-block;
-  cursor: pointer;
+  cursor: var(--cp);
   font-size: 6px;
   text-align: center;
   padding: 5px 6px;
 
   &:has(input:disabled) {
     opacity: 0.6;
-    cursor: not-allowed;
+    cursor: var(--cx);
   }
 }
 
@@ -217,7 +217,7 @@
   font-size: 14px;
   width: 24px;
   height: 24px;
-  cursor: pointer;
+  cursor: var(--cp);
   line-height: 1;
   display: flex;
   align-items: center;
@@ -249,7 +249,7 @@
 
   &:disabled {
     opacity: 0.4;
-    cursor: not-allowed;
+    cursor: var(--cx);
   }
 }
 
@@ -399,7 +399,7 @@ ul {
 
   &:disabled {
     opacity: 0.5;
-    cursor: default;
+    cursor: var(--cd);
   }
 }
 
@@ -466,7 +466,7 @@ ul {
   padding: 5px 8px;
   font-family: 'Press Start 2P', monospace;
   font-size: 7px;
-  cursor: pointer;
+  cursor: var(--cp);
 
   &:hover {
     background-color: var(--btn-color-hover);
@@ -521,7 +521,7 @@ ul {
   height: 16px;
   padding: 0;
   line-height: 1;
-  cursor: pointer;
+  cursor: var(--cp);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -532,7 +532,7 @@ ul {
 
   &:disabled {
     opacity: 0.4;
-    cursor: default;
+    cursor: var(--cd);
   }
 }
 
@@ -544,7 +544,7 @@ ul {
 
   &:disabled {
     opacity: 0.5;
-    cursor: default;
+    cursor: var(--cd);
   }
 }
 
@@ -557,7 +557,7 @@ ul {
   margin-top: 16px;
   padding-top: 12px;
   border-top: 1px solid var(--border-color);
-  cursor: pointer;
+  cursor: var(--cp);
 }
 
 .spell-cast-section {
@@ -583,7 +583,7 @@ ul {
 
   &:disabled {
     opacity: 0.5;
-    cursor: default;
+    cursor: var(--cd);
   }
 }
 
@@ -638,7 +638,7 @@ ul {
 }
 
 tr.spell-circle-header-row {
-  cursor: pointer;
+  cursor: var(--cp);
 
   td {
     display: flex;
@@ -665,7 +665,7 @@ tr.spell-circle-header-row {
   font-family: inherit;
   font-size: 9px;
   padding: 8px 12px;
-  cursor: pointer;
+  cursor: var(--cp);
   margin-top: 8px;
 
   &:first-child {
@@ -758,7 +758,7 @@ tr.spell-circle-header-row {
 }
 
 .clickable-row {
-  cursor: pointer;
+  cursor: var(--cp);
   &:hover td { background: rgba(255, 255, 255, 0.04); }
 }
 
@@ -783,7 +783,7 @@ tr.spell-circle-header-row {
     border: none;
     color: var(--text-color);
     font-size: 12px;
-    cursor: pointer;
+    cursor: var(--cp);
     font-family: inherit;
     &:hover { color: var(--accent-color); }
   }
@@ -1007,7 +1007,7 @@ tr.spell-circle-header-row {
 
   &:disabled {
     opacity: 0.4;
-    cursor: not-allowed;
+    cursor: var(--cx);
   }
 }
 
@@ -1051,7 +1051,7 @@ tr.spell-circle-header-row {
     font-size: 8px;
     padding: 10px 14px;
     white-space: nowrap;
-    cursor: pointer;
+    cursor: var(--cp);
     letter-spacing: 0.08em;
     transition: color 0.15s, border-color 0.15s;
 
@@ -1263,7 +1263,7 @@ tr.spell-circle-header-row {
 .mobile-weapon-card {
   border: 1px solid var(--border-color);
   padding: 12px;
-  cursor: pointer;
+  cursor: var(--cp);
 
   &:active { background: rgba(255, 255, 255, 0.03); }
 
@@ -1333,7 +1333,7 @@ tr.spell-circle-header-row {
 .mobile-spell-card {
   border: 1px solid var(--border-color);
   padding: 10px 12px;
-  cursor: pointer;
+  cursor: var(--cp);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1388,7 +1388,7 @@ tr.spell-circle-header-row {
     font-family: inherit;
     font-size: 8px;
     padding: 8px 20px;
-    cursor: pointer;
+    cursor: var(--cp);
     letter-spacing: 0.1em;
     transition: color 0.15s, background 0.15s;
     margin-bottom: -1px;
@@ -1476,7 +1476,7 @@ tr.spell-circle-header-row {
 
   &:disabled {
     opacity: 0.4;
-    cursor: not-allowed;
+    cursor: var(--cx);
   }
 }
 
@@ -1485,7 +1485,7 @@ tr.spell-circle-header-row {
 
   &:disabled {
     opacity: 0.4;
-    cursor: not-allowed;
+    cursor: var(--cx);
   }
 }
 
@@ -1504,7 +1504,7 @@ tr.spell-circle-header-row {
 
   &:disabled {
     opacity: 0.4;
-    cursor: not-allowed;
+    cursor: var(--cx);
   }
 }
 
@@ -1519,7 +1519,7 @@ tr.spell-circle-header-row {
   height: 16px;
   line-height: 1;
   padding: 0;
-  cursor: pointer;
+  cursor: var(--cp);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1593,7 +1593,7 @@ tr.spell-circle-header-row {
   height: 20px;
   line-height: 1;
   padding: 0;
-  cursor: pointer;
+  cursor: var(--cp);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1619,7 +1619,7 @@ tr.spell-circle-header-row {
 
 .avatar-editable {
   position: relative;
-  cursor: pointer;
+  cursor: var(--cp);
 
   .avatar-edit-hint {
     position: absolute;
@@ -1700,7 +1700,7 @@ tr.spell-circle-header-row {
   gap: 8px;
   font-size: 8px;
   color: var(--text-color);
-  cursor: pointer;
+  cursor: var(--cp);
 }
 
 .prepare-spells-done-btn {
@@ -1744,7 +1744,7 @@ tr.spell-circle-header-row {
 
     &:disabled {
       opacity: 0.5;
-      cursor: not-allowed;
+      cursor: var(--cx);
     }
   }
 }
