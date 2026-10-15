@@ -52,3 +52,7 @@ All components are standalone — do not use NgModules.
 ## Testes
 
 Toda implementação nova termina rodando a suíte existente e criando testes para o que foi implementado — ver `.claude/rules/testes.md`.
+
+## LGPD
+
+Toda implementação nova passa pelo checklist de proteção de dados (dado novo, permissões, exclusão/exportação da conta, terceiros, segurança) e avalia se a Política de Privacidade e os Termos de Uso precisam mudar — ver `.claude/rules/lgpd.md`.
