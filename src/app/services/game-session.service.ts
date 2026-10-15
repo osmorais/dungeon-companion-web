@@ -46,12 +46,6 @@ export class GameSessionService {
     });
   }
 
-  getSessions(page: number, pageSize: number): Observable<GameSessionPagedList> {
-    return this.http.get<GameSessionPagedList>(`${this.baseUrl}/api/game-session`, {
-      params: { page: page.toString(), pageSize: pageSize.toString() },
-    });
-  }
-
   getMySessions(page: number, pageSize: number, role?: 'dm' | 'player'): Observable<GameSessionPagedList> {
     return this.http.get<GameSessionPagedList>(`${this.baseUrl}/api/game-session/my-sessions`, {
       params: {
