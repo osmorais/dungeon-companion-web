@@ -1,0 +1,149 @@
+.account-container {
+  width: 100%;
+  max-width: 640px;
+  padding: 20px 16px;
+  box-sizing: border-box;
+}
+
+.account-panel {
+  border: 2px solid var(--border-color);
+  background: var(--panel-bg);
+  padding: 20px 24px;
+  min-width: 0;
+
+  legend {
+    border: 2px solid var(--border-color);
+    background: var(--bg-color);
+    padding: 5px 10px;
+    font-size: 10px;
+    color: var(--text-color);
+  }
+}
+
+.account-section {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+
+  h2 {
+    font-size: 9px;
+    color: var(--accent-color);
+    margin: 0 0 12px;
+  }
+}
+
+.danger-zone h2 {
+  color: #ff6b6b;
+}
+
+.field-line {
+  font-size: 8px;
+  margin: 0 0 10px;
+  overflow-wrap: anywhere;
+}
+
+.field-label {
+  color: var(--label-title-color);
+  margin-right: 8px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin: 12px 0;
+
+  label {
+    font-size: 7px;
+    color: var(--label-title-color);
+    margin-bottom: 4px;
+  }
+
+  input {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    padding: 8px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+.hint {
+  font-size: 7px;
+  line-height: 1.7;
+  color: var(--text-color);
+  opacity: 0.85;
+  margin: 8px 0;
+
+  a {
+    color: var(--accent-color);
+  }
+}
+
+.ack-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 7px;
+  line-height: 1.6;
+  cursor: pointer;
+  margin: 8px 0;
+
+  input {
+    flex-shrink: 0;
+    top: 0;
+  }
+}
+
+.row-actions {
+  overflow: hidden;
+}
+
+.retro-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.danger-btn {
+  background-color: #7a1010;
+
+  &:hover:not(:disabled) {
+    background-color: #a01616;
+  }
+}
+
+.info-msg {
+  color: #7fd67f;
+  font-size: 7px;
+  margin: 6px 0 0;
+}
+
+.error-msg {
+  color: #ff4444;
+  font-size: 7px;
+  margin: 6px 0 0;
+}
+
+.legal-links {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+
+  a {
+    color: var(--label-title-color);
+    font-size: 6px;
+    text-decoration: underline;
+  }
+}
+
+@media (max-width: 767px) {
+  .account-container {
+    padding: 12px 8px;
+  }
+
+  .account-panel {
+    padding: 14px 12px;
+  }
+}

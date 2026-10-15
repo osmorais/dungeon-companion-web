@@ -1,0 +1,130 @@
+<div class="account-container">
+  <fieldset class="account-panel">
+    <legend>MINHA CONTA</legend>
+
+    @if (loadError()) {
+      <p class="error-msg">Não foi possível carregar os dados da conta.</p>
+    } @else if (profile(); as p) {
+      <!-- ===== DADOS ===== -->
+      <section class="account-section">
+        <h2>DADOS DA CONTA</h2>
+        <p class="field-line"><span class="field-label">E-MAIL</span> {{ p.email }}</p>
+        <p class="field-line">
+          <span class="field-label">ACESSO</span>
+          {{ p.has_password ? 'E-mail e senha' : ''
+          }}{{ p.has_password && p.google_linked ? ' + ' : ''
+          }}{{ p.google_linked ? 'Google' : '' }}
+        </p>
+
+        <div class="form-group">
+          <label for="account-name">NOME DE EXIBIÇÃO (OPCIONAL)</label>
+          <input
+            id="account-name"
+            type="text"
+            maxlength="255"
+            [ngModel]="fullName()"
+            (ngModelChange)="fullName.set($event)"
+            placeholder="Sir Aldric..."
+          />
+        </div>
+        <div class="row-actions">
+          <button type="button" class="retro-btn" (click)="saveName()" [disabled]="savingName()">
+            {{ savingName() ? 'SALVANDO...' : 'SALVAR NOME' }}
+          </button>
+        </div>
+        @if (nameMessage()) {
+          <p class="info-msg">{{ nameMessage() }}</p>
+        }
+        <p class="hint">
+          Para trocar o e-mail da conta, escreva para
+          <a [href]="'mailto:' + contactEmail">{{ contactEmail }}</a
+          >.
+        </p>
+      </section>
+
+      <!-- ===== EXPORTAR ===== -->
+      <section class="account-section">
+        <h2>BAIXAR MEUS DADOS</h2>
+        <p class="hint">
+          Gera um arquivo JSON com sua conta, fichas de personagem, sessões, inventários, monstros
+          catalogados e rolagens.
+        </p>
+        <div class="row-actions">
+          <button type="button" class="retro-btn" (click)="exportData()" [disabled]="exporting()">
+            {{ exporting() ? 'GERANDO...' : 'BAIXAR DADOS' }}
+          </button>
+        </div>
+        @if (exportError()) {
+          <p class="error-msg">{{ exportError() }}</p>
+        }
+      </section>
+
+      <!-- ===== EXCLUIR ===== -->
+      <section class="account-section danger-zone">
+        <h2>EXCLUIR CONTA</h2>
+        <p class="hint">
+          Apaga <strong>definitivamente</strong> sua conta, todos os seus personagens, as sessões em
+          que você é mestre (para todos os jogadores delas), suas participações em outras sessões,
+          seus monstros catalogados e as imagens enviadas. Não dá para desfazer. Se quiser guardar
+          algo, baixe seus dados antes.
+        </p>
+
+        <div class="form-group">
+          <label for="confirm-email">DIGITE SEU E-MAIL PARA CONFIRMAR</label>
+          <input
+            id="confirm-email"
+            type="email"
+            autocomplete="off"
+            [ngModel]="confirmEmail()"
+            (ngModelChange)="confirmEmail.set($event)"
+            [placeholder]="p.email"
+          />
+        </div>
+        @if (p.has_password) {
+          <div class="form-group">
+            <label for="confirm-password">SENHA ATUAL</label>
+            <input
+              id="confirm-password"
+              type="password"
+              autocomplete="current-password"
+              [ngModel]="password()"
+              (ngModelChange)="password.set($event)"
+            />
+          </div>
+        }
+        <label class="ack-check">
+          <input
+            type="checkbox"
+            class="retro-checkbox"
+            [ngModel]="acknowledged()"
+            (ngModelChange)="acknowledged.set($event)"
+          />
+          <span>Entendo que a exclusão é permanente.</span>
+        </label>
+
+        @if (deleteError()) {
+          <p class="error-msg">{{ deleteError() }}</p>
+        }
+        <div class="row-actions">
+          <button
+            type="button"
+            class="retro-btn danger-btn"
+            (click)="deleteAccount()"
+            [disabled]="!canDelete()"
+          >
+            {{ deleting() ? 'EXCLUINDO...' : 'EXCLUIR MINHA CONTA' }}
+          </button>
+        </div>
+      </section>
+
+      <nav class="legal-links">
+        <a [routerLink]="legalRoutes.privacy">POLÍTICA DE PRIVACIDADE</a>
+        <a [routerLink]="legalRoutes.terms">TERMOS DE USO</a>
+      </nav>
+    }
+
+    <div class="row-actions">
+      <button type="button" class="retro-btn" (click)="goBack()">← VOLTAR</button>
+    </div>
+  </fieldset>
+</div>
