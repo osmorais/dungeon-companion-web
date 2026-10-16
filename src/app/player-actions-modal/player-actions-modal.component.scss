@@ -543,3 +543,14 @@
   padding-top: 10px;
   margin-top: 4px;
 }
+
+/* Quantidade escolhida no "USAR" (Curar pelo Toque). */
+.pa-hp-input {
+  width: 72px;
+  padding: 6px;
+  font-family: inherit;
+  font-size: 11px;
+  color: var(--text-color);
+  background: var(--bg-color);
+  border: 2px solid var(--accent-color);
+}

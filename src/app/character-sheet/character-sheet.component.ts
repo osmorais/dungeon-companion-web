@@ -5,7 +5,7 @@ import { CommonModule, KeyValuePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { CharacterService, HitDieRollResult } from '../services/character.service';
 import { Skill, Spell, WeaponRow } from '../models/character-options.interface';
-import { spellRollConfig } from '../roll-modal/spell-roll-config';
+import { abilityAsSpell, spellRollConfig } from '../roll-modal/spell-roll-config';
 import { isOnHitSpell } from '../roll-modal/spell-riders';
 import { CharacterSheetResponse, ResourceTracker, ClassAbility } from '../models/character-response.interface';
 import { AvatarPreset } from '../models/avatar-preset.interface';
@@ -526,12 +526,23 @@ export class CharacterSheetComponent {
   canUseChiAbility(ability: ClassAbility): boolean {
     const res = this.resourceTrackerByKey(ability.resource_key);
     if (!res) return false;
+    if (ability.restores_slot) {
+      const key = `level_${ability.restores_slot}`;
+      if (this.slotsTotal(key) - this.slotsAvailable(key) <= 0) return false;
+    }
     return !this.expendingResource() && this.resourceAvailable(res) >= ability.cost;
   }
 
+  /** Gasta o recurso e, se a habilidade rola (cura/resistência), abre o modal; Criar Espaço de
+   *  Magia devolve o espaço do círculo. Curar pelo Toque aqui segue 1 PV por clique. */
   useChiAbility(ability: ClassAbility): void {
     if (!this.canUseChiAbility(ability)) return;
     this.expendResource(ability.resource_key, ability.cost);
+    if (ability.restores_slot) this.expendSlot(ability.restores_slot, -1);
+    const rollConfig = ability.variable_cost
+      ? null
+      : spellRollConfig(abilityAsSpell(ability), 0);
+    if (rollConfig) this.activeRoll.set(rollConfig);
   }
 
   resourceAvailableForAbility(ability: ClassAbility): number {

@@ -53,7 +53,7 @@ export function spellRollConfig(spell: Spell, slotLevel: number): AbilityRollCon
       label: `Magia: ${name}`,
       modifier: 0,
       autoHit: true,
-      healing: { tempHp },
+      healing: roll.heal_distribute ? { tempHp, distribute: true } : { tempHp },
       damage: {
         diceCount: entry.dice_count,
         diceSides: entry.dice_sides,
@@ -75,6 +75,7 @@ export function spellRollConfig(spell: Spell, slotLevel: number): AbilityRollCon
       save: {
         note: saveNote(roll.save_dc, roll.save_ability),
         onSuccess: roll.save_on_success,
+        effectNote: roll.save_effect_note ?? undefined,
       },
       damage: {
         diceCount: entry.dice_count,
@@ -121,5 +122,40 @@ export function spellRollConfig(spell: Spell, slotLevel: number): AbilityRollCon
       entry.instances > 1
         ? { count: entry.instances, label: roll.instance_label ?? 'ataque' }
         : undefined,
+  };
+}
+
+/** Habilidade de classe ("USAR") no formato que `spellRollConfig` entende (truque = chave "0"). */
+export function abilityAsSpell(ability: {
+  name: string;
+  description: string;
+  roll?: SpellRoll | null;
+}): Spell {
+  return {
+    id_spell: 0,
+    name: ability.name,
+    description: ability.description,
+    casting_time: null,
+    range_distance: null,
+    duration: null,
+    is_verbal: false,
+    is_somatic: false,
+    is_material: false,
+    spellLevel: 0,
+    school: null,
+    roll: ability.roll ?? undefined,
+  };
+}
+
+/** Cura fixa escolhida pelo jogador (Curar pelo Toque: N pontos do pool viram N PV). */
+export function fixedHealConfig(name: string, amount: number): AbilityRollConfig {
+  return {
+    mode: 'ability',
+    rollType: 'attack',
+    label: name,
+    modifier: 0,
+    autoHit: true,
+    healing: { tempHp: false },
+    damage: { diceCount: 0, diceSides: 0, modifier: amount, label: `Cura: ${name}` },
   };
 }

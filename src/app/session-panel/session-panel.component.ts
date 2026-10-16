@@ -218,6 +218,7 @@ export class SessionPanelComponent implements OnDestroy {
           event.actor_name,
           event.spell_name,
           event.save_dc && event.save_ability ? saveNote(event.save_dc, event.save_ability) : null,
+          !!event.is_ability,
         );
       }
     });
@@ -1383,6 +1384,8 @@ export class SessionPanelComponent implements OnDestroy {
     spellName: string;
     /** Ex: "CD 14 de Destreza" — só magia de resistência. */
     saveNote: string | null;
+    /** Habilidade de classe → "USOU"; magia → "LANÇOU". */
+    isAbility: boolean;
     key: number;
   } | null>(null);
   private spellCastToastTimer: ReturnType<typeof setTimeout> | null = null;
@@ -1393,6 +1396,7 @@ export class SessionPanelComponent implements OnDestroy {
     actorName: string,
     spellName: string,
     saveNote: string | null = null,
+    isAbility = false,
   ): void {
     if (this.spellCastToastTimer) clearTimeout(this.spellCastToastTimer);
     this.spellCastToastCounter++;
@@ -1401,6 +1405,7 @@ export class SessionPanelComponent implements OnDestroy {
       actorName,
       spellName,
       saveNote,
+      isAbility,
       key: this.spellCastToastCounter,
     });
     this.spellCastToastTimer = setTimeout(

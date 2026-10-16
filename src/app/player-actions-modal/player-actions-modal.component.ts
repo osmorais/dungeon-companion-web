@@ -4,7 +4,12 @@ import { CharacterService, HitDieRollResult } from '../services/character.servic
 import { GameSessionService } from '../services/game-session.service';
 import { CharacterSheetResponse, ClassAbility, ResourceTracker } from '../models/character-response.interface';
 import { Skill, Spell, WeaponRow } from '../models/character-options.interface';
-import { spellRollConfig, spellSaveInfo } from '../roll-modal/spell-roll-config';
+import {
+  abilityAsSpell,
+  fixedHealConfig,
+  spellRollConfig,
+  spellSaveInfo,
+} from '../roll-modal/spell-roll-config';
 import { ApplyRequest, ApplyTarget } from '../roll-modal/apply-target';
 import {
   isOnHitSpell,
@@ -435,24 +440,75 @@ export class PlayerActionsModalComponent implements OnInit {
   }
 
   canUseClassAbility(ability: ClassAbility): boolean {
-    return !this.expendingResource() && this.resourceAvailableForAbility(ability) >= ability.cost;
+    if (this.expendingResource() || this.resourceAvailableForAbility(ability) < ability.cost) {
+      return false;
+    }
+    // Criar Espaço de Magia só serve se houver um espaço gasto daquele círculo pra devolver.
+    if (ability.restores_slot) {
+      const key = `level_${ability.restores_slot}`;
+      return this.slotsTotal(key) - this.slotsAvailable(key) > 0;
+    }
+    return true;
   }
 
-  useClassAbility(ability: ClassAbility): void {
+  /** Curar pelo Toque: habilidade aguardando o jogador escolher quantos pontos gastar. */
+  variableAbility = signal<ClassAbility | null>(null);
+  variableAmount = signal(1);
+
+  setVariableAmount(event: Event): void {
+    const value = Math.trunc(Number((event.target as HTMLInputElement).value));
+    this.variableAmount.set(Number.isFinite(value) && value > 0 ? value : 1);
+  }
+
+  /**
+   * "USAR": gasta o recurso, anuncia na mesa ("USOU", com a CD quando houver) e, conforme a
+   * habilidade, abre a rolagem (cura/resistência), devolve o espaço de magia (Criar Espaço) ou
+   * pede a quantidade antes (Curar pelo Toque). Sem nada disso, só gasta e fecha, como antes.
+   */
+  useClassAbility(ability: ClassAbility, amount?: number): void {
     if (!this.canUseClassAbility(ability)) return;
+    if (ability.variable_cost && amount === undefined) {
+      this.variableAmount.set(1);
+      this.variableAbility.set(ability);
+      return;
+    }
+    const cost = ability.variable_cost ? Math.min(amount ?? 1, this.resourceAvailableForAbility(ability)) : ability.cost;
+    const rollConfig = ability.variable_cost
+      ? fixedHealConfig(ability.name.replace(/ \(1 PV\)$/, ''), cost)
+      : spellRollConfig(abilityAsSpell(ability), 0);
+    this.variableAbility.set(null);
     this.expendingResource.set(true);
     this.actionError.set(null);
-    this.charService.updateResourceUses(this.idCharacter, ability.resource_key, ability.cost).subscribe({
+    this.charService.updateResourceUses(this.idCharacter, ability.resource_key, cost).subscribe({
       next: ({ resource_trackers }) => {
         this.patchResourceTrackers(resource_trackers);
         this.expendingResource.set(false);
-        this.closed.emit();
+        this.announceAbility(ability);
+        if (ability.restores_slot) {
+          this.expendSlot(ability.restores_slot, -1, !rollConfig);
+          return;
+        }
+        if (rollConfig) this.activeRoll.set(rollConfig);
+        else this.closed.emit();
       },
       error: (err) => {
         this.expendingResource.set(false);
         this.handleActionError(err);
       },
     });
+  }
+
+  private announceAbility(ability: ClassAbility): void {
+    if (!this.sessionId) return;
+    this.gameSessionService
+      .announceSpellCast(this.sessionId, {
+        id_character: this.idCharacter,
+        actor_name: this.actorName,
+        spell_name: ability.name,
+        is_ability: true,
+        ...spellSaveInfo(abilityAsSpell(ability)),
+      })
+      .subscribe({ error: () => undefined });
   }
 
   private patchResourceTrackers(trackers: ResourceTracker[]): void {

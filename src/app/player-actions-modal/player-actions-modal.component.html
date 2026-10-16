@@ -255,16 +255,39 @@
                   @if (isAbilityExpanded(ability.name)) {
                     <p class="pa-no-slots">{{ ability.description }}</p>
                   }
-                  <div class="pa-cast-options">
-                    <button
-                      class="pa-cast-btn"
-                      [disabled]="!canUseClassAbility(ability)"
-                      (click)="useClassAbility(ability)"
-                    >
-                      <span class="pa-cast-btn-label">Usar</span>
-                      <span class="pa-cast-btn-slots">custo: {{ ability.cost }} de {{ res.name }}</span>
-                    </button>
-                  </div>
+                  @if (variableAbility() === ability) {
+                    <div class="pa-cast-options">
+                      <input
+                        class="pa-hp-input"
+                        type="number"
+                        min="1"
+                        [max]="resourceAvailableForAbility(ability)"
+                        [value]="variableAmount()"
+                        (input)="setVariableAmount($event)"
+                      />
+                      <button
+                        class="pa-cast-btn"
+                        [disabled]="expendingResource()"
+                        (click)="useClassAbility(ability, variableAmount())"
+                      >
+                        <span class="pa-cast-btn-label">Curar {{ variableAmount() }} PV</span>
+                        <span class="pa-cast-btn-slots"
+                          >{{ resourceAvailableForAbility(ability) }} no total</span
+                        >
+                      </button>
+                    </div>
+                  } @else {
+                    <div class="pa-cast-options">
+                      <button
+                        class="pa-cast-btn"
+                        [disabled]="!canUseClassAbility(ability)"
+                        (click)="useClassAbility(ability)"
+                      >
+                        <span class="pa-cast-btn-label">Usar</span>
+                        <span class="pa-cast-btn-slots">custo: {{ ability.cost }} de {{ res.name }}</span>
+                      </button>
+                    </div>
+                  }
                 </div>
               }
             </div>

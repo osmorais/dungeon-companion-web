@@ -43,12 +43,14 @@ export interface AbilityRollConfig {
     riders?: RiderChoices;
   };
   /** Magia de cura: a rolagem "de dano" é cura (vai pro log como `heal`, sem impacto em tela). */
-  healing?: { tempHp: boolean };
+  /** `distribute`: cura fixa repartida entre alvos (Preservar a Vida) — cada "aplicar" escolhe
+   *  quanto, até acabar o total. */
+  healing?: { tempHp: boolean; distribute?: boolean };
   /** Acerto automático (Mísseis Mágicos), resistência e cura: pula o d20 e já abre no dano. */
   autoHit?: boolean;
   /** Magia de resistência: a CD/atributo que os alvos rolam (ex.: "CD 14 de Destreza") e o dano
    *  de quem passa — o modal mostra os dois valores e o mestre aplica em cada alvo. */
-  save?: { note: string; onSuccess: 'half' | 'none' | 'full' };
+  save?: { note: string; onSuccess: 'half' | 'none' | 'full'; effectNote?: string };
   /** Vários ataques na mesma ação (raios do Raio Ardente, feixes da Rajada Mística): depois de
    *  cada um (acerto + dano, ou erro), o modal oferece o próximo até `count`. */
   instances?: { count: number; label: string };
@@ -130,6 +132,12 @@ export class RollModalComponent implements OnInit {
   ngOnInit(): void {
     if (this.pendingDamage && this.config.mode === 'ability' && this.config.autoHit) {
       this.attackPhase.set('damage');
+      // Valor fixo, sem dado (Integridade Corporal, Curar pelo Toque, Preservar a Vida): já
+      // mostra o resultado, sem "rolar".
+      if (this.currentDiceSides().length === 0) {
+        this.rolledSides = [];
+        this.finishRoll([]);
+      }
     }
   }
 
@@ -172,9 +180,10 @@ export class RollModalComponent implements OnInit {
   /** Linha da resistência exibida acima dos dados (ex.: "CD 14 de Destreza — metade se passar"). */
   get saveLine(): string | null {
     if (this.config.mode !== 'ability' || !this.config.save) return null;
-    const { note, onSuccess } = this.config.save;
-    const effect =
-      onSuccess === 'half'
+    const { note, onSuccess, effectNote } = this.config.save;
+    const effect = effectNote
+      ? effectNote
+      : onSuccess === 'half'
         ? 'metade do dano se passar'
         : onSuccess === 'none'
           ? 'sem dano se passar'
@@ -271,12 +280,35 @@ export class RollModalComponent implements OnInit {
   }
 
   /** `half`: magia de resistência — o alvo passou e sofre metade. */
+  /** Cura a distribuir (Preservar a Vida): quanto ainda sobra do total. */
+  get isDistributing(): boolean {
+    return this.config.mode === 'ability' && !!this.config.healing?.distribute;
+  }
+
+  get distributeRemaining(): number {
+    const total = this.result()?.total ?? 0;
+    return total - this.applied().reduce((sum, a) => sum + a.amount, 0);
+  }
+
+  /** Quanto aplicar no próximo alvo ao distribuir (padrão: o que sobra). */
+  distributeAmount = signal<number | null>(null);
+
+  setDistributeAmount(event: Event): void {
+    const value = Math.trunc(Number((event.target as HTMLInputElement).value));
+    this.distributeAmount.set(Number.isFinite(value) && value > 0 ? value : null);
+  }
+
   apply(half = false): void {
     const res = this.result();
     const target = this.applicableTargets.find((t) => t.key === this.applyTargetKey());
     if (!res || !target) return;
-    const amount = half ? Math.floor(res.total / 2) : res.total;
+    const amount = this.isDistributing
+      ? Math.min(this.distributeAmount() ?? this.distributeRemaining, this.distributeRemaining)
+      : half
+        ? Math.floor(res.total / 2)
+        : res.total;
     if (amount <= 0) return;
+    this.distributeAmount.set(null);
     const kind = this.applyKind;
     this.applyToTarget.emit({ targetKey: target.key, amount, kind });
     this.applied.update((list) => [...list, { label: target.label, amount, kind }]);
@@ -614,7 +646,8 @@ export class RollModalComponent implements OnInit {
   }
 
   private postRoll(rolls: number[], total: number, sidesList: number[]) {
-    if (!this.sessionId) return;
+    // Valor fixo (sem dado) não vai pro log — o backend exige dados na rolagem.
+    if (!this.sessionId || sidesList.length === 0) return;
 
     const rollType: RollType =
       this.attackPhase() === 'damage'

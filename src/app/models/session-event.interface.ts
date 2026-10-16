@@ -69,6 +69,8 @@ export interface SessionEventPayloadMap {
     /** Opcionais: só magias de resistência (e a API antiga não manda). */
     save_dc?: number | null;
     save_ability?: 'STR' | 'DEX' | 'CON' | 'INT' | 'WIS' | 'CHA' | null;
+    /** Habilidade de classe: o toast diz "USOU" em vez de "LANÇOU". */
+    is_ability?: boolean;
   };
   combat_started: { combat: CombatEncounterDetail };
   combat_participants_added: { combat: CombatEncounterDetail };

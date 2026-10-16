@@ -1,4 +1,4 @@
-import { Skill, Spell, WeaponRow } from "./character-options.interface";
+import { Skill, Spell, SpellRoll, WeaponRow } from "./character-options.interface";
 import { AvatarPreset } from "./avatar-preset.interface";
 
 export interface CharacterBackground {
@@ -20,6 +20,12 @@ export interface ClassAbility {
   description: string;
   cost: number;
   resource_key: string;
+  /** O que o "USAR" rola (cura/resistência) — mesmo formato da rolagem das magias. */
+  roll?: SpellRoll | null;
+  /** Curar pelo Toque: o jogador escolhe quantos pontos do recurso gastar. */
+  variable_cost?: boolean;
+  /** Criar Espaço de Magia: devolve um espaço gasto desse círculo. */
+  restores_slot?: number | null;
 }
 
 export interface CharacterSheetResponse {

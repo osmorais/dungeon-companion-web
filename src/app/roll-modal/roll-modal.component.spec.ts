@@ -27,7 +27,10 @@ describe('RollModalComponent — impacto de dano', () => {
     });
   });
 
-  afterEach(() => vi.useRealTimers());
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
 
   function create(sessionId: string | undefined, config: AbilityRollConfig = attack) {
     const component = TestBed.runInInjectionContext(() => new RollModalComponent());
@@ -102,6 +105,8 @@ describe('RollModalComponent — impacto de dano', () => {
         smite: [{ slotKey: 'level_1', levelLabel: '1º círculo', bonusDice: 2 }],
       },
     });
+    // d20 fixo em 11: sem crítico (no 20 natural os dados dobrariam)
+    vi.spyOn(Math, 'random').mockReturnValue(0.5);
     modal.roll();
     settle();
     modal.rollDamageNow();
@@ -425,6 +430,9 @@ describe('RollModalComponent — fase 4', () => {
     };
     const withRiders: AbilityRollConfig = { ...sword, damage: { ...sword.damage!, riders } };
 
+    // d20 fixo em 11: sem crítico (no 20 natural os dados dobrariam)
+    beforeEach(() => vi.spyOn(Math, 'random').mockReturnValue(0.5));
+
     it('pergunta antes do dano; Destruição gasta o espaço e soma os dados, contínua só soma', () => {
       const { modal, riderUsed } = create(withRiders);
       modal.roll();
@@ -600,5 +608,96 @@ describe('RollModalComponent — teste secreto', () => {
     modal.roll();
     vi.advanceTimersByTime(1000);
     expect(postRoll.mock.calls[0][1]).not.toHaveProperty('secret_request_id');
+  });
+});
+
+describe('RollModalComponent — habilidades (valor fixo e distribuir)', () => {
+  let postRoll: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    postRoll = vi.fn(() => of({}));
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: GameSessionService, useValue: { postRoll } },
+        { provide: DamageImpactService, useValue: { trigger: vi.fn() } },
+      ],
+    });
+  });
+
+  afterEach(() => vi.useRealTimers());
+
+  const targets = [
+    { key: 'player:p1', label: 'Ana', allowsTempHp: true },
+    { key: 'player:p2', label: 'Bia', allowsTempHp: true },
+  ];
+
+  function create(config: AbilityRollConfig) {
+    const modal = TestBed.runInInjectionContext(() => new RollModalComponent());
+    modal.config = config;
+    modal.sessionId = 'gs';
+    modal.applyTargets = targets;
+    const applied = vi.fn();
+    modal.applyToTarget.subscribe(applied);
+    modal.ngOnInit();
+    return { modal, applied };
+  }
+
+  it('valor fixo: já mostra o total, sem rolar e sem ir pro log', () => {
+    const { modal } = create({
+      mode: 'ability',
+      rollType: 'attack',
+      label: 'Integridade Corporal',
+      modifier: 0,
+      autoHit: true,
+      healing: { tempHp: false },
+      damage: { diceCount: 0, diceSides: 0, modifier: 18, label: 'Cura: Integridade Corporal' },
+    });
+    expect(modal.result()!.total).toBe(18);
+    expect(modal.canApply).toBe(true);
+    expect(postRoll).not.toHaveBeenCalled();
+  });
+
+  it('distribuir (Preservar a Vida): cada alvo recebe uma parte até acabar', () => {
+    const { modal, applied } = create({
+      mode: 'ability',
+      rollType: 'attack',
+      label: 'Preservar a Vida',
+      modifier: 0,
+      autoHit: true,
+      healing: { tempHp: false, distribute: true },
+      damage: { diceCount: 0, diceSides: 0, modifier: 20, label: 'Cura: Preservar a Vida' },
+    });
+    expect(modal.isDistributing).toBe(true);
+    modal.setApplyTarget({ target: { value: 'player:p1' } } as unknown as Event);
+    modal.setDistributeAmount({ target: { value: '12' } } as unknown as Event);
+    modal.apply();
+    expect(modal.distributeRemaining).toBe(8);
+    modal.setApplyTarget({ target: { value: 'player:p2' } } as unknown as Event);
+    modal.setDistributeAmount({ target: { value: '50' } } as unknown as Event);
+    modal.apply();
+    expect(applied.mock.calls.map(([r]) => r.amount)).toEqual([12, 8]);
+    expect(modal.distributeRemaining).toBe(0);
+    modal.apply();
+    expect(applied).toHaveBeenCalledTimes(2);
+  });
+
+  it('resistência com texto próprio (Palma Vibrante)', () => {
+    const { modal } = create({
+      mode: 'ability',
+      rollType: 'attack',
+      label: 'Palma Vibrante',
+      modifier: 0,
+      autoHit: true,
+      save: {
+        note: 'CD 15 de Constituição',
+        onSuccess: 'full',
+        effectNote: 'se falhar, cai a 0 PV; se passar, sofre o dano',
+      },
+      damage: { diceCount: 10, diceSides: 10, modifier: 0, label: 'Dano: Palma Vibrante' },
+    });
+    expect(modal.saveLine).toBe(
+      'CD 15 de Constituição — se falhar, cai a 0 PV; se passar, sofre o dano',
+    );
   });
 });
