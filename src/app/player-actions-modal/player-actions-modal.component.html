@@ -69,7 +69,23 @@
         </div>
       </div>
 
-      @if (data.character_sheet.weapons.length) {
+      @if (activeEffects().length) {
+        <div class="pa-section">
+          <h4 class="pa-section-title">EFEITOS ATIVOS</h4>
+          <div class="pa-row-list">
+            @for (effect of activeEffects(); track effect) {
+              <div class="pa-action-row pa-action-row--static">
+                <span>{{ effect }}</span>
+                <button class="pa-cast-btn" (click)="endEffect(effect)">
+                  <span class="pa-cast-btn-label">Encerrar</span>
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (data.character_sheet.weapons.length || combatFeatures()?.unarmed) {
         <div class="pa-section">
           <h4 class="pa-section-title">ARMAS</h4>
           <div class="pa-row-list">
@@ -77,6 +93,12 @@
               <button class="pa-action-row" (click)="rollAttack(weapon)">
                 <span>{{ weapon.name }}</span>
                 <span class="pa-action-value">{{ formatMod(weapon.attack_bonus) }}</span>
+              </button>
+            }
+            @if (combatFeatures()?.unarmed; as unarmed) {
+              <button class="pa-action-row" (click)="rollUnarmed()">
+                <span>{{ unarmed.name }} ({{ unarmed.dice.count }}d{{ unarmed.dice.sides }})</span>
+                <span class="pa-action-value">{{ formatMod(unarmed.attack_bonus) }}</span>
               </button>
             }
           </div>
@@ -309,6 +331,7 @@
     (attackResolved)="attackResolved.emit($event)"
     (smiteUsed)="onSmiteUsed($event)"
     (riderSpellUsed)="onRiderSpellUsed($event)"
+    (oncePerTurnUsed)="onOncePerTurnUsed($event)"
     [applyTargets]="applyTargets"
     (applyToTarget)="applyToTarget.emit($event)"
   />

@@ -15,12 +15,18 @@ export interface RiderOption {
   save: { save_dc: number; save_ability: NonNullable<SpellRoll['save_ability']> } | null;
 }
 
-/** Bruxaria/Marca do Caçador/Manto do Cruzado: já lançada antes; o jogador marca se está ativa. */
+/** Bruxaria/Marca do Caçador/Manto do Cruzado (já lançadas) e somas de traço (Ataque Furtivo,
+ *  Golpe Divino, Matador de Inimigos): o jogador marca no acerto. */
 export interface RiderToggle {
   key: string;
   spellName: string;
-  dice: { count: number; sides: number };
+  /** Dados somados (`null` = só valor fixo, ex.: Matador de Inimigos). */
+  dice: { count: number; sides: number } | null;
+  /** Valor fixo somado ao dano (Matador de Inimigos). */
+  flat?: number;
   damageType: string;
+  /** Soma 1×/turno — ao usar, o pai marca na vez do combate. */
+  oncePerTurn?: boolean;
 }
 
 export interface RiderChoices {

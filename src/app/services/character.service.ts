@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpContext } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { CharacterSheetData } from '../models/character.interface';
-import { CharacterBackground, CharacterSheetResponse, ResourceTracker } from '../models/character-response.interface';
+import { ActiveEffects, CharacterBackground, CharacterSheetResponse, ResourceTracker } from '../models/character-response.interface';
 import { AvatarPreset } from '../models/avatar-preset.interface';
 import { CharacterOptions } from '../models/character-options.interface';
 import { CharacterSummary, CharacterPagedList } from '../models/character-summary.interface';
@@ -118,6 +118,17 @@ export class CharacterService {
     return this.http.patch<{ slots_expended: Record<string, number> }>(
       `${this.baseUrl}/api/character-sheet/${id}/spell-slots`,
       { level, delta },
+    );
+  }
+
+  /** Liga/desliga Fúria/Arma Sagrada, ou marca uma soma 1×/turno como usada na vez do combate. */
+  updateActiveEffects(
+    id: number,
+    body: { effect: string; active: boolean } | { turn_use: string; turn_key: string },
+  ): Observable<{ active_effects: ActiveEffects }> {
+    return this.http.patch<{ active_effects: ActiveEffects }>(
+      `${this.baseUrl}/api/character-sheet/${id}/active-effects`,
+      body,
     );
   }
 

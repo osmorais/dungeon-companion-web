@@ -33,6 +33,8 @@ export interface AbilityRollConfig {
     label: string;
     /** Cura Suprema: usa o valor máximo de cada dado em vez de rolar. */
     maximize?: boolean;
+    /** Crítico corpo a corpo: dados da arma a mais (Crítico Brutal, Ataques Selvagens). */
+    critExtraDice?: number;
     /** Grupos de dados a mais que entram junto no dano (Tempestade de Gelo: 2d8 + 4d6). */
     extraDice?: { count: number; sides: number }[];
     /** Só ataque corpo a corpo de Paladino nv2+ com espaço de magia disponível: antes de rolar
@@ -46,6 +48,11 @@ export interface AbilityRollConfig {
   /** `distribute`: cura fixa repartida entre alvos (Preservar a Vida) — cada "aplicar" escolhe
    *  quanto, até acabar o total. */
   healing?: { tempHp: boolean; distribute?: boolean };
+  /** Menor d20 natural que é crítico (Campeão: 19 ou 18). Padrão 20. */
+  critMin?: number;
+  /** Talento de −5 no ataque / +10 no dano (Mestre em Armas Grandes, Mestre-Atirador): o
+   *  jogador liga antes de rolar. */
+  powerAttack?: { name: string };
   /** Acerto automático (Mísseis Mágicos), resistência e cura: pula o d20 e já abre no dano. */
   autoHit?: boolean;
   /** Magia de resistência: a CD/atributo que os alvos rolam (ex.: "CD 14 de Destreza") e o dano
@@ -111,6 +118,20 @@ export class RollModalComponent implements OnInit {
   /** Emite quando o jogador escolhe uma Destruição (magia) no acerto — o pai debita o espaço e
    *  anuncia a magia; o modal só soma os dados. */
   @Output() riderSpellUsed = new EventEmitter<RiderOption>();
+  /** Somas 1×/turno marcadas neste acerto (Ataque Furtivo…) — o pai trava na vez do combate. */
+  @Output() oncePerTurnUsed = new EventEmitter<string[]>();
+
+  /** Ataque poderoso ligado (−5 no ataque, +10 no dano). */
+  powerAttackOn = signal(false);
+
+  togglePowerAttack(): void {
+    if (this.isRolling() || this.result()) return;
+    this.powerAttackOn.update((v) => !v);
+  }
+
+  get powerAttackName(): string | null {
+    return this.config.mode === 'ability' ? (this.config.powerAttack?.name ?? null) : null;
+  }
 
   readonly dieOptions = DIE_OPTIONS;
 
@@ -156,6 +177,8 @@ export class RollModalComponent implements OnInit {
   awaitingApply = signal(false);
   /** Dados das magias somadas ao dano desta rolagem e o nome delas (pro título). */
   private riderDice = signal<{ count: number; sides: number }[]>([]);
+  /** Valor fixo das somas marcadas (Matador de Inimigos). */
+  private riderFlat = signal(0);
   private riderNames = signal<string[]>([]);
 
   isRolling = signal(false);
@@ -362,6 +385,7 @@ export class RollModalComponent implements OnInit {
       const extras = [
         ...(this.smiteExtraDice() > 0 ? ['Destruição Divina'] : []),
         ...this.riderNames(),
+        ...(this.powerAttackOn() && this.powerAttackName ? [this.powerAttackName] : []),
       ];
       const label = [this.pendingDamage.label, ...extras].join(' + ');
       return this.isCritical() ? `${label} — CRÍTICO` : label;
@@ -370,8 +394,12 @@ export class RollModalComponent implements OnInit {
   }
 
   get modifier(): number {
-    if (this.attackPhase() === 'damage' && this.pendingDamage) return this.pendingDamage.modifier;
-    return this.config.mode === 'ability' ? this.config.modifier : this.freeformModifier();
+    const power = this.powerAttackOn();
+    if (this.attackPhase() === 'damage' && this.pendingDamage) {
+      return this.pendingDamage.modifier + this.riderFlat() + (power ? 10 : 0);
+    }
+    if (this.config.mode !== 'ability') return this.freeformModifier();
+    return this.config.modifier - (power ? 5 : 0);
   }
 
   /** true quando não há nada selecionado pra rolar (bandeja livre vazia). */
@@ -475,9 +503,15 @@ export class RollModalComponent implements OnInit {
 
     const rider = this.selectedRider();
     const toggles = this.riderToggles.filter((t) => this.activeToggles().has(t.key));
-    this.riderDice.set([...(rider ? [rider.dice] : []), ...toggles.map((t) => t.dice)]);
+    this.riderDice.set([
+      ...(rider ? [rider.dice] : []),
+      ...toggles.flatMap((t) => (t.dice ? [t.dice] : [])),
+    ]);
+    this.riderFlat.set(toggles.reduce((sum, t) => sum + (t.flat ?? 0), 0));
     this.riderNames.set([...(rider ? [rider.spellName] : []), ...toggles.map((t) => t.spellName)]);
     if (rider) this.riderSpellUsed.emit(rider);
+    const oncePerTurn = toggles.filter((t) => t.oncePerTurn).map((t) => t.key);
+    if (oncePerTurn.length) this.oncePerTurnUsed.emit(oncePerTurn);
     this.beginDamageRoll();
   }
 
@@ -508,9 +542,19 @@ export class RollModalComponent implements OnInit {
     this.smiteExtraDice.set(0);
     this.selectedSmiteOption.set(null);
     this.smiteTargetSpecial.set(false);
-    // Destruição só vale no primeiro acerto; efeitos contínuos continuam marcados.
+    // Destruição só vale no primeiro acerto; efeitos contínuos continuam marcados — menos as
+    // somas 1×/turno (Ataque Furtivo…), que já foram usadas neste turno.
     this.selectedRider.set(null);
+    this.activeToggles.update(
+      (current) =>
+        new Set(
+          [...current].filter(
+            (key) => !this.riderToggles.find((t) => t.key === key)?.oncePerTurn,
+          ),
+        ),
+    );
     this.riderDice.set([]);
+    this.riderFlat.set(0);
     this.riderNames.set([]);
     this.attackPhase.set('attack');
   }
@@ -557,8 +601,11 @@ export class RollModalComponent implements OnInit {
         Array.from({ length: count }, () => sides),
       );
       const dice = [...weaponDice, ...extraDice, ...smiteDice, ...riderDice];
-      // Crítico: rola o dobro de todos os dados de dano (arma/magia, extras e Destruição Divina).
-      return this.isCritical() ? [...dice, ...dice] : dice;
+      // Crítico: rola o dobro de todos os dados de dano (arma/magia, extras e Destruição Divina)
+      // e mais os dados extras da arma (Crítico Brutal, Ataques Selvagens).
+      if (!this.isCritical()) return dice;
+      const brutal = Array.from({ length: this.pendingDamage.critExtraDice ?? 0 }, () => diceSides);
+      return [...dice, ...dice, ...brutal];
     }
     if (this.config.mode === 'ability') {
       const count = this.advantageState() === 'normal' ? 1 : 2;
@@ -611,7 +658,8 @@ export class RollModalComponent implements OnInit {
     if (this.pendingDamage && this.attackPhase() === 'attack') {
       // Terminou o d20 do ataque — espera a decisão do mestre antes de sinalizar
       // "interação concluída" (rolled) pro componente pai, senão ele fecharia tudo agora.
-      this.isCritical.set(chosen.length === 1 && chosen[0] === 20);
+      const critMin = this.config.mode === 'ability' ? (this.config.critMin ?? 20) : 20;
+      this.isCritical.set(chosen.length === 1 && chosen[0] >= critMin);
       this.attackPhase.set('awaiting-hit');
       return;
     }

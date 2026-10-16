@@ -416,6 +416,14 @@ export class SessionPanelComponent implements OnDestroy {
     return [...players, ...npcs, ...monsters];
   }
 
+  /** Vez atual do combate ativo ("<combate>:<rodada>:<participante>") — trava as somas 1×/turno
+   *  (Ataque Furtivo, Golpe Divino, Matador de Inimigos). `null` sem combate ativo. */
+  combatTurnKey(): string | null {
+    const encounter = this.sessionDetail()?.combat?.encounter;
+    if (!encounter || encounter.status !== 'active' || !encounter.current_turn_participant_id) return null;
+    return `${encounter.id_combat_encounter}:${encounter.round_number}:${encounter.current_turn_participant_id}`;
+  }
+
   /** Aplica o resultado de uma rolagem no alvo, com as mesmas regras do dano/cura em lote. */
   applyRollToTarget({ targetKey, amount, kind }: ApplyRequest): void {
     const detail = this.sessionDetail();

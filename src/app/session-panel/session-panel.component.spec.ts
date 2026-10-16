@@ -400,4 +400,18 @@ describe('SessionPanelComponent', () => {
       expect(component.pendingSecretRolls().map((r) => r.request_id)).toEqual(['b']);
     });
   });
+
+  describe('vez do combate (trava das somas 1×/turno)', () => {
+    it('sem combate ativo não trava; com combate ativo usa combate:rodada:participante', () => {
+      expect(component.combatTurnKey()).toBeNull();
+      detail.set(
+        sessionDetail({
+          combat: combat([participant('a', { is_current_turn: true }), participant('b')]),
+        }),
+      );
+      expect(component.combatTurnKey()).toBe('enc:1:a');
+      detail.set(sessionDetail({ combat: combat([participant('a')], 'rolling_initiative') }));
+      expect(component.combatTurnKey()).toBeNull();
+    });
+  });
 });

@@ -701,3 +701,123 @@ describe('RollModalComponent — habilidades (valor fixo e distribuir)', () => {
     );
   });
 });
+
+describe('RollModalComponent — traços no ataque (fase 2)', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: GameSessionService, useValue: { postRoll: vi.fn(() => of({})) } },
+        { provide: DamageImpactService, useValue: { trigger: vi.fn() } },
+      ],
+    });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  const axe: AbilityRollConfig = {
+    mode: 'ability',
+    rollType: 'attack',
+    label: 'Ataque: Machado Grande',
+    modifier: 6,
+    damage: { diceCount: 1, diceSides: 12, modifier: 4, label: 'Dano: Machado Grande' },
+  };
+
+  function create(config: AbilityRollConfig) {
+    const modal = TestBed.runInInjectionContext(() => new RollModalComponent());
+    modal.config = config;
+    modal.sessionId = 'gs';
+    modal.ngOnInit();
+    const oncePerTurn = vi.fn();
+    modal.oncePerTurnUsed.subscribe(oncePerTurn);
+    return { modal, oncePerTurn };
+  }
+
+  const settle = () => vi.advanceTimersByTime(1000);
+  /** d20 = floor(r*20)+1 → 0.9 dá 19. */
+  const rollD20 = (random: number) => vi.spyOn(Math, 'random').mockReturnValue(random);
+
+  it('Campeão: 19 natural é crítico com critMin 19, não com o padrão', () => {
+    rollD20(0.9);
+    const champion = create({ ...axe, critMin: 19 }).modal;
+    champion.roll();
+    settle();
+    expect(champion.isCritical()).toBe(true);
+
+    const normal = create(axe).modal;
+    normal.roll();
+    settle();
+    expect(normal.isCritical()).toBe(false);
+  });
+
+  it('crítico corpo a corpo soma os dados extras da arma (Crítico Brutal)', () => {
+    rollD20(0.999);
+    const { modal } = create({ ...axe, damage: { ...axe.damage!, critExtraDice: 2 } });
+    modal.roll();
+    settle();
+    modal.rollDamageNow();
+    // 1d12 em dobro + 2d12 do Crítico Brutal
+    expect(modal.diceCount).toBe(4);
+  });
+
+  it('ataque poderoso: −5 no ataque e +10 no dano, só antes de rolar', () => {
+    rollD20(0.5);
+    const { modal } = create({ ...axe, powerAttack: { name: 'Mestre em Armas Grandes' } });
+    expect(modal.powerAttackName).toBe('Mestre em Armas Grandes');
+    modal.togglePowerAttack();
+    expect(modal.modifier).toBe(1);
+    modal.roll();
+    settle();
+    modal.togglePowerAttack(); // já rolou: não desliga
+    expect(modal.powerAttackOn()).toBe(true);
+    modal.rollDamageNow();
+    expect(modal.modifier).toBe(14);
+    expect(modal.title).toBe('Dano: Machado Grande + Mestre em Armas Grandes');
+  });
+
+  it('somas com valor fixo e 1×/turno: soma no dano e avisa o pai; some no próximo golpe', () => {
+    rollD20(0.5);
+    const { modal, oncePerTurn } = create({
+      ...axe,
+      instances: { count: 2, label: 'golpe' },
+      damage: {
+        ...axe.damage!,
+        riders: {
+          oneShot: [],
+          persistent: [
+            {
+              key: 'Matador de Inimigos',
+              spellName: 'Matador de Inimigos',
+              dice: null,
+              flat: 3,
+              damageType: 'da arma',
+              oncePerTurn: true,
+            },
+            {
+              key: 'Bruxaria',
+              spellName: 'Bruxaria',
+              dice: { count: 1, sides: 6 },
+              damageType: 'necrótico',
+            },
+          ],
+        },
+      },
+    });
+    modal.roll();
+    settle();
+    modal.rollDamageNow();
+    modal.toggleRider('Matador de Inimigos');
+    modal.toggleRider('Bruxaria');
+    modal.confirmSmiteChoice();
+    expect(modal.modifier).toBe(4 + 3);
+    expect(modal.diceCount).toBe(2);
+    expect(oncePerTurn).toHaveBeenCalledWith(['Matador de Inimigos']);
+    settle();
+    modal.nextInstance();
+    expect(modal.isToggleActive('Matador de Inimigos')).toBe(false);
+    expect(modal.isToggleActive('Bruxaria')).toBe(true);
+  });
+});

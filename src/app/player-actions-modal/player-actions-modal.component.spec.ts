@@ -3,8 +3,12 @@ import { of } from 'rxjs';
 import { PlayerActionsModalComponent } from './player-actions-modal.component';
 import { CharacterService } from '../services/character.service';
 import { GameSessionService } from '../services/game-session.service';
-import { CharacterSheetResponse, ClassAbility } from '../models/character-response.interface';
-import { SpellRoll } from '../models/character-options.interface';
+import {
+  CharacterSheetResponse,
+  ClassAbility,
+  CombatFeatures,
+} from '../models/character-response.interface';
+import { SpellRoll, WeaponRow } from '../models/character-options.interface';
 
 function roll(extra: Partial<SpellRoll>): SpellRoll {
   return {
@@ -148,5 +152,227 @@ describe('PlayerActionsModalComponent — habilidades', () => {
     modal.useClassAbility(surge);
     expect(announce).toHaveBeenCalled();
     expect(closed).toHaveBeenCalled();
+  });
+});
+
+/** Traços no ataque com arma (fase 2): efeitos ativos, somas por turno, ataque poderoso, desarmado. */
+describe('PlayerActionsModalComponent — traços no ataque', () => {
+  let updateActiveEffects: ReturnType<typeof vi.fn>;
+  let modal: PlayerActionsModalComponent;
+
+  const features = (extra: Partial<CombatFeatures> = {}): CombatFeatures => ({
+    crit_min: 20,
+    melee_crit_extra_dice: 0,
+    riders: [],
+    attack_bonuses: [],
+    power_attack: [],
+    unarmed: null,
+    active_effects: { active: [], turn_uses: {} },
+    ...extra,
+  });
+
+  const weapon = (name: string, properties: string | null, isRanged = false) =>
+    ({
+      id_weapon: 1,
+      name,
+      attack_bonus: 5,
+      damage_modifier: 3,
+      damage_die: '1d8',
+      damage_type: 'cortante',
+      properties,
+      weight: 1,
+      price_value: 1,
+      isRanged,
+    }) as WeaponRow;
+
+  function create(
+    combat: CombatFeatures,
+    abilities: ClassAbility[] = [],
+    turnKey: string | null = null,
+  ) {
+    updateActiveEffects = vi.fn(() => of({ active_effects: { active: ['Fúria'], turn_uses: {} } }));
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: CharacterService,
+          useValue: {
+            getCharacterById: vi.fn(() =>
+              of({
+                character_sheet: {
+                  header: { name: 'Krusk' },
+                  class_abilities: abilities,
+                  resource_trackers: [{ name: 'R', max: 3, used: 0, recharge_on: 'long_rest' }],
+                  attributes_and_saves: { STR: { modifier: 3 }, DEX: { modifier: 1 } },
+                  spells: [],
+                  skills: [],
+                  combat_features: combat,
+                },
+              } as unknown as CharacterSheetResponse),
+            ),
+            updateResourceUses: vi.fn(() =>
+              of({ resource_trackers: [{ name: 'R', max: 3, used: 1, recharge_on: 'long_rest' }] }),
+            ),
+            updateActiveEffects,
+          },
+        },
+        {
+          provide: GameSessionService,
+          useValue: { announceSpellCast: vi.fn(() => of(undefined)) },
+        },
+      ],
+    });
+    modal = TestBed.runInInjectionContext(() => new PlayerActionsModalComponent());
+    modal.idCharacter = 7;
+    modal.sessionId = 'gs';
+    modal.turnKey = turnKey;
+    modal.ngOnInit();
+  }
+
+  const rage = {
+    key: 'Fúria',
+    name: 'Fúria',
+    dice: null,
+    flat: 2,
+    damage_type: 'da arma',
+    applies: 'melee_str' as const,
+    once_per_turn: false,
+    requires_active: 'Fúria',
+  };
+  const sneak = {
+    key: 'Ataque Furtivo',
+    name: 'Ataque Furtivo',
+    dice: { count: 2, sides: 6 },
+    flat: 0,
+    damage_type: 'da arma',
+    applies: 'finesse_or_ranged' as const,
+    once_per_turn: true,
+    requires_active: null,
+  };
+
+  it('Fúria ativa soma no dano corpo a corpo de Força (não no ataque à distância)', () => {
+    create(features({ riders: [rage], active_effects: { active: ['Fúria'], turn_uses: {} } }));
+    modal.rollAttack(weapon('Machado', 'Pesada'));
+    expect(modal.activeRoll()).toMatchObject({
+      label: 'Ataque: Machado + Fúria',
+      damage: { modifier: 5, label: 'Dano: Machado + Fúria' },
+    });
+    modal.rollAttack(weapon('Arco', 'Munição', true));
+    expect(modal.activeRoll()).toMatchObject({ damage: { modifier: 3 } });
+  });
+
+  it('Fúria inativa não soma', () => {
+    create(features({ riders: [rage] }));
+    modal.rollAttack(weapon('Machado', 'Pesada'));
+    expect(modal.activeRoll()).toMatchObject({ damage: { modifier: 3, label: 'Dano: Machado' } });
+  });
+
+  it('Arma Sagrada ativa soma no ataque; crítico e ataque poderoso vêm dos traços', () => {
+    create(
+      features({
+        crit_min: 19,
+        melee_crit_extra_dice: 1,
+        attack_bonuses: [
+          { key: 'Arma Sagrada', name: 'Arma Sagrada', bonus: 3, requires_active: 'Arma Sagrada' },
+        ],
+        power_attack: [{ name: 'Mestre em Armas Grandes', applies: 'heavy_melee' }],
+        active_effects: { active: ['Arma Sagrada'], turn_uses: {} },
+      }),
+    );
+    modal.rollAttack(weapon('Espada Grande', 'Pesada, Duas Mãos'));
+    expect(modal.activeRoll()).toMatchObject({
+      modifier: 8,
+      critMin: 19,
+      powerAttack: { name: 'Mestre em Armas Grandes' },
+      damage: { critExtraDice: 1 },
+    });
+    modal.rollAttack(weapon('Adaga', 'Acuidade, Leve'));
+    expect(modal.activeRoll()!).not.toHaveProperty('powerAttack.name');
+  });
+
+  it('Ataque Furtivo: só acuidade/distância e some depois de usado nesta vez do combate', () => {
+    create(features({ riders: [sneak] }), [], 'enc:2:p1');
+    modal.rollAttack(weapon('Espada Longa', 'Versátil'));
+    expect(modal.activeRoll()!.mode === 'ability' && modal.activeRoll()).toMatchObject({
+      damage: { riders: { persistent: [] } },
+    });
+    modal.rollAttack(weapon('Rapieira', 'Acuidade'));
+    expect(modal.activeRoll()).toMatchObject({
+      damage: {
+        riders: {
+          persistent: [{ key: 'Ataque Furtivo', dice: { count: 2, sides: 6 }, oncePerTurn: true }],
+        },
+      },
+    });
+
+    modal.onOncePerTurnUsed(['Ataque Furtivo']);
+    expect(updateActiveEffects).toHaveBeenCalledWith(7, {
+      turn_use: 'Ataque Furtivo',
+      turn_key: 'enc:2:p1',
+    });
+
+    create(
+      features({
+        riders: [sneak],
+        active_effects: { active: [], turn_uses: { 'Ataque Furtivo': 'enc:2:p1' } },
+      }),
+      [],
+      'enc:2:p1',
+    );
+    modal.rollAttack(weapon('Rapieira', 'Acuidade'));
+    expect(modal.activeRoll()).toMatchObject({ damage: { riders: { persistent: [] } } });
+  });
+
+  it('fora de combate, 1×/turno não trava', () => {
+    create(features({ riders: [sneak] }));
+    modal.onOncePerTurnUsed(['Ataque Furtivo']);
+    expect(updateActiveEffects).not.toHaveBeenCalled();
+  });
+
+  it('USAR Fúria liga o efeito; Encerrar desliga', () => {
+    const fury = {
+      name: 'Fúria',
+      description: '',
+      cost: 1,
+      resource_key: 'R',
+      roll: null,
+      activates: 'Fúria',
+    };
+    create(features({ riders: [rage] }), [fury]);
+    modal.useClassAbility(fury);
+    expect(updateActiveEffects).toHaveBeenCalledWith(7, { effect: 'Fúria', active: true });
+    expect(modal.activeEffects()).toEqual(['Fúria']);
+    modal.endEffect('Fúria');
+    expect(updateActiveEffects).toHaveBeenLastCalledWith(7, { effect: 'Fúria', active: false });
+  });
+
+  it('Monge: ataque desarmado e Rajada de Golpes (2 golpes)', () => {
+    const flurry = {
+      name: 'Rajada de Golpes',
+      description: '',
+      cost: 1,
+      resource_key: 'R',
+      roll: null,
+      unarmed_attacks: 2,
+    };
+    create(
+      features({
+        unarmed: {
+          name: 'Ataque Desarmado',
+          attack_bonus: 6,
+          dice: { count: 1, sides: 6 },
+          damage_modifier: 4,
+        },
+      }),
+      [flurry],
+    );
+    modal.rollUnarmed();
+    expect(modal.activeRoll()).toMatchObject({
+      label: 'Ataque: Ataque Desarmado',
+      modifier: 6,
+      damage: { diceCount: 1, diceSides: 6, modifier: 4 },
+    });
+    modal.useClassAbility(flurry);
+    expect(modal.activeRoll()).toMatchObject({ instances: { count: 2, label: 'golpe' } });
   });
 });

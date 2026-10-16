@@ -2,7 +2,13 @@ import { Component, EventEmitter, Input, OnInit, Output, inject, signal } from '
 import { CommonModule, KeyValuePipe } from '@angular/common';
 import { CharacterService, HitDieRollResult } from '../services/character.service';
 import { GameSessionService } from '../services/game-session.service';
-import { CharacterSheetResponse, ClassAbility, ResourceTracker } from '../models/character-response.interface';
+import {
+  ActiveEffects,
+  CharacterSheetResponse,
+  ClassAbility,
+  CombatFeatures,
+  ResourceTracker,
+} from '../models/character-response.interface';
 import { Skill, Spell, WeaponRow } from '../models/character-options.interface';
 import {
   abilityAsSpell,
@@ -46,6 +52,9 @@ export class PlayerActionsModalComponent implements OnInit {
   /** Alvos em que o dano/cura rolado pode ser aplicado direto (opcional) — a sessão monta a lista
    *  conforme as permissões (mestre: todos; jogador: só o próprio personagem). */
   @Input() applyTargets: ApplyTarget[] = [];
+  /** Vez atual do combate ("<combate>:<rodada>:<participante>") — trava as somas 1×/turno
+   *  (Ataque Furtivo…). `null` fora de combate: sem trava. */
+  @Input() turnKey: string | null = null;
   @Output() applyToTarget = new EventEmitter<ApplyRequest>();
   @Output() closed = new EventEmitter<void>();
   /** Repassa a confirmação de acerto/erro do roll-modal (só dispara no fluxo de ataque com dano) —
@@ -118,23 +127,148 @@ export class PlayerActionsModalComponent implements OnInit {
   /** Se a arma tiver dado de dano cadastrado, o roll-modal pergunta "passou da CA?" e já rola o dano ali mesmo. */
   rollAttack(weapon: WeaponRow): void {
     const match = weapon.damage_die?.match(/^(\d+)d(\d+)$/i);
-    const config: AbilityRollConfig = {
+    this.activeRoll.set(
+      this.attackConfig({
+        name: weapon.name,
+        attackBonus: weapon.attack_bonus,
+        dice: match ? { count: parseInt(match[1], 10), sides: parseInt(match[2], 10) } : null,
+        damageModifier: weapon.damage_modifier,
+        isRanged: weapon.isRanged,
+        properties: (weapon.properties ?? '').toLowerCase(),
+        smite: this.smiteOptionsFor(weapon),
+      }),
+    );
+  }
+
+  /** Ataque desarmado do Monge (Artes Marciais); `attacks` = 2 na Rajada de Golpes. */
+  rollUnarmed(attacks = 1): void {
+    const unarmed = this.combatFeatures()?.unarmed;
+    if (!unarmed) return;
+    const config = this.attackConfig({
+      name: unarmed.name,
+      attackBonus: unarmed.attack_bonus,
+      dice: unarmed.dice,
+      damageModifier: unarmed.damage_modifier,
+      isRanged: false,
+      properties: '',
+    });
+    if (attacks > 1) config.instances = { count: attacks, label: 'golpe' };
+    this.activeRoll.set(config);
+  }
+
+  combatFeatures(): CombatFeatures | null {
+    return this.sheet()?.character_sheet.combat_features ?? null;
+  }
+
+  activeEffects(): string[] {
+    return this.combatFeatures()?.active_effects.active ?? [];
+  }
+
+  /**
+   * Ataque com arma (ou desarmado) com os traços do personagem: bônus de ataque dos efeitos
+   * ativos (Arma Sagrada), Fúria somada no dano corpo a corpo de Força, ataque poderoso (talento),
+   * faixa de crítico, dados extras no crítico corpo a corpo, e as somas no acerto — magias
+   * (Bruxaria, Destruições…) e traços (Ataque Furtivo, Golpe Divino…), com as 1×/turno já usadas
+   * nesta vez do combate fora da lista.
+   */
+  private attackConfig(w: {
+    name: string;
+    attackBonus: number;
+    dice: { count: number; sides: number } | null;
+    damageModifier: number;
+    isRanged: boolean;
+    properties: string;
+    smite?: SmiteOption[];
+  }): AbilityRollConfig {
+    const features = this.combatFeatures();
+    const active = this.activeEffects();
+    const melee = !w.isRanged;
+    const finesse = w.properties.includes('acuidade');
+    const saves = this.sheet()?.character_sheet.attributes_and_saves;
+    const usesStr = melee && (!finesse || (saves?.['STR']?.modifier ?? 0) >= (saves?.['DEX']?.modifier ?? 0));
+
+    const attackBonuses = (features?.attack_bonuses ?? []).filter((b) => active.includes(b.requires_active));
+    const activeRiders = (features?.riders ?? []).filter(
+      (r) => r.requires_active && active.includes(r.requires_active) && this.riderApplies(r.applies, w, usesStr),
+    );
+    const extraNames = [...attackBonuses.map((b) => b.name), ...activeRiders.map((r) => r.name)];
+    const power = (features?.power_attack ?? []).find((p) =>
+      p.applies === 'ranged' ? w.isRanged : melee && w.properties.includes('pesada'),
+    );
+
+    const spellRiders = this.riderChoices(w.isRanged ? 'ranged_weapon' : 'melee_weapon');
+    const traitToggles = (features?.riders ?? [])
+      .filter((r) => !r.requires_active && this.riderApplies(r.applies, w, usesStr))
+      .filter((r) => !r.once_per_turn || !this.turnKey || features?.active_effects.turn_uses[r.key] !== this.turnKey)
+      .map((r) => ({
+        key: r.key,
+        spellName: r.name,
+        dice: r.dice,
+        flat: r.flat,
+        damageType: r.damage_type,
+        oncePerTurn: r.once_per_turn,
+      }));
+
+    return {
       mode: 'ability',
       rollType: 'attack',
-      label: `Ataque: ${weapon.name}`,
-      modifier: weapon.attack_bonus,
-      damage: match
+      label: [`Ataque: ${w.name}`, ...extraNames].join(' + '),
+      modifier: w.attackBonus + attackBonuses.reduce((sum, b) => sum + b.bonus, 0),
+      critMin: features?.crit_min ?? 20,
+      powerAttack: power ? { name: power.name } : undefined,
+      damage: w.dice
         ? {
-            diceCount: parseInt(match[1], 10),
-            diceSides: parseInt(match[2], 10),
-            modifier: weapon.damage_modifier,
-            label: `Dano: ${weapon.name}`,
-            smite: this.smiteOptionsFor(weapon),
-            riders: this.riderChoices(weapon.isRanged ? 'ranged_weapon' : 'melee_weapon'),
+            diceCount: w.dice.count,
+            diceSides: w.dice.sides,
+            modifier: w.damageModifier + activeRiders.reduce((sum, r) => sum + r.flat, 0),
+            label: [`Dano: ${w.name}`, ...activeRiders.map((r) => r.name)].join(' + '),
+            critExtraDice: melee ? (features?.melee_crit_extra_dice ?? 0) : 0,
+            smite: w.smite,
+            riders: { oneShot: spellRiders.oneShot, persistent: [...spellRiders.persistent, ...traitToggles] },
           }
         : undefined,
     };
-    this.activeRoll.set(config);
+  }
+
+  private riderApplies(
+    applies: CombatFeatures['riders'][number]['applies'],
+    w: { isRanged: boolean; properties: string },
+    usesStr: boolean,
+  ): boolean {
+    if (applies === 'finesse_or_ranged') return w.isRanged || w.properties.includes('acuidade');
+    if (applies === 'melee_str') return !w.isRanged && usesStr;
+    return true;
+  }
+
+  /** Somas 1×/turno usadas neste acerto: trava na vez atual do combate (fora de combate, não trava). */
+  onOncePerTurnUsed(keys: string[]): void {
+    if (!this.turnKey) return;
+    for (const key of keys) {
+      this.charService
+        .updateActiveEffects(this.idCharacter, { turn_use: key, turn_key: this.turnKey })
+        .subscribe({ next: ({ active_effects }) => this.patchActiveEffects(active_effects), error: () => undefined });
+    }
+  }
+
+  /** Encerra Fúria/Arma Sagrada antes da hora (também acabam no descanso longo e no fim do combate). */
+  endEffect(effect: string): void {
+    this.charService.updateActiveEffects(this.idCharacter, { effect, active: false }).subscribe({
+      next: ({ active_effects }) => this.patchActiveEffects(active_effects),
+      error: (err) => this.handleActionError(err),
+    });
+  }
+
+  private patchActiveEffects(activeEffects: ActiveEffects): void {
+    const sheet = this.sheet();
+    const features = sheet?.character_sheet.combat_features;
+    if (!sheet || !features) return;
+    this.sheet.set({
+      ...sheet,
+      character_sheet: {
+        ...sheet.character_sheet,
+        combat_features: { ...features, active_effects: activeEffects },
+      },
+    });
   }
 
   /** Magias do personagem que podem somar dano neste ataque (Destruições, Bruxaria…). */
@@ -484,6 +618,15 @@ export class PlayerActionsModalComponent implements OnInit {
         this.patchResourceTrackers(resource_trackers);
         this.expendingResource.set(false);
         this.announceAbility(ability);
+        if (ability.activates) {
+          this.charService
+            .updateActiveEffects(this.idCharacter, { effect: ability.activates, active: true })
+            .subscribe({ next: ({ active_effects }) => this.patchActiveEffects(active_effects), error: () => undefined });
+        }
+        if (ability.unarmed_attacks) {
+          this.rollUnarmed(ability.unarmed_attacks);
+          return;
+        }
         if (ability.restores_slot) {
           this.expendSlot(ability.restores_slot, -1, !rollConfig);
           return;

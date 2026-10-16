@@ -26,6 +26,44 @@ export interface ClassAbility {
   variable_cost?: boolean;
   /** Criar Espaço de Magia: devolve um espaço gasto desse círculo. */
   restores_slot?: number | null;
+  /** Liga um efeito guardado no personagem até acabar (Fúria, Arma Sagrada). */
+  activates?: string | null;
+  /** Rajada de Golpes: N ataques desarmados em sequência. */
+  unarmed_attacks?: number | null;
+}
+
+/** Efeitos ativos (Fúria, Arma Sagrada) e somas 1×/turno já usadas na vez atual do combate. */
+export interface ActiveEffects {
+  active: string[];
+  turn_uses: Record<string, string>;
+}
+
+/** Soma no acerto (Ataque Furtivo, Fúria, Golpe Divino, Matador de Inimigos). */
+export interface CombatRider {
+  key: string;
+  name: string;
+  dice: { count: number; sides: number } | null;
+  flat: number;
+  damage_type: string;
+  applies: 'finesse_or_ranged' | 'melee_str' | 'weapon';
+  once_per_turn: boolean;
+  requires_active: string | null;
+}
+
+/** Traços que mexem no ataque — espelho de `CombatFeatures` da API (combat-features.ts). */
+export interface CombatFeatures {
+  crit_min: number;
+  melee_crit_extra_dice: number;
+  riders: CombatRider[];
+  attack_bonuses: { key: string; name: string; bonus: number; requires_active: string }[];
+  power_attack: { name: string; applies: 'heavy_melee' | 'ranged' }[];
+  unarmed: {
+    name: string;
+    attack_bonus: number;
+    dice: { count: number; sides: number };
+    damage_modifier: number;
+  } | null;
+  active_effects: ActiveEffects;
 }
 
 export interface CharacterSheetResponse {
@@ -97,5 +135,7 @@ export interface CharacterSheetResponse {
     class_abilities: ClassAbility[];
     /** Recursos de classe/subclasse que escalam por nível (ex: "Ataque Furtivo": "2d6") — informativo, `null` se não houver nenhum neste nível. */
     class_resources: Record<string, string> | null;
+    /** Traços que mexem no ataque (só na ficha carregada). */
+    combat_features?: CombatFeatures;
   };
 }

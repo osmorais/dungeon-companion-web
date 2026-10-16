@@ -6,6 +6,17 @@
       <p class="roll-hit-question">{{ line }}</p>
     }
 
+    @if (isAbility && powerAttackName) {
+      <label class="smite-special-toggle">
+        <input
+          type="checkbox"
+          [checked]="powerAttackOn()"
+          [disabled]="isRolling() || !!result()"
+          (change)="togglePowerAttack()"
+        />
+        {{ powerAttackName }}: −5 no ataque, +10 no dano
+      </label>
+    }
     @if (isAbility) {
       <div class="roll-toggle-row">
         <button
@@ -294,7 +305,7 @@
         </div>
       }
       @if (riderToggles.length) {
-        <p class="roll-hit-question">Magias ativas no alvo:</p>
+        <p class="roll-hit-question">Somar ao dano:</p>
         @for (toggle of riderToggles; track toggle.key) {
           <label class="smite-special-toggle">
             <input
@@ -302,8 +313,10 @@
               [checked]="isToggleActive(toggle.key)"
               (change)="toggleRider(toggle.key)"
             />
-            {{ toggle.spellName }} (+{{ toggle.dice.count }}d{{ toggle.dice.sides }}
-            {{ toggle.damageType }})
+            {{ toggle.spellName }} (+{{
+              toggle.dice ? toggle.dice.count + 'd' + toggle.dice.sides : toggle.flat
+            }}
+            {{ toggle.damageType }}){{ toggle.oncePerTurn ? ' — 1×/turno' : '' }}
           </label>
         }
       }

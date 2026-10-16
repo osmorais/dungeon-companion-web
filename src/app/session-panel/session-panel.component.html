@@ -886,6 +886,7 @@
     [fallbackName]="actionsChar.name"
     [sessionId]="id()"
     [applyTargets]="applyTargetsFor(actionsChar.id)"
+    [turnKey]="combatTurnKey()"
     (applyToTarget)="applyRollToTarget($event)"
     (closed)="closePlayerActions()"
     (attackResolved)="onAttackResolved(actionsChar.name, $event)" />

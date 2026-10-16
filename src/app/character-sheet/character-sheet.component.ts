@@ -539,6 +539,13 @@ export class CharacterSheetComponent {
     if (!this.canUseChiAbility(ability)) return;
     this.expendResource(ability.resource_key, ability.cost);
     if (ability.restores_slot) this.expendSlot(ability.restores_slot, -1);
+    const id = this.sheetData()?.character_sheet.id_character;
+    if (ability.activates && id) {
+      // Fúria/Arma Sagrada ficam guardadas no personagem até acabar (vale na sessão).
+      this.charService.updateActiveEffects(id, { effect: ability.activates, active: true }).subscribe({
+        error: () => undefined,
+      });
+    }
     const rollConfig = ability.variable_cost
       ? null
       : spellRollConfig(abilityAsSpell(ability), 0);
