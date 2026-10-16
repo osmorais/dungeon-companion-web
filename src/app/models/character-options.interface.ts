@@ -117,17 +117,30 @@ export interface Spell {
 
 /** Espelho de `SpellRoll` da API. */
 export interface SpellRoll {
-  kind: 'attack' | 'auto';
+  kind: 'attack' | 'auto' | 'save';
   attack_type: 'melee' | 'ranged' | null;
   attack_bonus: number | null;
-  damage_type: string;
+  /** `null` em magia de resistência sem dano. */
+  damage_type: string | null;
+  /** Só `kind: 'save'`: atributo da resistência dos alvos e CD de magia do personagem. */
+  save_ability: 'STR' | 'DEX' | 'CON' | 'INT' | 'WIS' | 'CHA' | null;
+  save_dc: number | null;
+  /** Dano quando o alvo passa: metade, nenhum ou total (`null` sem dano). */
+  save_on_success: 'half' | 'none' | 'full' | null;
   /** Nome de cada rolagem quando há mais de uma (raio, feixe, dardo). */
   instance_label: string | null;
   variant: string | null;
   /** Por círculo usado (chave "0" pra truque). */
   by_slot: Record<
     string,
-    { instances: number; dice_count: number; dice_sides: number; modifier: number }
+    {
+      instances: number;
+      dice_count: number;
+      dice_sides: number;
+      modifier: number;
+      /** Grupos de dados extras que não escalam (Tempestade de Gelo: 4d6). */
+      extra_dice: { count: number; sides: number }[];
+    }
   >;
 }
 

@@ -29,12 +29,17 @@ export interface AbilityRollConfig {
     diceSides: number;
     modifier: number;
     label: string;
+    /** Grupos de dados a mais que entram junto no dano (Tempestade de Gelo: 2d8 + 4d6). */
+    extraDice?: { count: number; sides: number }[];
     /** Só ataque corpo a corpo de Paladino nv2+ com espaço de magia disponível: antes de rolar
      *  o dano, o modal pergunta se quer gastar um espaço em Destruição Divina. */
     smite?: SmiteOption[];
   };
-  /** Acerto automático (Mísseis Mágicos): pula o d20 e já abre no dano. */
+  /** Acerto automático (Mísseis Mágicos) e magias de resistência: pula o d20 e já abre no dano. */
   autoHit?: boolean;
+  /** Magia de resistência: a CD/atributo que os alvos rolam (ex.: "CD 14 de Destreza") e o dano
+   *  de quem passa — o modal mostra os dois valores e o mestre aplica em cada alvo. */
+  save?: { note: string; onSuccess: 'half' | 'none' | 'full' };
   /** Vários ataques na mesma ação (raios do Raio Ardente, feixes da Rajada Mística): depois de
    *  cada um (acerto + dano, ou erro), o modal oferece o próximo até `count`. */
   instances?: { count: number; label: string };
@@ -130,6 +135,27 @@ export class RollModalComponent implements OnInit {
 
   get isAwaitingHitDecision(): boolean {
     return this.attackPhase() === 'awaiting-hit';
+  }
+
+  /** Linha da resistência exibida acima dos dados (ex.: "CD 14 de Destreza — metade se passar"). */
+  get saveLine(): string | null {
+    if (this.config.mode !== 'ability' || !this.config.save) return null;
+    const { note, onSuccess } = this.config.save;
+    const effect =
+      onSuccess === 'half'
+        ? 'metade do dano se passar'
+        : onSuccess === 'none'
+          ? 'sem dano se passar'
+          : 'dano total sempre; a resistência evita só o efeito';
+    return `${note} — ${effect}`;
+  }
+
+  /** Dano de quem passou na resistência, depois de rolar (só quando a magia dá metade). */
+  get saveSuccessTotal(): number | null {
+    const res = this.result();
+    if (!res || this.config.mode !== 'ability' || this.config.save?.onSuccess !== 'half')
+      return null;
+    return Math.floor(res.total / 2);
   }
 
   get isOfferingNextInstance(): boolean {
@@ -357,8 +383,11 @@ export class RollModalComponent implements OnInit {
     if (this.attackPhase() === 'damage' && this.pendingDamage) {
       const { diceCount, diceSides } = this.pendingDamage;
       const weaponDice = Array.from({ length: diceCount }, () => diceSides);
+      const extraDice = (this.pendingDamage.extraDice ?? []).flatMap(({ count, sides }) =>
+        Array.from({ length: count }, () => sides),
+      );
       const smiteDice = Array.from({ length: this.smiteExtraDice() }, () => 8);
-      return [...weaponDice, ...smiteDice];
+      return [...weaponDice, ...extraDice, ...smiteDice];
     }
     if (this.config.mode === 'ability') {
       const count = this.advantageState() === 'normal' ? 1 : 2;

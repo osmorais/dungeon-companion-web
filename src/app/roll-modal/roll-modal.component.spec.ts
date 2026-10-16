@@ -201,6 +201,51 @@ describe('RollModalComponent — magias', () => {
     expect(rolled).toHaveBeenCalledTimes(1);
   });
 
+  it('resistência: abre no dano, mostra a CD e o dano de quem passa', () => {
+    const { modal, rolled } = create({
+      mode: 'ability',
+      rollType: 'attack',
+      label: 'Magia: Tempestade de Gelo',
+      modifier: 0,
+      autoHit: true,
+      save: { note: 'CD 15 de Destreza', onSuccess: 'half' },
+      damage: {
+        diceCount: 2,
+        diceSides: 8,
+        modifier: 0,
+        label: 'Dano: Tempestade de Gelo',
+        extraDice: [{ count: 4, sides: 6 }],
+      },
+    });
+    expect(modal.saveLine).toBe('CD 15 de Destreza — metade do dano se passar');
+    expect(modal.diceCount).toBe(6); // 2d8 + 4d6
+    expect(modal.saveSuccessTotal).toBeNull();
+    modal.roll();
+    settle();
+    expect(modal.saveSuccessTotal).toBe(Math.floor(modal.result()!.total / 2));
+    expect(rolled).toHaveBeenCalledTimes(1);
+  });
+
+  it('resistência sem metade: não mostra o dano de quem passa', () => {
+    const { modal } = create({
+      mode: 'ability',
+      rollType: 'attack',
+      label: 'Magia: Chama Sagrada',
+      modifier: 0,
+      autoHit: true,
+      save: { note: 'CD 13 de Destreza', onSuccess: 'none' },
+      damage: { diceCount: 1, diceSides: 8, modifier: 0, label: 'Dano: Chama Sagrada' },
+    });
+    expect(modal.saveLine).toBe('CD 13 de Destreza — sem dano se passar');
+    modal.roll();
+    settle();
+    expect(modal.saveSuccessTotal).toBeNull();
+  });
+
+  it('ataque comum não tem linha de resistência', () => {
+    expect(create(rays).modal.saveLine).toBeNull();
+  });
+
   it('um ataque só não mostra progresso', () => {
     const { modal } = create({ ...rays, instances: undefined });
     expect(modal.title).toBe('Magia: Raio Ardente');

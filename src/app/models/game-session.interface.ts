@@ -182,6 +182,9 @@ export interface SpellCastPayload {
   id_character: number;
   actor_name: string;
   spell_name: string;
+  /** Magia de resistência: CD e atributo que os alvos rolam (aparece no toast da mesa). */
+  save_dc?: number | null;
+  save_ability?: 'STR' | 'DEX' | 'CON' | 'INT' | 'WIS' | 'CHA' | null;
 }
 
 export interface GameSessionDetail {

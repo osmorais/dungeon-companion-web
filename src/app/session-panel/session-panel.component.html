@@ -1175,6 +1175,9 @@
         <span class="spell-cast-actor">{{ c.actorName }}</span>
         <span class="spell-cast-label">LANÇOU</span>
         <span class="spell-cast-spell-name">{{ c.spellName }}</span>
+        @if (c.saveNote) {
+          <span class="spell-cast-label">{{ c.saveNote }}</span>
+        }
         <div class="roll-toast-timer-bar">
           <div class="roll-toast-timer-fill" [style.animation-duration.ms]="SPELL_CAST_TOAST_MS"></div>
         </div>

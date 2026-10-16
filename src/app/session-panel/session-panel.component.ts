@@ -33,6 +33,7 @@ import { PlayerInventoryModalComponent } from '../player-inventory-modal/player-
 import { DamageImpactComponent } from '../damage-impact/damage-impact.component';
 import { DamageImpactService } from '../services/damage-impact.service';
 import { attrLabel } from '../models/level-up.interface';
+import { saveNote } from '../roll-modal/spell-roll-config';
 
 @Component({
   selector: 'app-session-panel',
@@ -196,7 +197,12 @@ export class SessionPanelComponent implements OnDestroy {
         this.showLevelUpEligibleToast(event.character_name, npc?.character?.avatar_preset ?? null);
       }
       if (event.type === 'spell_cast') {
-        this.showSpellCastToast(event.id_character, event.actor_name, event.spell_name);
+        this.showSpellCastToast(
+          event.id_character,
+          event.actor_name,
+          event.spell_name,
+          event.save_dc && event.save_ability ? saveNote(event.save_dc, event.save_ability) : null,
+        );
       }
     });
     this.safetyNetSub = interval(this.SAFETY_NET_MS).subscribe(() => {
@@ -1293,18 +1299,26 @@ export class SessionPanelComponent implements OnDestroy {
     idCharacter: number;
     actorName: string;
     spellName: string;
+    /** Ex: "CD 14 de Destreza" — só magia de resistência. */
+    saveNote: string | null;
     key: number;
   } | null>(null);
   private spellCastToastTimer: ReturnType<typeof setTimeout> | null = null;
   private spellCastToastCounter = 0;
 
-  private showSpellCastToast(idCharacter: number, actorName: string, spellName: string): void {
+  private showSpellCastToast(
+    idCharacter: number,
+    actorName: string,
+    spellName: string,
+    saveNote: string | null = null,
+  ): void {
     if (this.spellCastToastTimer) clearTimeout(this.spellCastToastTimer);
     this.spellCastToastCounter++;
     this.activeSpellCastToast.set({
       idCharacter,
       actorName,
       spellName,
+      saveNote,
       key: this.spellCastToastCounter,
     });
     this.spellCastToastTimer = setTimeout(

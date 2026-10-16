@@ -4,7 +4,7 @@ import { CharacterService, HitDieRollResult } from '../services/character.servic
 import { GameSessionService } from '../services/game-session.service';
 import { CharacterSheetResponse, ClassAbility, ResourceTracker } from '../models/character-response.interface';
 import { Skill, Spell, WeaponRow } from '../models/character-options.interface';
-import { spellRollConfig } from '../roll-modal/spell-roll-config';
+import { spellRollConfig, spellSaveInfo } from '../roll-modal/spell-roll-config';
 import {
   AbilityRollConfig,
   RollConfig,
@@ -544,6 +544,7 @@ export class PlayerActionsModalComponent implements OnInit {
           id_character: this.idCharacter,
           actor_name: this.actorName,
           spell_name: spell.name,
+          ...spellSaveInfo(spell),
         })
         .subscribe({ error: () => undefined });
     }

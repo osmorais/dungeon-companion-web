@@ -2,6 +2,9 @@
   <div class="roll-modal" (click)="$event.stopPropagation()">
     <button class="roll-modal-close" (click)="close()">✕</button>
     <h3 class="roll-modal-title">{{ title }}</h3>
+    @if (saveLine; as line) {
+      <p class="roll-hit-question">{{ line }}</p>
+    }
 
     @if (isAbility) {
       <div class="roll-toggle-row">
@@ -139,6 +142,9 @@
       <div class="roll-result">
         <p class="roll-modifier-line">{{ formatMod(modifier) }} (modificador)</p>
         <p class="roll-total">TOTAL: {{ res.total }}</p>
+        @if (saveSuccessTotal !== null) {
+          <p class="roll-modifier-line">Quem passar na resistência: {{ saveSuccessTotal }}</p>
+        }
         @if (canHideRoll && freeformHidden()) {
           <p class="roll-hidden-note">🔒 Só você vê esse resultado</p>
         }
