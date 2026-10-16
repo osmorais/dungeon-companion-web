@@ -4,6 +4,8 @@ import { DamageImpactService } from '../services/damage-impact.service';
 import { AdvantageState, RollLogPayload, RollType } from '../models/game-session.interface';
 import { PixelDieComponent } from '../pixel-die/pixel-die.component';
 import { PixelNumericDieComponent } from '../pixel-numeric-die/pixel-numeric-die.component';
+import { hasRiderChoices, RiderChoices, RiderOption } from './spell-riders';
+import { ApplyKind, ApplyRequest, ApplyTarget } from './apply-target';
 
 /** Uma opção de espaço de magia pra gastar em Destruição Divina — ver `AbilityRollConfig.damage.smite`. */
 export interface SmiteOption {
@@ -36,6 +38,9 @@ export interface AbilityRollConfig {
     /** Só ataque corpo a corpo de Paladino nv2+ com espaço de magia disponível: antes de rolar
      *  o dano, o modal pergunta se quer gastar um espaço em Destruição Divina. */
     smite?: SmiteOption[];
+    /** Magias que somam dano neste acerto: Destruições (escolher gasta o espaço) e as de efeito
+     *  contínuo já lançadas (Bruxaria, Marca do Caçador…), que o jogador marca se estão ativas. */
+    riders?: RiderChoices;
   };
   /** Magia de cura: a rolagem "de dano" é cura (vai pro log como `heal`, sem impacto em tela). */
   healing?: { tempHp: boolean };
@@ -85,7 +90,12 @@ export class RollModalComponent implements OnInit {
   @Input() sessionId: string | undefined;
   /** Só o mestre pode rolar oculto — mostra o alternador PÚBLICO/OCULTO no modo freeform. */
   @Input() canHideRoll = false;
+  /** Alvos em que o dano/cura rolado pode ser aplicado direto (opcional). Vazio = sem a opção,
+   *  e o modal se comporta como antes (encerra sozinho ao terminar a rolagem de dano). */
+  @Input() applyTargets: ApplyTarget[] = [];
   @Output() closed = new EventEmitter<void>();
+  /** O jogador/mestre pediu pra aplicar o resultado num alvo — o pai aplica no PV. */
+  @Output() applyToTarget = new EventEmitter<ApplyRequest>();
   /** Emite quando a interação termina de vez (não a cada rolagem — ver finishRoll/confirmMiss). */
   @Output() rolled = new EventEmitter<{ rolls: number[]; modifier: number; total: number }>();
   /** Só emite pro fluxo de ataque com dano (`config.damage` presente): `true` quando o mestre
@@ -94,6 +104,9 @@ export class RollModalComponent implements OnInit {
   /** Emite quando o jogador escolhe um espaço de magia em Destruição Divina — o pai é
    *  responsável por debitar o espaço (`slotKey`), o modal só cuida do dado extra. */
   @Output() smiteUsed = new EventEmitter<{ slotKey: string }>();
+  /** Emite quando o jogador escolhe uma Destruição (magia) no acerto — o pai debita o espaço e
+   *  anuncia a magia; o modal só soma os dados. */
+  @Output() riderSpellUsed = new EventEmitter<RiderOption>();
 
   readonly dieOptions = DIE_OPTIONS;
 
@@ -109,6 +122,8 @@ export class RollModalComponent implements OnInit {
   attackPhase = signal<AttackPhase>('attack');
   /** Qual dos `config.instances` ataques está em andamento (1-based). */
   instanceIndex = signal(1);
+  /** 20 natural no d20 do ataque: acerta sempre e os dados de dano dobram (o modificador não). */
+  isCritical = signal(false);
 
   ngOnInit(): void {
     if (this.pendingDamage && this.config.mode === 'ability' && this.config.autoHit) {
@@ -121,6 +136,17 @@ export class RollModalComponent implements OnInit {
   smiteTargetSpecial = signal(false);
   /** Quantos d8 extras somar à rolagem de dano — 0 se Destruição Divina não foi usada. */
   private smiteExtraDice = signal(0);
+  /** Destruição (magia) escolhida no acerto e efeitos contínuos marcados como ativos. */
+  selectedRider = signal<RiderOption | null>(null);
+  activeToggles = signal<ReadonlySet<string>>(new Set());
+  /** Alvo escolhido no "APLICAR EM…" e o que já foi aplicado nesta rolagem (área: vários alvos). */
+  applyTargetKey = signal<string>('');
+  applied = signal<{ label: string; amount: number; kind: ApplyKind }[]>([]);
+  /** Rolagem de dano/cura terminou e espera o "CONCLUIR" (só quando há alvos pra aplicar). */
+  awaitingApply = signal(false);
+  /** Dados das magias somadas ao dano desta rolagem e o nome delas (pro título). */
+  private riderDice = signal<{ count: number; sides: number }[]>([]);
+  private riderNames = signal<string[]>([]);
 
   isRolling = signal(false);
   displayValues = signal<number[]>([]);
@@ -194,6 +220,90 @@ export class RollModalComponent implements OnInit {
     return this.pendingDamage?.smite ?? [];
   }
 
+  get riderOptions(): RiderOption[] {
+    return this.pendingDamage?.riders?.oneShot ?? [];
+  }
+
+  get riderToggles() {
+    return this.pendingDamage?.riders?.persistent ?? [];
+  }
+
+  /** Depois do dano: a resistência do efeito extra da Destruição usada (ex.: "CD 14 de Sabedoria"). */
+  get riderSaveLine(): string | null {
+    const rider = this.selectedRider();
+    if (this.attackPhase() !== 'damage' || !rider?.saveNote) return null;
+    return `${rider.spellName}: ${rider.saveNote}`;
+  }
+
+  /** Mostra o "APLICAR EM…" depois de uma rolagem de dano/cura, se houver alvos. */
+  get canApply(): boolean {
+    return (
+      this.applyTargets.length > 0 &&
+      !!this.result() &&
+      !this.isRolling() &&
+      (this.attackPhase() === 'damage' || this.attackPhase() === 'next-instance') &&
+      // erro de ataque não tem dano pra aplicar (o resultado na tela é o d20)
+      this.lastRollWasDamage
+    );
+  }
+
+  private lastRollWasDamage = false;
+
+  /** O que o resultado faz no alvo: dano, cura ou PV temporários. */
+  get applyKind(): ApplyKind {
+    if (this.config.mode === 'ability' && this.config.healing) {
+      return this.config.healing.tempHp ? 'temp_hp' : 'heal';
+    }
+    return 'damage';
+  }
+
+  /** Alvos válidos pro tipo de resultado (PV temporários só em jogador). */
+  get applicableTargets(): ApplyTarget[] {
+    return this.applyKind === 'temp_hp'
+      ? this.applyTargets.filter((t) => t.allowsTempHp)
+      : this.applyTargets;
+  }
+
+  setApplyTarget(event: Event): void {
+    this.applyTargetKey.set((event.target as HTMLSelectElement).value);
+  }
+
+  /** `half`: magia de resistência — o alvo passou e sofre metade. */
+  apply(half = false): void {
+    const res = this.result();
+    const target = this.applicableTargets.find((t) => t.key === this.applyTargetKey());
+    if (!res || !target) return;
+    const amount = half ? Math.floor(res.total / 2) : res.total;
+    if (amount <= 0) return;
+    const kind = this.applyKind;
+    this.applyToTarget.emit({ targetKey: target.key, amount, kind });
+    this.applied.update((list) => [...list, { label: target.label, amount, kind }]);
+  }
+
+  /** Encerra a rolagem depois de aplicar (ou desistir de aplicar). */
+  finishApply(): void {
+    this.awaitingApply.set(false);
+    const res = this.result();
+    this.rolled.emit({ rolls: res?.rolls ?? [], modifier: this.modifier, total: res?.total ?? 0 });
+  }
+
+  isToggleActive(key: string): boolean {
+    return this.activeToggles().has(key);
+  }
+
+  toggleRider(key: string): void {
+    this.activeToggles.update((current) => {
+      const next = new Set(current);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
+
+  selectRider(option: RiderOption | null): void {
+    this.selectedRider.set(option);
+  }
+
   /** true só pro d20 de teste de habilidade — falso durante a sub-rolagem de dano do ataque
    *  e durante a escolha de Destruição Divina. */
   get isAbility(): boolean {
@@ -211,11 +321,16 @@ export class RollModalComponent implements OnInit {
   }
 
   private get baseTitle(): string {
-    if (this.attackPhase() === 'smite-choice') return 'Destruição Divina';
+    if (this.attackPhase() === 'smite-choice') {
+      return hasRiderChoices(this.pendingDamage?.riders) ? 'Somar ao dano' : 'Destruição Divina';
+    }
     if (this.attackPhase() === 'damage' && this.pendingDamage) {
-      return this.smiteExtraDice() > 0
-        ? `${this.pendingDamage.label} + Destruição Divina`
-        : this.pendingDamage.label;
+      const extras = [
+        ...(this.smiteExtraDice() > 0 ? ['Destruição Divina'] : []),
+        ...this.riderNames(),
+      ];
+      const label = [this.pendingDamage.label, ...extras].join(' + ');
+      return this.isCritical() ? `${label} — CRÍTICO` : label;
     }
     return this.config.mode === 'ability' ? this.config.label : 'Rolagem de Dados';
   }
@@ -303,7 +418,7 @@ export class RollModalComponent implements OnInit {
   rollDamageNow(): void {
     if (!this.pendingDamage) return;
     this.attackResolved.emit(true);
-    if (this.pendingDamage.smite?.length) {
+    if (this.pendingDamage.smite?.length || hasRiderChoices(this.pendingDamage.riders)) {
       this.attackPhase.set('smite-choice');
       return;
     }
@@ -318,11 +433,17 @@ export class RollModalComponent implements OnInit {
     this.smiteTargetSpecial.update((v) => !v);
   }
 
-  /** Fecha a escolha de Destruição Divina e rola o dano (arma + d8s extras, se usada). */
+  /** Fecha a escolha (Destruição Divina e/ou magias) e rola o dano com os dados extras. */
   confirmSmiteChoice(): void {
     const option = this.selectedSmiteOption();
     this.smiteExtraDice.set(option ? option.bonusDice + (this.smiteTargetSpecial() ? 1 : 0) : 0);
     if (option) this.smiteUsed.emit({ slotKey: option.slotKey });
+
+    const rider = this.selectedRider();
+    const toggles = this.riderToggles.filter((t) => this.activeToggles().has(t.key));
+    this.riderDice.set([...(rider ? [rider.dice] : []), ...toggles.map((t) => t.dice)]);
+    this.riderNames.set([...(rider ? [rider.spellName] : []), ...toggles.map((t) => t.spellName)]);
+    if (rider) this.riderSpellUsed.emit(rider);
     this.beginDamageRoll();
   }
 
@@ -346,10 +467,17 @@ export class RollModalComponent implements OnInit {
   /** Começa o próximo raio/feixe: volta pro d20 do ataque. */
   nextInstance(): void {
     this.instanceIndex.update((i) => i + 1);
+    this.isCritical.set(false);
+    this.lastRollWasDamage = false;
+    this.applied.set([]);
     this.result.set(null);
     this.smiteExtraDice.set(0);
     this.selectedSmiteOption.set(null);
     this.smiteTargetSpecial.set(false);
+    // Destruição só vale no primeiro acerto; efeitos contínuos continuam marcados.
+    this.selectedRider.set(null);
+    this.riderDice.set([]);
+    this.riderNames.set([]);
     this.attackPhase.set('attack');
   }
 
@@ -391,7 +519,12 @@ export class RollModalComponent implements OnInit {
         Array.from({ length: count }, () => sides),
       );
       const smiteDice = Array.from({ length: this.smiteExtraDice() }, () => 8);
-      return [...weaponDice, ...extraDice, ...smiteDice];
+      const riderDice = this.riderDice().flatMap(({ count, sides }) =>
+        Array.from({ length: count }, () => sides),
+      );
+      const dice = [...weaponDice, ...extraDice, ...smiteDice, ...riderDice];
+      // Crítico: rola o dobro de todos os dados de dano (arma/magia, extras e Destruição Divina).
+      return this.isCritical() ? [...dice, ...dice] : dice;
     }
     if (this.config.mode === 'ability') {
       const count = this.advantageState() === 'normal' ? 1 : 2;
@@ -441,12 +574,22 @@ export class RollModalComponent implements OnInit {
     if (this.pendingDamage && this.attackPhase() === 'attack') {
       // Terminou o d20 do ataque — espera a decisão do mestre antes de sinalizar
       // "interação concluída" (rolled) pro componente pai, senão ele fecharia tudo agora.
+      this.isCritical.set(chosen.length === 1 && chosen[0] === 20);
       this.attackPhase.set('awaiting-hit');
       return;
     }
 
+    this.lastRollWasDamage = this.attackPhase() === 'damage';
+
     if (this.attackPhase() === 'damage' && this.hasMoreInstances) {
       this.attackPhase.set('next-instance');
+      return;
+    }
+
+    // Com alvos pra aplicar, espera o "CONCLUIR" em vez de encerrar na hora.
+    if (this.attackPhase() === 'damage' && this.applyTargets.length > 0) {
+      this.applied.set([]);
+      this.awaitingApply.set(true);
       return;
     }
 

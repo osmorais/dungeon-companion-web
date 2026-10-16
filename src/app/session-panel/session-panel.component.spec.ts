@@ -301,4 +301,75 @@ describe('SessionPanelComponent', () => {
       expect(trigger.mock.calls[1][0].total).toBe(9);
     });
   });
+
+  describe('aplicar resultado de rolagem no alvo (opcional)', () => {
+    const p1 = player('p1', {
+      id_character: 10,
+      user_id: 'dm',
+      character: { ...player('p1').character!, current_hit_points: 15, temporary_hit_points: 4 },
+    });
+    const p2 = player('p2', { id_character: 20 });
+    const n1 = npc('n1', { id_character: 30 });
+    const m1 = monster('m1', { hp_current: 7, hp_max: 7 });
+
+    it('mestre: todos os jogadores, NPCs e monstros; só jogador aceita PV temporários', () => {
+      detail.set(sessionDetail({ players: [p1, p2], npcs: [n1], monsters: [m1] }));
+      expect(component.applyTargetsFor(10)).toEqual([
+        { key: 'player:p1', label: 'Personagem p1', allowsTempHp: true },
+        { key: 'player:p2', label: 'Personagem p2', allowsTempHp: true },
+        { key: 'npc:n1', label: 'Personagem n1', allowsTempHp: false },
+        { key: 'monster:m1', label: 'Goblin', allowsTempHp: false },
+      ]);
+    });
+
+    it('jogador: só o próprio personagem (regra de PV atual)', () => {
+      detail.set(
+        sessionDetail({
+          game_session: { ...sessionDetail().game_session, user_id: 'outro-mestre' },
+          players: [p1, p2],
+          npcs: [n1],
+          monsters: [m1],
+        }),
+      );
+      expect(component.applyTargetsFor(10).map((t) => t.key)).toEqual(['player:p1']);
+      // a ação aberta é de outro personagem: nada a aplicar
+      expect(component.applyTargetsFor(20)).toEqual([]);
+    });
+
+    it('dano no jogador consome a vida temporária primeiro', () => {
+      detail.set(sessionDetail({ players: [p1] }));
+      component.applyRollToTarget({ targetKey: 'player:p1', amount: 10, kind: 'damage' });
+      expect(gameSessionService.updatePlayerHp).toHaveBeenCalledWith('p1', 9, 0);
+    });
+
+    it('cura de magia no jogador vai só até o máximo, sem virar PV temporário', () => {
+      detail.set(sessionDetail({ players: [p1] }));
+      component.applyRollToTarget({ targetKey: 'player:p1', amount: 50, kind: 'heal' });
+      expect(gameSessionService.updatePlayerHp).toHaveBeenCalledWith('p1', 20, 4);
+      expect(component.pendingTempHp()).toBeNull();
+    });
+
+    it('PV temporários não acumulam: fica o maior', () => {
+      detail.set(sessionDetail({ players: [p1] }));
+      component.applyRollToTarget({ targetKey: 'player:p1', amount: 2, kind: 'temp_hp' });
+      expect(gameSessionService.updatePlayerHp).toHaveBeenLastCalledWith('p1', 15, 4);
+      component.applyRollToTarget({ targetKey: 'player:p1', amount: 9, kind: 'temp_hp' });
+      expect(gameSessionService.updatePlayerHp).toHaveBeenLastCalledWith('p1', 15, 9);
+    });
+
+    it('NPC e monstro: dano e cura limitados entre 0 e o máximo', () => {
+      detail.set(sessionDetail({ npcs: [n1], monsters: [m1] }));
+      component.applyRollToTarget({ targetKey: 'monster:m1', amount: 30, kind: 'damage' });
+      expect(gameSessionService.updateMonsterHp).toHaveBeenCalledWith('m1', 0);
+      component.applyRollToTarget({ targetKey: 'npc:n1', amount: 5, kind: 'heal' });
+      expect(gameSessionService.updateNpcHp).toHaveBeenCalledWith('n1', 20);
+    });
+
+    it('alvo inexistente ou valor zero não faz nada', () => {
+      detail.set(sessionDetail({ players: [p1] }));
+      component.applyRollToTarget({ targetKey: 'player:xx', amount: 5, kind: 'damage' });
+      component.applyRollToTarget({ targetKey: 'player:p1', amount: 0, kind: 'damage' });
+      expect(gameSessionService.updatePlayerHp).not.toHaveBeenCalled();
+    });
+  });
 });

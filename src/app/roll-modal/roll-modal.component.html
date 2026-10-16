@@ -142,6 +142,9 @@
       <div class="roll-result">
         <p class="roll-modifier-line">{{ formatMod(modifier) }} (modificador)</p>
         <p class="roll-total">TOTAL: {{ res.total }}</p>
+        @if (riderSaveLine; as line) {
+          <p class="roll-modifier-line">{{ line }}</p>
+        }
         @if (saveSuccessTotal !== null) {
           <p class="roll-modifier-line">Quem passar na resistência: {{ saveSuccessTotal }}</p>
         }
@@ -154,12 +157,59 @@
       </div>
     }
 
-    @if (isAwaitingHitDecision) {
-      <p class="roll-hit-question">O ataque passou da CA do alvo?</p>
-      <div class="roll-modal-actions">
-        <button class="roll-btn-primary" (click)="rollDamageNow()">🎲 ROLAR DANO</button>
-        <button class="roll-btn-secondary" (click)="confirmMiss()">NÃO ACERTEI</button>
+    @if (canApply) {
+      <div class="roll-apply">
+        <p class="roll-hit-question">
+          Aplicar
+          {{
+            applyKind === 'damage'
+              ? 'o dano'
+              : applyKind === 'heal'
+                ? 'a cura'
+                : 'os PV temporários'
+          }}? (opcional)
+        </p>
+        <select class="roll-apply-select" (change)="setApplyTarget($event)">
+          <option value="" [selected]="applyTargetKey() === ''">Escolha o alvo…</option>
+          @for (target of applicableTargets; track target.key) {
+            <option [value]="target.key" [selected]="applyTargetKey() === target.key">
+              {{ target.label }}
+            </option>
+          }
+        </select>
+        <div class="roll-modal-actions">
+          <button class="roll-btn-secondary" [disabled]="!applyTargetKey()" (click)="apply()">
+            APLICAR {{ result()!.total }}
+          </button>
+          @if (saveSuccessTotal !== null) {
+            <button class="roll-btn-secondary" [disabled]="!applyTargetKey()" (click)="apply(true)">
+              PASSOU: {{ saveSuccessTotal }}
+            </button>
+          }
+        </div>
+        @for (entry of applied(); track $index) {
+          <p class="roll-modifier-line">✓ {{ entry.label }}: {{ entry.amount }}</p>
+        }
       </div>
+    }
+
+    @if (awaitingApply()) {
+      <div class="roll-modal-actions">
+        <button class="roll-btn-primary" (click)="finishApply()">CONCLUIR</button>
+      </div>
+    } @else if (isAwaitingHitDecision) {
+      @if (isCritical()) {
+        <p class="roll-hit-question">ACERTO CRÍTICO! Os dados de dano dobram.</p>
+        <div class="roll-modal-actions">
+          <button class="roll-btn-primary" (click)="rollDamageNow()">🎲 ROLAR DANO EM DOBRO</button>
+        </div>
+      } @else {
+        <p class="roll-hit-question">O ataque passou da CA do alvo?</p>
+        <div class="roll-modal-actions">
+          <button class="roll-btn-primary" (click)="rollDamageNow()">🎲 ROLAR DANO</button>
+          <button class="roll-btn-secondary" (click)="confirmMiss()">NÃO ACERTEI</button>
+        </div>
+      }
     } @else if (isOfferingNextInstance) {
       <div class="roll-modal-actions">
         <button class="roll-btn-primary" (click)="nextInstance()">
@@ -168,39 +218,76 @@
         <button class="roll-btn-secondary" (click)="finishInstances()">ENCERRAR</button>
       </div>
     } @else if (isChoosingSmite) {
-      <p class="roll-hit-question">Usar Destruição Divina?</p>
-      <div class="roll-toggle-row">
-        <button
-          class="roll-toggle-btn"
-          [class.active]="selectedSmiteOption() === null"
-          (click)="selectSmiteOption(null)"
-        >
-          NÃO USAR
-        </button>
-        @for (option of smiteOptions; track option.slotKey) {
+      @if (smiteOptions.length) {
+        <p class="roll-hit-question">Usar Destruição Divina?</p>
+        <div class="roll-toggle-row">
           <button
             class="roll-toggle-btn"
-            [class.active]="selectedSmiteOption() === option"
-            (click)="selectSmiteOption(option)"
+            [class.active]="selectedSmiteOption() === null"
+            (click)="selectSmiteOption(null)"
           >
-            {{ option.levelLabel }} ({{ option.bonusDice }}d8)
+            NÃO USAR
           </button>
+          @for (option of smiteOptions; track option.slotKey) {
+            <button
+              class="roll-toggle-btn"
+              [class.active]="selectedSmiteOption() === option"
+              (click)="selectSmiteOption(option)"
+            >
+              {{ option.levelLabel }} ({{ option.bonusDice }}d8)
+            </button>
+          }
+        </div>
+        @if (selectedSmiteOption()) {
+          <label class="smite-special-toggle">
+            <input
+              type="checkbox"
+              [checked]="smiteTargetSpecial()"
+              (change)="toggleSmiteTargetSpecial()"
+            />
+            Alvo é morto-vivo ou aberração (+1d8)
+          </label>
         }
-      </div>
-      @if (selectedSmiteOption()) {
-        <label class="smite-special-toggle">
-          <input
-            type="checkbox"
-            [checked]="smiteTargetSpecial()"
-            (change)="toggleSmiteTargetSpecial()"
-          />
-          Alvo é morto-vivo ou aberração (+1d8)
-        </label>
+      }
+      @if (riderOptions.length) {
+        <p class="roll-hit-question">Usar uma magia neste acerto? (gasta o espaço)</p>
+        <div class="roll-toggle-row">
+          <button
+            class="roll-toggle-btn"
+            [class.active]="selectedRider() === null"
+            (click)="selectRider(null)"
+          >
+            NÃO USAR
+          </button>
+          @for (option of riderOptions; track option.key) {
+            <button
+              class="roll-toggle-btn"
+              [class.active]="selectedRider() === option"
+              (click)="selectRider(option)"
+            >
+              {{ option.spellName }} — {{ option.levelLabel }} ({{ option.dice.count }}d{{
+                option.dice.sides
+              }})
+            </button>
+          }
+        </div>
+      }
+      @if (riderToggles.length) {
+        <p class="roll-hit-question">Magias ativas no alvo:</p>
+        @for (toggle of riderToggles; track toggle.key) {
+          <label class="smite-special-toggle">
+            <input
+              type="checkbox"
+              [checked]="isToggleActive(toggle.key)"
+              (change)="toggleRider(toggle.key)"
+            />
+            {{ toggle.spellName }} (+{{ toggle.dice.count }}d{{ toggle.dice.sides }}
+            {{ toggle.damageType }})
+          </label>
+        }
       }
       <div class="roll-modal-actions">
-        <button class="roll-btn-primary" (click)="confirmSmiteChoice()">
-          {{ selectedSmiteOption() ? '🎲 ROLAR DANO' : 'CONTINUAR' }}
-        </button>
+        <button class="roll-btn-primary" (click)="confirmSmiteChoice()">🎲 ROLAR DANO</button>
       </div>
     } @else {
       <div class="roll-modal-actions">

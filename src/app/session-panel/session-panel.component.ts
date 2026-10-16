@@ -34,6 +34,7 @@ import { DamageImpactComponent } from '../damage-impact/damage-impact.component'
 import { DamageImpactService } from '../services/damage-impact.service';
 import { attrLabel } from '../models/level-up.interface';
 import { saveNote } from '../roll-modal/spell-roll-config';
+import { ApplyRequest, ApplyTarget } from '../roll-modal/apply-target';
 
 @Component({
   selector: 'app-session-panel',
@@ -372,6 +373,63 @@ export class SessionPanelComponent implements OnDestroy {
     this.activeActionsCharacter.set(null);
   }
 
+  /**
+   * Alvos em que o dano/cura de uma rolagem pode ser aplicado direto (opcional), seguindo as
+   * permissões de PV que já existem: o mestre aplica em qualquer jogador, NPC ou monstro; o
+   * jogador só no PV do próprio personagem (`canEditHp`).
+   */
+  applyTargetsFor(idCharacter: number): ApplyTarget[] {
+    const detail = this.sessionDetail();
+    if (!detail) return [];
+    const players = detail.players
+      .filter((p) => p.character && (this.isOwner() || (this.canEditHp(p) && p.id_character === idCharacter)))
+      .map((p) => ({
+        key: `player:${p.id_player_session}`,
+        label: p.character!.name ?? p.player_name,
+        allowsTempHp: true,
+      }));
+    if (!this.isOwner()) return players;
+    const npcs = detail.npcs
+      .filter((n) => n.character)
+      .map((n) => ({ key: `npc:${n.id_npc_session}`, label: n.character!.name, allowsTempHp: false }));
+    const monsters = detail.monsters.map((m) => ({
+      key: `monster:${m.id_monster_session}`,
+      label: this.monsterDisplayName(m),
+      allowsTempHp: false,
+    }));
+    return [...players, ...npcs, ...monsters];
+  }
+
+  /** Aplica o resultado de uma rolagem no alvo, com as mesmas regras do dano/cura em lote. */
+  applyRollToTarget({ targetKey, amount, kind }: ApplyRequest): void {
+    const detail = this.sessionDetail();
+    if (!detail || amount <= 0) return;
+    const [type, id] = targetKey.split(':');
+    if (type === 'player') {
+      const player = detail.players.find((p) => p.id_player_session === id);
+      if (!player?.character || this.savingHp().has(id)) return;
+      if (kind === 'damage') {
+        this.applyPlayerDamage(player, amount);
+      } else if (kind === 'heal') {
+        // Cura de magia não vira PV temporário: só até o máximo.
+        const next = Math.min(player.character.max_hit_points, this.editedHp(player) + amount);
+        this.commitPlayerHp(player, next, this.editedTempHp(player));
+      } else {
+        // PV temporários não acumulam: fica o maior.
+        this.commitPlayerHp(player, this.editedHp(player), Math.max(this.editedTempHp(player), amount));
+      }
+      return;
+    }
+    const sign = kind === 'damage' ? -1 : 1;
+    if (type === 'npc') {
+      const npc = detail.npcs.find((n) => n.id_npc_session === id);
+      if (npc?.character) this.applyNpcHpDelta(npc, sign, amount);
+    } else if (type === 'monster') {
+      const monster = detail.monsters.find((m) => m.id_monster_session === id);
+      if (monster) this.applyMonsterHpDelta(monster, sign, amount);
+    }
+  }
+
   /** ========================= INVENTÁRIO DO JOGADOR ========================= */
 
   activeInventoryPlayer = signal<{
@@ -439,9 +497,8 @@ export class SessionPanelComponent implements OnDestroy {
 
   /** Dano consome primeiro a vida temporária, só sobrando pra vida normal depois que ela zera
    *  (regra do livro — PV temporários são um amortecedor à parte do PV real). */
-  applyPlayerDamage(player: PlayerSession) {
+  applyPlayerDamage(player: PlayerSession, amount = this.playerDamageInput(player)) {
     const id = player.id_player_session;
-    const amount = this.playerDamageInput(player);
     if (!amount || this.savingHp().has(id)) return;
 
     const currentTemp = this.editedTempHp(player);
@@ -449,7 +506,7 @@ export class SessionPanelComponent implements OnDestroy {
     const spillover = Math.max(0, amount - currentTemp);
     const nextHp = Math.max(0, this.editedHp(player) - spillover);
 
-    this.clearPlayerDamageInput(player);
+    if (amount === this.playerDamageInput(player)) this.clearPlayerDamageInput(player);
     this.commitPlayerHp(player, nextHp, nextTemp);
   }
 
@@ -574,9 +631,8 @@ export class SessionPanelComponent implements OnDestroy {
     this.applyNpcHpDelta(npc, 1);
   }
 
-  private applyNpcHpDelta(npc: NpcSession, sign: 1 | -1) {
+  private applyNpcHpDelta(npc: NpcSession, sign: 1 | -1, amount = this.npcDamageInput(npc)) {
     const id = npc.id_npc_session;
-    const amount = this.npcDamageInput(npc);
     if (!amount || this.savingNpcHp().has(id)) return;
 
     const max = npc.character!.max_hit_points;
@@ -654,9 +710,12 @@ export class SessionPanelComponent implements OnDestroy {
     this.applyMonsterHpDelta(monster, 1);
   }
 
-  private applyMonsterHpDelta(monster: MonsterSession, sign: 1 | -1) {
+  private applyMonsterHpDelta(
+    monster: MonsterSession,
+    sign: 1 | -1,
+    amount = this.monsterDamageInput(monster),
+  ) {
     const id = monster.id_monster_session;
-    const amount = this.monsterDamageInput(monster);
     if (!amount || this.savingMonsterHp().has(id)) return;
 
     const next = Math.min(monster.hp_max, Math.max(0, this.editedMonsterHp(monster) + sign * amount));

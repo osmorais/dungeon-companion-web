@@ -5,6 +5,14 @@ import { GameSessionService } from '../services/game-session.service';
 import { CharacterSheetResponse, ClassAbility, ResourceTracker } from '../models/character-response.interface';
 import { Skill, Spell, WeaponRow } from '../models/character-options.interface';
 import { spellRollConfig, spellSaveInfo } from '../roll-modal/spell-roll-config';
+import { ApplyRequest, ApplyTarget } from '../roll-modal/apply-target';
+import {
+  isOnHitSpell,
+  RiderAttackKind,
+  RiderChoices,
+  riderChoicesFor,
+  RiderOption,
+} from '../roll-modal/spell-riders';
 import {
   AbilityRollConfig,
   RollConfig,
@@ -30,6 +38,10 @@ export class PlayerActionsModalComponent implements OnInit {
   @Input({ required: true }) idCharacter!: number;
   @Input() fallbackName = 'Personagem';
   @Input() sessionId: string | undefined;
+  /** Alvos em que o dano/cura rolado pode ser aplicado direto (opcional) — a sessão monta a lista
+   *  conforme as permissões (mestre: todos; jogador: só o próprio personagem). */
+  @Input() applyTargets: ApplyTarget[] = [];
+  @Output() applyToTarget = new EventEmitter<ApplyRequest>();
   @Output() closed = new EventEmitter<void>();
   /** Repassa a confirmação de acerto/erro do roll-modal (só dispara no fluxo de ataque com dano) —
    *  a sessão usa isso pra reagir (ex: Tom). */
@@ -113,10 +125,43 @@ export class PlayerActionsModalComponent implements OnInit {
             modifier: weapon.damage_modifier,
             label: `Dano: ${weapon.name}`,
             smite: this.smiteOptionsFor(weapon),
+            riders: this.riderChoices(weapon.isRanged ? 'ranged_weapon' : 'melee_weapon'),
           }
         : undefined,
     };
     this.activeRoll.set(config);
+  }
+
+  /** Magias do personagem que podem somar dano neste ataque (Destruições, Bruxaria…). */
+  private riderChoices(attack: RiderAttackKind): RiderChoices {
+    return riderChoicesFor(
+      this.sheet()?.character_sheet.spells ?? [],
+      attack,
+      (spell) => this.isCastable(spell),
+      (slotKey) => this.slotsAvailable(slotKey),
+    );
+  }
+
+  readonly isOnHitSpell = isOnHitSpell;
+
+  /** O jogador usou uma Destruição no acerto — debita o espaço (sem fechar, o dano ainda está
+   *  rolando) e anuncia a magia pra mesa com a CD do efeito extra. */
+  onRiderSpellUsed(option: RiderOption): void {
+    const level = this.slotLevelNumber(option.slotKey);
+    this.charService.updateSpellSlots(this.idCharacter, level, 1).subscribe({
+      next: ({ slots_expended }) => this.patchSpellcasting({ slots_expended }),
+      error: (err) => this.handleActionError(err),
+    });
+    if (this.sessionId) {
+      this.gameSessionService
+        .announceSpellCast(this.sessionId, {
+          id_character: this.idCharacter,
+          actor_name: this.actorName,
+          spell_name: option.spellName,
+          ...option.save,
+        })
+        .subscribe({ error: () => undefined });
+    }
   }
 
   /** Destruição Divina: só Paladino nv2+, ataque corpo a corpo, com espaço de magia disponível. */
@@ -525,6 +570,10 @@ export class PlayerActionsModalComponent implements OnInit {
    *  anuncia e fecha, como antes. */
   castSpell(spell: Spell, slotLevel: number): void {
     const rollConfig = spellRollConfig(spell, slotLevel);
+    // Ataque mágico também soma Bruxaria (vale pra qualquer ataque).
+    if (rollConfig?.damage && spell.roll?.kind === 'attack') {
+      rollConfig.damage.riders = this.riderChoices('spell');
+    }
     const openRoll = () => {
       if (!rollConfig) return;
       this.selectedSpellDetail.set(null);

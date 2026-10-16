@@ -190,7 +190,9 @@
                         </label>
                       }
                     </div>
-                    @if (isCastable(spell)) {
+                    @if (isOnHitSpell(spell) && isCastable(spell)) {
+                      <span class="pa-no-slots">use ao acertar um ataque com arma</span>
+                    } @else if (isCastable(spell)) {
                       <div class="pa-cast-options">
                         @if (spell.spellLevel === 0) {
                           <button class="pa-cast-btn" (click)="castSpell(spell, 0)">
@@ -283,6 +285,9 @@
     (closed)="closeRoll()"
     (attackResolved)="attackResolved.emit($event)"
     (smiteUsed)="onSmiteUsed($event)"
+    (riderSpellUsed)="onRiderSpellUsed($event)"
+    [applyTargets]="applyTargets"
+    (applyToTarget)="applyToTarget.emit($event)"
   />
 }
 
@@ -317,7 +322,9 @@
           <div class="pa-spell-description">{{ spell.description }}</div>
         }
       </div>
-      @if (isCastable(spell)) {
+      @if (isOnHitSpell(spell) && isCastable(spell)) {
+                      <span class="pa-no-slots">use ao acertar um ataque com arma</span>
+                    } @else if (isCastable(spell)) {
         <div class="pa-cast-options">
           @if (spell.spellLevel === 0) {
             <button class="pa-cast-btn" (click)="castSpell(spell, 0)">

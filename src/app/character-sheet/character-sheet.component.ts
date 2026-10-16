@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { CharacterService, HitDieRollResult } from '../services/character.service';
 import { Skill, Spell, WeaponRow } from '../models/character-options.interface';
 import { spellRollConfig } from '../roll-modal/spell-roll-config';
+import { isOnHitSpell } from '../roll-modal/spell-riders';
 import { CharacterSheetResponse, ResourceTracker, ClassAbility } from '../models/character-response.interface';
 import { AvatarPreset } from '../models/avatar-preset.interface';
 import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
@@ -585,6 +586,8 @@ export class CharacterSheetComponent {
       this.selectedSpell = { ...this.selectedSpell, is_prepared: isPrepared };
     }
   }
+
+  readonly isOnHitSpell = isOnHitSpell;
 
   isCastable(spell: Spell): boolean {
     if (spell.spellLevel === 0) return true;

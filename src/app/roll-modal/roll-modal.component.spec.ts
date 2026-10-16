@@ -313,3 +313,230 @@ describe('RollModalComponent — cura', () => {
     expect(modal.result()!.total).toBe(19);
   });
 });
+
+describe('RollModalComponent — fase 4', () => {
+  const sword: AbilityRollConfig = {
+    mode: 'ability',
+    rollType: 'attack',
+    label: 'Ataque: Espada Longa',
+    modifier: 5,
+    damage: { diceCount: 1, diceSides: 8, modifier: 3, label: 'Dano: Espada Longa' },
+  };
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: GameSessionService, useValue: { postRoll: vi.fn(() => of({})) } },
+        { provide: DamageImpactService, useValue: { trigger: vi.fn() } },
+      ],
+    });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  function create(
+    config: AbilityRollConfig,
+    applyTargets: RollModalComponent['applyTargets'] = [],
+  ) {
+    const component = TestBed.runInInjectionContext(() => new RollModalComponent());
+    component.config = config;
+    component.sessionId = 'gs';
+    component.applyTargets = applyTargets;
+    component.ngOnInit();
+    const rolled = vi.fn();
+    const applied = vi.fn();
+    const riderUsed = vi.fn();
+    component.rolled.subscribe(rolled);
+    component.applyToTarget.subscribe(applied);
+    component.riderSpellUsed.subscribe(riderUsed);
+    return { modal: component, rolled, applied, riderUsed };
+  }
+
+  const settle = () => vi.advanceTimersByTime(1000);
+
+  describe('crítico', () => {
+    it('20 natural: acerto crítico e os dados de dano dobram (o modificador não)', () => {
+      const random = vi.spyOn(Math, 'random').mockReturnValue(0.999);
+      const { modal } = create(sword);
+      modal.roll();
+      settle();
+      expect(modal.isCritical()).toBe(true);
+      modal.rollDamageNow();
+      expect(modal.diceCount).toBe(2);
+      settle();
+      expect(modal.result()!.total).toBe(8 + 8 + 3);
+      expect(modal.title).toBe('Dano: Espada Longa — CRÍTICO');
+      random.mockRestore();
+    });
+
+    it('sem 20 natural: dano normal', () => {
+      vi.spyOn(Math, 'random').mockReturnValue(0.5);
+      const { modal } = create(sword);
+      modal.roll();
+      settle();
+      expect(modal.isCritical()).toBe(false);
+      modal.rollDamageNow();
+      expect(modal.diceCount).toBe(1);
+    });
+  });
+
+  describe('magias que somam dano', () => {
+    const riders = {
+      oneShot: [
+        {
+          key: '119:1',
+          spellName: 'Destruição Colérica',
+          slotKey: 'level_1',
+          levelLabel: '1º círculo',
+          dice: { count: 1, sides: 6 },
+          damageType: 'psíquico',
+          saveNote: 'CD 13 de Sabedoria',
+          save: { save_dc: 13, save_ability: 'WIS' as const },
+        },
+      ],
+      persistent: [
+        {
+          key: '213',
+          spellName: 'Marca do Caçador',
+          dice: { count: 1, sides: 6 },
+          damageType: 'da arma',
+        },
+      ],
+    };
+    const withRiders: AbilityRollConfig = { ...sword, damage: { ...sword.damage!, riders } };
+
+    it('pergunta antes do dano; Destruição gasta o espaço e soma os dados, contínua só soma', () => {
+      const { modal, riderUsed } = create(withRiders);
+      modal.roll();
+      settle();
+      modal.rollDamageNow();
+      expect(modal.isChoosingSmite).toBe(true);
+      expect(modal.title).toBe('Somar ao dano');
+
+      modal.selectRider(riders.oneShot[0]);
+      modal.toggleRider('213');
+      modal.confirmSmiteChoice();
+      expect(riderUsed).toHaveBeenCalledWith(riders.oneShot[0]);
+      expect(modal.diceCount).toBe(3); // 1d8 + 1d6 + 1d6
+      expect(modal.title).toBe('Dano: Espada Longa + Destruição Colérica + Marca do Caçador');
+      settle();
+      expect(modal.riderSaveLine).toBe('Destruição Colérica: CD 13 de Sabedoria');
+    });
+
+    it('não usar nada rola só a arma', () => {
+      const { modal, riderUsed } = create(withRiders);
+      modal.roll();
+      settle();
+      modal.rollDamageNow();
+      modal.confirmSmiteChoice();
+      expect(riderUsed).not.toHaveBeenCalled();
+      expect(modal.diceCount).toBe(1);
+    });
+
+    it('vários raios: a Destruição vale só no primeiro, a contínua continua marcada', () => {
+      const { modal } = create({ ...withRiders, instances: { count: 2, label: 'raio' } });
+      modal.roll();
+      settle();
+      modal.rollDamageNow();
+      modal.selectRider(riders.oneShot[0]);
+      modal.toggleRider('213');
+      modal.confirmSmiteChoice();
+      settle();
+      modal.nextInstance();
+      expect(modal.selectedRider()).toBeNull();
+      expect(modal.isToggleActive('213')).toBe(true);
+    });
+  });
+
+  describe('aplicar no alvo (opcional)', () => {
+    const targets = [
+      { key: 'monster:m1', label: 'Goblin', allowsTempHp: false },
+      { key: 'player:p1', label: 'Aragorn', allowsTempHp: true },
+    ];
+    const fireball: AbilityRollConfig = {
+      mode: 'ability',
+      rollType: 'attack',
+      label: 'Magia: Bola de Fogo',
+      modifier: 0,
+      autoHit: true,
+      save: { note: 'CD 14 de Destreza', onSuccess: 'half' },
+      damage: { diceCount: 8, diceSides: 6, modifier: 0, label: 'Dano: Bola de Fogo' },
+    };
+
+    it('sem alvos: encerra sozinho como antes', () => {
+      const { modal, rolled } = create(fireball);
+      modal.roll();
+      settle();
+      expect(modal.canApply).toBe(false);
+      expect(rolled).toHaveBeenCalledTimes(1);
+    });
+
+    it('com alvos: espera o CONCLUIR e aplica inteiro ou metade em vários alvos', () => {
+      const { modal, rolled, applied } = create(fireball, targets);
+      modal.roll();
+      settle();
+      expect(rolled).not.toHaveBeenCalled();
+      expect(modal.awaitingApply()).toBe(true);
+      expect(modal.canApply).toBe(true);
+      expect(modal.applyKind).toBe('damage');
+
+      const total = modal.result()!.total;
+      modal.setApplyTarget({ target: { value: 'monster:m1' } } as unknown as Event);
+      modal.apply();
+      modal.setApplyTarget({ target: { value: 'player:p1' } } as unknown as Event);
+      modal.apply(true);
+      expect(applied.mock.calls.map(([req]) => req)).toEqual([
+        { targetKey: 'monster:m1', amount: total, kind: 'damage' },
+        { targetKey: 'player:p1', amount: Math.floor(total / 2), kind: 'damage' },
+      ]);
+      expect(modal.applied()).toHaveLength(2);
+
+      modal.finishApply();
+      expect(rolled).toHaveBeenCalledTimes(1);
+    });
+
+    it('sem alvo escolhido não aplica', () => {
+      const { modal, applied } = create(fireball, targets);
+      modal.roll();
+      settle();
+      modal.apply();
+      expect(applied).not.toHaveBeenCalled();
+    });
+
+    it('PV temporários: só alvos que aceitam', () => {
+      const { modal } = create(
+        {
+          mode: 'ability',
+          rollType: 'attack',
+          label: 'Magia: Vitalidade Falsa',
+          modifier: 0,
+          autoHit: true,
+          healing: { tempHp: true },
+          damage: {
+            diceCount: 1,
+            diceSides: 4,
+            modifier: 4,
+            label: 'PV temporários: Vitalidade Falsa',
+          },
+        },
+        targets,
+      );
+      expect(modal.applyKind).toBe('temp_hp');
+      expect(modal.applicableTargets.map((t) => t.key)).toEqual(['player:p1']);
+    });
+
+    it('ataque que errou não oferece aplicar', () => {
+      vi.spyOn(Math, 'random').mockReturnValue(0.1);
+      const { modal, rolled } = create(sword, targets);
+      modal.roll();
+      settle();
+      expect(modal.canApply).toBe(false);
+      modal.confirmMiss();
+      expect(rolled).toHaveBeenCalledTimes(1);
+    });
+  });
+});

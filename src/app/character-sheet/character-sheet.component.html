@@ -993,7 +993,9 @@
               <p class="spell-no-slots">Em combate não é possível preparar magias.</p>
             }
           }
-          @if (isCastable(selectedSpell)) {
+          @if (isOnHitSpell(selectedSpell) && isCastable(selectedSpell)) {
+            <p class="spell-no-slots">Use na sessão, ao acertar um ataque com arma.</p>
+          } @else if (isCastable(selectedSpell)) {
             <div class="spell-cast-section">
               @if (selectedSpell.spellLevel === 0) {
                 <button class="retro-btn spell-slot-btn"

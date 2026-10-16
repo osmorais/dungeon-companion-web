@@ -1,5 +1,5 @@
 import { Spell, SpellRoll } from '../models/character-options.interface';
-import { AbilityRollConfig } from './roll-modal.component';
+import type { AbilityRollConfig } from './roll-modal.component';
 
 const SAVE_ABILITY_NAME: Record<NonNullable<SpellRoll['save_ability']>, string> = {
   STR: 'Força',
