@@ -1743,20 +1743,6 @@
   object-fit: cover;
 }
 
-@keyframes roll-toast-pop {
-  0% {
-    opacity: 0;
-    transform: scale(0.6) translateY(20px);
-  }
-  60% {
-    opacity: 1;
-    transform: scale(1.05) translateY(0);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
 
 .roll-toast-actor {
   font-size: 14px;
@@ -1838,7 +1824,7 @@
   min-width: 320px;
   max-width: 92vw;
   text-align: center;
-  animation: roll-toast-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: modal-blast-in 0.5s steps(10) both;
 }
 
 .spell-cast-panel--has-bg {
@@ -1960,7 +1946,7 @@
   width: 92vw;
   max-width: 420px;
   text-align: center;
-  animation: roll-toast-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: modal-blast-in 0.5s steps(10) both;
 }
 
 .level-up-eligible-avatar {

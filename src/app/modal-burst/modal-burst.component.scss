@@ -7,7 +7,9 @@ $variants: (
   // claro, médio, escuro
   roll: (#fff3b0, #ffaa00, #a32c17),
   reveal: (#ffb08a, #d4381f, #3a0a0a),
-  defeat: (#ffffff, #b8b8b8, #4a4a4a)
+  defeat: (#ffffff, #b8b8b8, #4a4a4a),
+  spell: (#f0e6ff, #a07bff, #3b1a78),
+  levelup: (#fff7b0, #7be05a, #2e6b1f)
 );
 
 @each $name, $c in $variants {
@@ -149,6 +151,40 @@ $variants: (
     opacity: 0;
     transform: translateY(-60vh);
   }
+}
+
+// Magia: partículas viram losangos (runas) e o anel externo gira ao contrário.
+.modal-burst--spell .modal-burst__particle {
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  box-shadow: none;
+  background: var(--light);
+}
+
+.modal-burst--spell .modal-burst__ring--outer {
+  animation-name: burst-ring-spin;
+}
+
+@keyframes burst-ring-spin {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(45deg) scale(0.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(-135deg) scale(3.5);
+  }
+}
+
+// Subir de nível: as "brasas" viram estrelas (cruz de pixels) douradas.
+.modal-burst--levelup .modal-burst__ember {
+  width: 6px;
+  height: 6px;
+  background: var(--light);
+  box-shadow:
+    6px 0 0 var(--light),
+    -6px 0 0 var(--light),
+    0 6px 0 var(--light),
+    0 -6px 0 var(--light);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -2,7 +2,7 @@
   <div class="modal-burst modal-burst--{{ variant }}" aria-hidden="true">
     <span class="modal-burst__flash"></span>
     <span class="modal-burst__ring"></span>
-    @if (variant === 'reveal') {
+    @if (variant === 'reveal' || variant === 'spell') {
       <span class="modal-burst__ring modal-burst__ring--outer"></span>
     }
     @for (p of particles(); track $index) {
@@ -15,7 +15,7 @@
         [style.animation-delay]="p.delay + 'ms'"
       ></span>
     }
-    @if (variant === 'reveal') {
+    @if (variant === 'reveal' || variant === 'levelup') {
       @for (e of embers(); track $index) {
         <span
           class="modal-burst__ember"

@@ -37,6 +37,20 @@ describe('ModalBurstComponent', () => {
     expect(el.querySelectorAll('.modal-burst__ember').length).toBe(0);
   });
 
+  it('magia lançada: estouro arcano com anel duplo, sem brasas', () => {
+    const el: HTMLElement = render('spell').nativeElement;
+    expect(el.querySelector('.modal-burst')!.classList).toContain('modal-burst--spell');
+    expect(el.querySelectorAll('.modal-burst__ring').length).toBe(2);
+    expect(el.querySelectorAll('.modal-burst__ember').length).toBe(0);
+  });
+
+  it('subir de nível: estrelas subindo', () => {
+    const el: HTMLElement = render('levelup').nativeElement;
+    expect(el.querySelector('.modal-burst')!.classList).toContain('modal-burst--levelup');
+    expect(el.querySelectorAll('.modal-burst__ember').length).toBeGreaterThan(0);
+    expect(el.querySelectorAll('.modal-burst__ring').length).toBe(1);
+  });
+
   it('com "efeitos de tela" desligado não desenha nada', () => {
     TestBed.inject(DamageImpactService).toggleEnabled();
     const el: HTMLElement = render('roll').nativeElement;

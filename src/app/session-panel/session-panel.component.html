@@ -1168,6 +1168,7 @@
   <div class="overlay spell-cast-overlay" (click)="closeSpellCastToast()">
     <!-- @for com track (key) força recriar o painel — mesmo motivo dos outros toasts acima. -->
     @for (c of [cast]; track c.key) {
+      <app-modal-burst variant="spell" />
       <div class="retro-panel spell-cast-panel"
         [class.spell-cast-panel--has-bg]="imageUrlForCharacter(c.idCharacter)"
         [style.background-image]="imageUrlForCharacter(c.idCharacter) ? ('linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(' + imageUrlForCharacter(c.idCharacter) + ')') : null"
@@ -1194,6 +1195,7 @@
 @if (activeLevelUpEligibleToast(); as leveled) {
   <div class="overlay level-up-eligible-overlay" (click)="closeLevelUpEligibleToast()">
     @for (l of [leveled]; track l.key) {
+      <app-modal-burst variant="levelup" />
       <div class="retro-panel level-up-eligible-panel" (click)="$event.stopPropagation()">
         <button class="modal-close-btn" (click)="closeLevelUpEligibleToast()">✕</button>
         <div class="level-up-eligible-avatar">

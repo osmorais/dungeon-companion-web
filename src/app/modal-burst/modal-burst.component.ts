@@ -1,14 +1,16 @@
 import { Component, Input, inject } from '@angular/core';
 import { DamageImpactService } from '../services/damage-impact.service';
 
-export type ModalBurstVariant = 'roll' | 'reveal' | 'defeat';
+export type ModalBurstVariant = 'roll' | 'reveal' | 'defeat' | 'spell' | 'levelup';
 
 /**
  * Explosão em pixel art atrás de um modal da sessão, no instante em que ele aparece (só CSS, não
  * bloqueia cliques). Fica dentro do overlay, antes do painel — o painel é desenhado por cima.
  * - `roll`: estouro dourado (toast de rolagem);
  * - `reveal`: explosão vermelho-escura com onda de choque e brasas subindo (monstro revelado);
- * - `defeat`: estilhaços cinza que caem (monstro derrotado).
+ * - `defeat`: estilhaços cinza que caem (monstro derrotado);
+ * - `spell`: estouro violeta arcano com runas (losangos) girando (magia lançada);
+ * - `levelup`: verde e dourado, com estrelas subindo (personagem pode subir de nível).
  * Some com o "efeitos de tela" desligado e com "reduzir movimento" no sistema.
  */
 @Component({
@@ -33,7 +35,7 @@ export class ModalBurstComponent {
     }));
   }
 
-  /** Brasas (revelação) subindo de pontos espalhados. */
+  /** Brasas (revelação) / estrelas (subir de nível) subindo de pontos espalhados. */
   protected embers(): { left: number; delay: number }[] {
     return [18, 30, 44, 57, 70, 83].map((left, i) => ({ left, delay: 200 + i * 90 }));
   }
