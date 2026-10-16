@@ -60,6 +60,26 @@
                 </select>
               </label>
             }
+            @if (abilityBonusChoice) {
+              <div class="ability-bonus-choice">
+                <span class="ability-bonus-title">
+                  AUMENTO DE ATRIBUTO: +{{ abilityBonusChoice.amount }} EM {{ abilityBonusChoice.count }} À ESCOLHA
+                </span>
+                <div class="ability-bonus-options">
+                  @for (opt of abilityBonusOptions; track opt.key) {
+                    <button
+                      type="button"
+                      class="ability-bonus-btn"
+                      [class.selected]="isAbilityBonusSelected(opt.key)"
+                      [disabled]="isAbilityBonusDisabled(opt.key)"
+                      (click)="toggleAbilityBonus(opt.key)"
+                    >
+                      {{ opt.label }}
+                    </button>
+                  }
+                </div>
+              </div>
+            }
             @if (availableSubraces.length > 0) {
               <label>SUB-RAÇA
                 <select [(ngModel)]="characterData.core_build.subrace" (ngModelChange)="onSubraceChange()">
@@ -113,7 +133,7 @@
             }
             @if (availableLevel1Subclasses.length > 0) {
               <label>SUBCLASSE
-                <select [(ngModel)]="characterData.core_build.id_subclass">
+                <select [(ngModel)]="characterData.core_build.id_subclass" (ngModelChange)="onSubclassChange()">
                   <option value="">Selecione...</option>
                   @for (sub of availableLevel1Subclasses; track sub.id_subclass) {
                     <option [value]="sub.id_subclass">{{ sub.displayName }}</option>
@@ -626,6 +646,26 @@
                 </select>
               </label>
             }
+            @if (abilityBonusChoice) {
+              <div class="ability-bonus-choice">
+                <span class="ability-bonus-title">
+                  AUMENTO DE ATRIBUTO: +{{ abilityBonusChoice.amount }} EM {{ abilityBonusChoice.count }} À ESCOLHA
+                </span>
+                <div class="ability-bonus-options">
+                  @for (opt of abilityBonusOptions; track opt.key) {
+                    <button
+                      type="button"
+                      class="ability-bonus-btn"
+                      [class.selected]="isAbilityBonusSelected(opt.key)"
+                      [disabled]="isAbilityBonusDisabled(opt.key)"
+                      (click)="toggleAbilityBonus(opt.key)"
+                    >
+                      {{ opt.label }}
+                    </button>
+                  }
+                </div>
+              </div>
+            }
             @if (availableSubraces.length > 0) {
               <label>SUB-RAÇA
                 <select [(ngModel)]="characterData.core_build.subrace" (ngModelChange)="onSubraceChange()">
@@ -679,7 +719,7 @@
             }
             @if (availableLevel1Subclasses.length > 0) {
               <label>SUBCLASSE
-                <select [(ngModel)]="characterData.core_build.id_subclass">
+                <select [(ngModel)]="characterData.core_build.id_subclass" (ngModelChange)="onSubclassChange()">
                   <option value="">Selecione...</option>
                   @for (sub of availableLevel1Subclasses; track sub.id_subclass) {
                     <option [value]="sub.id_subclass">{{ sub.displayName }}</option>

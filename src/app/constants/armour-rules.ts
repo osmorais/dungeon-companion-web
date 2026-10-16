@@ -46,3 +46,12 @@ export const CLASS_ARMOUR_RULES: Record<number, ClassArmourRule> = {
   // Patrulheiro: leve, média, escudo
   12: { types: ['Armadura Leve', 'Armadura Média'], shield: true },
 };
+
+// Proficiências extras de armadura vindas da sub-raça e do domínio do Clérigo (escolhido no nível
+// 1) — espelho de `armorProficiency` em `creation-rules.ts` da API.
+export const SUBRACE_ARMOUR_TYPES: Record<string, string[]> = {
+  'anao-da-montanha': ['Armadura Leve', 'Armadura Média'],
+};
+
+/** Domínios com "Proficiência Adicional: armaduras pesadas" no nível 1. */
+export const SUBCLASS_HEAVY_ARMOUR: ReadonlySet<string> = new Set(['guerra', 'natureza', 'tempestade', 'vida']);

@@ -6,8 +6,8 @@ import {
   getSpellLimits,
   getWizardSpellbookSize,
 } from './spell-rules';
-import { CLASS_ARMOUR_RULES } from './armour-rules';
-import { CLASS_SKILL_RULES, RACE_SKILL_RULES } from './skill-rules';
+import { CLASS_ARMOUR_RULES, SUBCLASS_HEAVY_ARMOUR, SUBRACE_ARMOUR_TYPES } from './armour-rules';
+import { CLASS_SKILL_RULES, RACE_ABILITY_BONUS_CHOICE, RACE_SKILL_RULES } from './skill-rules';
 import { RACE_FREE_CANTRIP, SUBRACE_FREE_CANTRIP } from './racial-cantrips';
 import { LEVEL1_SUBCLASS_OPTIONS } from './level1-subclass-options';
 
@@ -143,5 +143,37 @@ describe('level1-subclass-options', () => {
         expect(option.features.every((f) => f.name && f.description)).toBe(true);
       }
     }
+  });
+});
+
+describe('regras de criação conferidas também na API (creation-rules.ts)', () => {
+  it('Meio-Elfo: +1 em 2 atributos, menos Carisma', () => {
+    expect(RACE_ABILITY_BONUS_CHOICE).toEqual({ 6: { count: 2, amount: 1, exclude: ['CHA'] } });
+  });
+
+  it('armadura extra: Anão da Montanha (leve/média) e domínios com pesada', () => {
+    expect(SUBRACE_ARMOUR_TYPES).toEqual({
+      'anao-da-montanha': ['Armadura Leve', 'Armadura Média'],
+    });
+    expect([...SUBCLASS_HEAVY_ARMOUR].sort()).toEqual(['guerra', 'natureza', 'tempestade', 'vida']);
+  });
+
+  it('cota de perícias por classe igual à da API', () => {
+    expect(Object.fromEntries(CLASS_IDS.map((id) => [id, CLASS_SKILL_RULES[id].choices]))).toEqual({
+      1: 2,
+      2: 3,
+      3: 2,
+      4: 2,
+      5: 2,
+      6: 2,
+      7: 2,
+      8: 4,
+      9: 2,
+      10: 2,
+      11: 2,
+      12: 3,
+    });
+    expect(RACE_SKILL_RULES[6].extraChoices).toBe(2);
+    expect(RACE_SKILL_RULES[7].granted).toEqual([17]); // Meio-Orc: Intimidação (Ameaçador)
   });
 });

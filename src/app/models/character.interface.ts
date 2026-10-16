@@ -34,6 +34,8 @@ export interface CharacterSheetData {
     tool_proficiency?: string;
     /** Só relevante se a classe tiver `fighting_style_options` (hoje só o Guerreiro). */
     fighting_style?: string;
+    /** Meio-Elfo: dois atributos diferentes (chaves em inglês, menos CHA) que ganham +1. */
+    ability_bonus_choices?: string[];
   };
   equipment: {
     armour: Armour | null;

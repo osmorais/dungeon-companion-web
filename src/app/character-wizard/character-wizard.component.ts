@@ -16,7 +16,7 @@ import {
   RACE_NAME_TO_AVATAR,
   CLASS_NAME_TO_AVATAR,
 } from '../models/avatar-preset.interface';
-import { CLASS_SKILL_RULES, RACE_SKILL_RULES } from '../constants/skill-rules';
+import { CLASS_SKILL_RULES, RACE_ABILITY_BONUS_CHOICE, RACE_SKILL_RULES } from '../constants/skill-rules';
 import {
   CLASS_SPELLS,
   getKnownSpellCount,
@@ -27,7 +27,7 @@ import {
   SpellLimits,
   WIZARD_CLASS_ID,
 } from '../constants/spell-rules';
-import { CLASS_ARMOUR_RULES } from '../constants/armour-rules';
+import { CLASS_ARMOUR_RULES, SUBCLASS_HEAVY_ARMOUR, SUBRACE_ARMOUR_TYPES } from '../constants/armour-rules';
 import { LEVEL1_SUBCLASS_OPTIONS, Level1SubclassOption } from '../constants/level1-subclass-options';
 import { RACE_FREE_CANTRIP, SUBRACE_FREE_CANTRIP, RacialCantripGrant } from '../constants/racial-cantrips';
 import { PixelDieComponent } from '../pixel-die/pixel-die.component';
@@ -315,6 +315,8 @@ export class CharacterWizardComponent implements OnInit {
           (this.availableSubraces.length === 0 || !!this.characterData.core_build.subrace) &&
           (this.availableLevel1Subclasses.length === 0 || !!this.characterData.core_build.id_subclass) &&
           (this.toolProficiencyOptions.length === 0 || !!this.characterData.choices.tool_proficiency) &&
+          (!this.abilityBonusChoice ||
+            (this.characterData.choices.ability_bonus_choices ?? []).length === this.abilityBonusChoice.count) &&
           (this.fightingStyleOptions.length === 0 || !!this.characterData.choices.fighting_style) &&
           (this.racialCantripOptions.length === 0 || this.selectedRacialCantripId !== null)
         );
@@ -424,6 +426,7 @@ export class CharacterWizardComponent implements OnInit {
     this.characterData.core_build.race = race?.name ?? '';
     this.characterData.core_build.subrace = this.availableSubraces.length > 0 ? '' : undefined;
     this.characterData.choices.tool_proficiency = undefined;
+    this.characterData.choices.ability_bonus_choices = this.abilityBonusChoice ? [] : undefined;
     this.resetAllChoices();
     this.applyRacialCantripGrant();
 
@@ -436,6 +439,50 @@ export class CharacterWizardComponent implements OnInit {
   /** Sub-raça não muda a classe nem as escolhas de magia/perícia já feitas — só troca o truque racial. */
   onSubraceChange(): void {
     this.applyRacialCantripGrant();
+    this.resetArmourChoices();
+  }
+
+  /** Domínio do Clérigo pode dar armadura pesada — tira a armadura escolhida se deixou de ser permitida. */
+  onSubclassChange(): void {
+    this.resetArmourChoices();
+  }
+
+  /** ========================= AUMENTO DE ATRIBUTO DA RAÇA (MEIO-ELFO) ========================= */
+
+  readonly abilityBonusLabels: { key: string; label: string }[] = [
+    { key: 'STR', label: 'FOR' },
+    { key: 'DEX', label: 'DES' },
+    { key: 'CON', label: 'CON' },
+    { key: 'INT', label: 'INT' },
+    { key: 'WIS', label: 'SAB' },
+    { key: 'CHA', label: 'CAR' },
+  ];
+
+  get abilityBonusChoice(): { count: number; amount: number; exclude: string[] } | null {
+    return RACE_ABILITY_BONUS_CHOICE[+this.characterData.core_build.id_race] ?? null;
+  }
+
+  get abilityBonusOptions(): { key: string; label: string }[] {
+    const exclude = this.abilityBonusChoice?.exclude ?? [];
+    return this.abilityBonusLabels.filter(o => !exclude.includes(o.key));
+  }
+
+  isAbilityBonusSelected(key: string): boolean {
+    return (this.characterData.choices.ability_bonus_choices ?? []).includes(key);
+  }
+
+  isAbilityBonusDisabled(key: string): boolean {
+    const chosen = this.characterData.choices.ability_bonus_choices ?? [];
+    return !chosen.includes(key) && chosen.length >= (this.abilityBonusChoice?.count ?? 0);
+  }
+
+  toggleAbilityBonus(key: string): void {
+    const chosen = this.characterData.choices.ability_bonus_choices ?? [];
+    if (chosen.includes(key)) {
+      this.characterData.choices.ability_bonus_choices = chosen.filter(k => k !== key);
+    } else if (!this.isAbilityBonusDisabled(key)) {
+      this.characterData.choices.ability_bonus_choices = [...chosen, key];
+    }
   }
 
   private resetAllChoices(): void {
@@ -623,7 +670,20 @@ export class CharacterWizardComponent implements OnInit {
     if (this.isSkillGranted(skill)) return true;
     if (!this.isSkillChoosable(skill)) return true;
     if (!this.isSkillSelected(skill) && this.selectedChoicesCount >= this.maxSkillChoices) return true;
+    if (!this.isSkillSelected(skill) && this.exceedsRaceExtraChoices(skill)) return true;
     return false;
+  }
+
+  /** Perícia fora da lista da classe só cabe nas escolhas livres da raça (Meio-Elfo: 2). */
+  private exceedsRaceExtraChoices(skill: Skill): boolean {
+    const classFrom = CLASS_SKILL_RULES[+this.characterData.core_build.id_class]?.from ?? [];
+    if (classFrom.length === 0 || classFrom.includes(skill.id_skill)) return false;
+    const raceExtra = RACE_SKILL_RULES[+this.characterData.core_build.id_race]?.extraChoices ?? 0;
+    const grantedIds = this.grantedSkillIds;
+    const outside = this.characterData.choices.skills.filter(
+      s => !grantedIds.has(s.id_skill) && !classFrom.includes(s.id_skill),
+    ).length;
+    return outside >= raceExtra;
   }
 
   toggleSkill(skill: Skill, event: Event): void {
@@ -635,7 +695,7 @@ export class CharacterWizardComponent implements OnInit {
     }
 
     if (isChecked) {
-      if (this.selectedChoicesCount >= this.maxSkillChoices) {
+      if (this.selectedChoicesCount >= this.maxSkillChoices || this.exceedsRaceExtraChoices(skill)) {
         (event.target as HTMLInputElement).checked = false;
         return;
       }
@@ -1199,7 +1259,10 @@ export class CharacterWizardComponent implements OnInit {
 
   get allowedArmourTypes(): Set<string> {
     const rule = CLASS_ARMOUR_RULES[+this.characterData.core_build.id_class];
-    return new Set(rule?.types ?? []);
+    const types = new Set(rule?.types ?? []);
+    for (const t of SUBRACE_ARMOUR_TYPES[this.characterData.core_build.subrace ?? ''] ?? []) types.add(t);
+    if (SUBCLASS_HEAVY_ARMOUR.has(this.characterData.core_build.id_subclass ?? '')) types.add('Armadura Pesada');
+    return types;
   }
 
   get shieldAllowed(): boolean {

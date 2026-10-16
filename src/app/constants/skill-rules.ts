@@ -66,3 +66,12 @@ export const RACE_SKILL_RULES: Record<number, RaceSkillRule> = {
   // id_race 7 — Meio-Orc: ganha Intimidação automaticamente
   7: { granted: [17] },
 };
+
+/** Aumento de atributo à escolha da raça (Meio-Elfo: +1 em dois atributos diferentes, menos Carisma).
+ *  Espelho de `RACE_ABILITY_BONUS_CHOICE` em `creation-rules.ts` da API (chaves em inglês). */
+export const RACE_ABILITY_BONUS_CHOICE: Record<
+  number,
+  { count: number; amount: number; exclude: string[] }
+> = {
+  6: { count: 2, amount: 1, exclude: ['CHA'] },
+};
