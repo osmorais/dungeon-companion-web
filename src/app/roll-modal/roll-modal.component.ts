@@ -29,13 +29,17 @@ export interface AbilityRollConfig {
     diceSides: number;
     modifier: number;
     label: string;
+    /** Cura Suprema: usa o valor máximo de cada dado em vez de rolar. */
+    maximize?: boolean;
     /** Grupos de dados a mais que entram junto no dano (Tempestade de Gelo: 2d8 + 4d6). */
     extraDice?: { count: number; sides: number }[];
     /** Só ataque corpo a corpo de Paladino nv2+ com espaço de magia disponível: antes de rolar
      *  o dano, o modal pergunta se quer gastar um espaço em Destruição Divina. */
     smite?: SmiteOption[];
   };
-  /** Acerto automático (Mísseis Mágicos) e magias de resistência: pula o d20 e já abre no dano. */
+  /** Magia de cura: a rolagem "de dano" é cura (vai pro log como `heal`, sem impacto em tela). */
+  healing?: { tempHp: boolean };
+  /** Acerto automático (Mísseis Mágicos), resistência e cura: pula o d20 e já abre no dano. */
   autoHit?: boolean;
   /** Magia de resistência: a CD/atributo que os alvos rolam (ex.: "CD 14 de Destreza") e o dano
    *  de quem passa — o modal mostra os dois valores e o mestre aplica em cada alvo. */
@@ -397,8 +401,13 @@ export class RollModalComponent implements OnInit {
     return this.dieOptions.flatMap((sides) => Array(pool[sides] ?? 0).fill(sides));
   }
 
+  private get isHealing(): boolean {
+    return this.config.mode === 'ability' && !!this.config.healing;
+  }
+
   private finishRoll(sidesList: number[]) {
-    const rolls = sidesList.map((s) => this.rollDie(s));
+    const maximize = this.attackPhase() === 'damage' && !!this.pendingDamage?.maximize;
+    const rolls = sidesList.map((s) => (maximize ? s : this.rollDie(s)));
     this.displayValues.set(rolls);
 
     let chosen: number[];
@@ -421,7 +430,7 @@ export class RollModalComponent implements OnInit {
 
     // Impacto de dano em tela cheia — só dentro da sessão (a ficha isolada não tem sessionId).
     // Quem rola não recebe o toast da própria rolagem; os outros disparam pelo toast (session-panel).
-    if (this.attackPhase() === 'damage' && this.sessionId) {
+    if (this.attackPhase() === 'damage' && this.sessionId && !this.isHealing) {
       this.damageImpact.trigger({
         dice_notation: this.diceNotationFor(sidesList),
         modifier: this.modifier,
@@ -461,7 +470,9 @@ export class RollModalComponent implements OnInit {
 
     const rollType: RollType =
       this.attackPhase() === 'damage'
-        ? 'damage'
+        ? this.isHealing
+          ? 'heal'
+          : 'damage'
         : this.config.mode === 'ability'
           ? this.config.rollType
           : 'dice';

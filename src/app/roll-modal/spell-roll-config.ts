@@ -32,6 +32,7 @@ export function spellSaveInfo(
  *   raios/feixes, o modal repete o ataque pra cada um.
  * - Acerto automático (Mísseis Mágicos): rola o dano de todos os dardos de uma vez, cada dado
  *   aparece separado pra o jogador distribuir entre os alvos.
+ * - Cura: abre direto na rolagem de cura (dado + modificador), registrada como `heal` no log.
  * - Resistência: sem d20 do conjurador — abre direto no dano, com a CD/atributo e o dano de quem
  *   passa na resistência. Resistência sem dano não abre modal (só a CD no anúncio).
  */
@@ -43,6 +44,25 @@ export function spellRollConfig(spell: Spell, slotLevel: number): AbilityRollCon
 
   const name = roll.variant ? `${spell.name} (${roll.variant})` : spell.name;
   const damageLabel = `Dano: ${name} (${roll.damage_type})`;
+
+  if (roll.kind === 'heal') {
+    const tempHp = roll.heal === 'temp_hp';
+    return {
+      mode: 'ability',
+      rollType: 'attack',
+      label: `Magia: ${name}`,
+      modifier: 0,
+      autoHit: true,
+      healing: { tempHp },
+      damage: {
+        diceCount: entry.dice_count,
+        diceSides: entry.dice_sides,
+        modifier: entry.modifier,
+        label: tempHp ? `PV temporários: ${name}` : `Cura: ${name}`,
+        maximize: roll.maximize || undefined,
+      },
+    };
+  }
 
   if (roll.kind === 'save') {
     if (roll.save_dc === null || !roll.save_ability || !roll.save_on_success) return null;

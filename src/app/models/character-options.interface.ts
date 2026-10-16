@@ -117,7 +117,7 @@ export interface Spell {
 
 /** Espelho de `SpellRoll` da API. */
 export interface SpellRoll {
-  kind: 'attack' | 'auto' | 'save';
+  kind: 'attack' | 'auto' | 'save' | 'heal';
   attack_type: 'melee' | 'ranged' | null;
   attack_bonus: number | null;
   /** `null` em magia de resistência sem dano. */
@@ -127,6 +127,10 @@ export interface SpellRoll {
   save_dc: number | null;
   /** Dano quando o alvo passa: metade, nenhum ou total (`null` sem dano). */
   save_on_success: 'half' | 'none' | 'full' | null;
+  /** Só `kind: 'heal'`: cura PV ou dá PV temporários. */
+  heal: 'hp' | 'temp_hp' | null;
+  /** Cura Suprema (Clérigo da Vida nv17): valor máximo dos dados em vez de rolar. */
+  maximize: boolean;
   /** Nome de cada rolagem quando há mais de uma (raio, feixe, dardo). */
   instance_label: string | null;
   variant: string | null;

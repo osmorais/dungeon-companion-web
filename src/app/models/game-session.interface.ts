@@ -98,7 +98,15 @@ export interface RevealedMonster {
   image_url: string | null;
 }
 
-export type RollType = 'dice' | 'attack' | 'damage' | 'skill' | 'save' | 'spell' | 'initiative';
+export type RollType =
+  | 'dice'
+  | 'attack'
+  | 'damage'
+  | 'skill'
+  | 'save'
+  | 'spell'
+  | 'initiative'
+  | 'heal';
 export type AdvantageState = 'normal' | 'advantage' | 'disadvantage';
 
 export type CombatStatus = 'rolling_initiative' | 'active' | 'finished';

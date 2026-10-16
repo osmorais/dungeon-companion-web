@@ -251,3 +251,65 @@ describe('RollModalComponent — magias', () => {
     expect(modal.title).toBe('Magia: Raio Ardente');
   });
 });
+
+/** Magias de cura: rolagem registrada como `heal`, sem impacto de dano; Cura Suprema usa o máximo. */
+describe('RollModalComponent — cura', () => {
+  let postRoll: ReturnType<typeof vi.fn>;
+  let trigger: ReturnType<typeof vi.fn>;
+
+  const cure: AbilityRollConfig = {
+    mode: 'ability',
+    rollType: 'attack',
+    label: 'Magia: Curar Ferimentos',
+    modifier: 0,
+    autoHit: true,
+    healing: { tempHp: false },
+    damage: { diceCount: 2, diceSides: 8, modifier: 3, label: 'Cura: Curar Ferimentos' },
+  };
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    postRoll = vi.fn(() => of({}));
+    trigger = vi.fn();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: GameSessionService, useValue: { postRoll } },
+        { provide: DamageImpactService, useValue: { trigger } },
+      ],
+    });
+  });
+
+  afterEach(() => vi.useRealTimers());
+
+  function create(config: AbilityRollConfig) {
+    const component = TestBed.runInInjectionContext(() => new RollModalComponent());
+    component.config = config;
+    component.sessionId = 'gs';
+    component.ngOnInit();
+    return component;
+  }
+
+  const settle = () => vi.advanceTimersByTime(1000);
+
+  it('abre na cura, registra como heal e não dispara impacto de dano', () => {
+    const modal = create(cure);
+    expect(modal.title).toBe('Cura: Curar Ferimentos');
+    modal.roll();
+    settle();
+    expect(postRoll).toHaveBeenCalledTimes(1);
+    expect(postRoll.mock.calls[0][1]).toMatchObject({
+      roll_type: 'heal',
+      dice_notation: '2d8',
+      modifier: 3,
+    });
+    expect(trigger).not.toHaveBeenCalled();
+  });
+
+  it('Cura Suprema: todos os dados no valor máximo', () => {
+    const modal = create({ ...cure, damage: { ...cure.damage!, maximize: true } });
+    modal.roll();
+    settle();
+    expect(modal.result()!.rolls).toEqual([8, 8]);
+    expect(modal.result()!.total).toBe(19);
+  });
+});

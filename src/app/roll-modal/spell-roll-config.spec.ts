@@ -26,6 +26,8 @@ const attackRoll = (bySlot: SpellRoll['by_slot'], extra: Partial<SpellRoll> = {}
   save_ability: null,
   save_dc: null,
   save_on_success: null,
+  heal: null,
+  maximize: false,
   instance_label: null,
   variant: null,
   by_slot: bySlot,
@@ -80,6 +82,8 @@ describe('spellRollConfig', () => {
       save_ability: null,
       save_dc: null,
       save_on_success: null,
+      heal: null,
+      maximize: false,
       instance_label: 'dardo',
       variant: null,
       by_slot: { '2': { instances: 4, dice_count: 1, dice_sides: 4, modifier: 1, extra_dice: [] } },
@@ -115,6 +119,8 @@ describe('spellRollConfig — resistência', () => {
     save_ability: 'DEX',
     save_dc: 14,
     save_on_success: 'half',
+    heal: null,
+    maximize: false,
     instance_label: null,
     variant: null,
     by_slot: {
@@ -166,6 +172,8 @@ describe('spellRollConfig — resistência', () => {
         save_ability: 'WIS',
         save_dc: 13,
         save_on_success: null,
+        heal: null,
+        maximize: false,
         by_slot: {},
       }),
     );
@@ -190,5 +198,51 @@ describe('spellRollConfig — resistência', () => {
   it('saveNote escreve o atributo por extenso', () => {
     expect(saveNote(15, 'CON')).toBe('CD 15 de Constituição');
     expect(saveNote(12, 'WIS')).toBe('CD 12 de Sabedoria');
+  });
+});
+
+describe('spellRollConfig — cura', () => {
+  const healRoll = (extra: Partial<SpellRoll> = {}): SpellRoll => ({
+    kind: 'heal',
+    attack_type: null,
+    attack_bonus: null,
+    damage_type: null,
+    save_ability: null,
+    save_dc: null,
+    save_on_success: null,
+    heal: 'hp',
+    maximize: false,
+    instance_label: null,
+    variant: null,
+    by_slot: {
+      '1': { instances: 1, dice_count: 1, dice_sides: 8, modifier: 3, extra_dice: [] },
+      '2': { instances: 1, dice_count: 2, dice_sides: 8, modifier: 3, extra_dice: [] },
+    },
+    ...extra,
+  });
+
+  it('abre direto na cura do círculo escolhido', () => {
+    expect(spellRollConfig(spell(1, healRoll(), 'Curar Ferimentos'), 2)).toEqual({
+      mode: 'ability',
+      rollType: 'attack',
+      label: 'Magia: Curar Ferimentos',
+      modifier: 0,
+      autoHit: true,
+      healing: { tempHp: false },
+      damage: {
+        diceCount: 2,
+        diceSides: 8,
+        modifier: 3,
+        label: 'Cura: Curar Ferimentos',
+        maximize: undefined,
+      },
+    });
+  });
+
+  it('PV temporários e Cura Suprema', () => {
+    const temp = spellRollConfig(spell(1, healRoll({ heal: 'temp_hp' }), 'Vitalidade Falsa'), 1)!;
+    expect(temp.healing).toEqual({ tempHp: true });
+    expect(temp.damage!.label).toBe('PV temporários: Vitalidade Falsa');
+    expect(spellRollConfig(spell(1, healRoll({ maximize: true })), 1)!.damage!.maximize).toBe(true);
   });
 });
