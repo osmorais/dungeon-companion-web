@@ -532,14 +532,18 @@
         <fieldset class="mobile-wizard-panel">
           <legend>ARMAS</legend>
           <p class="mobile-panel-subtitle">SELECIONE AS ARMAS</p>
+          @if (kitWeaponNames.length > 0) {
+            <p class="kit-weapons-hint">Do equipamento inicial (já vêm na ficha): {{ kitWeaponNames.join(', ') }}</p>
+          }
           <div class="mobile-checklist">
             @for (weapon of pagedWeapons; track weapon.name) {
               <label class="mobile-check-row">
                 <input type="checkbox" class="retro-checkbox"
                        [checked]="isWeaponSelected(weapon)"
+                       [disabled]="isKitWeapon(weapon)"
                        (change)="toggleArrayItem('weapons', weapon, $event)">
                 <span class="mobile-item-info">
-                  <span>{{ weapon.name }}</span>
+                  <span>{{ weapon.name }}@if (isKitWeapon(weapon)) { <span class="kit-tag">KIT</span> }</span>
                   <span class="item-hint details-link" (click)="openWeaponModal(weapon); $event.stopPropagation(); $event.preventDefault()">Detalhes</span>
                 </span>
               </label>
@@ -1114,14 +1118,18 @@
         <fieldset class="retro-panel">
           <legend>ARMAS</legend>
           <p class="panel-subtitle">SELECIONE AS ARMAS</p>
+          @if (kitWeaponNames.length > 0) {
+            <p class="kit-weapons-hint">Do equipamento inicial (já vêm na ficha): {{ kitWeaponNames.join(', ') }}</p>
+          }
           <div class="grid-2-col checkboxes">
             @for (weapon of pagedWeapons; track weapon.name) {
               <label>
                 <input type="checkbox" class="retro-checkbox"
                        [checked]="isWeaponSelected(weapon)"
+                       [disabled]="isKitWeapon(weapon)"
                        (change)="toggleArrayItem('weapons', weapon, $event)">
                 <span class="item-info">
-                  <span>{{ weapon.name }}</span>
+                  <span>{{ weapon.name }}@if (isKitWeapon(weapon)) { <span class="kit-tag">KIT</span> }</span>
                   <span class="item-hint details-link" (click)="openWeaponModal(weapon); $event.stopPropagation(); $event.preventDefault()">Detalhes</span>
                 </span>
               </label>

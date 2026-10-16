@@ -210,3 +210,38 @@ describe('CharacterWizardComponent — regras de criação', () => {
     expect(wizard.isSkillCheckboxDisabled(skills[1])).toBe(false); // Acrobacia
   });
 });
+
+describe('CharacterWizardComponent — armas do equipamento inicial', () => {
+  it('armas do kit da classe e do antecedente aparecem marcadas e travadas', () => {
+    const kitOptions = {
+      ...options,
+      classes: [{ id_class: 1, name: 'Bárbaro', starting_weapons: ['Machado Grande', 'Azagaia'] }],
+      backgrounds: [
+        { ...background(7, 'Forasteiro', [1, 14]), starting_weapons: ['Bordão', 'Azagaia'] },
+      ],
+    } as unknown as CharacterOptions;
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([]),
+        { provide: CharacterService, useValue: { cachedOptions: () => kitOptions } },
+        {
+          provide: LoadingOverlayService,
+          useValue: { show: vi.fn(), hide: vi.fn(), visible: () => false },
+        },
+      ],
+    });
+    const wizard = TestBed.createComponent(CharacterWizardComponent).componentInstance;
+    wizard.ngOnInit();
+    wizard.characterData.core_build.id_class = 1;
+    wizard.characterData.core_build.id_background = 7;
+    expect(wizard.kitWeaponNames).toEqual(['Machado Grande', 'Azagaia', 'Bordão']);
+    const axe = { id_weapon: 138, name: 'Machado Grande' } as never;
+    const dagger = { id_weapon: 110, name: 'Adaga' } as never;
+    expect(wizard.isKitWeapon(axe)).toBe(true);
+    expect(wizard.isWeaponSelected(axe)).toBe(true);
+    expect(wizard.isKitWeapon(dagger)).toBe(false);
+    expect(wizard.isWeaponSelected(dagger)).toBe(false);
+    // não vai no payload: a API acrescenta as armas do kit sozinha
+    expect(wizard.characterData.equipment.weapons).toEqual([]);
+  });
+});

@@ -1297,7 +1297,22 @@ export class CharacterWizardComponent implements OnInit {
     else this.expandedArmourIds.add(idArmour);
   }
 
+  /** Armas do equipamento inicial da classe e do antecedente — a API põe na ficha sozinha. */
+  get kitWeaponNames(): string[] {
+    return [
+      ...new Set([
+        ...(this.selectedClass?.starting_weapons ?? []),
+        ...(this.selectedBackground?.starting_weapons ?? []),
+      ]),
+    ];
+  }
+
+  isKitWeapon(weapon: WeaponRow): boolean {
+    return this.kitWeaponNames.includes(weapon.name);
+  }
+
   isWeaponSelected(weapon: WeaponRow): boolean {
+    if (this.isKitWeapon(weapon)) return true;
     return this.characterData.equipment.weapons.some(w => w.id_weapon === weapon.id_weapon);
   }
 

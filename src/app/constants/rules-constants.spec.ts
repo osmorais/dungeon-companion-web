@@ -177,3 +177,24 @@ describe('regras de criação conferidas também na API (creation-rules.ts)', ()
     expect(RACE_SKILL_RULES[7].granted).toEqual([17]); // Meio-Orc: Intimidação (Ameaçador)
   });
 });
+
+describe('listas de magia por classe iguais às da API (class-spell-lists.ts)', () => {
+  it('contagem e soma dos ids sem repetição por classe', () => {
+    const summary = Object.fromEntries(
+      Object.entries(CLASS_SPELLS).map(([id, ids]) => {
+        const unique = [...new Set(ids)];
+        return [id, [unique.length, unique.reduce((a, b) => a + b, 0)]];
+      }),
+    );
+    expect(summary).toEqual({
+      2: [107, 20563],
+      3: [69, 13877],
+      4: [113, 20889],
+      5: [114, 20970],
+      6: [120, 24446],
+      9: [196, 38604],
+      11: [55, 8461],
+      12: [45, 7674],
+    });
+  });
+});
