@@ -1,0 +1,28 @@
+@if (enabled()) {
+  <div class="modal-burst modal-burst--{{ variant }}" aria-hidden="true">
+    <span class="modal-burst__flash"></span>
+    <span class="modal-burst__ring"></span>
+    @if (variant === 'reveal') {
+      <span class="modal-burst__ring modal-burst__ring--outer"></span>
+    }
+    @for (p of particles(); track $index) {
+      <span
+        class="modal-burst__particle"
+        [style.--angle]="p.angle + 'deg'"
+        [style.--distance]="p.distance + 'vmin'"
+        [style.width.px]="p.size"
+        [style.height.px]="p.size"
+        [style.animation-delay]="p.delay + 'ms'"
+      ></span>
+    }
+    @if (variant === 'reveal') {
+      @for (e of embers(); track $index) {
+        <span
+          class="modal-burst__ember"
+          [style.left]="e.left + 'vw'"
+          [style.animation-delay]="e.delay + 'ms'"
+        ></span>
+      }
+    }
+  </div>
+}

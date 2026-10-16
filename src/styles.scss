@@ -239,3 +239,35 @@ input[type="checkbox"].retro-checkbox {
   color: var(--label-title-color);
   margin: 4px 0 0;
 }
+
+/* Entrada "explosiva" dos modais da sessão (toast de rolagem, monstro revelado, monstro
+   derrotado) — junto com a explosão de app-modal-burst. Global pra não pesar o CSS do
+   session-panel (que está no limite do orçamento). */
+@keyframes modal-blast-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.1) rotate(-6deg);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1.12) rotate(2deg);
+  }
+  70% {
+    transform: scale(0.96) rotate(-1deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @keyframes modal-blast-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}

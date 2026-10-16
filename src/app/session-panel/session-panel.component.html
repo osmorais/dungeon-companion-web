@@ -1105,6 +1105,7 @@
          isso, indo de uma rolagem direto pra outra (sem passar por null), o @if reaproveita o
          mesmo elemento .roll-toast-timer-fill e a animação CSS da barra de tempo não reinicia. -->
     @for (toast of [rollToast]; track toast.id_roll) {
+      <app-modal-burst variant="roll" />
       <div class="retro-panel roll-toast-panel"
         [class.roll-toast-panel--has-bg]="rollToastImageUrl(toast)"
         [style.background-image]="rollToastImageUrl(toast) ? ('linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(' + rollToastImageUrl(toast) + ')') : null"
@@ -1145,6 +1146,7 @@
          toast de rolagem acima; sem isso dois derrotados seguidos com o mesmo nome nem
          recriariam o elemento. -->
     @for (d of [defeated]; track d.key) {
+      <app-modal-burst variant="defeat" />
       <div class="retro-panel monster-defeated-panel" (click)="$event.stopPropagation()">
         <button class="modal-close-btn" (click)="closeMonsterDefeatedToast()">✕</button>
         <div class="monster-defeated-image-wrap">
@@ -1211,6 +1213,7 @@
   <div class="overlay monster-announcement-overlay" (click)="closeMonsterAnnouncement()">
     <!-- @for com track (key) força recriar o painel — mesmo motivo do roll-toast acima. -->
     @for (a of [announcement]; track a.key) {
+      <app-modal-burst variant="reveal" />
       <div class="retro-panel monster-announcement-panel" (click)="$event.stopPropagation()">
         <button class="modal-close-btn" (click)="closeMonsterAnnouncement()">✕</button>
         <span class="monster-announcement-label">UM MONSTRO FOI REVELADO!</span>

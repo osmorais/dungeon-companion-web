@@ -31,6 +31,7 @@ import { AddMonsterModalComponent } from '../add-monster-modal/add-monster-modal
 import { TomAssistantComponent } from '../tom-assistant/tom-assistant.component';
 import { PlayerInventoryModalComponent } from '../player-inventory-modal/player-inventory-modal.component';
 import { DamageImpactComponent } from '../damage-impact/damage-impact.component';
+import { ModalBurstComponent } from '../modal-burst/modal-burst.component';
 import { DamageImpactService } from '../services/damage-impact.service';
 import { attrLabel } from '../models/level-up.interface';
 import { saveNote } from '../roll-modal/spell-roll-config';
@@ -52,6 +53,7 @@ import { ApplyRequest, ApplyTarget } from '../roll-modal/apply-target';
     TomAssistantComponent,
     PlayerInventoryModalComponent,
     DamageImpactComponent,
+    ModalBurstComponent,
   ],
   templateUrl: './session-panel.component.html',
   styleUrls: ['./session-panel.component.scss'],

@@ -1,0 +1,158 @@
+@use 'sass:list';
+
+// Explosão atrás dos modais da sessão (pixel art: sem desfoque, bordas duras). ~0,9 s, uma vez.
+// Um único flash, com opacidade baixa (WCAG 2.3.1).
+
+$variants: (
+  // claro, médio, escuro
+  roll: (#fff3b0, #ffaa00, #a32c17),
+  reveal: (#ffb08a, #d4381f, #3a0a0a),
+  defeat: (#ffffff, #b8b8b8, #4a4a4a)
+);
+
+@each $name, $c in $variants {
+  .modal-burst--#{$name} {
+    --light: #{list.nth($c, 1)};
+    --mid: #{list.nth($c, 2)};
+    --dark: #{list.nth($c, 3)};
+  }
+}
+
+.modal-burst {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.modal-burst__flash {
+  position: absolute;
+  inset: 0;
+  background: var(--mid);
+  opacity: 0;
+  animation: burst-flash 220ms linear both;
+}
+
+@keyframes burst-flash {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.35;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+// Anel de choque: losango vazado expandindo a partir do centro.
+.modal-burst__ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 24vmin;
+  height: 24vmin;
+  border: 2vmin solid var(--mid);
+  outline: 1vmin solid var(--dark);
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(45deg) scale(0.2);
+  animation: burst-ring 550ms steps(8) both;
+}
+
+.modal-burst__ring--outer {
+  border-color: var(--dark);
+  outline-color: var(--mid);
+  animation-delay: 140ms;
+}
+
+@keyframes burst-ring {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(45deg) scale(0.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(45deg) scale(4);
+  }
+}
+
+// Partículas saindo do centro (ângulo/distância/tamanho vêm do componente).
+.modal-burst__particle {
+  --angle: 0deg;
+  --distance: 30vmin;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  background: var(--light);
+  box-shadow: 0 0 0 3px var(--dark);
+  opacity: 0;
+  animation: burst-particle 650ms steps(8) both;
+}
+
+@keyframes burst-particle {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0);
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--angle)) translateX(var(--distance));
+  }
+}
+
+// Derrota: estilhaços saem e caem (gravidade) em vez de só se afastar.
+.modal-burst--defeat .modal-burst__particle {
+  background: var(--mid);
+  animation: burst-shard 900ms steps(10) both;
+}
+
+@keyframes burst-shard {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--angle)) translateX(var(--distance)) rotate(90deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 30vh)) rotate(var(--angle)) translateX(var(--distance))
+      rotate(180deg);
+  }
+}
+
+// Revelação: brasas subindo do pé da tela.
+.modal-burst__ember {
+  position: absolute;
+  bottom: 6vh;
+  width: 8px;
+  height: 8px;
+  background: var(--light);
+  box-shadow: 0 0 0 2px var(--mid);
+  opacity: 0;
+  animation: burst-ember 1100ms steps(11) both;
+}
+
+@keyframes burst-ember {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-60vh);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-burst {
+    display: none;
+  }
+}
