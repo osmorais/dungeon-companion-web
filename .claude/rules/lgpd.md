@@ -37,7 +37,8 @@ avisar o usuário antes de concluir.
    exportação e sumir na exclusão (página `/conta`, lógica no backend). Se a funcionalidade nova
    cria dado que o usuário deveria poder corrigir, avaliar edição na própria tela ou em `/conta`.
 6. **Segurança.**
-   - Telas logadas usam `authGuard`. Só login, cadastro, senha e as páginas legais são públicas.
+   - Telas logadas usam `authGuard`. Só login, cadastro, senha, as páginas legais e
+     `/novidades` (notas de versão, sem dado de usuário) são públicas.
    - Mensagens de erro da API via `apiErrorMessage` (`auth/auth-errors.ts`).
    - Senha nova via `newPasswordError` (mínimo `PASSWORD_MIN_LENGTH`, igual ao backend).
    - Não logar dado pessoal no console.

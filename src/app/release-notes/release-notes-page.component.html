@@ -1,0 +1,33 @@
+<div class="legal-container">
+  <fieldset class="legal-panel">
+    <legend>NOVIDADES</legend>
+
+    <nav class="legal-nav">
+      <a routerLink="/novidades" class="active">NOVIDADES</a>
+      <a [routerLink]="legalRoutes.privacy">PRIVACIDADE</a>
+      <a [routerLink]="legalRoutes.terms">TERMOS</a>
+    </nav>
+
+    <p class="legal-updated">Versão atual: {{ currentVersion }}</p>
+
+    @for (release of releases; track release.version) {
+      <article class="legal-text release">
+        <h2>
+          Versão {{ release.version }}
+          <span class="release-date">· {{ formatDate(release.date) }}</span>
+        </h2>
+        <p class="release-title">{{ release.title }}</p>
+        <ul class="release-changes">
+          @for (change of release.changes; track $index) {
+            <li>
+              <span [class]="'release-tag release-tag--' + change.kind">{{
+                labels[change.kind]
+              }}</span>
+              {{ change.text }}
+            </li>
+          }
+        </ul>
+      </article>
+    }
+  </fieldset>
+</div>

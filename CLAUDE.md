@@ -53,6 +53,10 @@ All components are standalone — do not use NgModules.
 
 Toda implementação nova termina rodando a suíte existente e criando testes para o que foi implementado — ver `.claude/rules/testes.md`.
 
+## Versão e notas de versão
+
+O sistema (api + web) tem uma versão `A.B.C` (A: mudança grande, só por decisão do usuário; B: funcionalidade nova; C: correção ou funcionalidade pequena). Toda entrega que muda algo pra quem usa ganha uma entrada no topo de `src/app/release-notes/release-notes.ts` (com data) e sobe o `version` dos dois `package.json` — exibido na página pública `/novidades` e validado em `release-notes.spec.ts`. Ver `.claude/rules/versionamento.md`.
+
 ## LGPD
 
 Toda implementação nova passa pelo checklist de proteção de dados (dado novo, permissões, exclusão/exportação da conta, terceiros, segurança) e avalia se a Política de Privacidade e os Termos de Uso precisam mudar — ver `.claude/rules/lgpd.md`.

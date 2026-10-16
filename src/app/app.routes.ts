@@ -38,6 +38,13 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./legal/legal-page.component').then(m => m.LegalPageComponent),
   },
+  {
+    path: 'novidades',
+    loadComponent: () =>
+      import('./release-notes/release-notes-page.component').then(
+        m => m.ReleaseNotesPageComponent,
+      ),
+  },
 
   // Protegidas
   {
