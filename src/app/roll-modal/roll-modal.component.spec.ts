@@ -512,7 +512,7 @@ describe('RollModalComponent — fase 4', () => {
       modal.setApplyTarget({ target: { value: 'monster:m1' } } as unknown as Event);
       modal.apply();
       modal.setApplyTarget({ target: { value: 'player:p1' } } as unknown as Event);
-      modal.apply(true);
+      modal.apply('half');
       expect(applied.mock.calls.map(([req]) => req)).toEqual([
         { targetKey: 'monster:m1', amount: total, kind: 'damage' },
         { targetKey: 'player:p1', amount: Math.floor(total / 2), kind: 'damage' },
@@ -932,5 +932,172 @@ describe('RollModalComponent — Sortudo (fase 3)', () => {
     settle();
     expect(modal.canUseLuck).toBe(false);
     expect(rolled).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('RollModalComponent — fase 4 dos traços (d20 e defesas)', () => {
+  let postRoll: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    postRoll = vi.fn(() => of({}));
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: GameSessionService, useValue: { postRoll } },
+        { provide: DamageImpactService, useValue: { trigger: vi.fn() } },
+      ],
+    });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  function create(
+    config: AbilityRollConfig,
+    applyTargets: RollModalComponent['applyTargets'] = [],
+  ) {
+    const modal = TestBed.runInInjectionContext(() => new RollModalComponent());
+    modal.config = config;
+    modal.sessionId = 'gs';
+    modal.applyTargets = applyTargets;
+    modal.ngOnInit();
+    const events = {
+      rolled: vi.fn(),
+      indomitable: vi.fn(),
+      inspiration: vi.fn(),
+      applied: vi.fn(),
+    };
+    modal.rolled.subscribe(events.rolled);
+    modal.indomitableUsed.subscribe(events.indomitable);
+    modal.inspirationUsed.subscribe(events.inspiration);
+    modal.applyToTarget.subscribe(events.applied);
+    return { modal, ...events };
+  }
+
+  const settle = () => vi.advanceTimersByTime(1000);
+  const save: AbilityRollConfig = {
+    mode: 'ability',
+    rollType: 'save',
+    label: 'Resistência: SAB',
+    modifier: 2,
+  };
+
+  it('Indomável só em resistência: rola de novo, vale o novo e gasta o uso', () => {
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0.1); // 3
+    const { modal, indomitable, rolled } = create({ ...save, indomitable: 1 });
+    modal.roll();
+    settle();
+    expect(modal.canIndomitable).toBe(true);
+    random.mockReturnValue(0.6); // 13
+    modal.rerollIndomitable();
+    expect(indomitable).toHaveBeenCalledTimes(1);
+    expect(modal.result()).toMatchObject({ chosen: [13], total: 15 });
+    expect(modal.canIndomitable).toBe(false);
+    modal.finishLuck();
+    expect(rolled).toHaveBeenCalledTimes(1);
+
+    const skill = create({
+      mode: 'ability',
+      rollType: 'skill',
+      label: 'x',
+      modifier: 0,
+      indomitable: 1,
+    }).modal;
+    skill.roll();
+    settle();
+    expect(skill.canIndomitable).toBe(false);
+  });
+
+  it('Inspiração Bárdica: soma o dado no total uma vez e avisa o pai', () => {
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0.5); // d20 11
+    const { modal, inspiration } = create({ ...save, inspiration: { sides: 8, from: 'Lyra' } });
+    modal.roll();
+    settle();
+    expect(modal.canUseInspiration).toBe(true);
+    random.mockReturnValue(0.99); // d8 = 8
+    modal.useInspiration();
+    expect(modal.inspirationRoll()).toBe(8);
+    expect(modal.result()!.total).toBe(11 + 2 + 8);
+    expect(inspiration).toHaveBeenCalledTimes(1);
+    expect(modal.canUseInspiration).toBe(false);
+    expect(postRoll.mock.calls[1][1].label).toBe('Resistência: SAB (Inspiração Bárdica +8)');
+  });
+
+  it('lembretes de vantagem aparecem no d20 e somem no dano', () => {
+    const { modal } = create({ ...save, reminders: ['Vantagem contra veneno (Resistência Anã)'] });
+    expect(modal.reminders).toEqual(['Vantagem contra veneno (Resistência Anã)']);
+  });
+
+  describe('defesas ao aplicar dano', () => {
+    const fireball: AbilityRollConfig = {
+      mode: 'ability',
+      rollType: 'attack',
+      label: 'Magia: Bola de Fogo',
+      modifier: 0,
+      autoHit: true,
+      save: { note: 'CD 14 de Destreza', onSuccess: 'half', ability: 'DEX' },
+      damage: { diceCount: 0, diceSides: 0, modifier: 20, label: 'Dano', damageType: 'fogo' },
+    };
+    const target = (defenses: {
+      resistances: string[];
+      uncanny_dodge: boolean;
+      evasion: boolean;
+    }) => [{ key: 'player:p1', label: 'Alvo', allowsTempHp: true, defenses }];
+    const pick = (modal: RollModalComponent) =>
+      modal.setApplyTarget({ target: { value: 'player:p1' } } as unknown as Event);
+
+    it('resistência ao tipo: metade do valor (e metade da metade se passar)', () => {
+      const { modal, applied } = create(
+        fireball,
+        target({ resistances: ['fogo'], uncanny_dodge: false, evasion: false }),
+      );
+      pick(modal);
+      expect(modal.targetResistance).toBe('fogo');
+      expect(modal.amountFor('full')).toBe(10);
+      expect(modal.amountFor('half')).toBe(5);
+      modal.apply();
+      expect(applied.mock.calls[0][0]).toMatchObject({ amount: 10, kind: 'damage' });
+    });
+
+    it('Evasão em resistência de DES: passou = nada, falhou = metade', () => {
+      const { modal, applied } = create(
+        fireball,
+        target({ resistances: [], uncanny_dodge: false, evasion: true }),
+      );
+      pick(modal);
+      expect(modal.targetHasEvasion).toBe(true);
+      expect(modal.amountFor('full')).toBe(10);
+      modal.apply('half');
+      expect(applied).not.toHaveBeenCalled();
+      expect(modal.applied()).toEqual([{ label: 'Alvo', amount: 0, kind: 'damage' }]);
+    });
+
+    it('Esquiva Sobrenatural só contra ataque (com d20)', () => {
+      vi.spyOn(Math, 'random').mockReturnValue(0.5);
+      const sword: AbilityRollConfig = {
+        mode: 'ability',
+        rollType: 'attack',
+        label: 'Ataque',
+        modifier: 5,
+        damage: { diceCount: 1, diceSides: 8, modifier: 3, label: 'Dano', damageType: 'Cortante' },
+      };
+      const defenses = { resistances: ['cortante'], uncanny_dodge: true, evasion: false };
+      const { modal } = create(sword, target(defenses));
+      modal.roll();
+      settle();
+      modal.rollDamageNow();
+      settle();
+      pick(modal);
+      const total = modal.result()!.total;
+      expect(modal.targetCanUncannyDodge).toBe(true);
+      // resistência a cortante (Fúria) + Esquiva: metade de metade
+      expect(modal.amountFor('uncanny')).toBe(Math.floor(Math.floor(total / 2) / 2));
+
+      const spell = create(fireball, target(defenses)).modal;
+      pick(spell);
+      expect(spell.targetCanUncannyDodge).toBe(false);
+    });
   });
 });

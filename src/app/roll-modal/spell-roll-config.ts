@@ -76,12 +76,14 @@ export function spellRollConfig(spell: Spell, slotLevel: number): AbilityRollCon
         note: saveNote(roll.save_dc, roll.save_ability),
         onSuccess: roll.save_on_success,
         effectNote: roll.save_effect_note ?? undefined,
+        ability: roll.save_ability,
       },
       damage: {
         diceCount: entry.dice_count,
         diceSides: entry.dice_sides,
         modifier: entry.modifier,
         label: damageLabel,
+        damageType: roll.damage_type,
         extraDice: entry.extra_dice.length ? entry.extra_dice : undefined,
       },
     };
@@ -103,6 +105,7 @@ export function spellRollConfig(spell: Spell, slotLevel: number): AbilityRollCon
         diceSides: entry.dice_sides,
         modifier: entry.modifier * entry.instances,
         label,
+        damageType: roll.damage_type,
       },
     };
   }
@@ -117,6 +120,7 @@ export function spellRollConfig(spell: Spell, slotLevel: number): AbilityRollCon
       diceSides: entry.dice_sides,
       modifier: entry.modifier,
       label: damageLabel,
+      damageType: roll.damage_type,
     },
     instances:
       entry.instances > 1

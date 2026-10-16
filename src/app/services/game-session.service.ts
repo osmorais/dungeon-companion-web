@@ -195,6 +195,17 @@ export class GameSessionService {
     return this.http.post<RollLogEntry>(`${this.baseUrl}/api/game-session/${sessionId}/roll`, payload);
   }
 
+  /** Bardo dá Inspiração Bárdica a um aliado — o dado fica guardado no personagem dele. */
+  grantBardicInspiration(
+    sessionId: string,
+    payload: { id_character: number; id_player_session: string },
+  ): Observable<{ sides: number; to: string }> {
+    return this.http.post<{ sides: number; to: string }>(
+      `${this.baseUrl}/api/game-session/${sessionId}/bardic-inspiration`,
+      payload,
+    );
+  }
+
   /** Mestre pede um teste secreto a jogadores — cada um rola e só o mestre recebe o resultado. */
   requestSecretRoll(
     sessionId: string,

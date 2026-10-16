@@ -124,7 +124,10 @@ export class CharacterService {
   /** Liga/desliga Fúria/Arma Sagrada, ou marca uma soma 1×/turno como usada na vez do combate. */
   updateActiveEffects(
     id: number,
-    body: { effect: string; active: boolean } | { turn_use: string; turn_key: string },
+    body:
+      | { effect: string; active: boolean }
+      | { turn_use: string; turn_key: string }
+      | { consume_inspiration: true },
   ): Observable<{ active_effects: ActiveEffects }> {
     return this.http.patch<{ active_effects: ActiveEffects }>(
       `${this.baseUrl}/api/character-sheet/${id}/active-effects`,

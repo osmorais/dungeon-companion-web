@@ -403,17 +403,30 @@ export class SessionPanelComponent implements OnDestroy {
         key: `player:${p.id_player_session}`,
         label: p.character!.name ?? p.player_name,
         allowsTempHp: true,
+        defenses: p.character!.defenses,
       }));
     if (!this.isOwner()) return players;
     const npcs = detail.npcs
       .filter((n) => n.character)
-      .map((n) => ({ key: `npc:${n.id_npc_session}`, label: n.character!.name, allowsTempHp: false }));
+      .map((n) => ({
+        key: `npc:${n.id_npc_session}`,
+        label: n.character!.name,
+        allowsTempHp: false,
+        defenses: n.character!.defenses,
+      }));
     const monsters = detail.monsters.map((m) => ({
       key: `monster:${m.id_monster_session}`,
       label: this.monsterDisplayName(m),
       allowsTempHp: false,
     }));
     return [...players, ...npcs, ...monsters];
+  }
+
+  /** Outros jogadores com personagem (Inspiração Bárdica escolhe um deles). */
+  alliesFor(idCharacter: number): { id_player_session: string; name: string }[] {
+    return (this.sessionDetail()?.players ?? [])
+      .filter((p) => p.character && p.id_character !== idCharacter)
+      .map((p) => ({ id_player_session: p.id_player_session, name: p.character!.name }));
   }
 
   /** Vez atual do combate ativo ("<combate>:<rodada>:<participante>") — trava as somas 1×/turno

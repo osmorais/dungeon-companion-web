@@ -30,12 +30,23 @@ export interface ClassAbility {
   activates?: string | null;
   /** Rajada de Golpes: N ataques desarmados em sequência. */
   unarmed_attacks?: number | null;
+  /** Inspiração Bárdica: escolher um aliado da mesa. */
+  targets_ally?: boolean;
 }
 
 /** Efeitos ativos (Fúria, Arma Sagrada) e somas 1×/turno já usadas na vez atual do combate. */
 export interface ActiveEffects {
   active: string[];
   turn_uses: Record<string, string>;
+  /** Inspiração Bárdica recebida e ainda não usada. */
+  bardic_inspiration?: { sides: number; from: string } | null;
+}
+
+/** Lembrete de vantagem num d20 (o jogador decide aplicar). */
+export interface D20Reminder {
+  applies: 'save' | 'check';
+  abilities: ('STR' | 'DEX' | 'CON' | 'INT' | 'WIS' | 'CHA')[] | null;
+  text: string;
 }
 
 /** Soma no acerto (Ataque Furtivo, Fúria, Golpe Divino, Matador de Inimigos). */
@@ -66,6 +77,8 @@ export interface CombatFeatures {
   active_effects: ActiveEffects;
   /** Halfling (Sortudo): 1 natural no d20 pode ser rolado de novo. */
   halfling_lucky: boolean;
+  /** Lembretes de vantagem nos testes de resistência/perícia. */
+  d20_reminders?: D20Reminder[];
 }
 
 export interface CharacterSheetResponse {

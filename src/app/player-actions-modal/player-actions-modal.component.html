@@ -277,7 +277,27 @@
                   @if (isAbilityExpanded(ability.name)) {
                     <p class="pa-no-slots">{{ ability.description }}</p>
                   }
-                  @if (variableAbility() === ability) {
+                  @if (allyAbility() === ability) {
+                    <div class="pa-cast-options">
+                      @if (allies.length === 0) {
+                        <span class="pa-no-slots">Nenhum outro jogador com personagem na mesa.</span>
+                      } @else {
+                        <select class="pa-hp-input pa-ally-select" (change)="setAllyTarget($event)">
+                          <option value="" [selected]="allyTarget() === ''">Escolha o aliado…</option>
+                          @for (ally of allies; track ally.id_player_session) {
+                            <option [value]="ally.id_player_session">{{ ally.name }}</option>
+                          }
+                        </select>
+                        <button
+                          class="pa-cast-btn"
+                          [disabled]="!allyTarget() || expendingResource()"
+                          (click)="useClassAbility(ability, undefined, allyTarget())"
+                        >
+                          <span class="pa-cast-btn-label">Inspirar</span>
+                        </button>
+                      }
+                    </div>
+                  } @else if (variableAbility() === ability) {
                     <div class="pa-cast-options">
                       <input
                         class="pa-hp-input"
@@ -333,6 +353,8 @@
     (riderSpellUsed)="onRiderSpellUsed($event)"
     (oncePerTurnUsed)="onOncePerTurnUsed($event)"
     (luckUsed)="onLuckUsed()"
+    (indomitableUsed)="onIndomitableUsed()"
+    (inspirationUsed)="onInspirationUsed()"
     [applyTargets]="applyTargets"
     (applyToTarget)="applyToTarget.emit($event)"
   />

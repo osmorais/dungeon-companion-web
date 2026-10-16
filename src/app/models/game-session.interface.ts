@@ -51,6 +51,16 @@ export interface PlayerCharacterSummary {
   avatar_preset?: import('./avatar-preset.interface').AvatarPreset | null;
   /** Foto de verdade, à parte do avatar_preset — usada como fundo do toast de rolagem. */
   image_url: string | null;
+  /** Resistências e reações pra quem aplica dano nele (só no detalhe da sessão). */
+  defenses?: DamageDefenses;
+}
+
+/** Espelho de `DamageDefenses` da API (combat-features.ts). */
+export interface DamageDefenses {
+  /** Tipos com resistência, minúsculos ("fogo", "veneno", "contundente"…). */
+  resistances: string[];
+  uncanny_dodge: boolean;
+  evasion: boolean;
 }
 
 export interface PlayerSession {

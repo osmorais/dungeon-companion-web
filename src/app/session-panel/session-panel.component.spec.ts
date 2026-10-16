@@ -427,4 +427,20 @@ describe('SessionPanelComponent', () => {
       expect(detail()!.players[0].character!.current_hit_points).toBe(1);
     });
   });
+
+  describe('aliados e defesas', () => {
+    it('aliados são os outros jogadores com personagem; alvos levam as defesas', () => {
+      const defenses = { resistances: ['fogo'], uncanny_dodge: false, evasion: false };
+      const p1 = player('p1', { id_character: 10 });
+      const p2 = player('p2', {
+        id_character: 20,
+        character: { ...player('p2').character!, defenses },
+      });
+      detail.set(sessionDetail({ players: [p1, p2, player('p3', { character: null })] }));
+      expect(component.alliesFor(10)).toEqual([{ id_player_session: 'p2', name: 'Personagem p2' }]);
+      expect(component.applyTargetsFor(10).find((t) => t.key === 'player:p2')!.defenses).toEqual(
+        defenses,
+      );
+    });
+  });
 });

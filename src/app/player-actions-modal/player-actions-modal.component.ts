@@ -35,6 +35,16 @@ import {
 const PALADIN_CLASS_ID = 11;
 import { attrLabel } from '../models/level-up.interface';
 
+/** Atributo da perícia (sigla em português do banco) → chave em inglês dos traços. */
+const PT_TO_EN: Record<string, string> = {
+  FOR: 'STR',
+  DES: 'DEX',
+  CON: 'CON',
+  INT: 'INT',
+  SAB: 'WIS',
+  CAR: 'CHA',
+};
+
 @Component({
   selector: 'app-player-actions-modal',
   standalone: true,
@@ -55,6 +65,8 @@ export class PlayerActionsModalComponent implements OnInit {
   /** Vez atual do combate ("<combate>:<rodada>:<participante>") — trava as somas 1×/turno
    *  (Ataque Furtivo…). `null` fora de combate: sem trava. */
   @Input() turnKey: string | null = null;
+  /** Outros jogadores da mesa (Inspiração Bárdica escolhe um deles). */
+  @Input() allies: { id_player_session: string; name: string }[] = [];
   @Output() applyToTarget = new EventEmitter<ApplyRequest>();
   @Output() closed = new EventEmitter<void>();
   /** Repassa a confirmação de acerto/erro do roll-modal (só dispara no fluxo de ataque com dano) —
@@ -102,13 +114,45 @@ export class PlayerActionsModalComponent implements OnInit {
 
   /** ========================= ROLAGENS ========================= */
 
-  /** Sortudo do personagem (Halfling e talento) pra qualquer d20 de teste, resistência ou ataque. */
-  private luckOptions(): Pick<AbilityRollConfig, 'halflingLucky' | 'luckPoints'> {
+  /**
+   * O que o personagem tem pra mexer num d20: Sortudo (Halfling e talento), Inspiração Bárdica
+   * guardada, Indomável (só resistência) e os lembretes de vantagem que valem pra esta rolagem.
+   */
+  private d20Options(
+    kind: 'save' | 'check' | 'attack',
+    ability?: string,
+  ): Pick<AbilityRollConfig, 'halflingLucky' | 'luckPoints' | 'inspiration' | 'indomitable' | 'reminders'> {
+    const features = this.combatFeatures();
     const luck = this.resourceTrackerByKey('Pontos de Sorte');
+    const indomitable = this.resourceTrackerByKey('Indomável');
+    const inspiration = features?.active_effects.bardic_inspiration ?? null;
+    const reminders = (features?.d20_reminders ?? [])
+      .filter((r) => r.applies === kind)
+      .filter((r) => !r.abilities || (!!ability && (r.abilities as string[]).includes(ability)))
+      .map((r) => r.text);
     return {
-      halflingLucky: !!this.combatFeatures()?.halfling_lucky,
+      halflingLucky: !!features?.halfling_lucky,
       luckPoints: luck ? this.resourceAvailable(luck) : 0,
+      inspiration: inspiration ?? undefined,
+      indomitable: kind === 'save' && indomitable ? this.resourceAvailable(indomitable) : 0,
+      reminders,
     };
+  }
+
+  /** Indomável usado no modal: debita o uso (a rolagem segue na tela). */
+  onIndomitableUsed(): void {
+    this.charService.updateResourceUses(this.idCharacter, 'Indomável', 1).subscribe({
+      next: ({ resource_trackers }) => this.patchResourceTrackers(resource_trackers),
+      error: (err) => this.handleActionError(err),
+    });
+  }
+
+  /** Inspiração Bárdica usada: apaga o dado guardado no personagem. */
+  onInspirationUsed(): void {
+    this.charService.updateActiveEffects(this.idCharacter, { consume_inspiration: true }).subscribe({
+      next: ({ active_effects }) => this.patchActiveEffects(active_effects),
+      error: (err) => this.handleActionError(err),
+    });
   }
 
   /** Ponto de Sorte gasto no modal: debita o recurso (sem fechar — a rolagem segue na tela). */
@@ -125,7 +169,7 @@ export class PlayerActionsModalComponent implements OnInit {
       rollType: 'skill',
       label: `Perícia: ${skill.name}`,
       modifier: skill.total_skill_value,
-      ...this.luckOptions(),
+      ...this.d20Options('check', PT_TO_EN[skill.attribute_name]),
     };
     this.activeRoll.set(config);
   }
@@ -138,7 +182,7 @@ export class PlayerActionsModalComponent implements OnInit {
       rollType: 'save',
       label: `Resistência: ${attrLabel(attrKey)}`,
       modifier: save,
-      ...this.luckOptions(),
+      ...this.d20Options('save', attrKey),
     };
     this.activeRoll.set(config);
   }
@@ -154,6 +198,7 @@ export class PlayerActionsModalComponent implements OnInit {
         damageModifier: weapon.damage_modifier,
         isRanged: weapon.isRanged,
         properties: (weapon.properties ?? '').toLowerCase(),
+        damageType: weapon.damage_type,
         smite: this.smiteOptionsFor(weapon),
       }),
     );
@@ -170,6 +215,7 @@ export class PlayerActionsModalComponent implements OnInit {
       damageModifier: unarmed.damage_modifier,
       isRanged: false,
       properties: '',
+      damageType: 'contundente',
     });
     if (attacks > 1) config.instances = { count: attacks, label: 'golpe' };
     this.activeRoll.set(config);
@@ -197,6 +243,7 @@ export class PlayerActionsModalComponent implements OnInit {
     damageModifier: number;
     isRanged: boolean;
     properties: string;
+    damageType?: string | null;
     smite?: SmiteOption[];
   }): AbilityRollConfig {
     const features = this.combatFeatures();
@@ -235,13 +282,14 @@ export class PlayerActionsModalComponent implements OnInit {
       modifier: w.attackBonus + attackBonuses.reduce((sum, b) => sum + b.bonus, 0),
       critMin: features?.crit_min ?? 20,
       powerAttack: power ? { name: power.name } : undefined,
-      ...this.luckOptions(),
+      ...this.d20Options('attack'),
       damage: w.dice
         ? {
             diceCount: w.dice.count,
             diceSides: w.dice.sides,
             modifier: w.damageModifier + activeRiders.reduce((sum, r) => sum + r.flat, 0),
             label: [`Dano: ${w.name}`, ...activeRiders.map((r) => r.name)].join(' + '),
+            damageType: w.damageType ?? null,
             critExtraDice: melee ? (features?.melee_crit_extra_dice ?? 0) : 0,
             smite: w.smite,
             riders: { oneShot: spellRiders.oneShot, persistent: [...spellRiders.persistent, ...traitToggles] },
@@ -605,6 +653,14 @@ export class PlayerActionsModalComponent implements OnInit {
     return true;
   }
 
+  /** Inspiração Bárdica: habilidade aguardando o jogador escolher o aliado. */
+  allyAbility = signal<ClassAbility | null>(null);
+  allyTarget = signal('');
+
+  setAllyTarget(event: Event): void {
+    this.allyTarget.set((event.target as HTMLSelectElement).value);
+  }
+
   /** Curar pelo Toque: habilidade aguardando o jogador escolher quantos pontos gastar. */
   variableAbility = signal<ClassAbility | null>(null);
   variableAmount = signal(1);
@@ -619,8 +675,13 @@ export class PlayerActionsModalComponent implements OnInit {
    * habilidade, abre a rolagem (cura/resistência), devolve o espaço de magia (Criar Espaço) ou
    * pede a quantidade antes (Curar pelo Toque). Sem nada disso, só gasta e fecha, como antes.
    */
-  useClassAbility(ability: ClassAbility, amount?: number): void {
+  useClassAbility(ability: ClassAbility, amount?: number, allyPlayerSession?: string): void {
     if (!this.canUseClassAbility(ability)) return;
+    if (ability.targets_ally && allyPlayerSession === undefined) {
+      this.allyTarget.set('');
+      this.allyAbility.set(ability);
+      return;
+    }
     if (ability.variable_cost && amount === undefined) {
       this.variableAmount.set(1);
       this.variableAbility.set(ability);
@@ -638,6 +699,16 @@ export class PlayerActionsModalComponent implements OnInit {
         this.patchResourceTrackers(resource_trackers);
         this.expendingResource.set(false);
         this.announceAbility(ability);
+        if (ability.targets_ally && allyPlayerSession && this.sessionId) {
+          this.allyAbility.set(null);
+          this.gameSessionService
+            .grantBardicInspiration(this.sessionId, {
+              id_character: this.idCharacter,
+              id_player_session: allyPlayerSession,
+            })
+            .subscribe({ next: () => this.closed.emit(), error: (err) => this.handleActionError(err) });
+          return;
+        }
         if (ability.activates) {
           this.charService
             .updateActiveEffects(this.idCharacter, { effect: ability.activates, active: true })

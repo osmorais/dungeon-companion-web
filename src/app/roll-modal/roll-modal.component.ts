@@ -5,7 +5,7 @@ import { AdvantageState, RollLogPayload, RollType } from '../models/game-session
 import { PixelDieComponent } from '../pixel-die/pixel-die.component';
 import { PixelNumericDieComponent } from '../pixel-numeric-die/pixel-numeric-die.component';
 import { hasRiderChoices, RiderChoices, RiderOption } from './spell-riders';
-import { ApplyKind, ApplyRequest, ApplyTarget } from './apply-target';
+import { ApplyKind, ApplyRequest, ApplyTarget, resistsDamage } from './apply-target';
 
 /** Uma opção de espaço de magia pra gastar em Destruição Divina — ver `AbilityRollConfig.damage.smite`. */
 export interface SmiteOption {
@@ -33,6 +33,8 @@ export interface AbilityRollConfig {
     label: string;
     /** Cura Suprema: usa o valor máximo de cada dado em vez de rolar. */
     maximize?: boolean;
+    /** Tipo do dano (resistências do alvo ao aplicar). */
+    damageType?: string | null;
     /** Crítico corpo a corpo: dados da arma a mais (Crítico Brutal, Ataques Selvagens). */
     critExtraDice?: number;
     /** Grupos de dados a mais que entram junto no dano (Tempestade de Gelo: 2d8 + 4d6). */
@@ -48,6 +50,12 @@ export interface AbilityRollConfig {
   /** `distribute`: cura fixa repartida entre alvos (Preservar a Vida) — cada "aplicar" escolhe
    *  quanto, até acabar o total. */
   healing?: { tempHp: boolean; distribute?: boolean };
+  /** Indomável (Guerreiro): usos disponíveis pra rolar de novo um teste de resistência. */
+  indomitable?: number;
+  /** Inspiração Bárdica guardada: soma o dado nesta rolagem (uma vez) e consome. */
+  inspiration?: { sides: number; from: string };
+  /** Lembretes de vantagem que valem pra esta rolagem (o jogador decide). */
+  reminders?: string[];
   /** Halfling (Sortudo): 1 natural no d20 pode ser rolado de novo (vale o novo). */
   halflingLucky?: boolean;
   /** Talento Sortudo: Pontos de Sorte disponíveis — gastar um rola mais um d20 e fica o melhor. */
@@ -61,7 +69,13 @@ export interface AbilityRollConfig {
   autoHit?: boolean;
   /** Magia de resistência: a CD/atributo que os alvos rolam (ex.: "CD 14 de Destreza") e o dano
    *  de quem passa — o modal mostra os dois valores e o mestre aplica em cada alvo. */
-  save?: { note: string; onSuccess: 'half' | 'none' | 'full'; effectNote?: string };
+  save?: {
+    note: string;
+    onSuccess: 'half' | 'none' | 'full';
+    effectNote?: string;
+    /** Atributo da resistência (Evasão só vale em Destreza). */
+    ability?: 'STR' | 'DEX' | 'CON' | 'INT' | 'WIS' | 'CHA';
+  };
   /** Vários ataques na mesma ação (raios do Raio Ardente, feixes da Rajada Mística): depois de
    *  cada um (acerto + dano, ou erro), o modal oferece o próximo até `count`. */
   instances?: { count: number; label: string };
@@ -127,6 +141,69 @@ export class RollModalComponent implements OnInit {
 
   /** O jogador gastou um Ponto de Sorte (talento) — o pai debita o recurso. */
   @Output() luckUsed = new EventEmitter<void>();
+  /** Indomável usado — o pai debita o uso. */
+  @Output() indomitableUsed = new EventEmitter<void>();
+  /** Inspiração Bárdica usada — o pai apaga o dado guardado. */
+  @Output() inspirationUsed = new EventEmitter<void>();
+
+  indomitableSpent = signal(false);
+  /** Valor tirado no dado de Inspiração Bárdica (somado ao total). */
+  inspirationRoll = signal<number | null>(null);
+
+  get reminders(): string[] {
+    return this.config.mode === 'ability' && this.isAbility ? (this.config.reminders ?? []) : [];
+  }
+
+  get canIndomitable(): boolean {
+    return (
+      this.d20Settled &&
+      this.config.mode === 'ability' &&
+      this.config.rollType === 'save' &&
+      (this.config.indomitable ?? 0) > 0 &&
+      !this.indomitableSpent()
+    );
+  }
+
+  get canUseInspiration(): boolean {
+    return (
+      this.d20Settled &&
+      this.config.mode === 'ability' &&
+      !!this.config.inspiration &&
+      this.inspirationRoll() === null
+    );
+  }
+
+  get inspirationSides(): number {
+    return this.config.mode === 'ability' ? (this.config.inspiration?.sides ?? 0) : 0;
+  }
+
+  /** Indomável: rola de novo a resistência (vale o novo) e gasta o uso. */
+  rerollIndomitable(): void {
+    const res = this.result();
+    if (!res || !this.canIndomitable) return;
+    this.indomitableSpent.set(true);
+    this.indomitableUsed.emit();
+    const index = res.rolls.indexOf(res.chosen[0]);
+    const rolls = [...res.rolls];
+    rolls[index] = this.rollDie(20);
+    this.settleD20(rolls, ' (Indomável)', false, [rolls[index]]);
+  }
+
+  /** Inspiração Bárdica: rola o dado e soma no total desta rolagem. */
+  useInspiration(): void {
+    const res = this.result();
+    if (!res || !this.canUseInspiration) return;
+    const value = this.rollDie(this.inspirationSides);
+    this.inspirationRoll.set(value);
+    this.inspirationUsed.emit();
+    this.result.set({ ...res, total: res.total + value });
+    this.postRoll(
+      res.rolls,
+      res.total + value,
+      this.rolledSides,
+      ` (Inspiração Bárdica +${value})`,
+    );
+  }
 
   /** Sortudo já usado nesta rolagem (Halfling ou talento: uma vez cada). */
   halflingRerolled = signal(false);
@@ -184,15 +261,19 @@ export class RollModalComponent implements OnInit {
     this.settleD20([...res.rolls, this.rollDie(20)], ' (Ponto de Sorte)', true);
   }
 
-  /** Recalcula o d20 depois do Sortudo (escolhido, crítico) e registra de novo no log. */
-  private settleD20(rolls: number[], suffix: string, best = false): void {
+  /** Recalcula o d20 depois do Sortudo/Indomável (escolhido, crítico) e registra de novo no log.
+   *  `forced` = o dado escolhido é esse (Indomável: vale o novo, mesmo com vantagem). */
+  private settleD20(rolls: number[], suffix: string, best = false, forced?: number[]): void {
     const state = this.advantageState();
-    const chosen = best
-      ? [Math.max(...rolls)]
-      : state === 'normal'
-        ? rolls
-        : [state === 'disadvantage' ? Math.min(...rolls) : Math.max(...rolls)];
-    const total = chosen.reduce((sum, r) => sum + r, 0) + this.modifier;
+    const chosen = forced
+      ? forced
+      : best
+        ? [Math.max(...rolls)]
+        : state === 'normal'
+          ? rolls
+          : [state === 'disadvantage' ? Math.min(...rolls) : Math.max(...rolls)];
+    const total =
+      chosen.reduce((sum, r) => sum + r, 0) + this.modifier + (this.inspirationRoll() ?? 0);
     this.displayValues.set(rolls);
     this.result.set({ rolls, chosen, total });
     if (this.attackPhase() === 'awaiting-hit') {
@@ -409,16 +490,66 @@ export class RollModalComponent implements OnInit {
     this.distributeAmount.set(Number.isFinite(value) && value > 0 ? value : null);
   }
 
-  apply(half = false): void {
+  private get selectedTarget(): ApplyTarget | undefined {
+    return this.applicableTargets.find((t) => t.key === this.applyTargetKey());
+  }
+
+  /** Resistência do alvo escolhido ao tipo deste dano (ex.: "fogo"), ou `null`. */
+  get targetResistance(): string | null {
+    const target = this.selectedTarget;
+    if (this.applyKind !== 'damage' || !target?.defenses) return null;
+    return resistsDamage(target.defenses.resistances, this.pendingDamage?.damageType);
+  }
+
+  /** Esquiva Sobrenatural: o alvo pode receber metade de um ataque (rolagem com d20). */
+  get targetCanUncannyDodge(): boolean {
+    return (
+      this.applyKind === 'damage' &&
+      !!this.selectedTarget?.defenses?.uncanny_dodge &&
+      this.config.mode === 'ability' &&
+      !this.config.autoHit
+    );
+  }
+
+  /** Evasão: resistência de DES de metade → passou = nada, falhou = metade. */
+  get targetHasEvasion(): boolean {
+    return (
+      this.applyKind === 'damage' &&
+      !!this.selectedTarget?.defenses?.evasion &&
+      this.config.mode === 'ability' &&
+      this.config.save?.ability === 'DEX' &&
+      this.config.save.onSuccess === 'half'
+    );
+  }
+
+  /** Quanto o alvo recebe: `full` = falhou/acertou, `half` = passou na resistência,
+   *  `uncanny` = Esquiva Sobrenatural; com Evasão e resistência ao tipo já aplicadas. */
+  amountFor(mode: 'full' | 'half' | 'uncanny'): number {
+    const total = this.result()?.total ?? 0;
+    let amount = mode === 'half' ? Math.floor(total / 2) : total;
+    if (this.targetHasEvasion) amount = mode === 'half' ? 0 : Math.floor(total / 2);
+    if (mode === 'uncanny') amount = Math.floor(amount / 2);
+    if (this.targetResistance) amount = Math.floor(amount / 2);
+    return amount;
+  }
+
+  apply(mode: 'full' | 'half' | 'uncanny' = 'full'): void {
     const res = this.result();
-    const target = this.applicableTargets.find((t) => t.key === this.applyTargetKey());
+    const target = this.selectedTarget;
     if (!res || !target) return;
     const amount = this.isDistributing
       ? Math.min(this.distributeAmount() ?? this.distributeRemaining, this.distributeRemaining)
-      : half
-        ? Math.floor(res.total / 2)
-        : res.total;
-    if (amount <= 0) return;
+      : this.amountFor(mode);
+    if (amount <= 0) {
+      // Evasão: passou e não sofre nada — registra pro mestre ver, sem chamar a API.
+      if (!this.isDistributing) {
+        this.applied.update((list) => [
+          ...list,
+          { label: target.label, amount: 0, kind: this.applyKind },
+        ]);
+      }
+      return;
+    }
     this.distributeAmount.set(null);
     const kind = this.applyKind;
     this.applyToTarget.emit({ targetKey: target.key, amount, kind });
@@ -636,9 +767,7 @@ export class RollModalComponent implements OnInit {
     this.activeToggles.update(
       (current) =>
         new Set(
-          [...current].filter(
-            (key) => !this.riderToggles.find((t) => t.key === key)?.oncePerTurn,
-          ),
+          [...current].filter((key) => !this.riderToggles.find((t) => t.key === key)?.oncePerTurn),
         ),
     );
     this.riderDice.set([]);
@@ -759,8 +888,11 @@ export class RollModalComponent implements OnInit {
       return;
     }
 
-    // Teste/resistência com Sortudo pra oferecer: espera o "CONCLUIR" em vez de encerrar na hora.
-    if (this.isAbility && (this.canHalflingReroll || this.canUseLuck)) {
+    // Teste/resistência com Sortudo/Indomável/Inspiração pra oferecer: espera o "CONCLUIR".
+    if (
+      this.isAbility &&
+      (this.canHalflingReroll || this.canUseLuck || this.canIndomitable || this.canUseInspiration)
+    ) {
       this.awaitingLuck.set(true);
       return;
     }

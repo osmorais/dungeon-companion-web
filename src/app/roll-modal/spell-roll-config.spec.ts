@@ -57,7 +57,13 @@ describe('spellRollConfig', () => {
       rollType: 'attack',
       label: 'Magia: Raio de Fogo',
       modifier: 6,
-      damage: { diceCount: 2, diceSides: 10, modifier: 0, label: 'Dano: Raio de Fogo (fogo)' },
+      damage: {
+        diceCount: 2,
+        diceSides: 10,
+        modifier: 0,
+        label: 'Dano: Raio de Fogo (fogo)',
+        damageType: 'fogo',
+      },
       instances: undefined,
     });
   });
@@ -99,6 +105,7 @@ describe('spellRollConfig', () => {
       diceSides: 4,
       modifier: 4,
       label: 'Dano: Mísseis Mágicos (energia) — 4 dardos',
+      damageType: 'energia',
     });
   });
 
@@ -144,12 +151,13 @@ describe('spellRollConfig — resistência', () => {
       label: 'Magia: Bola de Fogo',
       modifier: 0,
       autoHit: true,
-      save: { note: 'CD 14 de Destreza', onSuccess: 'half' },
+      save: { note: 'CD 14 de Destreza', onSuccess: 'half', ability: 'DEX' },
       damage: {
         diceCount: 9,
         diceSides: 6,
         modifier: 0,
         label: 'Dano: Bola de Fogo (fogo)',
+        damageType: 'fogo',
         extraDice: undefined,
       },
     });

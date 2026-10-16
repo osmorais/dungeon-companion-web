@@ -2,6 +2,9 @@
   <div class="roll-modal" (click)="$event.stopPropagation()">
     <button class="roll-modal-close" (click)="close()">✕</button>
     <h3 class="roll-modal-title">{{ title }}</h3>
+    @for (reminder of reminders; track reminder) {
+      <p class="roll-modifier-line">💡 {{ reminder }}</p>
+    }
     @if (saveLine; as line) {
       <p class="roll-hit-question">{{ line }}</p>
     }
@@ -210,25 +213,55 @@
             </button>
           } @else {
             <button class="roll-btn-secondary" [disabled]="!applyTargetKey()" (click)="apply()">
-              APLICAR {{ result()!.total }}
+              APLICAR {{ applyTargetKey() ? amountFor('full') : result()!.total }}
             </button>
           }
           @if (saveSuccessTotal !== null) {
-            <button class="roll-btn-secondary" [disabled]="!applyTargetKey()" (click)="apply(true)">
-              PASSOU: {{ saveSuccessTotal }}
+            <button
+              class="roll-btn-secondary"
+              [disabled]="!applyTargetKey()"
+              (click)="apply('half')"
+            >
+              PASSOU: {{ applyTargetKey() ? amountFor('half') : saveSuccessTotal }}
+            </button>
+          }
+          @if (targetCanUncannyDodge) {
+            <button class="roll-btn-secondary" (click)="apply('uncanny')">
+              ESQUIVA SOBRENATURAL: {{ amountFor('uncanny') }}
             </button>
           }
         </div>
+        @if (targetResistance) {
+          <p class="roll-modifier-line">Resistência a {{ targetResistance }}: metade</p>
+        }
+        @if (targetHasEvasion) {
+          <p class="roll-modifier-line">Evasão: se passar, nenhum dano; se falhar, metade</p>
+        }
         @for (entry of applied(); track $index) {
           <p class="roll-modifier-line">✓ {{ entry.label }}: {{ entry.amount }}</p>
         }
       </div>
     }
 
-    @if (canHalflingReroll || canUseLuck) {
+    @if (inspirationRoll() !== null) {
+      <p class="roll-modifier-line">Inspiração Bárdica: +{{ inspirationRoll() }}</p>
+    }
+    @if (canHalflingReroll || canUseLuck || canIndomitable || canUseInspiration) {
       <div class="roll-modal-actions">
+        @if (canUseInspiration) {
+          <button class="roll-btn-secondary" (click)="useInspiration()">
+            🎵 INSPIRAÇÃO BÁRDICA (d{{ inspirationSides }})
+          </button>
+        }
+        @if (canIndomitable) {
+          <button class="roll-btn-secondary" (click)="rerollIndomitable()">
+            🛡 INDOMÁVEL: ROLAR DE NOVO
+          </button>
+        }
         @if (canHalflingReroll) {
-          <button class="roll-btn-secondary" (click)="rerollHalfling()">🍀 SORTUDO: ROLAR O 1 DE NOVO</button>
+          <button class="roll-btn-secondary" (click)="rerollHalfling()">
+            🍀 SORTUDO: ROLAR O 1 DE NOVO
+          </button>
         }
         @if (canUseLuck) {
           <button class="roll-btn-secondary" (click)="useLuck()">

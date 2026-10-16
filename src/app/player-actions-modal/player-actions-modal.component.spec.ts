@@ -432,3 +432,154 @@ describe('PlayerActionsModalComponent — Sortudo', () => {
     expect(updateResourceUses).toHaveBeenCalledWith(7, 'Pontos de Sorte', 1);
   });
 });
+
+describe('PlayerActionsModalComponent — fase 4 dos traços', () => {
+  function create(
+    extra: {
+      features?: Partial<CombatFeatures>;
+      trackers?: { name: string; max: number; used: number; recharge_on: string }[];
+      abilities?: ClassAbility[];
+      skills?: unknown[];
+    } = {},
+  ) {
+    const grant = vi.fn(() => of({ sides: 8, to: 'Thorin' }));
+    const updateActiveEffects = vi.fn(() => of({ active_effects: { active: [], turn_uses: {} } }));
+    const updateResourceUses = vi.fn(() => of({ resource_trackers: extra.trackers ?? [] }));
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: CharacterService,
+          useValue: {
+            getCharacterById: vi.fn(() =>
+              of({
+                character_sheet: {
+                  header: { name: 'Lyra' },
+                  class_abilities: extra.abilities ?? [],
+                  resource_trackers: extra.trackers ?? [],
+                  spells: [],
+                  skills: extra.skills ?? [],
+                  combat_features: {
+                    crit_min: 20,
+                    melee_crit_extra_dice: 0,
+                    riders: [],
+                    attack_bonuses: [],
+                    power_attack: [],
+                    unarmed: null,
+                    active_effects: { active: [], turn_uses: {} },
+                    halfling_lucky: false,
+                    d20_reminders: [],
+                    ...extra.features,
+                  },
+                },
+              } as unknown as CharacterSheetResponse),
+            ),
+            updateResourceUses,
+            updateActiveEffects,
+          },
+        },
+        {
+          provide: GameSessionService,
+          useValue: {
+            announceSpellCast: vi.fn(() => of(undefined)),
+            grantBardicInspiration: grant,
+          },
+        },
+      ],
+    });
+    const modal = TestBed.runInInjectionContext(() => new PlayerActionsModalComponent());
+    modal.idCharacter = 7;
+    modal.sessionId = 'gs';
+    modal.allies = [{ id_player_session: 'p2', name: 'Thorin' }];
+    modal.ngOnInit();
+    return { modal, grant, updateActiveEffects, updateResourceUses };
+  }
+
+  it('teste leva os lembretes do atributo e a Inspiração guardada; usar apaga o dado', () => {
+    const { modal, updateActiveEffects } = create({
+      features: {
+        active_effects: {
+          active: [],
+          turn_uses: {},
+          bardic_inspiration: { sides: 8, from: 'Lyra' },
+        },
+        d20_reminders: [
+          { applies: 'save', abilities: ['DEX'], text: 'Sentido de Perigo' },
+          { applies: 'save', abilities: null, text: 'Bravura' },
+          { applies: 'check', abilities: ['STR'], text: 'Fúria' },
+        ],
+      },
+    });
+    modal.rollSave('DEX', 3);
+    expect(modal.activeRoll()).toMatchObject({
+      inspiration: { sides: 8, from: 'Lyra' },
+      reminders: ['Sentido de Perigo', 'Bravura'],
+    });
+    modal.rollSave('WIS', 3);
+    expect(modal.activeRoll()).toMatchObject({ reminders: ['Bravura'] });
+    modal.rollSkill({
+      id_skill: 1,
+      name: 'Atletismo',
+      attribute_name: 'FOR',
+      total_skill_value: 5,
+    } as never);
+    expect(modal.activeRoll()).toMatchObject({ reminders: ['Fúria'] });
+    modal.onInspirationUsed();
+    expect(updateActiveEffects).toHaveBeenCalledWith(7, { consume_inspiration: true });
+  });
+
+  it('Indomável só nas resistências', () => {
+    const { modal, updateResourceUses } = create({
+      trackers: [{ name: 'Indomável', max: 1, used: 0, recharge_on: 'long_rest' }],
+    });
+    modal.rollSave('WIS', 1);
+    expect(modal.activeRoll()).toMatchObject({ indomitable: 1 });
+    modal.rollSkill({
+      id_skill: 1,
+      name: 'Atletismo',
+      attribute_name: 'FOR',
+      total_skill_value: 5,
+    } as never);
+    expect(modal.activeRoll()).toMatchObject({ indomitable: 0 });
+    modal.onIndomitableUsed();
+    expect(updateResourceUses).toHaveBeenCalledWith(7, 'Indomável', 1);
+  });
+
+  it('Inspiração Bárdica: pede o aliado, gasta e entrega o dado', () => {
+    const inspire = {
+      name: 'Inspiração Bárdica',
+      description: '',
+      cost: 1,
+      resource_key: 'Inspiração Bárdica',
+      roll: null,
+      targets_ally: true,
+    };
+    const { modal, grant, updateResourceUses } = create({
+      abilities: [inspire],
+      trackers: [{ name: 'Inspiração Bárdica', max: 3, used: 0, recharge_on: 'short_rest' }],
+    });
+    modal.useClassAbility(inspire);
+    expect(modal.allyAbility()).toBe(inspire);
+    expect(updateResourceUses).not.toHaveBeenCalled();
+    modal.useClassAbility(inspire, undefined, 'p2');
+    expect(updateResourceUses).toHaveBeenCalledWith(7, 'Inspiração Bárdica', 1);
+    expect(grant).toHaveBeenCalledWith('gs', { id_character: 7, id_player_session: 'p2' });
+  });
+
+  it('ataque com arma leva o tipo de dano (resistências do alvo)', () => {
+    const { modal } = create();
+    modal.rollAttack({
+      id_weapon: 1,
+      name: 'Machado',
+      attack_bonus: 5,
+      damage_modifier: 3,
+      damage_die: '1d12',
+      damage_type: 'Cortante',
+      properties: 'Pesada',
+      weight: 1,
+      price_value: 1,
+      isRanged: false,
+    });
+    expect(modal.activeRoll()).toMatchObject({ damage: { damageType: 'Cortante' } });
+  });
+});
