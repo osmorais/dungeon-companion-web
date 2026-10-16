@@ -151,6 +151,9 @@
         @if (canHideRoll && freeformHidden()) {
           <p class="roll-hidden-note">🔒 Só você vê esse resultado</p>
         }
+        @if (secretRequestId) {
+          <p class="roll-hidden-note">🔒 Teste secreto: só você e o mestre veem</p>
+        }
         @if (postFailed()) {
           <p class="roll-post-error">Não foi possível registrar na sessão.</p>
         }
@@ -293,7 +296,7 @@
       <div class="roll-modal-actions">
         <button
           class="roll-btn-primary"
-          [disabled]="isRolling() || freeformPoolEmpty"
+          [disabled]="isRolling() || freeformPoolEmpty || (!!secretRequestId && !!result())"
           (click)="roll()"
         >
           {{ isRolling() ? 'ROLANDO...' : result() ? 'ROLAR NOVAMENTE' : 'ROLAR' }}

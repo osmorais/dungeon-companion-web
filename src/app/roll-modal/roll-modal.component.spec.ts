@@ -556,3 +556,49 @@ describe('RollModalComponent — fase 4', () => {
     });
   });
 });
+
+describe('RollModalComponent — teste secreto', () => {
+  let postRoll: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    postRoll = vi.fn(() => of({}));
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: GameSessionService, useValue: { postRoll } },
+        { provide: DamageImpactService, useValue: { trigger: vi.fn() } },
+      ],
+    });
+  });
+
+  afterEach(() => vi.useRealTimers());
+
+  it('manda o id do pedido junto (o backend grava oculta)', () => {
+    const modal = TestBed.runInInjectionContext(() => new RollModalComponent());
+    modal.config = {
+      mode: 'ability',
+      rollType: 'skill',
+      label: 'Teste secreto: Percepção',
+      modifier: 4,
+    };
+    modal.sessionId = 'gs';
+    modal.secretRequestId = 'req-1';
+    modal.roll();
+    vi.advanceTimersByTime(1000);
+    expect(postRoll.mock.calls[0][1]).toMatchObject({
+      roll_type: 'skill',
+      label: 'Teste secreto: Percepção',
+      modifier: 4,
+      secret_request_id: 'req-1',
+    });
+  });
+
+  it('rolagem comum não manda o campo', () => {
+    const modal = TestBed.runInInjectionContext(() => new RollModalComponent());
+    modal.config = { mode: 'ability', rollType: 'skill', label: 'Percepção', modifier: 4 };
+    modal.sessionId = 'gs';
+    modal.roll();
+    vi.advanceTimersByTime(1000);
+    expect(postRoll.mock.calls[0][1]).not.toHaveProperty('secret_request_id');
+  });
+});

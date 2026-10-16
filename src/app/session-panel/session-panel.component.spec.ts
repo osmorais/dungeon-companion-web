@@ -382,4 +382,22 @@ describe('SessionPanelComponent', () => {
       expect(gameSessionService.updatePlayerHp).not.toHaveBeenCalled();
     });
   });
+
+  describe('teste secreto (jogador)', () => {
+    const request = (id: string) => ({
+      request_id: id,
+      id_character: 10,
+      label: 'Percepção',
+      check: { kind: 'skill' as const, id_skill: 13 },
+    });
+
+    it('pedidos entram numa fila, um de cada vez, sem repetir', () => {
+      component.receiveSecretRoll(request('a'));
+      component.receiveSecretRoll(request('b'));
+      component.receiveSecretRoll(request('a'));
+      expect(component.pendingSecretRolls().map((r) => r.request_id)).toEqual(['a', 'b']);
+      component.finishSecretRoll();
+      expect(component.pendingSecretRolls().map((r) => r.request_id)).toEqual(['b']);
+    });
+  });
 });

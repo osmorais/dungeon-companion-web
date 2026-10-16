@@ -5,6 +5,7 @@ import {
   NpcSession,
   PlayerSession,
   RollLogEntry,
+  SecretRollCheck,
 } from './game-session.interface';
 
 /**
@@ -52,6 +53,15 @@ export interface SessionEventPayloadMap {
   monster_revealed: { id_monster_session: string; name: string; image_url: string | null };
   monster_hidden: { id_monster_session: string };
   roll_added: { roll: RollLogEntry };
+  /** Teste secreto pedido pelo mestre — o backend só manda pro jogador alvo. */
+  secret_roll_requested: {
+    target_user_id: string;
+    request_id: string;
+    id_player_session: string;
+    id_character: number;
+    label: string;
+    check: SecretRollCheck;
+  };
   spell_cast: {
     id_character: number;
     actor_name: string;

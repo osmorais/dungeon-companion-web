@@ -204,6 +204,21 @@ describe('applySessionEvent', () => {
       expect(detail.recent_rolls.at(-1)!.id_roll).toBe('r28');
     });
 
+    it('pedido de teste secreto não altera o estado compartilhado', () => {
+      const detail = sessionDetail();
+      expect(
+        apply(detail, {
+          type: 'secret_roll_requested',
+          target_user_id: 'u1',
+          request_id: 'r1',
+          id_player_session: 'p1',
+          id_character: 1,
+          label: 'Percepção',
+          check: { kind: 'skill', id_skill: 13 },
+        }),
+      ).toBe(detail);
+    });
+
     it('magia lançada não altera o estado', () => {
       const detail = sessionDetail();
       expect(

@@ -90,6 +90,8 @@ export class RollModalComponent implements OnInit {
   @Input() sessionId: string | undefined;
   /** Só o mestre pode rolar oculto — mostra o alternador PÚBLICO/OCULTO no modo freeform. */
   @Input() canHideRoll = false;
+  /** Resposta a um teste secreto do mestre: a rolagem vai oculta (só o mestre e quem rolou veem). */
+  @Input() secretRequestId: string | null = null;
   /** Alvos em que o dano/cura rolado pode ser aplicado direto (opcional). Vazio = sem a opção,
    *  e o modal se comporta como antes (encerra sozinho ao terminar a rolagem de dano). */
   @Input() applyTargets: ApplyTarget[] = [];
@@ -634,6 +636,7 @@ export class RollModalComponent implements OnInit {
       modifier: this.modifier,
       total,
       is_hidden: this.canHideRoll && this.config.mode === 'freeform' && this.freeformHidden(),
+      ...(this.secretRequestId ? { secret_request_id: this.secretRequestId } : {}),
     };
 
     this.posting.set(true);

@@ -32,6 +32,11 @@ import { TomAssistantComponent } from '../tom-assistant/tom-assistant.component'
 import { PlayerInventoryModalComponent } from '../player-inventory-modal/player-inventory-modal.component';
 import { DamageImpactComponent } from '../damage-impact/damage-impact.component';
 import { ModalBurstComponent } from '../modal-burst/modal-burst.component';
+import { SecretRollRequestModalComponent } from '../secret-roll/secret-roll-request-modal.component';
+import {
+  SecretRollPromptComponent,
+  SecretRollPromptRequest,
+} from '../secret-roll/secret-roll-prompt.component';
 import { DamageImpactService } from '../services/damage-impact.service';
 import { attrLabel } from '../models/level-up.interface';
 import { saveNote } from '../roll-modal/spell-roll-config';
@@ -54,6 +59,8 @@ import { ApplyRequest, ApplyTarget } from '../roll-modal/apply-target';
     PlayerInventoryModalComponent,
     DamageImpactComponent,
     ModalBurstComponent,
+    SecretRollRequestModalComponent,
+    SecretRollPromptComponent,
   ],
   templateUrl: './session-panel.component.html',
   styleUrls: ['./session-panel.component.scss'],
@@ -198,6 +205,12 @@ export class SessionPanelComponent implements OnDestroy {
       if (event.type === 'npc_xp_granted' && event.can_level_up) {
         const npc = this.sessionDetail()?.npcs.find((n) => n.id_npc_session === event.id_npc_session);
         this.showLevelUpEligibleToast(event.character_name, npc?.character?.avatar_preset ?? null);
+      }
+      if (event.type === 'secret_roll_requested') {
+        // O backend só manda pro jogador alvo; ainda assim confere que é pra este usuário.
+        if (event.target_user_id === this.authService.currentUser()?.id) {
+          this.receiveSecretRoll(event);
+        }
       }
       if (event.type === 'spell_cast') {
         this.showSpellCastToast(
@@ -1762,6 +1775,31 @@ export class SessionPanelComponent implements OnDestroy {
   });
 
   /** ========================= ROLAGEM DO MESTRE (pública ou oculta) ========================= */
+
+  /** ========================= TESTE SECRETO ========================= */
+
+  /** Mestre: modal de pedir teste secreto. */
+  secretRequestOpen = signal(false);
+  /** Jogador: pedidos recebidos, um de cada vez. */
+  pendingSecretRolls = signal<SecretRollPromptRequest[]>([]);
+
+  openSecretRequest(): void {
+    this.secretRequestOpen.set(true);
+  }
+
+  closeSecretRequest(): void {
+    this.secretRequestOpen.set(false);
+  }
+
+  receiveSecretRoll(request: SecretRollPromptRequest): void {
+    this.pendingSecretRolls.update((queue) =>
+      queue.some((r) => r.request_id === request.request_id) ? queue : [...queue, request],
+    );
+  }
+
+  finishSecretRoll(): void {
+    this.pendingSecretRolls.update((queue) => queue.slice(1));
+  }
 
   dmRollOpen = signal(false);
 

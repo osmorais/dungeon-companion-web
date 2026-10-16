@@ -17,6 +17,7 @@ import {
   PlayerSession,
   RollLogEntry,
   RollLogPayload,
+  SecretRollRequestPayload,
   SpellCastPayload,
   StartEncounterParticipantInput,
   SubmitInitiativePayload,
@@ -191,6 +192,17 @@ export class GameSessionService {
 
   postRoll(sessionId: string, payload: RollLogPayload): Observable<RollLogEntry> {
     return this.http.post<RollLogEntry>(`${this.baseUrl}/api/game-session/${sessionId}/roll`, payload);
+  }
+
+  /** Mestre pede um teste secreto a jogadores — cada um rola e só o mestre recebe o resultado. */
+  requestSecretRoll(
+    sessionId: string,
+    payload: SecretRollRequestPayload,
+  ): Observable<{ id_player_session: string; request_id: string }[]> {
+    return this.http.post<{ id_player_session: string; request_id: string }[]>(
+      `${this.baseUrl}/api/game-session/${sessionId}/secret-roll-request`,
+      payload,
+    );
   }
 
   /** Só anuncia (broadcast via socket) pro toast de todo mundo na sessão — não persiste nada. */

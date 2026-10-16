@@ -182,6 +182,19 @@ export interface RollLogPayload {
   total: number;
   /** Só o mestre consegue de fato ocultar — o backend ignora esse campo pra quem não é dono da sessão. */
   is_hidden?: boolean;
+  /** Resposta a um teste secreto pedido pelo mestre — o backend grava oculta (só o mestre recebe). */
+  secret_request_id?: string;
+}
+
+/** O que o mestre pede no teste secreto — o jogador rola com o bônus da própria ficha. */
+export type SecretRollCheck =
+  | { kind: 'skill'; id_skill: number }
+  | { kind: 'save'; ability: 'STR' | 'DEX' | 'CON' | 'INT' | 'WIS' | 'CHA' };
+
+export interface SecretRollRequestPayload {
+  id_player_sessions: string[];
+  check: SecretRollCheck;
+  label: string;
 }
 
 /** Anúncio de "personagem lançou uma magia" — só informativo, não persiste no backend (ao

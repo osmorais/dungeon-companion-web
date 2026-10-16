@@ -11,6 +11,7 @@
       <span class="mobile-title">PAINEL DA SESSÃO</span>
       @if (isOwner()) {
         <button class="mobile-dm-roll-btn" (click)="openDmRoll()">🎲 ROLAR DADOS</button>
+        <button class="mobile-dm-roll-btn" (click)="openSecretRequest()">🔒 TESTE SECRETO</button>
       }
       <button class="mobile-refresh-btn" (click)="refreshSession()" [disabled]="refreshing()" title="Atualizar sessão">
         {{ refreshing() ? '...' : '↻' }}
@@ -512,6 +513,7 @@
             </span>
             @if (isOwner()) {
               <button class="retro-btn dm-roll-btn" (click)="openDmRoll()">🎲 ROLAR DADOS</button>
+              <button class="retro-btn dm-roll-btn" (click)="openSecretRequest()">🔒 TESTE SECRETO</button>
             }
             <button
               class="retro-btn polling-btn"
@@ -1083,6 +1085,20 @@
     (rolled)="onInitiativeRolled(ir.idCombatParticipant, $event)"
     (closed)="closeInitiativeRoll()"
   />
+}
+
+<!-- ===== MODAL: TESTE SECRETO (mestre pede; jogador rola e só os dois veem) ===== -->
+@if (secretRequestOpen() && sessionDetail(); as detail) {
+  <app-secret-roll-request-modal
+    [sessionId]="id()!"
+    [players]="detail.players"
+    (closed)="closeSecretRequest()"
+  />
+}
+@if (pendingSecretRolls()[0]; as secret) {
+  @for (s of [secret]; track s.request_id) {
+    <app-secret-roll-prompt [request]="s" [sessionId]="id()" (closed)="finishSecretRoll()" />
+  }
 }
 
 <!-- ===== MODAL: ROLAGEM DO MESTRE (pública ou oculta) ===== -->
