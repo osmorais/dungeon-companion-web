@@ -168,6 +168,7 @@ describe('PlayerActionsModalComponent — traços no ataque', () => {
     power_attack: [],
     unarmed: null,
     active_effects: { active: [], turn_uses: {} },
+    halfling_lucky: false,
     ...extra,
   });
 
@@ -374,5 +375,60 @@ describe('PlayerActionsModalComponent — traços no ataque', () => {
     });
     modal.useClassAbility(flurry);
     expect(modal.activeRoll()).toMatchObject({ instances: { count: 2, label: 'golpe' } });
+  });
+});
+
+describe('PlayerActionsModalComponent — Sortudo', () => {
+  it('teste leva o Sortudo do Halfling e os Pontos de Sorte; gastar debita o recurso', () => {
+    const updateResourceUses = vi.fn(() =>
+      of({
+        resource_trackers: [{ name: 'Pontos de Sorte', max: 3, used: 2, recharge_on: 'long_rest' }],
+      }),
+    );
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: CharacterService,
+          useValue: {
+            getCharacterById: vi.fn(() =>
+              of({
+                character_sheet: {
+                  header: { name: 'Pip' },
+                  class_abilities: [],
+                  resource_trackers: [
+                    { name: 'Pontos de Sorte', max: 3, used: 1, recharge_on: 'long_rest' },
+                  ],
+                  spells: [],
+                  skills: [],
+                  combat_features: {
+                    crit_min: 20,
+                    melee_crit_extra_dice: 0,
+                    riders: [],
+                    attack_bonuses: [],
+                    power_attack: [],
+                    unarmed: null,
+                    active_effects: { active: [], turn_uses: {} },
+                    halfling_lucky: true,
+                  },
+                },
+              } as unknown as CharacterSheetResponse),
+            ),
+            updateResourceUses,
+          },
+        },
+        {
+          provide: GameSessionService,
+          useValue: { announceSpellCast: vi.fn(() => of(undefined)) },
+        },
+      ],
+    });
+    const modal = TestBed.runInInjectionContext(() => new PlayerActionsModalComponent());
+    modal.idCharacter = 7;
+    modal.ngOnInit();
+    modal.rollSave('DEX', 4);
+    expect(modal.activeRoll()).toMatchObject({ halflingLucky: true, luckPoints: 2 });
+    modal.onLuckUsed();
+    expect(updateResourceUses).toHaveBeenCalledWith(7, 'Pontos de Sorte', 1);
   });
 });

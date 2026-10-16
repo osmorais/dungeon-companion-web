@@ -48,6 +48,10 @@ export interface AbilityRollConfig {
   /** `distribute`: cura fixa repartida entre alvos (Preservar a Vida) — cada "aplicar" escolhe
    *  quanto, até acabar o total. */
   healing?: { tempHp: boolean; distribute?: boolean };
+  /** Halfling (Sortudo): 1 natural no d20 pode ser rolado de novo (vale o novo). */
+  halflingLucky?: boolean;
+  /** Talento Sortudo: Pontos de Sorte disponíveis — gastar um rola mais um d20 e fica o melhor. */
+  luckPoints?: number;
   /** Menor d20 natural que é crítico (Campeão: 19 ou 18). Padrão 20. */
   critMin?: number;
   /** Talento de −5 no ataque / +10 no dano (Mestre em Armas Grandes, Mestre-Atirador): o
@@ -120,6 +124,90 @@ export class RollModalComponent implements OnInit {
   @Output() riderSpellUsed = new EventEmitter<RiderOption>();
   /** Somas 1×/turno marcadas neste acerto (Ataque Furtivo…) — o pai trava na vez do combate. */
   @Output() oncePerTurnUsed = new EventEmitter<string[]>();
+
+  /** O jogador gastou um Ponto de Sorte (talento) — o pai debita o recurso. */
+  @Output() luckUsed = new EventEmitter<void>();
+
+  /** Sortudo já usado nesta rolagem (Halfling ou talento: uma vez cada). */
+  halflingRerolled = signal(false);
+  luckSpent = signal(false);
+  /** Teste/resistência terminou e há Sortudo pra oferecer: espera o "CONCLUIR". */
+  awaitingLuck = signal(false);
+
+  /** Rolagem de d20 (teste, resistência ou ataque antes do dano) com resultado na tela. */
+  private get d20Settled(): boolean {
+    return (
+      this.config.mode === 'ability' &&
+      !!this.result() &&
+      !this.isRolling() &&
+      (this.attackPhase() === 'attack' || this.attackPhase() === 'awaiting-hit')
+    );
+  }
+
+  get canHalflingReroll(): boolean {
+    return (
+      this.d20Settled &&
+      this.config.mode === 'ability' &&
+      !!this.config.halflingLucky &&
+      !this.halflingRerolled() &&
+      this.result()!.chosen.includes(1)
+    );
+  }
+
+  get canUseLuck(): boolean {
+    return (
+      this.d20Settled &&
+      this.config.mode === 'ability' &&
+      (this.config.luckPoints ?? 0) > 0 &&
+      !this.luckSpent()
+    );
+  }
+
+  /** Sortudo (Halfling): rola de novo o d20 que deu 1 e fica com o novo resultado. */
+  rerollHalfling(): void {
+    const res = this.result();
+    if (!res || !this.canHalflingReroll) return;
+    const index = res.rolls.indexOf(1);
+    const rolls = [...res.rolls];
+    rolls[index] = this.rollDie(20);
+    this.halflingRerolled.set(true);
+    this.settleD20(rolls, ' (Sortudo)');
+  }
+
+  /** Talento Sortudo: gasta um ponto, rola mais um d20 e fica com o melhor. */
+  useLuck(): void {
+    const res = this.result();
+    if (!res || !this.canUseLuck) return;
+    this.luckSpent.set(true);
+    this.luckUsed.emit();
+    this.rolledSides = [...this.rolledSides, 20];
+    this.settleD20([...res.rolls, this.rollDie(20)], ' (Ponto de Sorte)', true);
+  }
+
+  /** Recalcula o d20 depois do Sortudo (escolhido, crítico) e registra de novo no log. */
+  private settleD20(rolls: number[], suffix: string, best = false): void {
+    const state = this.advantageState();
+    const chosen = best
+      ? [Math.max(...rolls)]
+      : state === 'normal'
+        ? rolls
+        : [state === 'disadvantage' ? Math.min(...rolls) : Math.max(...rolls)];
+    const total = chosen.reduce((sum, r) => sum + r, 0) + this.modifier;
+    this.displayValues.set(rolls);
+    this.result.set({ rolls, chosen, total });
+    if (this.attackPhase() === 'awaiting-hit') {
+      const critMin = this.config.mode === 'ability' ? (this.config.critMin ?? 20) : 20;
+      this.isCritical.set(chosen.length === 1 && chosen[0] >= critMin);
+    }
+    this.postRoll(rolls, total, this.rolledSides, suffix);
+  }
+
+  /** Teste/resistência com Sortudo disponível: encerra quando o jogador decide. */
+  finishLuck(): void {
+    this.awaitingLuck.set(false);
+    const res = this.result();
+    this.rolled.emit({ rolls: res?.rolls ?? [], modifier: this.modifier, total: res?.total ?? 0 });
+  }
 
   /** Ataque poderoso ligado (−5 no ataque, +10 no dano). */
   powerAttackOn = signal(false);
@@ -671,6 +759,12 @@ export class RollModalComponent implements OnInit {
       return;
     }
 
+    // Teste/resistência com Sortudo pra oferecer: espera o "CONCLUIR" em vez de encerrar na hora.
+    if (this.isAbility && (this.canHalflingReroll || this.canUseLuck)) {
+      this.awaitingLuck.set(true);
+      return;
+    }
+
     // Com alvos pra aplicar, espera o "CONCLUIR" em vez de encerrar na hora.
     if (this.attackPhase() === 'damage' && this.applyTargets.length > 0) {
       this.applied.set([]);
@@ -693,7 +787,7 @@ export class RollModalComponent implements OnInit {
     return [...counts.entries()].map(([sides, count]) => `${count}d${sides}`).join(' + ');
   }
 
-  private postRoll(rolls: number[], total: number, sidesList: number[]) {
+  private postRoll(rolls: number[], total: number, sidesList: number[], labelSuffix = '') {
     // Valor fixo (sem dado) não vai pro log — o backend exige dados na rolagem.
     if (!this.sessionId || sidesList.length === 0) return;
 
@@ -710,7 +804,7 @@ export class RollModalComponent implements OnInit {
       id_character: this.idCharacter,
       actor_name: this.actorName,
       roll_type: rollType,
-      label: this.title,
+      label: this.title + labelSuffix,
       dice_notation: this.diceNotationFor(sidesList),
       rolls,
       advantage_state: this.isAbility ? this.advantageState() : 'normal',

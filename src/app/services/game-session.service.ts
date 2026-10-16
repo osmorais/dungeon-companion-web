@@ -67,12 +67,13 @@ export class GameSessionService {
     });
   }
 
+  /** Devolve o PV gravado — 1 em vez de 0 quando a Resistência Implacável (Meio-Orc) entra. */
   updatePlayerHp(
     idPlayerSession: string,
     currentHitPoints: number,
     temporaryHitPoints: number,
-  ): Observable<void> {
-    return this.http.patch<void>(
+  ): Observable<{ current_hit_points: number } | null> {
+    return this.http.patch<{ current_hit_points: number } | null>(
       `${this.baseUrl}/api/game-session/player/${idPlayerSession}/hp`,
       { current_hit_points: currentHitPoints, temporary_hit_points: temporaryHitPoints },
       { context: this.silentContext() },

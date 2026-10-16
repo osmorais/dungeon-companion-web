@@ -603,7 +603,9 @@ export class SessionPanelComponent implements OnDestroy {
     this.gameSessionService.updatePlayerHp(id, newHp, newTempHp).pipe(
       finalize(() => this.savingHp.update(s => { const n = new Set(s); n.delete(id); return n; })),
     ).subscribe({
-      next: () => {
+      next: (response) => {
+        // A API pode gravar outro valor (Resistência Implacável: 1 em vez de 0).
+        const storedHp = response?.current_hit_points ?? newHp;
         this.sessionState.patch(detail => ({
           ...detail,
           players: detail.players.map(p =>
@@ -611,7 +613,7 @@ export class SessionPanelComponent implements OnDestroy {
               ? {
                   ...p,
                   character: p.character
-                    ? { ...p.character, current_hit_points: newHp, temporary_hit_points: newTempHp }
+                    ? { ...p.character, current_hit_points: storedHp, temporary_hit_points: newTempHp }
                     : p.character,
                 }
               : p,

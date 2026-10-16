@@ -414,4 +414,17 @@ describe('SessionPanelComponent', () => {
       expect(component.combatTurnKey()).toBeNull();
     });
   });
+
+  describe('Resistência Implacável (PV que a API grava)', () => {
+    it('a sessão usa o PV devolvido pela API (1 em vez de 0)', () => {
+      const p1 = player('p1', {
+        character: { ...player('p1').character!, current_hit_points: 6, temporary_hit_points: 0 },
+      });
+      detail.set(sessionDetail({ players: [p1] }));
+      gameSessionService.updatePlayerHp.mockReturnValue(of({ current_hit_points: 1 }));
+      component.applyRollToTarget({ targetKey: 'player:p1', amount: 20, kind: 'damage' });
+      expect(gameSessionService.updatePlayerHp).toHaveBeenCalledWith('p1', 0, 0);
+      expect(detail()!.players[0].character!.current_hit_points).toBe(1);
+    });
+  });
 });

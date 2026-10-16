@@ -102,12 +102,30 @@ export class PlayerActionsModalComponent implements OnInit {
 
   /** ========================= ROLAGENS ========================= */
 
+  /** Sortudo do personagem (Halfling e talento) pra qualquer d20 de teste, resistência ou ataque. */
+  private luckOptions(): Pick<AbilityRollConfig, 'halflingLucky' | 'luckPoints'> {
+    const luck = this.resourceTrackerByKey('Pontos de Sorte');
+    return {
+      halflingLucky: !!this.combatFeatures()?.halfling_lucky,
+      luckPoints: luck ? this.resourceAvailable(luck) : 0,
+    };
+  }
+
+  /** Ponto de Sorte gasto no modal: debita o recurso (sem fechar — a rolagem segue na tela). */
+  onLuckUsed(): void {
+    this.charService.updateResourceUses(this.idCharacter, 'Pontos de Sorte', 1).subscribe({
+      next: ({ resource_trackers }) => this.patchResourceTrackers(resource_trackers),
+      error: (err) => this.handleActionError(err),
+    });
+  }
+
   rollSkill(skill: Skill): void {
     const config: AbilityRollConfig = {
       mode: 'ability',
       rollType: 'skill',
       label: `Perícia: ${skill.name}`,
       modifier: skill.total_skill_value,
+      ...this.luckOptions(),
     };
     this.activeRoll.set(config);
   }
@@ -120,6 +138,7 @@ export class PlayerActionsModalComponent implements OnInit {
       rollType: 'save',
       label: `Resistência: ${attrLabel(attrKey)}`,
       modifier: save,
+      ...this.luckOptions(),
     };
     this.activeRoll.set(config);
   }
@@ -216,6 +235,7 @@ export class PlayerActionsModalComponent implements OnInit {
       modifier: w.attackBonus + attackBonuses.reduce((sum, b) => sum + b.bonus, 0),
       critMin: features?.crit_min ?? 20,
       powerAttack: power ? { name: power.name } : undefined,
+      ...this.luckOptions(),
       damage: w.dice
         ? {
             diceCount: w.dice.count,

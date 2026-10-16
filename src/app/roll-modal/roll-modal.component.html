@@ -225,7 +225,24 @@
       </div>
     }
 
-    @if (awaitingApply()) {
+    @if (canHalflingReroll || canUseLuck) {
+      <div class="roll-modal-actions">
+        @if (canHalflingReroll) {
+          <button class="roll-btn-secondary" (click)="rerollHalfling()">🍀 SORTUDO: ROLAR O 1 DE NOVO</button>
+        }
+        @if (canUseLuck) {
+          <button class="roll-btn-secondary" (click)="useLuck()">
+            🍀 PONTO DE SORTE ({{ config.mode === 'ability' ? config.luckPoints : 0 }})
+          </button>
+        }
+      </div>
+    }
+
+    @if (awaitingLuck()) {
+      <div class="roll-modal-actions">
+        <button class="roll-btn-primary" (click)="finishLuck()">CONCLUIR</button>
+      </div>
+    } @else if (awaitingApply()) {
       <div class="roll-modal-actions">
         <button class="roll-btn-primary" (click)="finishApply()">CONCLUIR</button>
       </div>

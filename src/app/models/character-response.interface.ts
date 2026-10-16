@@ -64,6 +64,8 @@ export interface CombatFeatures {
     damage_modifier: number;
   } | null;
   active_effects: ActiveEffects;
+  /** Halfling (Sortudo): 1 natural no d20 pode ser rolado de novo. */
+  halfling_lucky: boolean;
 }
 
 export interface CharacterSheetResponse {

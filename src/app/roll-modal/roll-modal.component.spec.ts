@@ -821,3 +821,116 @@ describe('RollModalComponent — traços no ataque (fase 2)', () => {
     expect(modal.isToggleActive('Bruxaria')).toBe(true);
   });
 });
+
+describe('RollModalComponent — Sortudo (fase 3)', () => {
+  let postRoll: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    postRoll = vi.fn(() => of({}));
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: GameSessionService, useValue: { postRoll } },
+        { provide: DamageImpactService, useValue: { trigger: vi.fn() } },
+      ],
+    });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  const skill: AbilityRollConfig = {
+    mode: 'ability',
+    rollType: 'skill',
+    label: 'Perícia: Furtividade',
+    modifier: 5,
+  };
+
+  function create(config: AbilityRollConfig) {
+    const modal = TestBed.runInInjectionContext(() => new RollModalComponent());
+    modal.config = config;
+    modal.sessionId = 'gs';
+    modal.ngOnInit();
+    const rolled = vi.fn();
+    const luckUsed = vi.fn();
+    modal.rolled.subscribe(rolled);
+    modal.luckUsed.subscribe(luckUsed);
+    return { modal, rolled, luckUsed };
+  }
+
+  const settle = () => vi.advanceTimersByTime(1000);
+
+  it('Halfling: 1 natural oferece rolar de novo, vale o novo e vai pro log marcado', () => {
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0); // d20 = 1
+    const { modal, rolled } = create({ ...skill, halflingLucky: true });
+    modal.roll();
+    settle();
+    expect(modal.canHalflingReroll).toBe(true);
+    expect(modal.awaitingLuck()).toBe(true);
+    expect(rolled).not.toHaveBeenCalled();
+
+    random.mockReturnValue(0.7); // d20 = 15
+    modal.rerollHalfling();
+    expect(modal.result()).toMatchObject({ rolls: [15], chosen: [15], total: 20 });
+    expect(modal.canHalflingReroll).toBe(false);
+    expect(postRoll.mock.calls[1][1]).toMatchObject({
+      label: 'Perícia: Furtividade (Sortudo)',
+      total: 20,
+    });
+
+    modal.finishLuck();
+    expect(rolled).toHaveBeenCalledTimes(1);
+  });
+
+  it('Halfling sem 1 natural: encerra como antes', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.5);
+    const { modal, rolled } = create({ ...skill, halflingLucky: true });
+    modal.roll();
+    settle();
+    expect(modal.canHalflingReroll).toBe(false);
+    expect(rolled).toHaveBeenCalledTimes(1);
+  });
+
+  it('Ponto de Sorte: gasta, rola mais um d20 e fica com o melhor; uma vez por rolagem', () => {
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0.2); // 5
+    const { modal, luckUsed } = create({ ...skill, luckPoints: 2 });
+    modal.roll();
+    settle();
+    expect(modal.canUseLuck).toBe(true);
+    random.mockReturnValue(0.85); // 18
+    modal.useLuck();
+    expect(luckUsed).toHaveBeenCalledTimes(1);
+    expect(modal.result()).toMatchObject({ rolls: [5, 18], chosen: [18], total: 23 });
+    expect(modal.diceCount).toBe(2);
+    expect(modal.canUseLuck).toBe(false);
+  });
+
+  it('ataque: Ponto de Sorte antes de decidir o acerto, e o crítico é recalculado', () => {
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0.2);
+    const { modal } = create({
+      mode: 'ability',
+      rollType: 'attack',
+      label: 'Ataque: Arco',
+      modifier: 5,
+      luckPoints: 1,
+      damage: { diceCount: 1, diceSides: 8, modifier: 3, label: 'Dano: Arco' },
+    });
+    modal.roll();
+    settle();
+    expect(modal.isAwaitingHitDecision).toBe(true);
+    random.mockReturnValue(0.999); // 20
+    modal.useLuck();
+    expect(modal.isCritical()).toBe(true);
+  });
+
+  it('sem pontos e sem Halfling: nada a oferecer', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0);
+    const { modal, rolled } = create({ ...skill, luckPoints: 0 });
+    modal.roll();
+    settle();
+    expect(modal.canUseLuck).toBe(false);
+    expect(rolled).toHaveBeenCalledTimes(1);
+  });
+});
