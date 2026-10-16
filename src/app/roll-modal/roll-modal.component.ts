@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, inject, signal } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject, signal } from '@angular/core';
 import { GameSessionService } from '../services/game-session.service';
 import { DamageImpactService } from '../services/damage-impact.service';
 import { AdvantageState, RollLogPayload, RollType } from '../models/game-session.interface';
@@ -33,6 +33,11 @@ export interface AbilityRollConfig {
      *  o dano, o modal pergunta se quer gastar um espaço em Destruição Divina. */
     smite?: SmiteOption[];
   };
+  /** Acerto automático (Mísseis Mágicos): pula o d20 e já abre no dano. */
+  autoHit?: boolean;
+  /** Vários ataques na mesma ação (raios do Raio Ardente, feixes da Rajada Mística): depois de
+   *  cada um (acerto + dano, ou erro), o modal oferece o próximo até `count`. */
+  instances?: { count: number; label: string };
 }
 
 export interface FreeformRollConfig {
@@ -47,7 +52,7 @@ interface RollResult {
   total: number;
 }
 
-type AttackPhase = 'attack' | 'awaiting-hit' | 'smite-choice' | 'damage';
+type AttackPhase = 'attack' | 'awaiting-hit' | 'smite-choice' | 'damage' | 'next-instance';
 
 const DIE_OPTIONS = [4, 6, 8, 10, 12, 20, 100];
 const MAX_PER_DIE_TYPE = 9;
@@ -61,7 +66,7 @@ const ROLL_TICK_MS = 80;
   templateUrl: './roll-modal.component.html',
   styleUrls: ['./roll-modal.component.scss'],
 })
-export class RollModalComponent {
+export class RollModalComponent implements OnInit {
   private gameSessionService = inject(GameSessionService);
   private damageImpact = inject(DamageImpactService);
 
@@ -86,15 +91,21 @@ export class RollModalComponent {
   advantageState = signal<AdvantageState>('normal');
   /** Bandeja de dados livres: quantos de cada lado (ex: {6: 3, 12: 1, ...} = 3d6 + 1d12). Começa
    *  zerada (o jogador escolhe) — todos os tipos presentes só pra ter valor definido no template. */
-  freeformPool = signal<Record<number, number>>(
-    Object.fromEntries(DIE_OPTIONS.map((d) => [d, 0])),
-  );
+  freeformPool = signal<Record<number, number>>(Object.fromEntries(DIE_OPTIONS.map((d) => [d, 0])));
   freeformModifier = signal(0);
   /** Só tem efeito se canHideRoll — ver comentário no @Input. */
   freeformHidden = signal(false);
 
   /** Fase do fluxo de ataque — só avança além de 'attack' quando config.damage existe. */
   attackPhase = signal<AttackPhase>('attack');
+  /** Qual dos `config.instances` ataques está em andamento (1-based). */
+  instanceIndex = signal(1);
+
+  ngOnInit(): void {
+    if (this.pendingDamage && this.config.mode === 'ability' && this.config.autoHit) {
+      this.attackPhase.set('damage');
+    }
+  }
 
   /** Estado da escolha de Destruição Divina (fase 'smite-choice'). */
   selectedSmiteOption = signal<SmiteOption | null>(null);
@@ -121,6 +132,30 @@ export class RollModalComponent {
     return this.attackPhase() === 'awaiting-hit';
   }
 
+  get isOfferingNextInstance(): boolean {
+    return this.attackPhase() === 'next-instance';
+  }
+
+  private get instanceCount(): number {
+    return this.config.mode === 'ability' ? (this.config.instances?.count ?? 1) : 1;
+  }
+
+  private get hasMoreInstances(): boolean {
+    return this.instanceIndex() < this.instanceCount;
+  }
+
+  /** Ex: "raio 2 de 3" — vazio quando há um ataque só. */
+  get instanceProgress(): string {
+    if (this.config.mode !== 'ability' || !this.config.instances || this.instanceCount < 2)
+      return '';
+    return `${this.config.instances.label} ${this.instanceIndex()} de ${this.instanceCount}`;
+  }
+
+  get nextInstanceLabel(): string {
+    if (this.config.mode !== 'ability' || !this.config.instances) return '';
+    return `${this.config.instances.label} ${this.instanceIndex() + 1} de ${this.instanceCount}`;
+  }
+
   get isChoosingSmite(): boolean {
     return this.attackPhase() === 'smite-choice';
   }
@@ -135,11 +170,17 @@ export class RollModalComponent {
     return (
       this.config.mode === 'ability' &&
       this.attackPhase() !== 'damage' &&
-      this.attackPhase() !== 'smite-choice'
+      this.attackPhase() !== 'smite-choice' &&
+      this.attackPhase() !== 'next-instance'
     );
   }
 
   get title(): string {
+    const progress = this.instanceProgress;
+    return progress ? `${this.baseTitle} (${progress})` : this.baseTitle;
+  }
+
+  private get baseTitle(): string {
     if (this.attackPhase() === 'smite-choice') return 'Destruição Divina';
     if (this.attackPhase() === 'damage' && this.pendingDamage) {
       return this.smiteExtraDice() > 0
@@ -261,9 +302,29 @@ export class RollModalComponent {
     this.roll();
   }
 
-  /** O mestre disse que não passou da CA — encerra sem rolar dano. */
+  /** O mestre disse que não passou da CA — encerra sem rolar dano (ou oferece o próximo raio). */
   confirmMiss(): void {
     this.attackResolved.emit(false);
+    if (this.hasMoreInstances) {
+      this.attackPhase.set('next-instance');
+      return;
+    }
+    const res = this.result();
+    this.rolled.emit({ rolls: res?.rolls ?? [], modifier: this.modifier, total: res?.total ?? 0 });
+  }
+
+  /** Começa o próximo raio/feixe: volta pro d20 do ataque. */
+  nextInstance(): void {
+    this.instanceIndex.update((i) => i + 1);
+    this.result.set(null);
+    this.smiteExtraDice.set(0);
+    this.selectedSmiteOption.set(null);
+    this.smiteTargetSpecial.set(false);
+    this.attackPhase.set('attack');
+  }
+
+  /** Encerra antes de usar todos os raios (ex.: o alvo caiu). */
+  finishInstances(): void {
     const res = this.result();
     this.rolled.emit({ rolls: res?.rolls ?? [], modifier: this.modifier, total: res?.total ?? 0 });
   }
@@ -332,13 +393,22 @@ export class RollModalComponent {
     // Impacto de dano em tela cheia — só dentro da sessão (a ficha isolada não tem sessionId).
     // Quem rola não recebe o toast da própria rolagem; os outros disparam pelo toast (session-panel).
     if (this.attackPhase() === 'damage' && this.sessionId) {
-      this.damageImpact.trigger({ dice_notation: this.diceNotationFor(sidesList), modifier: this.modifier, total });
+      this.damageImpact.trigger({
+        dice_notation: this.diceNotationFor(sidesList),
+        modifier: this.modifier,
+        total,
+      });
     }
 
     if (this.pendingDamage && this.attackPhase() === 'attack') {
       // Terminou o d20 do ataque — espera a decisão do mestre antes de sinalizar
       // "interação concluída" (rolled) pro componente pai, senão ele fecharia tudo agora.
       this.attackPhase.set('awaiting-hit');
+      return;
+    }
+
+    if (this.attackPhase() === 'damage' && this.hasMoreInstances) {
+      this.attackPhase.set('next-instance');
       return;
     }
 

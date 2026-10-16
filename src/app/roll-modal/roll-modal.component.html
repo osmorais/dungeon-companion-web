@@ -154,6 +154,13 @@
         <button class="roll-btn-primary" (click)="rollDamageNow()">🎲 ROLAR DANO</button>
         <button class="roll-btn-secondary" (click)="confirmMiss()">NÃO ACERTEI</button>
       </div>
+    } @else if (isOfferingNextInstance) {
+      <div class="roll-modal-actions">
+        <button class="roll-btn-primary" (click)="nextInstance()">
+          🎲 PRÓXIMO: {{ nextInstanceLabel.toUpperCase() }}
+        </button>
+        <button class="roll-btn-secondary" (click)="finishInstances()">ENCERRAR</button>
+      </div>
     } @else if (isChoosingSmite) {
       <p class="roll-hit-question">Usar Destruição Divina?</p>
       <div class="roll-toggle-row">

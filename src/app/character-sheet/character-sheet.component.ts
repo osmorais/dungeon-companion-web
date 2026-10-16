@@ -5,6 +5,7 @@ import { CommonModule, KeyValuePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { CharacterService, HitDieRollResult } from '../services/character.service';
 import { Skill, Spell, WeaponRow } from '../models/character-options.interface';
+import { spellRollConfig } from '../roll-modal/spell-roll-config';
 import { CharacterSheetResponse, ResourceTracker, ClassAbility } from '../models/character-response.interface';
 import { AvatarPreset } from '../models/avatar-preset.interface';
 import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
@@ -320,7 +321,7 @@ export class CharacterSheetComponent {
     return Array.from({ length: this.slotsTotal(key) }, (_, i) => i);
   }
 
-  expendSlot(level: number, delta: number): void {
+  expendSlot(level: number, delta: number, onDone?: () => void): void {
     const id = this.sheetData()?.character_sheet.id_character;
     if (!id || this.expendingSlot()) return;
     this.expendingSlot.set(true);
@@ -328,6 +329,7 @@ export class CharacterSheetComponent {
       next: ({ slots_expended }) => {
         this.patchSpellcastingInfo({ slots_expended });
         this.expendingSlot.set(false);
+        onDone?.();
       },
       error: () => this.expendingSlot.set(false),
     });
@@ -585,22 +587,29 @@ export class CharacterSheetComponent {
   }
 
   isCastable(spell: Spell): boolean {
-    if (spell.spellLevel === 0) return false;
+    if (spell.spellLevel === 0) return true;
     const prepares = this.sheetData()?.character_sheet.spellcasting_info?.prepares_spells;
     return !prepares || !!spell.is_prepared;
   }
 
   availableSlotLevelsFor(spell: Spell): number[] {
     const info = this.sheetData()?.character_sheet.spellcasting_info;
-    if (!info?.slots_total) return [];
+    if (spell.spellLevel === 0 || !info?.slots_total) return [];
     return Object.keys(info.slots_total)
       .map(k => this.slotLevelNumber(k))
       .filter(lvl => lvl >= spell.spellLevel && this.slotsAvailable(`level_${lvl}`) > 0)
       .sort((a, b) => a - b);
   }
 
+  /** Gasta o espaço (truque não gasta) e, se a magia tiver rolagem cadastrada, abre o modal de
+   *  ataque/dano — mesmo fluxo da tela de ações da sessão. */
   castSpell(spell: Spell, slotLevel: number): void {
-    this.expendSlot(slotLevel, 1);
+    const rollConfig = spellRollConfig(spell, slotLevel);
+    const openRoll = () => {
+      if (rollConfig) this.activeRoll.set(rollConfig);
+    };
+    if (spell.spellLevel === 0) openRoll();
+    else this.expendSlot(slotLevel, 1, openRoll);
   }
 
   /** ========================= AVATAR EDITOR ========================= */

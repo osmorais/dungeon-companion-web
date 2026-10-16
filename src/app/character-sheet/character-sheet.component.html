@@ -995,6 +995,12 @@
           }
           @if (isCastable(selectedSpell)) {
             <div class="spell-cast-section">
+              @if (selectedSpell.spellLevel === 0) {
+                <button class="retro-btn spell-slot-btn"
+                        (click)="castSpell(selectedSpell, 0); closeSpellModal()">
+                  LANÇAR TRUQUE
+                </button>
+              } @else {
               <p class="spell-cast-label">CONJURAR USANDO ESPAÇO</p>
               <div class="spell-slot-options">
                 @for (lvl of availableSlotLevelsFor(selectedSpell); track lvl) {
@@ -1007,6 +1013,7 @@
                   <p class="spell-no-slots">Sem espaços disponíveis.</p>
                 }
               </div>
+              }
             </div>
           }
         }

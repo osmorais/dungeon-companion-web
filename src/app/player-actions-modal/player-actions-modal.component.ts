@@ -4,6 +4,7 @@ import { CharacterService, HitDieRollResult } from '../services/character.servic
 import { GameSessionService } from '../services/game-session.service';
 import { CharacterSheetResponse, ClassAbility, ResourceTracker } from '../models/character-response.interface';
 import { Skill, Spell, WeaponRow } from '../models/character-options.interface';
+import { spellRollConfig } from '../roll-modal/spell-roll-config';
 import {
   AbilityRollConfig,
   RollConfig,
@@ -264,7 +265,7 @@ export class PlayerActionsModalComponent implements OnInit {
   /** `closeAfter` fecha o modal ao terminar — usado pelo fluxo de conjurar magia (castSpell), já
    *  que aí a interação acabou. Ajuste manual de espaço (spell-slot-adjust-btn) passa `false`,
    *  pra deixar o jogador continuar ajustando outros níveis sem reabrir a tela. */
-  expendSlot(level: number, delta: number, closeAfter = true): void {
+  expendSlot(level: number, delta: number, closeAfter = true, onDone?: () => void): void {
     if (this.expendingSlot()) return;
     this.expendingSlot.set(true);
     this.actionError.set(null);
@@ -272,6 +273,7 @@ export class PlayerActionsModalComponent implements OnInit {
       next: ({ slots_expended }) => {
         this.patchSpellcasting({ slots_expended });
         this.expendingSlot.set(false);
+        onDone?.();
         if (closeAfter) this.closed.emit();
       },
       error: (err) => {
@@ -504,22 +506,36 @@ export class PlayerActionsModalComponent implements OnInit {
   }
 
   isCastable(spell: Spell): boolean {
-    if (spell.spellLevel === 0) return false;
+    if (spell.spellLevel === 0) return true;
     const prepares = this.sheet()?.character_sheet.spellcasting_info?.prepares_spells;
     return !prepares || !!spell.is_prepared;
   }
 
   availableSlotLevelsFor(spell: Spell): number[] {
     const info = this.sheet()?.character_sheet.spellcasting_info;
-    if (!info?.slots_total) return [];
+    if (spell.spellLevel === 0 || !info?.slots_total) return [];
     return Object.keys(info.slots_total)
       .map((k) => this.slotLevelNumber(k))
       .filter((lvl) => lvl >= spell.spellLevel && this.slotsAvailable(`level_${lvl}`) > 0)
       .sort((a, b) => a - b);
   }
 
+  /** Gasta o espaço (truque não gasta) e, se a magia tiver rolagem cadastrada, abre o modal de
+   *  ataque/dano — a tela de ações fecha quando a rolagem termina (`onRolled`). Sem rolagem, só
+   *  anuncia e fecha, como antes. */
   castSpell(spell: Spell, slotLevel: number): void {
-    this.expendSlot(slotLevel, 1);
+    const rollConfig = spellRollConfig(spell, slotLevel);
+    const openRoll = () => {
+      if (!rollConfig) return;
+      this.selectedSpellDetail.set(null);
+      this.activeRoll.set(rollConfig);
+    };
+    if (spell.spellLevel === 0) {
+      if (rollConfig) openRoll();
+      else this.closed.emit();
+    } else {
+      this.expendSlot(slotLevel, 1, !rollConfig, openRoll);
+    }
     // Anúncio best-effort — só dispara o toast informativo de todo mundo na sessão, não trava
     // o fluxo de gasto de espaço se falhar.
     if (this.sessionId) {

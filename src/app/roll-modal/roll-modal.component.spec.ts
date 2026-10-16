@@ -99,3 +99,110 @@ describe('RollModalComponent — impacto de dano', () => {
     expect(trigger.mock.calls[0][0].dice_notation).toBe('3d8');
   });
 });
+
+/** Magias: acerto automático (Mísseis Mágicos) e vários ataques na mesma ação (Raio Ardente). */
+describe('RollModalComponent — magias', () => {
+  const rays: AbilityRollConfig = {
+    mode: 'ability',
+    rollType: 'attack',
+    label: 'Magia: Raio Ardente',
+    modifier: 5,
+    damage: { diceCount: 2, diceSides: 6, modifier: 0, label: 'Dano: Raio Ardente (fogo)' },
+    instances: { count: 3, label: 'raio' },
+  };
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: GameSessionService, useValue: { postRoll: vi.fn(() => of({})) } },
+        { provide: DamageImpactService, useValue: { trigger: vi.fn() } },
+      ],
+    });
+  });
+
+  afterEach(() => vi.useRealTimers());
+
+  function create(config: AbilityRollConfig) {
+    const component = TestBed.runInInjectionContext(() => new RollModalComponent());
+    component.config = config;
+    component.sessionId = 'gs';
+    component.ngOnInit();
+    const rolled = vi.fn();
+    component.rolled.subscribe(rolled);
+    return { modal: component, rolled };
+  }
+
+  const settle = () => vi.advanceTimersByTime(1000);
+
+  it('acerto automático já abre no dano e rola todos os dardos de uma vez', () => {
+    const { modal, rolled } = create({
+      mode: 'ability',
+      rollType: 'attack',
+      label: 'Magia: Mísseis Mágicos',
+      modifier: 0,
+      autoHit: true,
+      damage: {
+        diceCount: 3,
+        diceSides: 4,
+        modifier: 3,
+        label: 'Dano: Mísseis Mágicos — 3 dardos',
+      },
+    });
+    expect(modal.isAbility).toBe(false);
+    expect(modal.title).toBe('Dano: Mísseis Mágicos — 3 dardos');
+    expect(modal.diceCount).toBe(3);
+    modal.roll();
+    settle();
+    expect(modal.result()!.rolls).toHaveLength(3);
+    expect(rolled).toHaveBeenCalledTimes(1);
+  });
+
+  it('vários raios: um ataque e um dano por raio, título mostra o progresso', () => {
+    const { modal, rolled } = create(rays);
+    expect(modal.title).toBe('Magia: Raio Ardente (raio 1 de 3)');
+
+    modal.roll();
+    settle();
+    modal.rollDamageNow();
+    settle();
+    expect(modal.isOfferingNextInstance).toBe(true);
+    expect(modal.nextInstanceLabel).toBe('raio 2 de 3');
+    expect(rolled).not.toHaveBeenCalled();
+
+    modal.nextInstance();
+    expect(modal.title).toBe('Magia: Raio Ardente (raio 2 de 3)');
+    expect(modal.isAbility).toBe(true);
+    expect(modal.result()).toBeNull();
+
+    // raio 2 erra → oferece o 3º
+    modal.roll();
+    settle();
+    modal.confirmMiss();
+    expect(modal.isOfferingNextInstance).toBe(true);
+    expect(rolled).not.toHaveBeenCalled();
+
+    // raio 3 acerta → acabou
+    modal.nextInstance();
+    modal.roll();
+    settle();
+    modal.rollDamageNow();
+    settle();
+    expect(modal.isOfferingNextInstance).toBe(false);
+    expect(rolled).toHaveBeenCalledTimes(1);
+  });
+
+  it('dá pra encerrar antes de usar todos os raios', () => {
+    const { modal, rolled } = create(rays);
+    modal.roll();
+    settle();
+    modal.confirmMiss();
+    modal.finishInstances();
+    expect(rolled).toHaveBeenCalledTimes(1);
+  });
+
+  it('um ataque só não mostra progresso', () => {
+    const { modal } = create({ ...rays, instances: undefined });
+    expect(modal.title).toBe('Magia: Raio Ardente');
+  });
+});

@@ -110,6 +110,25 @@ export interface Spell {
   school: string | null;
   /** Só presente na ficha de um personagem já criado. */
   is_prepared?: boolean;
+  /** Rolagem ao lançar, já calculada pro personagem — só pras magias com mecânica cadastrada
+   *  na API (`spell-mechanics.ts`). */
+  roll?: SpellRoll;
+}
+
+/** Espelho de `SpellRoll` da API. */
+export interface SpellRoll {
+  kind: 'attack' | 'auto';
+  attack_type: 'melee' | 'ranged' | null;
+  attack_bonus: number | null;
+  damage_type: string;
+  /** Nome de cada rolagem quando há mais de uma (raio, feixe, dardo). */
+  instance_label: string | null;
+  variant: string | null;
+  /** Por círculo usado (chave "0" pra truque). */
+  by_slot: Record<
+    string,
+    { instances: number; dice_count: number; dice_sides: number; modifier: number }
+  >;
 }
 
 export interface Armour {
