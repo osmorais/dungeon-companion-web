@@ -561,13 +561,16 @@ export class RollModalComponent implements OnInit {
     this.result.set({ rolls, chosen, total });
     this.postRoll(rolls, total, sidesList);
 
-    // Impacto de dano em tela cheia — só dentro da sessão (a ficha isolada não tem sessionId).
-    // Quem rola não recebe o toast da própria rolagem; os outros disparam pelo toast (session-panel).
-    if (this.attackPhase() === 'damage' && this.sessionId && !this.isHealing) {
+    // Impacto em tela cheia (golpe de arma, efeito de magia ou névoa de cura) — só dentro da
+    // sessão (a ficha isolada não tem sessionId). Quem rola não recebe o toast da própria
+    // rolagem; os outros disparam pelo toast (session-panel), com o mesmo tipo e rótulo do log.
+    if (this.attackPhase() === 'damage' && this.sessionId) {
       this.damageImpact.trigger({
         dice_notation: this.diceNotationFor(sidesList),
         modifier: this.modifier,
         total,
+        roll_type: this.isHealing ? 'heal' : 'damage',
+        label: this.title,
       });
     }
 

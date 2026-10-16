@@ -290,6 +290,16 @@ describe('SessionPanelComponent', () => {
       expect(trigger).not.toHaveBeenCalled();
     });
 
+    it('cura de magia de outro jogador também dispara (névoa), com tipo e rótulo da rolagem', () => {
+      arrive({ ...damage('h1', 9), roll_type: 'heal', label: 'Cura: Curar Ferimentos' });
+      expect(trigger).toHaveBeenCalledTimes(1);
+      expect(trigger.mock.calls[0][0]).toMatchObject({
+        roll_type: 'heal',
+        label: 'Cura: Curar Ferimentos',
+        total: 9,
+      });
+    });
+
     it('vários danos seguidos: cada um dispara quando o seu toast aparece', () => {
       arrive(
         damage('d1', 5, { created_at: '2026-01-01T00:00:01Z' }),

@@ -1317,7 +1317,9 @@ export class SessionPanelComponent implements OnDestroy {
       // Só entra no histórico quando o toast realmente aparece em tela, não quando é enfileirado.
       this.revealRolls([next.id_roll]);
       // Dano: o impacto em tela cheia toca junto com o toast (quem rolou já viu no roll-modal).
-      if (next.roll_type === 'damage' && !next.is_hidden) this.damageImpact.trigger(next);
+      if ((next.roll_type === 'damage' || next.roll_type === 'heal') && !next.is_hidden) {
+        this.damageImpact.trigger(next);
+      }
       this.rollToastTimer = setTimeout(() => this.playNextRollToast(), this.ROLL_TOAST_MS);
     }
   }

@@ -1,14 +1,19 @@
 <!-- @for com track no key: cada dano novo recria os elementos e reinicia as animações. -->
 @if (impact(); as hit) {
   @for (h of [hit]; track h.key) {
-    <div class="damage-impact damage-impact--{{ h.intensity }}" aria-hidden="true">
-      <div class="damage-impact__shake">
-        @for (i of slashes(h.intensity); track i) {
-          <span class="damage-impact__slash damage-impact__slash--{{ i + 1 }}"></span>
-          <span class="damage-impact__flash damage-impact__flash--{{ i + 1 }}"></span>
-        }
-        <span class="damage-impact__value">{{ h.total }}</span>
+    @if (h.effect) {
+      <!-- Magia (projétil + explosão do elemento) ou cura (névoa) -->
+      <app-spell-impact [impact]="h" />
+    } @else {
+      <div class="damage-impact damage-impact--{{ h.intensity }}" aria-hidden="true">
+        <div class="damage-impact__shake">
+          @for (i of slashes(h.intensity); track i) {
+            <span class="damage-impact__slash damage-impact__slash--{{ i + 1 }}"></span>
+            <span class="damage-impact__flash damage-impact__flash--{{ i + 1 }}"></span>
+          }
+          <span class="damage-impact__value">{{ h.total }}</span>
+        </div>
       </div>
-    </div>
+    }
   }
 }

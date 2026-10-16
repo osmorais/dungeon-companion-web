@@ -1,0 +1,505 @@
+@use 'sass:list';
+
+// Efeitos de magia e cura (pixel art: sem desfoque, bordas duras, cores chapadas).
+//
+// Magia (1,6 s — DAMAGE_IMPACT_MS):
+//   0–175 ms escurece   0–420 ms projétil cruza a tela   420 ms explosão (núcleo, anel,
+//   partículas e 1 flash na cor do elemento)   900 ms valor   1300–1600 ms some.
+// Cura (2 s — HEAL_IMPACT_MS): véu verde suave, névoa subindo do pé da tela, brilhos e "+N".
+// Um único flash, com opacidade baixa (WCAG 2.3.1).
+
+$spell-total: 1600ms;
+$heal-total: 2000ms;
+
+// Paleta por elemento: claro (núcleo), médio, escuro (contorno).
+$elements: (
+  fire: (
+    #fff3b0,
+    #ff9f1c,
+    #c2290a,
+  ),
+  cold: (
+    #ffffff,
+    #8fd8ff,
+    #2a6fd6,
+  ),
+  lightning: (
+    #ffffff,
+    #fff35c,
+    #b38b00,
+  ),
+  thunder: (
+    #e8f1ff,
+    #9fb4ff,
+    #3b4aa8,
+  ),
+  acid: (
+    #f4ffb0,
+    #a6e22e,
+    #4f7a00,
+  ),
+  poison: (
+    #d8ffb0,
+    #5fbf3a,
+    #1f5a1a,
+  ),
+  necrotic: (
+    #d6c2ff,
+    #6b3fa0,
+    #1e0b33,
+  ),
+  radiant: (
+    #ffffff,
+    #ffe066,
+    #c89b00,
+  ),
+  psychic: (
+    #ffd6f5,
+    #ff5fc8,
+    #7a1a66,
+  ),
+  force: (
+    #e6dcff,
+    #a07bff,
+    #4b2aa8,
+  ),
+  arcane: (
+    #f0e6ff,
+    #c084ff,
+    #5b2a91,
+  ),
+);
+
+@each $name, $colors in $elements {
+  .spell-impact--#{$name} {
+    --light: #{list.nth($colors, 1)};
+    --mid: #{list.nth($colors, 2)};
+    --dark: #{list.nth($colors, 3)};
+  }
+}
+
+.spell-impact,
+.heal-impact {
+  position: fixed;
+  inset: 0;
+  z-index: 1500; // mesmo nível do impacto de dano: acima dos toasts (1100), abaixo do Tom (2000)
+  pointer-events: none;
+  overflow: hidden;
+}
+
+// ===================== MAGIA =====================
+
+.spell-impact {
+  animation: spell-darken $spell-total linear both;
+}
+
+@keyframes spell-darken {
+  0% {
+    background: rgba(0, 0, 0, 0);
+  }
+  11%,
+  82% {
+    background: rgba(0, 0, 0, 0.75);
+  }
+  100% {
+    background: rgba(0, 0, 0, 0);
+  }
+}
+
+.spell-impact__shake {
+  position: absolute;
+  inset: 0;
+}
+
+.spell-impact--i3 .spell-impact__shake {
+  animation: spell-shake 200ms 420ms steps(4) 3 alternate;
+}
+
+@keyframes spell-shake {
+  0% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-6px, 3px);
+  }
+  100% {
+    transform: translate(6px, -3px);
+  }
+}
+
+// Projétil: quadrado claro com contorno médio/escuro em "pixels" (box-shadow sem desfoque),
+// entra pelo canto inferior esquerdo e chega no centro.
+.spell-impact__projectile {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  background: var(--light);
+  box-shadow:
+    0 0 0 4px var(--mid),
+    0 0 0 8px var(--dark);
+  opacity: 0;
+  animation: spell-fly 420ms steps(10) both;
+}
+
+@keyframes spell-fly {
+  0% {
+    opacity: 1;
+    transform: translate(-55vw, 40vh) rotate(0deg);
+  }
+  99% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(90deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(90deg);
+  }
+}
+
+// Rastro: quadradinhos cada vez menores atrás do projétil (posição relativa a ele).
+.spell-impact__trail {
+  position: absolute;
+  background: var(--mid);
+  border: 2px solid var(--dark);
+}
+
+@for $i from 0 through 4 {
+  .spell-impact__trail--#{$i} {
+    width: #{14 - $i * 2}px;
+    height: #{14 - $i * 2}px;
+    left: #{-22 - $i * 18}px;
+    top: #{18 + $i * 14}px;
+    opacity: #{1 - $i * 0.18};
+  }
+}
+
+// Flash na cor do elemento, uma vez, no momento da explosão.
+.spell-impact__flash {
+  position: absolute;
+  inset: 0;
+  background: var(--mid);
+  opacity: 0;
+  animation: spell-flash 180ms 420ms linear both;
+}
+
+@keyframes spell-flash {
+  0% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.45;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+// Núcleo da explosão: losango "pixelado" (clip-path em degraus) que cresce e some.
+.spell-impact__core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 24vmin;
+  height: 24vmin;
+  background: var(--light);
+  box-shadow: inset 0 0 0 3vmin var(--mid);
+  clip-path: polygon(
+    30% 0%,
+    70% 0%,
+    70% 15%,
+    85% 15%,
+    85% 30%,
+    100% 30%,
+    100% 70%,
+    85% 70%,
+    85% 85%,
+    70% 85%,
+    70% 100%,
+    30% 100%,
+    30% 85%,
+    15% 85%,
+    15% 70%,
+    0% 70%,
+    0% 30%,
+    15% 30%,
+    15% 15%,
+    30% 15%
+  );
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0);
+  animation: spell-core 500ms 420ms steps(6) both;
+}
+
+@keyframes spell-core {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.2);
+  }
+  40% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(var(--core-scale, 1));
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(calc(var(--core-scale, 1) * 1.3));
+  }
+}
+
+.spell-impact--i2 {
+  --core-scale: 1.3;
+}
+.spell-impact--i3 {
+  --core-scale: 1.7;
+}
+
+// Anel de choque: quadrado vazado com contorno escuro, expandindo.
+.spell-impact__ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20vmin;
+  height: 20vmin;
+  border: 1.5vmin solid var(--mid);
+  outline: 0.8vmin solid var(--dark);
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(45deg) scale(0.3);
+  animation: spell-ring 600ms 460ms steps(8) both;
+}
+
+@keyframes spell-ring {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(45deg) scale(0.3);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(45deg) scale(calc(var(--core-scale, 1) * 3));
+  }
+}
+
+// Partículas: saem do centro em todas as direções (ângulo/distância vêm do componente).
+.spell-impact__particle {
+  --angle: 0deg;
+  --distance: 30vmin;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  background: var(--light);
+  box-shadow: 0 0 0 3px var(--dark);
+  opacity: 0;
+  animation: spell-particle 700ms steps(8) both;
+}
+
+@keyframes spell-particle {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--angle)) translateX(var(--distance));
+  }
+}
+
+.spell-impact__value {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(40px, 12vw, 120px);
+  line-height: 1;
+  color: var(--mid);
+  text-shadow:
+    4px 0 0 #1d0a0a,
+    -4px 0 0 #1d0a0a,
+    0 4px 0 #1d0a0a,
+    0 -4px 0 #1d0a0a,
+    8px 8px 0 var(--dark);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0);
+  animation: effect-value 700ms 900ms linear both;
+}
+
+// ===================== CURA =====================
+
+.heal-impact {
+  --light: #eaffea;
+  --mid: #9be89b;
+  --dark: #2e8b57;
+  animation: heal-veil $heal-total linear both;
+}
+
+.heal-impact--temp {
+  --light: #f0fbff;
+  --mid: #a8dcff;
+  --dark: #3a7bbf;
+}
+
+@keyframes heal-veil {
+  0% {
+    background: rgba(0, 0, 0, 0);
+  }
+  15%,
+  80% {
+    background: rgba(10, 40, 20, 0.45);
+  }
+  100% {
+    background: rgba(0, 0, 0, 0);
+  }
+}
+
+.heal-impact--temp {
+  animation-name: heal-veil-temp;
+}
+
+@keyframes heal-veil-temp {
+  0% {
+    background: rgba(0, 0, 0, 0);
+  }
+  15%,
+  80% {
+    background: rgba(10, 25, 45, 0.45);
+  }
+  100% {
+    background: rgba(0, 0, 0, 0);
+  }
+}
+
+// Névoa: blocos claros com contorno médio (cantos em "degrau" via clip-path), subindo e sumindo.
+.heal-impact__mist {
+  --size: 28vmin;
+  position: absolute;
+  bottom: -10vmin;
+  width: var(--size);
+  height: calc(var(--size) * 0.6);
+  margin-left: calc(var(--size) / -2);
+  background: var(--mid);
+  box-shadow: inset 0 0 0 1.2vmin var(--light);
+  clip-path: polygon(
+    15% 0%,
+    85% 0%,
+    85% 20%,
+    100% 20%,
+    100% 80%,
+    85% 80%,
+    85% 100%,
+    15% 100%,
+    15% 80%,
+    0% 80%,
+    0% 20%,
+    15% 20%
+  );
+  opacity: 0;
+  animation: heal-rise 1600ms steps(16) both;
+}
+
+@keyframes heal-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.6);
+  }
+  20% {
+    opacity: 0.7;
+  }
+  70% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-75vh) scale(1.15);
+  }
+}
+
+// Brilho: cruzinha de pixels subindo.
+.heal-impact__sparkle {
+  position: absolute;
+  bottom: 8vh;
+  width: 6px;
+  height: 6px;
+  background: var(--light);
+  box-shadow:
+    6px 0 0 var(--light),
+    -6px 0 0 var(--light),
+    0 6px 0 var(--light),
+    0 -6px 0 var(--light);
+  opacity: 0;
+  animation: heal-sparkle 1100ms steps(11) both;
+}
+
+@keyframes heal-sparkle {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-55vh);
+  }
+}
+
+.heal-impact__value {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(40px, 12vw, 120px);
+  line-height: 1;
+  color: var(--mid);
+  text-shadow:
+    4px 0 0 #0a1d10,
+    -4px 0 0 #0a1d10,
+    0 4px 0 #0a1d10,
+    0 -4px 0 #0a1d10,
+    8px 8px 0 var(--dark);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0);
+  animation: effect-value 900ms 700ms linear both;
+}
+
+@keyframes effect-value {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.3);
+  }
+  35%,
+  70% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+// "Reduzir movimento" no sistema: sem projétil, partículas, flash, tremor nem névoa subindo —
+// só o véu e o valor.
+@media (prefers-reduced-motion: reduce) {
+  .spell-impact__projectile,
+  .spell-impact__flash,
+  .spell-impact__core,
+  .spell-impact__ring,
+  .spell-impact__particle,
+  .heal-impact__mist,
+  .heal-impact__sparkle {
+    display: none;
+  }
+
+  .spell-impact__shake {
+    animation: none !important;
+  }
+}

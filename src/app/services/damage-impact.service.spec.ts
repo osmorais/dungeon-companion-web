@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import {
   DAMAGE_IMPACT_MS,
+  HEAL_IMPACT_MS,
   DamageImpactService,
   SCREEN_EFFECTS_STORAGE_KEY,
   damageIntensity,
@@ -52,9 +53,34 @@ describe('DamageImpactService', () => {
   it('dispara com total, intensidade e chave nova a cada golpe', () => {
     const s = service();
     s.trigger({ dice_notation: '1d8', modifier: 0, total: 8 });
-    expect(s.current()).toEqual({ key: 1, total: 8, intensity: 3 });
+    expect(s.current()).toEqual({ key: 1, total: 8, intensity: 3, effect: null });
     s.trigger({ dice_notation: '1d8', modifier: 0, total: 2 });
-    expect(s.current()).toEqual({ key: 2, total: 2, intensity: 1 });
+    expect(s.current()).toEqual({ key: 2, total: 2, intensity: 1, effect: null });
+  });
+
+  it('magia e cura levam o efeito; a cura dura mais', () => {
+    const s = service();
+    s.trigger({
+      dice_notation: '8d6',
+      modifier: 0,
+      total: 30,
+      roll_type: 'damage',
+      label: 'Dano: Bola de Fogo (fogo)',
+    });
+    expect(s.current()!.effect).toEqual({ kind: 'spell', element: 'fire' });
+
+    s.trigger({
+      dice_notation: '1d8',
+      modifier: 3,
+      total: 7,
+      roll_type: 'heal',
+      label: 'Cura: Curar Ferimentos',
+    });
+    expect(s.current()!.effect).toEqual({ kind: 'heal', tempHp: false });
+    vi.advanceTimersByTime(DAMAGE_IMPACT_MS);
+    expect(s.current()).not.toBeNull();
+    vi.advanceTimersByTime(HEAL_IMPACT_MS - DAMAGE_IMPACT_MS);
+    expect(s.current()).toBeNull();
   });
 
   it('some sozinho ao fim da animação', () => {

@@ -39,6 +39,18 @@ describe('RollModalComponent — impacto de dano', () => {
   /** Espera a animação dos dados (10 ticks de 80 ms). */
   const settle = () => vi.advanceTimersByTime(1000);
 
+  it('dano manda o tipo e o rótulo (o efeito de magia sai do rótulo)', () => {
+    const modal = create('gs');
+    modal.roll();
+    settle();
+    modal.rollDamageNow();
+    settle();
+    expect(trigger.mock.calls[0][0]).toMatchObject({
+      roll_type: 'damage',
+      label: 'Dano: Espada Longa',
+    });
+  });
+
   it('dispara ao terminar a rolagem de dano, com notação, modificador e total', () => {
     const modal = create('gs');
     modal.roll();
@@ -291,7 +303,7 @@ describe('RollModalComponent — cura', () => {
 
   const settle = () => vi.advanceTimersByTime(1000);
 
-  it('abre na cura, registra como heal e não dispara impacto de dano', () => {
+  it('abre na cura, registra como heal e dispara a névoa de cura (não o golpe)', () => {
     const modal = create(cure);
     expect(modal.title).toBe('Cura: Curar Ferimentos');
     modal.roll();
@@ -302,7 +314,11 @@ describe('RollModalComponent — cura', () => {
       dice_notation: '2d8',
       modifier: 3,
     });
-    expect(trigger).not.toHaveBeenCalled();
+    expect(trigger).toHaveBeenCalledTimes(1);
+    expect(trigger.mock.calls[0][0]).toMatchObject({
+      roll_type: 'heal',
+      label: 'Cura: Curar Ferimentos',
+    });
   });
 
   it('Cura Suprema: todos os dados no valor máximo', () => {

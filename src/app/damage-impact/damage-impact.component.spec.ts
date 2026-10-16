@@ -22,7 +22,7 @@ describe('DamageImpactComponent', () => {
     (intensity) => {
       const service = TestBed.inject(DamageImpactService);
       const fixture = render();
-      service.current.set({ key: 1, total: 17, intensity });
+      service.current.set({ key: 1, total: 17, intensity, effect: null });
       fixture.detectChanges();
       const el: HTMLElement = fixture.nativeElement;
       expect(el.querySelector('.damage-impact')!.classList).toContain(
@@ -34,10 +34,25 @@ describe('DamageImpactComponent', () => {
     },
   );
 
+  it('magia: efeito do elemento no lugar dos golpes', () => {
+    const service = TestBed.inject(DamageImpactService);
+    const fixture = render();
+    service.current.set({
+      key: 1,
+      total: 28,
+      intensity: 2,
+      effect: { kind: 'spell', element: 'fire' },
+    });
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector('.damage-impact__slash')).toBeNull();
+    expect(el.querySelector('.spell-impact')!.classList).toContain('spell-impact--fire');
+  });
+
   it('é decorativo pra leitor de tela', () => {
     const service = TestBed.inject(DamageImpactService);
     const fixture = render();
-    service.current.set({ key: 1, total: 3, intensity: 1 });
+    service.current.set({ key: 1, total: 3, intensity: 1, effect: null });
     fixture.detectChanges();
     expect(
       (fixture.nativeElement as HTMLElement)

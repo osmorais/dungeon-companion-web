@@ -1,0 +1,47 @@
+@if (impact.effect; as effect) {
+  @if (effect.kind === 'spell') {
+    <div
+      class="spell-impact spell-impact--{{ effect.element }} spell-impact--i{{ impact.intensity }}"
+      aria-hidden="true"
+    >
+      <div class="spell-impact__shake">
+        <span class="spell-impact__projectile">
+          @for (t of trail(); track t) {
+            <span class="spell-impact__trail spell-impact__trail--{{ t }}"></span>
+          }
+        </span>
+        <span class="spell-impact__flash"></span>
+        <span class="spell-impact__core"></span>
+        <span class="spell-impact__ring"></span>
+        @for (p of burstParticles(); track $index) {
+          <span
+            class="spell-impact__particle"
+            [style.--angle]="p.angle + 'deg'"
+            [style.--distance]="p.distance + 'vmin'"
+            [style.animation-delay]="420 + p.delay + 'ms'"
+          ></span>
+        }
+        <span class="spell-impact__value">{{ impact.total }}</span>
+      </div>
+    </div>
+  } @else {
+    <div class="heal-impact" [class.heal-impact--temp]="effect.tempHp" aria-hidden="true">
+      @for (m of mist(); track $index) {
+        <span
+          class="heal-impact__mist"
+          [style.left]="m.left + 'vw'"
+          [style.--size]="m.size + 'vmin'"
+          [style.animation-delay]="m.delay + 'ms'"
+        ></span>
+      }
+      @for (s of sparkles(); track $index) {
+        <span
+          class="heal-impact__sparkle"
+          [style.left]="s.left + 'vw'"
+          [style.animation-delay]="s.delay + 'ms'"
+        ></span>
+      }
+      <span class="heal-impact__value">+{{ impact.total }}</span>
+    </div>
+  }
+}
