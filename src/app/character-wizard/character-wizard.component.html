@@ -412,7 +412,7 @@
                   <span class="choice-toggle-label">
                     {{ skill.name }} <span class="skill-attribute">({{ skill.attribute_name }})</span>
                     @if (isSkillGranted(skill)) {
-                      <span class="skill-badge">Raça</span>
+                      <span class="skill-badge">{{ grantedSkillSource(skill) }}</span>
                     }
                   </span>
                   <span class="choice-toggle-chevron" [class.choice-toggle-chevron--open]="isSkillExpanded(skill.id_skill)" aria-hidden="true">▸</span>
@@ -975,7 +975,7 @@
                   <span class="choice-toggle-label">
                     {{ skill.name }} <span class="skill-attribute">({{ skill.attribute_name }})</span>
                     @if (isSkillGranted(skill)) {
-                      <span class="skill-badge">Raça</span>
+                      <span class="skill-badge">{{ grantedSkillSource(skill) }}</span>
                     }
                   </span>
                   <span class="choice-toggle-chevron" [class.choice-toggle-chevron--open]="isSkillExpanded(skill.id_skill)" aria-hidden="true">▸</span>

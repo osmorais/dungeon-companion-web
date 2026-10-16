@@ -85,7 +85,10 @@ export interface Background {
   name: string;
   starting_gold_po: number;
   languages_number: number;
+  /** Nomes das perícias do antecedente (ex.: "Intuição"). */
   skills: string[];
+  /** `id_skill` das mesmas perícias — concedidas (sempre treinadas), como as fixas da raça. */
+  skill_ids: number[];
   tools: string[];
   feature: TraitInfo;
 }

@@ -451,19 +451,37 @@ export class CharacterWizardComponent implements OnInit {
     this.showStepError = false;
   }
 
+  /** Perícias concedidas (raça + antecedente) na última sincronização — pra tirar as que deixaram
+   *  de ser concedidas quando o jogador volta e troca o antecedente. */
+  private lastGrantedSkillIds = new Set<number>();
+
   private resetSkillChoices(): void {
     const granted = this.grantedSkills;
     this.characterData.choices.skills = [...granted];
     this.characterData.choices.expertise_skill_ids = [];
+    this.lastGrantedSkillIds = new Set(granted.map(s => s.id_skill));
   }
 
+  /** Coloca as perícias concedidas na lista (já marcadas) e tira as que eram concedidas e não são
+   *  mais (ex.: trocou o antecedente), junto com uma especialização que estivesse nelas. */
   private syncGrantedSkills(): void {
-    const granted = this.grantedSkills;
-    for (const skill of granted) {
+    const grantedIds = this.grantedSkillIds;
+    const stale = [...this.lastGrantedSkillIds].filter(id => !grantedIds.has(id));
+    if (stale.length) {
+      this.characterData.choices.skills = this.characterData.choices.skills.filter(
+        s => !stale.includes(s.id_skill),
+      );
+      const expertise = this.characterData.choices.expertise_skill_ids;
+      if (expertise) {
+        this.characterData.choices.expertise_skill_ids = expertise.filter(id => !stale.includes(id));
+      }
+    }
+    for (const skill of this.grantedSkills) {
       if (!this.characterData.choices.skills.some(s => s.id_skill === skill.id_skill)) {
         this.characterData.choices.skills.push(skill);
       }
     }
+    this.lastGrantedSkillIds = grantedIds;
   }
 
   /**
@@ -538,9 +556,20 @@ export class CharacterWizardComponent implements OnInit {
 
   /** ========================= SKILL STATE ========================= */
 
+  /** Perícias que já vêm treinadas: as fixas da raça e as do antecedente. */
   get grantedSkillIds(): Set<number> {
     const rule = RACE_SKILL_RULES[+this.characterData.core_build.id_race];
-    return new Set(rule?.granted ?? []);
+    return new Set([...(rule?.granted ?? []), ...this.backgroundSkillIds]);
+  }
+
+  get backgroundSkillIds(): number[] {
+    return this.selectedBackground?.skill_ids ?? [];
+  }
+
+  /** Selo ao lado da perícia concedida: de onde ela vem. */
+  grantedSkillSource(skill: Skill): string {
+    const race = RACE_SKILL_RULES[+this.characterData.core_build.id_race]?.granted ?? [];
+    return race.includes(skill.id_skill) ? 'Raça' : 'Antecedente';
   }
 
   get choosableSkillIds(): Set<number> {
