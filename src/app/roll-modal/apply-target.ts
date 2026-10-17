@@ -5,6 +5,8 @@ export interface ApplyTarget {
   label: string;
   /** Só jogadores têm PV temporários na sessão. */
   allowsTempHp: boolean;
+  /** Só aceita dano (monstro na mão do jogador: ele não cura monstro). */
+  damageOnly?: boolean;
   /** Resistências e reações do alvo (jogador/NPC) — o modal ajusta o dano ao aplicar. */
   defenses?: { resistances: string[]; uncanny_dodge: boolean; evasion: boolean };
 }

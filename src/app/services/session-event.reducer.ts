@@ -173,6 +173,10 @@ export function applySessionEvent(
       // session-panel.component.ts, no connectRealtime).
       return detail;
 
+    case 'amount_applied':
+      // Só o aviso (toast no session-panel); o PV muda pelos eventos de PV de cada tipo.
+      return detail;
+
     case 'reference_image_shown':
       return { ...detail, shown_reference_image: event.image };
 

@@ -33,6 +33,7 @@ import { PlayerInventoryModalComponent } from '../player-inventory-modal/player-
 import { DamageImpactComponent } from '../damage-impact/damage-impact.component';
 import { ModalBurstComponent } from '../modal-burst/modal-burst.component';
 import { SecretRollRequestModalComponent } from '../secret-roll/secret-roll-request-modal.component';
+import { apiErrorMessage } from '../auth/auth-errors';
 import { ReferenceImagesModalComponent } from '../reference-images/reference-images-modal.component';
 import { ReferenceImageViewerComponent } from '../reference-images/reference-image-viewer.component';
 import {
@@ -215,6 +216,9 @@ export class SessionPanelComponent implements OnDestroy {
         if (event.target_user_id === this.authService.currentUser()?.id) {
           this.receiveSecretRoll(event);
         }
+      }
+      if (event.type === 'amount_applied') {
+        this.showAmountAppliedToast(event.id_character, event.actor_name, event.amount, event.kind, event.target_label);
       }
       if (event.type === 'spell_cast') {
         this.showSpellCastToast(
@@ -401,15 +405,16 @@ export class SessionPanelComponent implements OnDestroy {
   applyTargetsFor(idCharacter: number): ApplyTarget[] {
     const detail = this.sessionDetail();
     if (!detail) return [];
+    // O personagem que rolou vem primeiro (o mais comum é curar a si mesmo).
     const players = detail.players
-      .filter((p) => p.character && (this.isOwner() || (this.canEditHp(p) && p.id_character === idCharacter)))
+      .filter((p) => p.character)
+      .sort((a, b) => Number(b.id_character === idCharacter) - Number(a.id_character === idCharacter))
       .map((p) => ({
         key: `player:${p.id_player_session}`,
         label: p.character!.name ?? p.player_name,
         allowsTempHp: true,
         defenses: p.character!.defenses,
       }));
-    if (!this.isOwner()) return players;
     const npcs = detail.npcs
       .filter((n) => n.character)
       .map((n) => ({
@@ -418,11 +423,19 @@ export class SessionPanelComponent implements OnDestroy {
         allowsTempHp: false,
         defenses: n.character!.defenses,
       }));
-    const monsters = detail.monsters.map((m) => ({
-      key: `monster:${m.id_monster_session}`,
-      label: this.monsterDisplayName(m),
-      allowsTempHp: false,
-    }));
+    // Jogador: só monstros revelados (sem PV), e só dano. Mestre: todos.
+    const monsters = this.isOwner()
+      ? detail.monsters.map((m) => ({
+          key: `monster:${m.id_monster_session}`,
+          label: this.monsterDisplayName(m),
+          allowsTempHp: false,
+        }))
+      : detail.revealed_monsters.map((m) => ({
+          key: `monster:${m.id_monster_session}`,
+          label: m.name,
+          allowsTempHp: false,
+          damageOnly: true,
+        }));
     return [...players, ...npcs, ...monsters];
   }
 
@@ -446,6 +459,10 @@ export class SessionPanelComponent implements OnDestroy {
     const detail = this.sessionDetail();
     if (!detail || amount <= 0) return;
     const [type, id] = targetKey.split(':');
+    if (!this.isOwner()) {
+      this.applyViaServer(type as 'player' | 'npc' | 'monster', id, amount, kind);
+      return;
+    }
     if (type === 'player') {
       const player = detail.players.find((p) => p.id_player_session === id);
       if (!player?.character || this.savingHp().has(id)) return;
@@ -469,6 +486,57 @@ export class SessionPanelComponent implements OnDestroy {
       const monster = detail.monsters.find((m) => m.id_monster_session === id);
       if (monster) this.applyMonsterHpDelta(monster, sign, amount);
     }
+  }
+
+  /**
+   * Jogador aplicando em aliado/NPC/monstro revelado: manda só a quantidade e o servidor calcula
+   * o PV (o jogador não grava PV dos outros diretamente). O PV novo chega também pelo socket.
+   */
+  private applyViaServer(
+    type: 'player' | 'npc' | 'monster',
+    id: string,
+    amount: number,
+    kind: ApplyRequest['kind'],
+  ): void {
+    const sessionId = this.sessionDetail()?.game_session.id_game_session;
+    const actor = this.activeActionsCharacter();
+    if (!sessionId || !actor) return;
+    this.gameSessionService
+      .applyAmount(sessionId, {
+        id_character: actor.id,
+        target_kind: type,
+        target_id: id,
+        amount,
+        kind,
+      })
+      .subscribe({
+        next: (result) => {
+          if (result.current_hit_points === undefined) return;
+          this.sessionState.patch((d) => ({
+            ...d,
+            players: d.players.map((p) =>
+              type === 'player' && p.id_player_session === id && p.character
+                ? {
+                    ...p,
+                    character: {
+                      ...p.character,
+                      current_hit_points: result.current_hit_points!,
+                      temporary_hit_points: result.temporary_hit_points ?? p.character.temporary_hit_points,
+                    },
+                  }
+                : p,
+            ),
+            npcs: d.npcs.map((n) =>
+              type === 'npc' && n.id_npc_session === id && n.character
+                ? { ...n, character: { ...n.character, current_hit_points: result.current_hit_points! } }
+                : n,
+            ),
+          }));
+        },
+        // Raro (alvo saiu da sessão, monstro escondido no meio): o modal de ações está aberto por
+        // cima do painel, então o aviso vai num alert.
+        error: (err) => alert(apiErrorMessage(err, 'Não foi possível aplicar no alvo.')),
+      });
   }
 
   /** ========================= INVENTÁRIO DO JOGADOR ========================= */
@@ -1413,10 +1481,33 @@ export class SessionPanelComponent implements OnDestroy {
     saveNote: string | null;
     /** Habilidade de classe → "USOU"; magia → "LANÇOU". */
     isAbility: boolean;
+    /** Verbo próprio (ex.: "APLICOU" no aviso de dano/cura aplicado), no lugar de USOU/LANÇOU. */
+    verb?: string;
+    /** Alvos do aviso "aplicou" — vários alvos seguidos do mesmo valor viram um aviso só. */
+    targets?: string[];
     key: number;
   } | null>(null);
   private spellCastToastTimer: ReturnType<typeof setTimeout> | null = null;
   private spellCastToastCounter = 0;
+
+  /** "Ana APLICOU 8 de dano em Goblin" — o mesmo valor em vários alvos seguidos junta os nomes. */
+  showAmountAppliedToast(
+    idCharacter: number,
+    actorName: string,
+    amount: number,
+    kind: 'damage' | 'heal' | 'temp_hp',
+    target: string,
+  ): void {
+    const what =
+      kind === 'damage' ? `${amount} de dano` : kind === 'heal' ? `${amount} de cura` : `${amount} PV temporários`;
+    const current = this.activeSpellCastToast();
+    const targets =
+      current?.verb === 'APLICOU' && current.idCharacter === idCharacter && current.spellName === what
+        ? [...(current.targets ?? []), target]
+        : [target];
+    this.showSpellCastToast(idCharacter, actorName, what, `em ${targets.join(', ')}`);
+    this.activeSpellCastToast.update((t) => (t ? { ...t, verb: 'APLICOU', targets } : t));
+  }
 
   private showSpellCastToast(
     idCharacter: number,

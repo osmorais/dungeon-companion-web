@@ -36,6 +36,7 @@ describe('SessionPanelComponent', () => {
     updatePlayerHp: ReturnType<typeof vi.fn>;
     updateNpcHp: ReturnType<typeof vi.fn>;
     updateMonsterHp: ReturnType<typeof vi.fn>;
+    applyAmount: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(() => {
@@ -44,6 +45,7 @@ describe('SessionPanelComponent', () => {
       updatePlayerHp: vi.fn(() => of({})),
       updateNpcHp: vi.fn(() => of({})),
       updateMonsterHp: vi.fn(() => of({})),
+      applyAmount: vi.fn(() => of({})),
     };
     TestBed.configureTestingModule({
       providers: [
@@ -332,18 +334,68 @@ describe('SessionPanelComponent', () => {
       ]);
     });
 
-    it('jogador: só o próprio personagem (regra de PV atual)', () => {
-      detail.set(
-        sessionDetail({
-          game_session: { ...sessionDetail().game_session, user_id: 'outro-mestre' },
-          players: [p1, p2],
-          npcs: [n1],
-          monsters: [m1],
-        }),
-      );
-      expect(component.applyTargetsFor(10).map((t) => t.key)).toEqual(['player:p1']);
-      // a ação aberta é de outro personagem: nada a aplicar
-      expect(component.applyTargetsFor(20)).toEqual([]);
+    describe('jogador (não é o mestre)', () => {
+      const asPlayer = () =>
+        detail.set(
+          sessionDetail({
+            game_session: { ...sessionDetail().game_session, user_id: 'outro-mestre' },
+            players: [p1, p2],
+            npcs: [n1],
+            monsters: [m1],
+            revealed_monsters: [
+              { id_monster_session: 'm1', name: 'Goblin Chefe', image_url: null },
+            ],
+          }),
+        );
+
+      it('alcança aliados, NPCs e só monstros revelados (só dano), com quem rolou primeiro', () => {
+        asPlayer();
+        const targets = component.applyTargetsFor(20);
+        expect(targets.map((t) => t.key)).toEqual([
+          'player:p2',
+          'player:p1',
+          'npc:n1',
+          'monster:m1',
+        ]);
+        expect(targets.find((t) => t.key === 'monster:m1')).toEqual({
+          key: 'monster:m1',
+          label: 'Goblin Chefe',
+          allowsTempHp: false,
+          damageOnly: true,
+        });
+      });
+
+      it('aplicar manda só a quantidade pro servidor e usa o PV que ele devolve', () => {
+        asPlayer();
+        component.activeActionsCharacter.set({ id: 20, name: 'Personagem p2' });
+        gameSessionService.applyAmount.mockReturnValue(
+          of({ current_hit_points: 12, temporary_hit_points: 0 }),
+        );
+        component.applyRollToTarget({ targetKey: 'player:p1', amount: 7, kind: 'damage' });
+        expect(gameSessionService.applyAmount).toHaveBeenCalledWith('gs', {
+          id_character: 20,
+          target_kind: 'player',
+          target_id: 'p1',
+          amount: 7,
+          kind: 'damage',
+        });
+        expect(gameSessionService.updatePlayerHp).not.toHaveBeenCalled();
+        const updated = detail()!.players.find((p) => p.id_player_session === 'p1')!;
+        expect(updated.character!.current_hit_points).toBe(12);
+        expect(updated.character!.temporary_hit_points).toBe(0);
+      });
+
+      it('dano em monstro: nada de PV volta pro jogador', () => {
+        asPlayer();
+        component.activeActionsCharacter.set({ id: 20, name: 'Personagem p2' });
+        gameSessionService.applyAmount.mockReturnValue(of({}));
+        component.applyRollToTarget({ targetKey: 'monster:m1', amount: 3, kind: 'damage' });
+        expect(gameSessionService.applyAmount.mock.calls[0][1]).toMatchObject({
+          target_kind: 'monster',
+          target_id: 'm1',
+        });
+        expect(gameSessionService.updateMonsterHp).not.toHaveBeenCalled();
+      });
     });
 
     it('dano no jogador consome a vida temporária primeiro', () => {
@@ -466,6 +518,24 @@ describe('SessionPanelComponent', () => {
       TestBed.tick();
       detail.set(sessionDetail({ shown_reference_image: image }));
       expect(component.visibleReferenceImage()).toEqual(image);
+    });
+  });
+
+  describe('aviso "aplicou"', () => {
+    it('junta vários alvos do mesmo valor num aviso só', () => {
+      component.showAmountAppliedToast(20, 'Ana', 8, 'damage', 'Goblin');
+      component.showAmountAppliedToast(20, 'Ana', 8, 'damage', 'Orc');
+      expect(component.activeSpellCastToast()).toMatchObject({
+        actorName: 'Ana',
+        verb: 'APLICOU',
+        spellName: '8 de dano',
+        saveNote: 'em Goblin, Orc',
+      });
+      component.showAmountAppliedToast(20, 'Ana', 5, 'heal', 'Thorin');
+      expect(component.activeSpellCastToast()).toMatchObject({
+        spellName: '5 de cura',
+        saveNote: 'em Thorin',
+      });
     });
   });
 });

@@ -1025,6 +1025,38 @@ describe('RollModalComponent — fase 4 dos traços (d20 e defesas)', () => {
     expect(postRoll.mock.calls[1][1].label).toBe('Resistência: SAB (Inspiração Bárdica +8)');
   });
 
+  it('cura não oferece alvo que só aceita dano (monstro na mão do jogador)', () => {
+    const targets = [
+      { key: 'player:p1', label: 'Ana', allowsTempHp: true },
+      { key: 'monster:m1', label: 'Goblin', allowsTempHp: false, damageOnly: true },
+    ];
+    const heal = create(
+      {
+        mode: 'ability',
+        rollType: 'attack',
+        label: 'Cura',
+        modifier: 0,
+        autoHit: true,
+        healing: { tempHp: false },
+        damage: { diceCount: 0, diceSides: 0, modifier: 5, label: 'Cura' },
+      },
+      targets,
+    ).modal;
+    expect(heal.applicableTargets.map((t) => t.key)).toEqual(['player:p1']);
+    const hit = create(
+      {
+        mode: 'ability',
+        rollType: 'attack',
+        label: 'Dano',
+        modifier: 0,
+        autoHit: true,
+        damage: { diceCount: 0, diceSides: 0, modifier: 5, label: 'Dano' },
+      },
+      targets,
+    ).modal;
+    expect(hit.applicableTargets.map((t) => t.key)).toEqual(['player:p1', 'monster:m1']);
+  });
+
   it('lembretes de vantagem aparecem no d20 e somem no dano', () => {
     const { modal } = create({ ...save, reminders: ['Vantagem contra veneno (Resistência Anã)'] });
     expect(modal.reminders).toEqual(['Vantagem contra veneno (Resistência Anã)']);

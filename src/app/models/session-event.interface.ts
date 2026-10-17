@@ -73,6 +73,14 @@ export interface SessionEventPayloadMap {
     /** Habilidade de classe: o toast diz "USOU" em vez de "LANÇOU". */
     is_ability?: boolean;
   };
+  /** Alguém aplicou dano/cura de uma rolagem num alvo — só o aviso pra mesa. */
+  amount_applied: {
+    id_character: number;
+    actor_name: string;
+    target_label: string;
+    amount: number;
+    kind: 'damage' | 'heal' | 'temp_hp';
+  };
   /** Mestre mostra uma imagem de referência em tela cheia pra todos da sessão. */
   reference_image_shown: { image: ShownReferenceImage };
   /** Imagem fechada pra todos: o mestre fechou ou apagou a que estava em exibição. */

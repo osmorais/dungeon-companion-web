@@ -146,6 +146,24 @@ export class GameSessionService {
     );
   }
 
+  /** Aplica dano/cura de uma rolagem no alvo — o servidor calcula o PV (jogador em aliado/monstro). */
+  applyAmount(
+    sessionId: string,
+    payload: {
+      id_character: number;
+      target_kind: 'player' | 'npc' | 'monster';
+      target_id: string;
+      amount: number;
+      kind: 'damage' | 'heal' | 'temp_hp';
+    },
+  ): Observable<{ current_hit_points?: number; temporary_hit_points?: number }> {
+    return this.http.post<{ current_hit_points?: number; temporary_hit_points?: number }>(
+      `${this.baseUrl}/api/game-session/${sessionId}/apply-amount`,
+      payload,
+      { context: this.silentContext() },
+    );
+  }
+
   // ── Imagens de referência (biblioteca do mestre, mostrada em tela cheia pra mesa) ──
 
   listReferenceImages(sessionId: string): Observable<ReferenceImage[]> {

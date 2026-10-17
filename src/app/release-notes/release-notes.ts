@@ -33,6 +33,21 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.1.1',
+    date: '2026-10-17',
+    title: 'Aplicar dano e cura em aliados e monstros',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'Depois de rolar, o jogador pode aplicar a cura ou o dano em qualquer aliado e NPC da sessão, e o dano em monstros já revelados (antes era só no próprio personagem).',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A mesa recebe um aviso de quem aplicou quanto em quem.',
+      },
+    ],
+  },
+  {
     version: '1.1.0',
     date: '2026-10-17',
     title: 'Imagens de referência na sessão',

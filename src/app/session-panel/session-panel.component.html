@@ -1215,7 +1215,7 @@
           <app-avatar-display [preset]="avatarPresetForCharacter(c.idCharacter)" />
         </div>
         <span class="spell-cast-actor">{{ c.actorName }}</span>
-        <span class="spell-cast-label">{{ c.isAbility ? 'USOU' : 'LANÇOU' }}</span>
+        <span class="spell-cast-label">{{ c.verb ?? (c.isAbility ? 'USOU' : 'LANÇOU') }}</span>
         <span class="spell-cast-spell-name">{{ c.spellName }}</span>
         @if (c.saveNote) {
           <span class="spell-cast-label">{{ c.saveNote }}</span>

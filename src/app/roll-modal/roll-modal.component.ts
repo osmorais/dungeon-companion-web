@@ -460,11 +460,12 @@ export class RollModalComponent implements OnInit {
     return 'damage';
   }
 
-  /** Alvos válidos pro tipo de resultado (PV temporários só em jogador). */
+  /** Alvos válidos pro tipo de resultado (PV temporários só em jogador; cura não vai pra quem
+   *  só aceita dano). */
   get applicableTargets(): ApplyTarget[] {
-    return this.applyKind === 'temp_hp'
-      ? this.applyTargets.filter((t) => t.allowsTempHp)
-      : this.applyTargets;
+    if (this.applyKind === 'temp_hp') return this.applyTargets.filter((t) => t.allowsTempHp);
+    if (this.applyKind === 'heal') return this.applyTargets.filter((t) => !t.damageOnly);
+    return this.applyTargets;
   }
 
   setApplyTarget(event: Event): void {
