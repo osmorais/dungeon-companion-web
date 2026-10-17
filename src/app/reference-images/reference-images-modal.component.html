@@ -1,0 +1,86 @@
+<div class="refimg-overlay" (click)="closed.emit()">
+  <div class="refimg-panel" (click)="$event.stopPropagation()">
+    <button class="refimg-close" (click)="closed.emit()">✕</button>
+    <h3 class="refimg-title">🖼 IMAGENS DA SESSÃO</h3>
+    <p class="refimg-hint">
+      Suba mapas, cenas ou retratos e mostre em tela cheia para todos os jogadores. Use só imagens
+      que você pode compartilhar.
+    </p>
+
+    <div class="refimg-upload">
+      <input
+        #fileInput
+        type="file"
+        accept="image/*"
+        class="refimg-file"
+        (change)="onFile($event)"
+      />
+      <input
+        type="text"
+        class="refimg-input"
+        placeholder="Legenda (opcional)"
+        [maxLength]="titleMax"
+        [value]="title()"
+        (input)="onTitle($event)"
+      />
+      <p class="refimg-hint">A legenda aparece para toda a mesa.</p>
+      <button
+        class="retro-btn refimg-primary"
+        [disabled]="uploading() || !file()"
+        (click)="upload(fileInput)"
+      >
+        {{ uploading() ? 'ENVIANDO...' : 'ENVIAR IMAGEM' }}
+      </button>
+    </div>
+
+    @if (error()) {
+      <p class="refimg-error">{{ error() }}</p>
+    }
+
+    @if (shownId) {
+      <button class="retro-btn refimg-secondary" (click)="hide()">
+        FECHAR A IMAGEM PARA TODOS
+      </button>
+    }
+
+    @if (loading()) {
+      <p class="refimg-hint">Carregando...</p>
+    } @else if (images().length === 0) {
+      <p class="refimg-hint">Nenhuma imagem ainda.</p>
+    } @else {
+      <div class="refimg-grid">
+        @for (image of images(); track image.id_reference_image) {
+          <div
+            class="refimg-card"
+            [class.refimg-card--shown]="image.id_reference_image === shownId"
+          >
+            <img [src]="image.image_url" [alt]="image.title ?? 'Imagem de referência'" />
+            @if (image.title) {
+              <span class="refimg-card-title">{{ image.title }}</span>
+            }
+            <div class="refimg-card-actions">
+              @if (image.id_reference_image === shownId) {
+                <span class="refimg-badge">EM EXIBIÇÃO</span>
+              } @else {
+                <button
+                  class="retro-btn refimg-small"
+                  [disabled]="busyId() === image.id_reference_image"
+                  (click)="show(image)"
+                >
+                  MOSTRAR
+                </button>
+              }
+              <button
+                class="retro-btn refimg-small refimg-danger"
+                [disabled]="busyId() === image.id_reference_image"
+                (click)="remove(image)"
+              >
+                APAGAR
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

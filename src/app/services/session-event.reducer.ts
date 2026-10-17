@@ -173,6 +173,12 @@ export function applySessionEvent(
       // session-panel.component.ts, no connectRealtime).
       return detail;
 
+    case 'reference_image_shown':
+      return { ...detail, shown_reference_image: event.image };
+
+    case 'reference_image_hidden':
+      return { ...detail, shown_reference_image: null };
+
     case 'combat_started':
     case 'combat_participants_added':
     case 'initiative_submitted':

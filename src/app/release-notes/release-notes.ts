@@ -33,6 +33,21 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.1.0',
+    date: '2026-10-17',
+    title: 'Imagens de referência na sessão',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'O mestre sobe imagens na sessão (mapas, cenas, retratos), com legenda opcional, e mostra qualquer uma em tela cheia para todos os jogadores.',
+      },
+      {
+        kind: 'novidade',
+        text: 'Cada jogador pode fechar a imagem só para si, e o mestre pode fechá-la para todos. Quem entrar na sessão depois já vê a imagem aberta.',
+      },
+    ],
+  },
+  {
     version: '1.0.0',
     date: '2026-10-16',
     title: 'Primeira versão numerada',

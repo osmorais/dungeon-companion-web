@@ -33,6 +33,8 @@ import { PlayerInventoryModalComponent } from '../player-inventory-modal/player-
 import { DamageImpactComponent } from '../damage-impact/damage-impact.component';
 import { ModalBurstComponent } from '../modal-burst/modal-burst.component';
 import { SecretRollRequestModalComponent } from '../secret-roll/secret-roll-request-modal.component';
+import { ReferenceImagesModalComponent } from '../reference-images/reference-images-modal.component';
+import { ReferenceImageViewerComponent } from '../reference-images/reference-image-viewer.component';
 import {
   SecretRollPromptComponent,
   SecretRollPromptRequest,
@@ -60,6 +62,8 @@ import { ApplyRequest, ApplyTarget } from '../roll-modal/apply-target';
     DamageImpactComponent,
     ModalBurstComponent,
     SecretRollRequestModalComponent,
+    ReferenceImagesModalComponent,
+    ReferenceImageViewerComponent,
     SecretRollPromptComponent,
   ],
   templateUrl: './session-panel.component.html',
@@ -1803,6 +1807,45 @@ export class SessionPanelComponent implements OnDestroy {
   });
 
   /** ========================= ROLAGEM DO MESTRE (pública ou oculta) ========================= */
+
+  /** ========================= IMAGENS DE REFERÊNCIA ========================= */
+
+  /** Mestre: biblioteca de imagens da sessão. */
+  referenceImagesOpen = signal(false);
+  /** Imagem que esta tela fechou só pra si (volta a aparecer quando o mestre mostrar outra). */
+  dismissedReferenceImageId = signal<string | null>(null);
+  /** Imagem em tela cheia agora — a que o mestre está mostrando, se esta tela não fechou. */
+  visibleReferenceImage = computed(() => {
+    const shown = this.sessionDetail()?.shown_reference_image ?? null;
+    return shown && shown.id_reference_image !== this.dismissedReferenceImageId() ? shown : null;
+  });
+
+  /** Quando nenhuma imagem está aberta, esquece o "fechei pra mim" — a próxima aparece de novo. */
+  private resetDismissedReferenceImage = effect(() => {
+    if (!this.sessionDetail()?.shown_reference_image) {
+      untracked(() => this.dismissedReferenceImageId.set(null));
+    }
+  });
+
+  openReferenceImages(): void {
+    this.referenceImagesOpen.set(true);
+  }
+
+  closeReferenceImages(): void {
+    this.referenceImagesOpen.set(false);
+  }
+
+  dismissReferenceImage(): void {
+    this.dismissedReferenceImageId.set(
+      this.sessionDetail()?.shown_reference_image?.id_reference_image ?? null,
+    );
+  }
+
+  hideReferenceImageForAll(): void {
+    const id = this.id();
+    if (!id) return;
+    this.gameSessionService.hideReferenceImage(id).subscribe();
+  }
 
   /** ========================= TESTE SECRETO ========================= */
 

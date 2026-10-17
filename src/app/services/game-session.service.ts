@@ -21,6 +21,8 @@ import {
   SpellCastPayload,
   StartEncounterParticipantInput,
   SubmitInitiativePayload,
+  ReferenceImage,
+  ShownReferenceImage,
 } from '../models/game-session.interface';
 
 export interface AddMonsterToSessionInput {
@@ -141,6 +143,44 @@ export class GameSessionService {
     return this.http.post<MonsterSession>(
       `${this.baseUrl}/api/game-session/monster-session/${idMonsterSession}/image`,
       formData,
+    );
+  }
+
+  // ── Imagens de referência (biblioteca do mestre, mostrada em tela cheia pra mesa) ──
+
+  listReferenceImages(sessionId: string): Observable<ReferenceImage[]> {
+    return this.http.get<ReferenceImage[]>(
+      `${this.baseUrl}/api/game-session/${sessionId}/reference-images`,
+    );
+  }
+
+  uploadReferenceImage(sessionId: string, file: File, title: string): Observable<ReferenceImage> {
+    const formData = new FormData();
+    formData.append('image', file);
+    if (title.trim()) formData.append('title', title.trim());
+    return this.http.post<ReferenceImage>(
+      `${this.baseUrl}/api/game-session/${sessionId}/reference-images`,
+      formData,
+    );
+  }
+
+  showReferenceImage(idReferenceImage: string): Observable<ShownReferenceImage> {
+    return this.http.post<ShownReferenceImage>(
+      `${this.baseUrl}/api/game-session/reference-image/${idReferenceImage}/show`,
+      {},
+    );
+  }
+
+  hideReferenceImage(sessionId: string): Observable<void> {
+    return this.http.post<void>(
+      `${this.baseUrl}/api/game-session/${sessionId}/reference-images/hide`,
+      {},
+    );
+  }
+
+  deleteReferenceImage(idReferenceImage: string): Observable<void> {
+    return this.http.delete<void>(
+      `${this.baseUrl}/api/game-session/reference-image/${idReferenceImage}`,
     );
   }
 

@@ -12,6 +12,7 @@
       @if (isOwner()) {
         <button class="mobile-dm-roll-btn" (click)="openDmRoll()">🎲 ROLAR DADOS</button>
         <button class="mobile-dm-roll-btn" (click)="openSecretRequest()">🔒 TESTE SECRETO</button>
+        <button class="mobile-dm-roll-btn" (click)="openReferenceImages()">🖼 IMAGENS</button>
       }
       <button class="mobile-refresh-btn" (click)="refreshSession()" [disabled]="refreshing()" title="Atualizar sessão">
         {{ refreshing() ? '...' : '↻' }}
@@ -514,6 +515,7 @@
             @if (isOwner()) {
               <button class="retro-btn dm-roll-btn" (click)="openDmRoll()">🎲 ROLAR DADOS</button>
               <button class="retro-btn dm-roll-btn" (click)="openSecretRequest()">🔒 TESTE SECRETO</button>
+              <button class="retro-btn dm-roll-btn" (click)="openReferenceImages()">🖼 IMAGENS</button>
             }
             <button
               class="retro-btn polling-btn"
@@ -1086,6 +1088,23 @@
     [sessionId]="id()"
     (rolled)="onInitiativeRolled(ir.idCombatParticipant, $event)"
     (closed)="closeInitiativeRoll()"
+  />
+}
+
+<!-- ===== IMAGENS DE REFERÊNCIA (mestre sobe; a escolhida aparece em tela cheia pra todos) ===== -->
+@if (referenceImagesOpen()) {
+  <app-reference-images-modal
+    [sessionId]="id()!"
+    [shownId]="sessionDetail()?.shown_reference_image?.id_reference_image ?? null"
+    (closed)="closeReferenceImages()"
+  />
+}
+@if (visibleReferenceImage(); as refImage) {
+  <app-reference-image-viewer
+    [image]="refImage"
+    [isDm]="isOwner()"
+    (dismissed)="dismissReferenceImage()"
+    (hideForAll)="hideReferenceImageForAll()"
   />
 }
 

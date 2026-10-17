@@ -1,0 +1,23 @@
+<div class="refview-overlay" (click)="dismissed.emit()">
+  <button class="refview-close" title="Fechar" (click)="dismissed.emit(); $event.stopPropagation()">
+    ✕
+  </button>
+  <img
+    class="refview-image"
+    [src]="image.image_url"
+    [alt]="image.title ?? 'Imagem de referência'"
+    (click)="$event.stopPropagation()"
+  />
+  @if (image.title || isDm) {
+    <div class="refview-footer" (click)="$event.stopPropagation()">
+      @if (image.title) {
+        <span class="refview-caption">{{ image.title }}</span>
+      }
+      @if (isDm) {
+        <button class="retro-btn refview-hide" (click)="hideForAll.emit()">
+          FECHAR PARA TODOS
+        </button>
+      }
+    </div>
+  }
+</div>

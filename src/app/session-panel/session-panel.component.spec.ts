@@ -443,4 +443,29 @@ describe('SessionPanelComponent', () => {
       );
     });
   });
+
+  describe('imagem de referência em tela cheia', () => {
+    const image = { id_reference_image: 'img1', image_url: 'https://cdn/a.png', title: null };
+
+    it('aparece quando o mestre mostra; fechar só some nesta tela', () => {
+      expect(component.visibleReferenceImage()).toBeNull();
+      detail.set(sessionDetail({ shown_reference_image: image }));
+      expect(component.visibleReferenceImage()).toEqual(image);
+      component.dismissReferenceImage();
+      expect(component.visibleReferenceImage()).toBeNull();
+      // outra imagem aparece mesmo depois de fechar a anterior
+      const other = { ...image, id_reference_image: 'img2' };
+      detail.set(sessionDetail({ shown_reference_image: other }));
+      expect(component.visibleReferenceImage()).toEqual(other);
+    });
+
+    it('depois que o mestre fecha, mostrar a mesma imagem de novo volta a aparecer', () => {
+      detail.set(sessionDetail({ shown_reference_image: image }));
+      component.dismissReferenceImage();
+      detail.set(sessionDetail({ shown_reference_image: null }));
+      TestBed.tick();
+      detail.set(sessionDetail({ shown_reference_image: image }));
+      expect(component.visibleReferenceImage()).toEqual(image);
+    });
+  });
 });

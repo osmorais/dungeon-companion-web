@@ -227,6 +227,21 @@ describe('applySessionEvent', () => {
     });
   });
 
+  describe('imagens de referência', () => {
+    it('mostrar troca a imagem em exibição; fechar limpa', () => {
+      const image = { id_reference_image: 'img1', image_url: 'https://cdn/a.png', title: 'Mapa' };
+      const shown = apply(sessionDetail(), { type: 'reference_image_shown', image });
+      expect(shown.shown_reference_image).toEqual(image);
+      const other = { ...image, id_reference_image: 'img2' };
+      expect(
+        apply(shown, { type: 'reference_image_shown', image: other }).shown_reference_image,
+      ).toEqual(other);
+      expect(
+        apply(shown, { type: 'reference_image_hidden', reason: 'deleted' }).shown_reference_image,
+      ).toBeNull();
+    });
+  });
+
   describe('combate', () => {
     it.each([
       'combat_started',
