@@ -1,0 +1,35 @@
+<div class="turn-toast-overlay" (click)="closed.emit()">
+  <app-modal-burst variant="roll" />
+  <div class="turn-toast-panel" [class.turn-toast-panel--mine]="isMine">
+    <span class="turn-toast-round">RONDA {{ round }}</span>
+    <div class="turn-toast-stage">
+      @if (from) {
+        <div class="turn-toast-card turn-toast-card--out">
+          <ng-container *ngTemplateOutlet="card; context: { $implicit: from }" />
+        </div>
+        <span class="turn-toast-arrow">➜</span>
+      }
+      <div class="turn-toast-card turn-toast-card--in">
+        <ng-container *ngTemplateOutlet="card; context: { $implicit: to }" />
+      </div>
+    </div>
+    <span class="turn-toast-title">{{ isMine ? 'É A SUA VEZ!' : 'VEZ DE ' + to.name }}</span>
+    @if (isMine) {
+      <span class="turn-toast-name">{{ to.name }}</span>
+    }
+    <div class="turn-toast-timer">
+      <div class="turn-toast-timer-fill" [style.animation-duration.ms]="durationMs"></div>
+    </div>
+  </div>
+</div>
+
+<ng-template #card let-c>
+  <div class="turn-toast-portrait">
+    @if (c.imageUrl) {
+      <img [src]="c.imageUrl" [alt]="c.name" />
+    } @else {
+      <app-avatar-display [preset]="c.avatarPreset" />
+    }
+  </div>
+  <span class="turn-toast-card-name">{{ c.name }}</span>
+</ng-template>

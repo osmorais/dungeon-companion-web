@@ -538,4 +538,61 @@ describe('SessionPanelComponent', () => {
       });
     });
   });
+
+  describe('aviso de troca de vez (tela cheia)', () => {
+    afterEach(() => vi.useRealTimers());
+
+    const setup = (dmId = 'dm') => {
+      const me = player('p1', {
+        id_character: 10,
+        user_id: 'dm',
+        character: { ...player('p1').character!, image_url: 'https://cdn/eu.png' },
+      });
+      const other = player('p2', { id_character: 20, user_id: 'outro' });
+      const goblin = monster('m1', { image_url: 'https://cdn/goblin.png' });
+      const parts = [
+        participant('c1', { id_player_session: 'p1' }),
+        participant('c2', { id_player_session: 'p2' }),
+        participant('c3', { participant_type: 'monster', id_monster_session: 'm1' }),
+      ];
+      detail.set(
+        sessionDetail({
+          game_session: { ...sessionDetail().game_session, user_id: dmId },
+          players: [me, other],
+          monsters: [goblin],
+          combat: combat(parts),
+        }),
+      );
+      return parts;
+    };
+
+    it('card do jogador com a foto; monstro escondido aparece como misterioso pro jogador', () => {
+      const parts = setup('outro-mestre');
+      expect(component.turnCardFor(parts[0])).toMatchObject({
+        imageUrl: 'https://cdn/eu.png',
+      });
+      expect(component.turnCardFor(parts[2])).toEqual({
+        name: 'Monstro misterioso',
+        imageUrl: 'assets/monster.png',
+        avatarPreset: null,
+      });
+    });
+
+    it('mestre vê o monstro com a imagem dele', () => {
+      const parts = setup('dm');
+      expect(component.turnCardFor(parts[2])).toMatchObject({ imageUrl: 'https://cdn/goblin.png' });
+    });
+
+    it('"É A SUA VEZ" só pra quem é dono do personagem; some sozinho', () => {
+      vi.useFakeTimers();
+      setup('outro-mestre'); // usuário logado é 'dm', dono do p1
+      component.showTurnChangeToast('c2', 'c1');
+      expect(component.turnChangeToast()).toMatchObject({ isMine: true, round: 1 });
+      expect(component.turnChangeToast()!.from!.name).toBe('Personagem p2');
+      component.showTurnChangeToast('c1', 'c2');
+      expect(component.turnChangeToast()).toMatchObject({ isMine: false });
+      vi.advanceTimersByTime(3000);
+      expect(component.turnChangeToast()).toBeNull();
+    });
+  });
 });

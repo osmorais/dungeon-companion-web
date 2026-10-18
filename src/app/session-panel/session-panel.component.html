@@ -1094,6 +1094,19 @@
   />
 }
 
+<!-- ===== TROCA DE VEZ NO COMBATE (aviso em tela cheia pra mesa) ===== -->
+@if (turnChangeToast(); as turn) {
+  @for (t of [turn]; track t.key) {
+    <app-turn-change-toast
+      [from]="t.from"
+      [to]="t.to"
+      [round]="t.round"
+      [isMine]="t.isMine"
+      (closed)="closeTurnChangeToast()"
+    />
+  }
+}
+
 <!-- ===== IMAGENS DE REFERÊNCIA (mestre sobe; a escolhida aparece em tela cheia pra todos) ===== -->
 @if (referenceImagesOpen()) {
   <app-reference-images-modal

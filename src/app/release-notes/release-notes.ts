@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.1.5',
+    date: '2026-10-18',
+    title: 'Aviso de troca de vez para a mesa',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'Quando a vez passa no combate, toda a mesa vê um aviso em tela cheia: o personagem que jogou sai e o próximo entra no centro, com "VEZ DE …" (ou "É A SUA VEZ!") e a rodada.',
+      },
+    ],
+  },
+  {
     version: '1.1.4',
     date: '2026-10-18',
     title: 'Animação na troca de vez',

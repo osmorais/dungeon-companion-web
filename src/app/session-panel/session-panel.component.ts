@@ -41,6 +41,11 @@ import {
   shouldAnimateTurn,
   snapshotTurnOffsets,
 } from './turn-transition';
+import {
+  TURN_CHANGE_TOAST_MS,
+  TurnCard,
+  TurnChangeToastComponent,
+} from '../turn-change-toast/turn-change-toast.component';
 import { ReferenceImagesModalComponent } from '../reference-images/reference-images-modal.component';
 import { ReferenceImageViewerComponent } from '../reference-images/reference-image-viewer.component';
 import {
@@ -71,6 +76,7 @@ import { ApplyRequest, ApplyTarget } from '../roll-modal/apply-target';
     ModalBurstComponent,
     SecretRollRequestModalComponent,
     ReferenceImagesModalComponent,
+    TurnChangeToastComponent,
     ReferenceImageViewerComponent,
     SecretRollPromptComponent,
   ],
@@ -1786,12 +1792,74 @@ export class SessionPanelComponent implements OnDestroy {
       currentId: combat?.encounter.status === 'active' ? combat.encounter.current_turn_participant_id : null,
     };
     const list = this.host?.nativeElement.querySelector<HTMLElement>('.combat-order-list') ?? null;
-    if (list && shouldAnimateTurn(this.turnState, next)) {
-      playTurnSlide(list, this.turnOffsets.get(this.turnState.currentId!), next.currentId!);
+    if (shouldAnimateTurn(this.turnState, next)) {
+      if (list) playTurnSlide(list, this.turnOffsets.get(this.turnState.currentId!), next.currentId!);
+      this.showTurnChangeToast(this.turnState.currentId!, next.currentId!);
     }
     this.turnState = next;
     this.turnOffsets = snapshotTurnOffsets(list);
   });
+
+  /** Aviso em tela cheia pra mesa quando a vez passa (além do pulso na lista de iniciativa). */
+  turnChangeToast = signal<{
+    key: number;
+    from: TurnCard | null;
+    to: TurnCard;
+    round: number;
+    isMine: boolean;
+  } | null>(null);
+  private turnChangeToastTimer: ReturnType<typeof setTimeout> | null = null;
+  private turnChangeToastCounter = 0;
+
+  /** Nome, foto e avatar de um participante do combate como a mesa o vê. */
+  turnCardFor(p: CombatParticipant): TurnCard {
+    const detail = this.sessionDetail();
+    const name = this.combatParticipantName(p);
+    if (p.participant_type === 'monster') {
+      const image = this.isOwner()
+        ? detail?.monsters.find((m) => m.id_monster_session === p.id_monster_session)?.image_url
+        : detail?.revealed_monsters.find((m) => m.id_monster_session === p.id_monster_session)?.image_url;
+      return { name, imageUrl: image || this.DEFAULT_MONSTER_IMAGE, avatarPreset: null };
+    }
+    const idCharacter =
+      p.participant_type === 'player'
+        ? (detail?.players.find((pl) => pl.id_player_session === p.id_player_session)?.id_character ?? null)
+        : (detail?.npcs.find((n) => n.id_npc_session === p.id_npc_session)?.id_character ?? null);
+    return {
+      name,
+      imageUrl: this.imageUrlForCharacter(idCharacter),
+      avatarPreset: this.avatarPresetForCharacter(idCharacter),
+    };
+  }
+
+  showTurnChangeToast(fromId: string, toId: string): void {
+    const combat = this.combat();
+    const to = combat?.participants.find((p) => p.id_combat_participant === toId);
+    if (!combat || !to) return;
+    const from = combat.participants.find((p) => p.id_combat_participant === fromId);
+    const user = this.authService.currentUser();
+    const isMine =
+      to.participant_type === 'player' &&
+      !!user &&
+      !!this.sessionDetail()?.players.some(
+        (pl) => pl.id_player_session === to.id_player_session && pl.user_id === user.id,
+      );
+    if (this.turnChangeToastTimer) clearTimeout(this.turnChangeToastTimer);
+    this.turnChangeToastCounter++;
+    this.turnChangeToast.set({
+      key: this.turnChangeToastCounter,
+      from: from ? this.turnCardFor(from) : null,
+      to: this.turnCardFor(to),
+      round: combat.encounter.round_number,
+      isMine,
+    });
+    this.turnChangeToastTimer = setTimeout(() => this.turnChangeToast.set(null), TURN_CHANGE_TOAST_MS);
+  }
+
+  closeTurnChangeToast(): void {
+    if (this.turnChangeToastTimer) clearTimeout(this.turnChangeToastTimer);
+    this.turnChangeToast.set(null);
+  }
 
   currentTurnParticipant = computed<CombatParticipant | null>(() => {
     const combat = this.combat();
