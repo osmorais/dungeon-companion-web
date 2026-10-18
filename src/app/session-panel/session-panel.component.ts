@@ -1,4 +1,4 @@
-import { Component, HostListener, OnDestroy, inject, input, signal, effect, untracked, computed } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, afterRenderEffect, inject, input, signal, effect, untracked, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subscription, finalize, interval } from 'rxjs';
@@ -34,6 +34,13 @@ import { DamageImpactComponent } from '../damage-impact/damage-impact.component'
 import { ModalBurstComponent } from '../modal-burst/modal-burst.component';
 import { SecretRollRequestModalComponent } from '../secret-roll/secret-roll-request-modal.component';
 import { apiErrorMessage } from '../auth/auth-errors';
+import {
+  TurnOffset,
+  TurnState,
+  playTurnSlide,
+  shouldAnimateTurn,
+  snapshotTurnOffsets,
+} from './turn-transition';
 import { ReferenceImagesModalComponent } from '../reference-images/reference-images-modal.component';
 import { ReferenceImageViewerComponent } from '../reference-images/reference-image-viewer.component';
 import {
@@ -1761,6 +1768,29 @@ export class SessionPanelComponent implements OnDestroy {
           detail.players.some((pl) => pl.id_player_session === p.id_player_session && pl.user_id === user.id),
       ) ?? null
     );
+  });
+
+  /** ========================= ANIMAÇÃO DE TROCA DE VEZ ========================= */
+
+  // Opcional: nos testes o componente é criado sem view (sem ElementRef).
+  private host = inject<ElementRef<HTMLElement>>(ElementRef, { optional: true });
+  private turnState: TurnState = { encounterId: null, currentId: null };
+  private turnOffsets = new Map<string, TurnOffset>();
+
+  /** Depois de cada renderização em que o combate mudou: se a vez passou pra outro
+   *  participante, desliza o marcador do card antigo pro novo; e guarda as posições pra próxima. */
+  private turnAnimation = afterRenderEffect(() => {
+    const combat = this.combat();
+    const next: TurnState = {
+      encounterId: combat?.encounter.id_combat_encounter ?? null,
+      currentId: combat?.encounter.status === 'active' ? combat.encounter.current_turn_participant_id : null,
+    };
+    const list = this.host?.nativeElement.querySelector<HTMLElement>('.combat-order-list') ?? null;
+    if (list && shouldAnimateTurn(this.turnState, next)) {
+      playTurnSlide(list, this.turnOffsets.get(this.turnState.currentId!), next.currentId!);
+    }
+    this.turnState = next;
+    this.turnOffsets = snapshotTurnOffsets(list);
   });
 
   currentTurnParticipant = computed<CombatParticipant | null>(() => {

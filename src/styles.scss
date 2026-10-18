@@ -271,3 +271,42 @@ input[type="checkbox"].retro-checkbox {
     }
   }
 }
+
+// ===== Troca de vez no combate (session-panel/turn-transition.ts) =====
+// Global porque o marcador é anexado ao <body> (position: fixed) e o SCSS do painel está no limite.
+.turn-slide-ghost {
+  position: fixed;
+  z-index: 900; // acima do painel, abaixo dos modais e toasts
+  box-sizing: border-box;
+  pointer-events: none;
+  border: 2px solid var(--accent-color);
+  background: rgba(255, 215, 0, 0.18);
+  box-shadow:
+    0 0 14px var(--accent-color),
+    inset 0 0 10px rgba(255, 215, 0, 0.35);
+}
+
+.turn-arrive {
+  animation: turn-arrive-pulse 0.9s steps(8) both;
+}
+
+@keyframes turn-arrive-pulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--accent-color);
+    transform: scale(1);
+  }
+  40% {
+    box-shadow: 0 0 18px 4px var(--accent-color);
+    transform: scale(1.04);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .turn-arrive {
+    animation: none;
+  }
+}

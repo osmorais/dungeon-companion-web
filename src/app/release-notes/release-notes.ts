@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.1.4',
+    date: '2026-10-18',
+    title: 'Animação na troca de vez',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'No combate, quando a vez passa (finalizar, pular ou atrasar o turno), um marcador desliza do personagem que jogou até o próximo na lista de iniciativa, que pisca ao receber a vez.',
+      },
+    ],
+  },
+  {
     version: '1.1.3',
     date: '2026-10-18',
     title: 'Aplicar em destaque e aviso de conjuração longa',

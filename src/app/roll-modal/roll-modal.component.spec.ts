@@ -18,6 +18,8 @@ describe('RollModalComponent — impacto de dano', () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
+    // d20 fixo em 11: com o sorteio real, 20 natural (5%) vira crítico e muda rótulo/notação.
+    vi.spyOn(Math, 'random').mockReturnValue(0.5);
     trigger = vi.fn();
     TestBed.configureTestingModule({
       providers: [

@@ -71,7 +71,8 @@
 
           <div class="combat-order-list">
             @for (p of c.participants; track p.id_combat_participant; let first = $first; let last = $last) {
-              <div class="combat-order-item" [class.combat-order-item--current]="p.is_current_turn">
+              <div class="combat-order-item" [class.combat-order-item--current]="p.is_current_turn"
+                [attr.data-turn-id]="p.id_combat_participant">
                 <span class="combat-order-name">
                   {{ combatParticipantName(p) }}{{ p.delayed_this_round ? ' ⏳' : '' }}
                 </span>
@@ -451,7 +452,8 @@
 
           <div class="combat-order-list">
             @for (p of c.participants; track p.id_combat_participant; let first = $first; let last = $last) {
-              <div class="combat-order-item" [class.combat-order-item--current]="p.is_current_turn">
+              <div class="combat-order-item" [class.combat-order-item--current]="p.is_current_turn"
+                [attr.data-turn-id]="p.id_combat_participant">
                 <span class="combat-order-name">
                   {{ combatParticipantName(p) }}{{ p.delayed_this_round ? ' ⏳' : '' }}
                 </span>
