@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
-import { PlayerActionsModalComponent } from './player-actions-modal.component';
+import { PlayerActionsModalComponent, isLongCastingTime } from './player-actions-modal.component';
 import { CharacterService } from '../services/character.service';
 import { GameSessionService } from '../services/game-session.service';
 import {
@@ -8,7 +8,7 @@ import {
   ClassAbility,
   CombatFeatures,
 } from '../models/character-response.interface';
-import { SpellRoll, WeaponRow } from '../models/character-options.interface';
+import { Spell, SpellRoll, WeaponRow } from '../models/character-options.interface';
 
 function roll(extra: Partial<SpellRoll>): SpellRoll {
   return {
@@ -104,6 +104,55 @@ describe('PlayerActionsModalComponent — habilidades', () => {
       damage: { diceCount: 1, diceSides: 10, modifier: 3, label: 'Cura: Retomar o Fôlego' },
     });
     expect(closed).not.toHaveBeenCalled();
+  });
+
+  describe('magia de conjuração longa em combate', () => {
+    const prayer = {
+      id_spell: 245,
+      name: 'Oração Curativa',
+      description: '',
+      casting_time: '10 minutos',
+      range_distance: 9,
+      duration: 'Instantânea',
+      is_verbal: true,
+      is_somatic: false,
+      is_material: false,
+      spellLevel: 2,
+      school: null,
+    } as unknown as Spell;
+
+    afterEach(() => vi.restoreAllMocks());
+
+    it('reconhece 1 minuto ou mais; ação, ação bônus e reação não', () => {
+      for (const t of ['1 minuto', '10 minutos', '1 hora', '8 horas']) {
+        expect(isLongCastingTime(t), t).toBe(true);
+      }
+      for (const t of ['1 ação', '1 ação bônus', '1 reação', null, undefined]) {
+        expect(isLongCastingTime(t), String(t)).toBe(false);
+      }
+    });
+
+    it('em combate pede confirmação; cancelar não gasta o espaço', () => {
+      create([]);
+      modal.inCombat = true;
+      expect(modal.isLongCastInCombat(prayer)).toBe(true);
+      const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+      modal.castSpell(prayer, 2);
+      expect(confirmSpy.mock.calls[0][0]).toMatch(/Oração Curativa leva 10 minutos/);
+      expect(charService.updateSpellSlots).not.toHaveBeenCalled();
+      confirmSpy.mockReturnValue(true);
+      modal.castSpell(prayer, 2);
+      expect(charService.updateSpellSlots).toHaveBeenCalled();
+    });
+
+    it('fora de combate lança sem perguntar', () => {
+      create([]);
+      const confirmSpy = vi.spyOn(window, 'confirm');
+      expect(modal.isLongCastInCombat(prayer)).toBe(false);
+      modal.castSpell(prayer, 2);
+      expect(confirmSpy).not.toHaveBeenCalled();
+      expect(charService.updateSpellSlots).toHaveBeenCalled();
+    });
   });
 
   it('habilidade só com CD: anuncia com a CD e fecha', () => {

@@ -254,7 +254,51 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: 12px;
+  margin-top: 14px;
+  padding: 12px;
+  border: 2px solid #ff6b4a;
+  background: rgba(255, 107, 74, 0.1);
+  box-shadow: 0 0 12px rgba(255, 107, 74, 0.35);
+  animation: roll-apply-in 0.4s steps(6) both;
+
+  &--heal {
+    border-color: #6bff9a;
+    background: rgba(107, 255, 154, 0.08);
+    box-shadow: 0 0 12px rgba(107, 255, 154, 0.3);
+
+    .roll-apply-title {
+      color: #6bff9a;
+    }
+  }
+}
+
+@keyframes roll-apply-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.roll-apply-title {
+  margin: 0;
+  font-size: 12px;
+  color: #ff6b4a;
+  text-align: center;
+}
+
+.roll-apply-hint {
+  margin: 0;
+  font-size: 8px;
+  color: var(--label-title-color);
+  text-align: center;
+}
+
+.roll-apply-btn {
+  flex: 2;
 }
 
 .roll-apply-select {
@@ -289,7 +333,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 10px;
+  font-size: 11px;
   color: var(--text-color);
   cursor: pointer;
 }

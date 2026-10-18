@@ -889,6 +889,7 @@
     [sessionId]="id()"
     [applyTargets]="applyTargetsFor(actionsChar.id)"
     [turnKey]="combatTurnKey()"
+    [inCombat]="!!sessionDetail()?.combat"
     [allies]="alliesFor(actionsChar.id)"
     (applyToTarget)="applyRollToTarget($event)"
     (closed)="closePlayerActions()"

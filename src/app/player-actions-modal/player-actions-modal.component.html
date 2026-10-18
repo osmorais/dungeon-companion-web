@@ -212,6 +212,9 @@
                         </label>
                       }
                     </div>
+                    @if (isLongCastInCombat(spell)) {
+                      <span class="pa-long-cast">⏳ {{ spell.casting_time }} — fora do ritmo do combate</span>
+                    }
                     @if (isOnHitSpell(spell) && isCastable(spell)) {
                       <span class="pa-no-slots">use ao acertar um ataque com arma</span>
                     } @else if (isCastable(spell)) {

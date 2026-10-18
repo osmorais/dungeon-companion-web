@@ -175,17 +175,17 @@
     }
 
     @if (canApply) {
-      <div class="roll-apply">
-        <p class="roll-hit-question">
-          Aplicar
+      <div class="roll-apply" [class.roll-apply--heal]="applyKind !== 'damage'">
+        <p class="roll-apply-title">
           {{
             applyKind === 'damage'
-              ? 'o dano'
+              ? '⚔ APLICAR O DANO'
               : applyKind === 'heal'
-                ? 'a cura'
-                : 'os PV temporários'
-          }}? (opcional)
+                ? '✚ APLICAR A CURA'
+                : '✚ APLICAR OS PV TEMPORÁRIOS'
+          }}
         </p>
+        <p class="roll-apply-hint">Marque quem foi atingido (opcional)</p>
         @if (isDistributing) {
           <select class="roll-apply-select" (change)="setApplyTarget($event)">
             <option value="" [selected]="applyTargetKey() === ''">Escolha o alvo…</option>
@@ -260,7 +260,7 @@
           <div class="roll-modal-actions">
             <button class="roll-btn-secondary" (click)="selectAllTargets()">TODOS</button>
             <button
-              class="roll-btn-secondary"
+              class="roll-btn-primary roll-apply-btn"
               [disabled]="selectedCount === 0"
               (click)="applySelected()"
             >

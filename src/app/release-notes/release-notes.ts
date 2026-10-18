@@ -33,6 +33,21 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.1.3',
+    date: '2026-10-18',
+    title: 'Aplicar em destaque e aviso de conjuração longa',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'O painel de aplicar dano ou cura depois da rolagem ficou em destaque, com título e botão principal mais visíveis.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Durante o combate, magias que levam 1 minuto ou mais para conjurar (como Oração Curativa) mostram o tempo e pedem confirmação antes de lançar.',
+      },
+    ],
+  },
+  {
     version: '1.1.2',
     date: '2026-10-18',
     title: 'Aplicar em vários alvos de uma vez',

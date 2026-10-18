@@ -45,6 +45,12 @@ const PT_TO_EN: Record<string, string> = {
   CAR: 'CHA',
 };
 
+/** Tempo de conjuração de 1 minuto ou mais ("1 minuto", "10 minutos", "1 hora"…) — não cabe
+ *  numa rodada de combate. Ação, ação bônus e reação ficam de fora. */
+export function isLongCastingTime(castingTime: string | null | undefined): boolean {
+  return /minuto|hora/i.test(castingTime ?? '');
+}
+
 @Component({
   selector: 'app-player-actions-modal',
   standalone: true,
@@ -65,6 +71,8 @@ export class PlayerActionsModalComponent implements OnInit {
   /** Vez atual do combate ("<combate>:<rodada>:<participante>") — trava as somas 1×/turno
    *  (Ataque Furtivo…). `null` fora de combate: sem trava. */
   @Input() turnKey: string | null = null;
+  /** Combate ativo na sessão — magia de conjuração longa pede confirmação antes de lançar. */
+  @Input() inCombat = false;
   /** Outros jogadores da mesa (Inspiração Bárdica escolhe um deles). */
   @Input() allies: { id_player_session: string; name: string }[] = [];
   @Output() applyToTarget = new EventEmitter<ApplyRequest>();
@@ -858,7 +866,21 @@ export class PlayerActionsModalComponent implements OnInit {
   /** Gasta o espaço (truque não gasta) e, se a magia tiver rolagem cadastrada, abre o modal de
    *  ataque/dano — a tela de ações fecha quando a rolagem termina (`onRolled`). Sem rolagem, só
    *  anuncia e fecha, como antes. */
+  /** Em combate, magia de 1 minuto ou mais: mostra o tempo na lista. */
+  isLongCastInCombat(spell: Spell): boolean {
+    return this.inCombat && isLongCastingTime(spell.casting_time);
+  }
+
   castSpell(spell: Spell, slotLevel: number): void {
+    // Aviso, não trava: o mestre pode liberar se a cena permitir.
+    if (
+      this.isLongCastInCombat(spell) &&
+      !confirm(
+        `${spell.name} leva ${spell.casting_time} para conjurar — numa rodada de combate (6 segundos) normalmente não dá tempo. Lançar mesmo assim?`,
+      )
+    ) {
+      return;
+    }
     const rollConfig = spellRollConfig(spell, slotLevel);
     // Ataque mágico também soma Bruxaria (vale pra qualquer ataque).
     if (rollConfig?.damage && spell.roll?.kind === 'attack') {
