@@ -34,6 +34,7 @@ type FixedStepId =
   | 'traits'
   | 'expertise'
   | 'asi'
+  | 'feat_proficiencies'
   | 'summary';
 /** Uma página por círculo de magia (`spells-1`, `spells-2`...) — truques (círculo 0) usam a
  *  página fixa `cantrips` em vez disso, já que só existe um círculo de truque. */
@@ -47,6 +48,7 @@ const STEP_LABELS: Record<FixedStepId, string> = {
   traits: 'TRAÇOS',
   expertise: 'ESPECIALIZAÇÃO',
   asi: 'MELHORIA',
+  feat_proficiencies: 'PROFICIÊNCIAS DO TALENTO',
   summary: 'RESUMO',
 };
 
@@ -87,6 +89,7 @@ export class LevelUpModalComponent implements OnInit {
     if (p.new_features.length > 0) list.push('traits');
     if (p.expertise_choice) list.push('expertise');
     if (p.is_asi_level) list.push('asi');
+    if (this.featProficiencyChoice()) list.push('feat_proficiencies');
     list.push('summary');
     return list;
   });
@@ -138,6 +141,8 @@ export class LevelUpModalComponent implements OnInit {
         return this.isExpertiseChoiceValid();
       case 'asi':
         return this.isAsiChoiceValid();
+      case 'feat_proficiencies':
+        return this.isFeatProficiencyChoiceValid();
       case 'summary':
         return this.readyToConfirm();
       default:
@@ -272,7 +277,68 @@ export class LevelUpModalComponent implements OnInit {
     if (p.fighting_style_options && !this.selectedFightingStyle()) return false;
     if (p.is_asi_level && !this.isAsiChoiceValid()) return false;
     if (p.expertise_choice && !this.isExpertiseChoiceValid()) return false;
+    if (this.featProficiencyChoice() && !this.isFeatProficiencyChoiceValid()) return false;
     return true;
+  });
+
+  /**
+   * ========================= PROFICIÊNCIAS DO TALENTO (HABILIDOSO) =========================
+   * N escolhas somando perícias ainda não treinadas e ferramentas da lista do talento.
+   */
+  featSkillIds = signal<ReadonlySet<number>>(new Set());
+  featTools = signal<ReadonlySet<string>>(new Set());
+
+  /** Escolha de proficiências do talento selecionado (só no modo talento). */
+  featProficiencyChoice = computed(() => {
+    if (this.asiMode() !== 'feat') return null;
+    const feat = this.preview()?.feat_options.find((f) => f.id_feat === this.selectedFeatId());
+    return feat?.proficiency_choice ?? null;
+  });
+
+  featProficiencyCount = computed(() => this.featSkillIds().size + this.featTools().size);
+
+  untrainedSkills = computed(() => this.characterSkills().filter((s) => !s.is_trained));
+
+  private isFeatProficiencyChoiceValid(): boolean {
+    const choice = this.featProficiencyChoice();
+    return !!choice && this.featProficiencyCount() === choice.count;
+  }
+
+  canToggleFeatProficiency(selected: boolean): boolean {
+    return selected || this.featProficiencyCount() < (this.featProficiencyChoice()?.count ?? 0);
+  }
+
+  toggleFeatSkill(idSkill: number): void {
+    this.featSkillIds.update((current) => {
+      const next = new Set(current);
+      if (next.has(idSkill)) next.delete(idSkill);
+      else if (this.canToggleFeatProficiency(false)) next.add(idSkill);
+      return next;
+    });
+  }
+
+  toggleFeatTool(tool: string): void {
+    this.featTools.update((current) => {
+      const next = new Set(current);
+      if (next.has(tool)) next.delete(tool);
+      else if (this.canToggleFeatProficiency(false)) next.add(tool);
+      return next;
+    });
+  }
+
+  /** Trocar de talento limpa as proficiências escolhidas pro anterior. */
+  selectFeat(idFeat: string): void {
+    this.selectedFeatId.set(idFeat);
+    this.featSkillIds.set(new Set());
+    this.featTools.set(new Set());
+  }
+
+  featProficiencyNames = computed<string[]>(() => {
+    const byId = new Map(this.characterSkills().map((s) => [s.id_skill, s.name]));
+    return [
+      ...[...this.featSkillIds()].map((id) => byId.get(id)).filter((n): n is string => !!n),
+      ...this.featTools(),
+    ];
   });
 
   /**
@@ -530,7 +596,14 @@ export class LevelUpModalComponent implements OnInit {
       if (this.asiMode() === 'asi') {
         asiOrFeat = { type: 'asi', increases: this.asiAllocation() };
       } else if (this.asiMode() === 'feat' && this.selectedFeatId()) {
-        asiOrFeat = { type: 'feat', feat_id: this.selectedFeatId()! };
+        asiOrFeat = this.featProficiencyChoice()
+          ? {
+              type: 'feat',
+              feat_id: this.selectedFeatId()!,
+              skill_ids: [...this.featSkillIds()],
+              tools: [...this.featTools()],
+            }
+          : { type: 'feat', feat_id: this.selectedFeatId()! };
       }
     }
 

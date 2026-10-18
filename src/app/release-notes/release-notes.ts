@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.1.7',
+    date: '2026-10-18',
+    title: 'Talento Habilidoso',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'Ao escolher o talento Habilidoso na subida de nível, agora aparece a escolha de 3 perícias ou ferramentas; as perícias ficam treinadas e as ferramentas entram nas proficiências da ficha.',
+      },
+    ],
+  },
+  {
     version: '1.1.6',
     date: '2026-10-18',
     title: 'Aviso de subir de nível para todos',

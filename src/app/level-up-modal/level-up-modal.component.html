@@ -222,6 +222,46 @@
             }
           }
 
+          @case ('feat_proficiencies') {
+            @if (featProficiencyChoice(); as fc) {
+              <div class="lu-block">
+                <span class="lu-section-label">
+                  {{ selectedFeatName() }}: ESCOLHA {{ fc.count }} PERÍCIAS OU FERRAMENTAS —
+                  {{ featProficiencyCount() }}/{{ fc.count }}
+                </span>
+                <p class="lu-note">Você ganha proficiência no que escolher.</p>
+                <span class="lu-section-label">PERÍCIAS</span>
+                <div class="lu-spell-list">
+                  @for (skill of untrainedSkills(); track skill.id_skill) {
+                    <div class="lu-spell-option" [class.lu-spell-option--selected]="featSkillIds().has(skill.id_skill)">
+                      <input
+                        type="checkbox"
+                        [checked]="featSkillIds().has(skill.id_skill)"
+                        [disabled]="!canToggleFeatProficiency(featSkillIds().has(skill.id_skill))"
+                        (change)="toggleFeatSkill(skill.id_skill)"
+                      />
+                      <span class="lu-spell-name">{{ skill.name }} ({{ skill.attribute_name }})</span>
+                    </div>
+                  }
+                </div>
+                <span class="lu-section-label">FERRAMENTAS</span>
+                <div class="lu-spell-list">
+                  @for (tool of fc.tool_options; track tool) {
+                    <div class="lu-spell-option" [class.lu-spell-option--selected]="featTools().has(tool)">
+                      <input
+                        type="checkbox"
+                        [checked]="featTools().has(tool)"
+                        [disabled]="!canToggleFeatProficiency(featTools().has(tool))"
+                        (change)="toggleFeatTool(tool)"
+                      />
+                      <span class="lu-spell-name">{{ tool }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          }
+
           @case ('asi') {
             <div class="lu-block">
               <div class="lu-asi-tabs">
@@ -277,7 +317,7 @@
                         name="lu-feat"
                         [value]="feat.id_feat"
                         [checked]="selectedFeatId() === feat.id_feat"
-                        (change)="selectedFeatId.set(feat.id_feat)"
+                        (change)="selectFeat(feat.id_feat)"
                       />
                       <span class="lu-feat-name">{{ feat.display_name }}</span>
                       <p class="lu-feat-desc">{{ feat.description }}</p>
@@ -398,6 +438,9 @@
                     <p class="lu-summary-line">
                       <strong>{{ selectedFeatName() }}</strong>
                     </p>
+                    @if (featProficiencyNames().length) {
+                      <p class="lu-summary-line">Proficiências: {{ featProficiencyNames().join(', ') }}</p>
+                    }
                   }
                 </div>
               }
