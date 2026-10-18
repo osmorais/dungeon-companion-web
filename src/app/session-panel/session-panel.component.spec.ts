@@ -595,4 +595,37 @@ describe('SessionPanelComponent', () => {
       expect(component.turnChangeToast()).toBeNull();
     });
   });
+
+  describe('aviso de subir de nível', () => {
+    afterEach(() => vi.useRealTimers());
+
+    it('XP pra vários de uma vez: um aviso só com todos os nomes, sem repetir', () => {
+      vi.useFakeTimers();
+      component.showLevelUpEligibleToast('Thorin', null);
+      const key = component.activeLevelUpEligibleToast()!.key;
+      component.showLevelUpEligibleToast('Ana', null);
+      component.showLevelUpEligibleToast('Ana', null);
+      component.showLevelUpEligibleToast('Lyra', null);
+      const toast = component.activeLevelUpEligibleToast()!;
+      expect(toast.entries.map((e) => e.name)).toEqual(['Thorin', 'Ana', 'Lyra']);
+      expect(toast.key).toBe(key); // não refaz a explosão
+      expect(component.levelUpEligibleText(toast.entries)).toBe(
+        'Thorin, Ana E Lyra SUBIRAM DE NÍVEL!',
+      );
+      vi.advanceTimersByTime(6_000);
+      expect(component.activeLevelUpEligibleToast()).toBeNull();
+    });
+
+    it('um só: "SUBIU"; depois de fechar, o próximo abre um aviso novo', () => {
+      component.showLevelUpEligibleToast('Thorin', null);
+      expect(component.levelUpEligibleText(component.activeLevelUpEligibleToast()!.entries)).toBe(
+        'Thorin SUBIU DE NÍVEL!',
+      );
+      const key = component.activeLevelUpEligibleToast()!.key;
+      component.closeLevelUpEligibleToast();
+      component.showLevelUpEligibleToast('Ana', null);
+      expect(component.activeLevelUpEligibleToast()!.entries.map((e) => e.name)).toEqual(['Ana']);
+      expect(component.activeLevelUpEligibleToast()!.key).toBe(key + 1);
+    });
+  });
 });

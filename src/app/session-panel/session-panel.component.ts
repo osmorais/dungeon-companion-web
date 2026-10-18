@@ -1635,16 +1635,34 @@ export class SessionPanelComponent implements OnDestroy {
 
   readonly LEVEL_UP_ELIGIBLE_TOAST_MS = 6_000;
 
-  activeLevelUpEligibleToast = signal<
-    { name: string; avatarPreset: AvatarPreset | null; key: number } | null
-  >(null);
+  /** Um aviso só pra todos que ficam aptos juntos (XP pra vários de uma vez) — antes cada evento
+   *  substituía o anterior e a mesa só via um nome. */
+  activeLevelUpEligibleToast = signal<{
+    entries: { name: string; avatarPreset: AvatarPreset | null }[];
+    key: number;
+  } | null>(null);
   private levelUpEligibleToastTimer: ReturnType<typeof setTimeout> | null = null;
   private levelUpEligibleCounter = 0;
 
-  private showLevelUpEligibleToast(name: string, avatarPreset: AvatarPreset | null): void {
+  /** "THORIN SUBIU DE NÍVEL!" / "THORIN E ANA SUBIRAM DE NÍVEL!" */
+  levelUpEligibleText(entries: { name: string }[]): string {
+    const names = entries.map((e) => e.name);
+    const joined = names.length > 1 ? `${names.slice(0, -1).join(', ')} E ${names[names.length - 1]}` : names[0];
+    return `${joined} ${names.length > 1 ? 'SUBIRAM' : 'SUBIU'} DE NÍVEL!`;
+  }
+
+  showLevelUpEligibleToast(name: string, avatarPreset: AvatarPreset | null): void {
     if (this.levelUpEligibleToastTimer) clearTimeout(this.levelUpEligibleToastTimer);
-    this.levelUpEligibleCounter++;
-    this.activeLevelUpEligibleToast.set({ name, avatarPreset, key: this.levelUpEligibleCounter });
+    const current = this.activeLevelUpEligibleToast();
+    if (current) {
+      // Junta no aviso aberto (sem repetir o nome); mesma `key` pra não refazer a explosão.
+      if (!current.entries.some((e) => e.name === name)) {
+        this.activeLevelUpEligibleToast.set({ ...current, entries: [...current.entries, { name, avatarPreset }] });
+      }
+    } else {
+      this.levelUpEligibleCounter++;
+      this.activeLevelUpEligibleToast.set({ entries: [{ name, avatarPreset }], key: this.levelUpEligibleCounter });
+    }
     this.levelUpEligibleToastTimer = setTimeout(
       () => this.activeLevelUpEligibleToast.set(null),
       this.LEVEL_UP_ELIGIBLE_TOAST_MS,

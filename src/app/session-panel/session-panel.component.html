@@ -1251,10 +1251,14 @@
       <app-modal-burst variant="levelup" />
       <div class="retro-panel level-up-eligible-panel" (click)="$event.stopPropagation()">
         <button class="modal-close-btn" (click)="closeLevelUpEligibleToast()">✕</button>
-        <div class="level-up-eligible-avatar">
-          <app-avatar-display [preset]="l.avatarPreset" />
+        <div class="level-up-eligible-avatars">
+          @for (e of l.entries; track e.name) {
+            <div class="level-up-eligible-avatar">
+              <app-avatar-display [preset]="e.avatarPreset" />
+            </div>
+          }
         </div>
-        <span class="level-up-eligible-name">{{ l.name }} SUBIU DE NÍVEL!</span>
+        <span class="level-up-eligible-name">{{ levelUpEligibleText(l.entries) }}</span>
         <div class="roll-toast-timer-bar">
           <div class="roll-toast-timer-fill" [style.animation-duration.ms]="LEVEL_UP_ELIGIBLE_TOAST_MS"></div>
         </div>

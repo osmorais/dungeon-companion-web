@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.1.6',
+    date: '2026-10-18',
+    title: 'Aviso de subir de nível para todos',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'Quando o mestre dá experiência para vários personagens e mais de um pode subir de nível, o aviso agora mostra todos eles (antes aparecia só um).',
+      },
+    ],
+  },
+  {
     version: '1.1.5',
     date: '2026-10-18',
     title: 'Aviso de troca de vez para a mesa',

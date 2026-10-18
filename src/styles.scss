@@ -310,3 +310,12 @@ input[type="checkbox"].retro-checkbox {
     animation: none;
   }
 }
+
+// Aviso de subir de nível com vários personagens (session-panel) — global pelo limite do SCSS
+// do painel.
+.level-up-eligible-avatars {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
