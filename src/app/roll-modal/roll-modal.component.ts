@@ -495,28 +495,27 @@ export class RollModalComponent implements OnInit {
     return this.applicableTargets.find((t) => t.key === this.applyTargetKey());
   }
 
-  /** Resistência do alvo escolhido ao tipo deste dano (ex.: "fogo"), ou `null`. */
-  get targetResistance(): string | null {
-    const target = this.selectedTarget;
+  /** Resistência do alvo ao tipo deste dano (ex.: "fogo"), ou `null`. */
+  resistanceOf(target: ApplyTarget | undefined): string | null {
     if (this.applyKind !== 'damage' || !target?.defenses) return null;
     return resistsDamage(target.defenses.resistances, this.pendingDamage?.damageType);
   }
 
   /** Esquiva Sobrenatural: o alvo pode receber metade de um ataque (rolagem com d20). */
-  get targetCanUncannyDodge(): boolean {
+  canUncannyDodge(target: ApplyTarget | undefined): boolean {
     return (
       this.applyKind === 'damage' &&
-      !!this.selectedTarget?.defenses?.uncanny_dodge &&
+      !!target?.defenses?.uncanny_dodge &&
       this.config.mode === 'ability' &&
       !this.config.autoHit
     );
   }
 
   /** Evasão: resistência de DES de metade → passou = nada, falhou = metade. */
-  get targetHasEvasion(): boolean {
+  hasEvasion(target: ApplyTarget | undefined): boolean {
     return (
       this.applyKind === 'damage' &&
-      !!this.selectedTarget?.defenses?.evasion &&
+      !!target?.defenses?.evasion &&
       this.config.mode === 'ability' &&
       this.config.save?.ability === 'DEX' &&
       this.config.save.onSuccess === 'half'
@@ -525,13 +524,118 @@ export class RollModalComponent implements OnInit {
 
   /** Quanto o alvo recebe: `full` = falhou/acertou, `half` = passou na resistência,
    *  `uncanny` = Esquiva Sobrenatural; com Evasão e resistência ao tipo já aplicadas. */
-  amountFor(mode: 'full' | 'half' | 'uncanny'): number {
+  amountForTarget(target: ApplyTarget | undefined, mode: 'full' | 'half' | 'uncanny'): number {
     const total = this.result()?.total ?? 0;
     let amount = mode === 'half' ? Math.floor(total / 2) : total;
-    if (this.targetHasEvasion) amount = mode === 'half' ? 0 : Math.floor(total / 2);
+    if (this.hasEvasion(target)) amount = mode === 'half' ? 0 : Math.floor(total / 2);
     if (mode === 'uncanny') amount = Math.floor(amount / 2);
-    if (this.targetResistance) amount = Math.floor(amount / 2);
+    if (this.resistanceOf(target)) amount = Math.floor(amount / 2);
     return amount;
+  }
+
+  /** Alvo único escolhido no seletor (cura distribuída e chamadas antigas). */
+  get targetResistance(): string | null {
+    return this.resistanceOf(this.selectedTarget);
+  }
+
+  get targetCanUncannyDodge(): boolean {
+    return this.canUncannyDodge(this.selectedTarget);
+  }
+
+  get targetHasEvasion(): boolean {
+    return this.hasEvasion(this.selectedTarget);
+  }
+
+  amountFor(mode: 'full' | 'half' | 'uncanny'): number {
+    return this.amountForTarget(this.selectedTarget, mode);
+  }
+
+  // ── Vários alvos de uma vez (magia em área): marca os alvos, quem passou e quem se esquivou ──
+
+  selectedKeys = signal<ReadonlySet<string>>(new Set());
+  passedKeys = signal<ReadonlySet<string>>(new Set());
+  uncannyKeys = signal<ReadonlySet<string>>(new Set());
+  private appliedKeys = signal<ReadonlySet<string>>(new Set());
+
+  /** Alvos ainda não aplicados nesta rolagem. */
+  get pendingTargets(): ApplyTarget[] {
+    const done = this.appliedKeys();
+    return this.applicableTargets.filter((t) => !done.has(t.key));
+  }
+
+  private toggleIn(set: ReturnType<typeof signal<ReadonlySet<string>>>, key: string): void {
+    set.update((current) => {
+      const next = new Set(current);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
+
+  isTargetSelected(key: string): boolean {
+    return this.selectedKeys().has(key);
+  }
+
+  toggleTarget(key: string): void {
+    this.toggleIn(this.selectedKeys, key);
+  }
+
+  selectAllTargets(): void {
+    this.selectedKeys.set(new Set(this.pendingTargets.map((t) => t.key)));
+  }
+
+  isPassed(key: string): boolean {
+    return this.passedKeys().has(key);
+  }
+
+  togglePassed(key: string): void {
+    this.toggleIn(this.passedKeys, key);
+  }
+
+  isUncanny(key: string): boolean {
+    return this.uncannyKeys().has(key);
+  }
+
+  toggleUncanny(key: string): void {
+    this.toggleIn(this.uncannyKeys, key);
+  }
+
+  /** Modo do alvo na aplicação em lote: esquiva > passou > inteiro. */
+  private modeOf(target: ApplyTarget): 'full' | 'half' | 'uncanny' {
+    if (this.canUncannyDodge(target) && this.isUncanny(target.key)) return 'uncanny';
+    if (this.saveSuccessTotal !== null && this.isPassed(target.key)) return 'half';
+    return 'full';
+  }
+
+  /** O que este alvo vai receber, com as marcações dele. */
+  pendingAmount(target: ApplyTarget): number {
+    return this.amountForTarget(target, this.modeOf(target));
+  }
+
+  get selectedCount(): number {
+    return this.pendingTargets.filter((t) => this.selectedKeys().has(t.key)).length;
+  }
+
+  /** Aplica em todos os alvos marcados, cada um com o seu valor. */
+  applySelected(): void {
+    if (!this.result()) return;
+    const kind = this.applyKind;
+    const targets = this.pendingTargets.filter((t) => this.selectedKeys().has(t.key));
+    for (const target of targets) {
+      const amount = this.pendingAmount(target);
+      // Evasão (passou): nada a aplicar — só registra pra mesa ver.
+      if (amount > 0) this.applyToTarget.emit({ targetKey: target.key, amount, kind });
+      this.applied.update((list) => [...list, { label: target.label, amount, kind }]);
+    }
+    this.appliedKeys.update((done) => new Set([...done, ...targets.map((t) => t.key)]));
+    this.selectedKeys.set(new Set());
+  }
+
+  private resetBatch(): void {
+    this.selectedKeys.set(new Set());
+    this.passedKeys.set(new Set());
+    this.uncannyKeys.set(new Set());
+    this.appliedKeys.set(new Set());
   }
 
   apply(mode: 'full' | 'half' | 'uncanny' = 'full'): void {
@@ -758,6 +862,7 @@ export class RollModalComponent implements OnInit {
     this.isCritical.set(false);
     this.lastRollWasDamage = false;
     this.applied.set([]);
+    this.resetBatch();
     this.result.set(null);
     this.smiteExtraDice.set(0);
     this.selectedSmiteOption.set(null);
@@ -901,6 +1006,7 @@ export class RollModalComponent implements OnInit {
     // Com alvos pra aplicar, espera o "CONCLUIR" em vez de encerrar na hora.
     if (this.attackPhase() === 'damage' && this.applyTargets.length > 0) {
       this.applied.set([]);
+      this.resetBatch();
       this.awaitingApply.set(true);
       return;
     }

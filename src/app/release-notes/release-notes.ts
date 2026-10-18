@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.1.2',
+    date: '2026-10-18',
+    title: 'Aplicar em vários alvos de uma vez',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'Magias em área: depois de rolar, marque todos os alvos atingidos e aplique de uma vez. Cada alvo mostra quanto vai receber, com opção de marcar quem passou na resistência (metade) e a Esquiva Sobrenatural.',
+      },
+    ],
+  },
+  {
     version: '1.1.1',
     date: '2026-10-17',
     title: 'Aplicar dano e cura em aliados e monstros',

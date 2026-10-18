@@ -186,16 +186,16 @@
                 : 'os PV temporários'
           }}? (opcional)
         </p>
-        <select class="roll-apply-select" (change)="setApplyTarget($event)">
-          <option value="" [selected]="applyTargetKey() === ''">Escolha o alvo…</option>
-          @for (target of applicableTargets; track target.key) {
-            <option [value]="target.key" [selected]="applyTargetKey() === target.key">
-              {{ target.label }}
-            </option>
-          }
-        </select>
-        <div class="roll-modal-actions">
-          @if (isDistributing) {
+        @if (isDistributing) {
+          <select class="roll-apply-select" (change)="setApplyTarget($event)">
+            <option value="" [selected]="applyTargetKey() === ''">Escolha o alvo…</option>
+            @for (target of applicableTargets; track target.key) {
+              <option [value]="target.key" [selected]="applyTargetKey() === target.key">
+                {{ target.label }}
+              </option>
+            }
+          </select>
+          <div class="roll-modal-actions">
             <input
               class="roll-apply-select"
               type="number"
@@ -211,31 +211,62 @@
             >
               APLICAR (SOBRA {{ distributeRemaining }})
             </button>
-          } @else {
-            <button class="roll-btn-secondary" [disabled]="!applyTargetKey()" (click)="apply()">
-              APLICAR {{ applyTargetKey() ? amountFor('full') : result()!.total }}
-            </button>
-          }
-          @if (saveSuccessTotal !== null) {
+          </div>
+        } @else if (pendingTargets.length > 0) {
+          <div class="roll-apply-list">
+            @for (target of pendingTargets; track target.key) {
+              <div class="roll-apply-row">
+                <label class="roll-apply-check">
+                  <input
+                    type="checkbox"
+                    class="retro-checkbox"
+                    [checked]="isTargetSelected(target.key)"
+                    (change)="toggleTarget(target.key)"
+                  />
+                  {{ target.label }}
+                  <span class="roll-apply-amount">{{ pendingAmount(target) }}</span>
+                </label>
+                @if (saveSuccessTotal !== null) {
+                  <label class="roll-apply-check roll-apply-flag">
+                    <input
+                      type="checkbox"
+                      class="retro-checkbox"
+                      [checked]="isPassed(target.key)"
+                      (change)="togglePassed(target.key)"
+                    />
+                    PASSOU
+                  </label>
+                }
+                @if (canUncannyDodge(target)) {
+                  <label class="roll-apply-check roll-apply-flag">
+                    <input
+                      type="checkbox"
+                      class="retro-checkbox"
+                      [checked]="isUncanny(target.key)"
+                      (change)="toggleUncanny(target.key)"
+                    />
+                    ESQUIVA
+                  </label>
+                }
+                @if (resistanceOf(target)) {
+                  <span class="roll-apply-note">resiste a {{ resistanceOf(target) }}</span>
+                }
+                @if (hasEvasion(target)) {
+                  <span class="roll-apply-note">Evasão</span>
+                }
+              </div>
+            }
+          </div>
+          <div class="roll-modal-actions">
+            <button class="roll-btn-secondary" (click)="selectAllTargets()">TODOS</button>
             <button
               class="roll-btn-secondary"
-              [disabled]="!applyTargetKey()"
-              (click)="apply('half')"
+              [disabled]="selectedCount === 0"
+              (click)="applySelected()"
             >
-              PASSOU: {{ applyTargetKey() ? amountFor('half') : saveSuccessTotal }}
+              APLICAR EM {{ selectedCount }} {{ selectedCount === 1 ? 'ALVO' : 'ALVOS' }}
             </button>
-          }
-          @if (targetCanUncannyDodge) {
-            <button class="roll-btn-secondary" (click)="apply('uncanny')">
-              ESQUIVA SOBRENATURAL: {{ amountFor('uncanny') }}
-            </button>
-          }
-        </div>
-        @if (targetResistance) {
-          <p class="roll-modifier-line">Resistência a {{ targetResistance }}: metade</p>
-        }
-        @if (targetHasEvasion) {
-          <p class="roll-modifier-line">Evasão: se passar, nenhum dano; se falhar, metade</p>
+          </div>
         }
         @for (entry of applied(); track $index) {
           <p class="roll-modifier-line">✓ {{ entry.label }}: {{ entry.amount }}</p>

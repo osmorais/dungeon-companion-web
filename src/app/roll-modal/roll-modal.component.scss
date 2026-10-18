@@ -266,3 +266,44 @@
   background: var(--bg-color, #111);
   border: 2px solid var(--accent-color);
 }
+
+.roll-apply-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 40vh;
+  overflow-y: auto;
+  text-align: left;
+}
+
+.roll-apply-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  padding: 4px 6px;
+  border: 1px solid var(--border-color);
+}
+
+.roll-apply-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: var(--text-color);
+  cursor: pointer;
+}
+
+.roll-apply-flag {
+  font-size: 8px;
+  opacity: 0.85;
+}
+
+.roll-apply-amount {
+  color: var(--accent-color);
+}
+
+.roll-apply-note {
+  font-size: 8px;
+  opacity: 0.7;
+}

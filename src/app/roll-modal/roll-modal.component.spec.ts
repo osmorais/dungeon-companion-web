@@ -1062,6 +1062,111 @@ describe('RollModalComponent — fase 4 dos traços (d20 e defesas)', () => {
     expect(modal.reminders).toEqual(['Vantagem contra veneno (Resistência Anã)']);
   });
 
+  describe('vários alvos de uma vez (magia em área)', () => {
+    const fireball: AbilityRollConfig = {
+      mode: 'ability',
+      rollType: 'attack',
+      label: 'Magia: Bola de Fogo',
+      modifier: 0,
+      autoHit: true,
+      save: { note: 'CD 14 de Destreza', onSuccess: 'half', ability: 'DEX' },
+      damage: { diceCount: 0, diceSides: 0, modifier: 20, label: 'Dano', damageType: 'fogo' },
+    };
+    const none = { resistances: [], uncanny_dodge: false, evasion: false };
+    const targets = [
+      { key: 'player:a', label: 'Ana', allowsTempHp: true, defenses: none },
+      { key: 'player:b', label: 'Bruno', allowsTempHp: true, defenses: none },
+      {
+        key: 'player:c',
+        label: 'Tiefling',
+        allowsTempHp: true,
+        defenses: { ...none, resistances: ['fogo'] },
+      },
+      {
+        key: 'player:d',
+        label: 'Ladino',
+        allowsTempHp: true,
+        defenses: { ...none, evasion: true },
+      },
+      { key: 'monster:m', label: 'Goblin', allowsTempHp: false },
+    ];
+
+    it('cada alvo com o seu valor: falhou, passou, resistência e Evasão', () => {
+      const { modal, applied } = create(fireball, targets);
+      modal.selectAllTargets();
+      modal.togglePassed('player:b');
+      modal.togglePassed('player:c');
+      modal.togglePassed('player:d');
+      expect(modal.selectedCount).toBe(5);
+      expect(targets.map((t) => modal.pendingAmount(t))).toEqual([20, 10, 5, 0, 20]);
+      modal.applySelected();
+      // Evasão que passou não chama a API (0), mas aparece na lista
+      expect(applied.mock.calls.map((c) => [c[0].targetKey, c[0].amount])).toEqual([
+        ['player:a', 20],
+        ['player:b', 10],
+        ['player:c', 5],
+        ['monster:m', 20],
+      ]);
+      expect(modal.applied().map((e) => `${e.label}:${e.amount}`)).toEqual([
+        'Ana:20',
+        'Bruno:10',
+        'Tiefling:5',
+        'Ladino:0',
+        'Goblin:20',
+      ]);
+      // aplicados saem da lista; nada fica marcado
+      expect(modal.pendingTargets).toEqual([]);
+      expect(modal.selectedCount).toBe(0);
+    });
+
+    it('marcando só alguns; os outros continuam disponíveis', () => {
+      const { modal, applied } = create(fireball, targets);
+      modal.toggleTarget('player:a');
+      modal.toggleTarget('monster:m');
+      modal.applySelected();
+      expect(applied).toHaveBeenCalledTimes(2);
+      expect(modal.pendingTargets.map((t) => t.key)).toEqual(['player:b', 'player:c', 'player:d']);
+      modal.toggleTarget('player:b');
+      modal.toggleTarget('player:b'); // desmarca
+      expect(modal.selectedCount).toBe(0);
+    });
+
+    it('Esquiva Sobrenatural por alvo num ataque com d20', () => {
+      vi.spyOn(Math, 'random').mockReturnValue(0.5);
+      const rogue = {
+        key: 'player:r',
+        label: 'Ladino',
+        allowsTempHp: true,
+        defenses: { ...none, uncanny_dodge: true },
+      };
+      const { modal } = create(
+        {
+          mode: 'ability',
+          rollType: 'attack',
+          label: 'Ataque',
+          modifier: 5,
+          damage: {
+            diceCount: 0,
+            diceSides: 0,
+            modifier: 9,
+            label: 'Dano',
+            damageType: 'cortante',
+          },
+        },
+        [rogue, targets[0]],
+      );
+      modal.roll();
+      settle();
+      modal.rollDamageNow();
+      settle();
+      expect(modal.canUncannyDodge(rogue)).toBe(true);
+      expect(modal.canUncannyDodge(targets[0])).toBe(false);
+      modal.toggleUncanny('player:r');
+      expect(modal.pendingAmount(rogue)).toBe(4);
+      expect(modal.pendingAmount(targets[0])).toBe(9);
+    });
+  });
+
   describe('defesas ao aplicar dano', () => {
     const fireball: AbilityRollConfig = {
       mode: 'ability',
