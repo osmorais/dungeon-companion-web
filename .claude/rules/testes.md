@@ -43,5 +43,5 @@ Vale para toda implementação nova, correção de bug ou mudança de comportame
 - Tabelas que são cópia do backend (`dungeon-companion-api/src/services/character-sheet/`) têm
   testes nos dois repositórios com os mesmos valores — ao mudar um lado, atualizar o outro e os
   testes de ambos.
-- Documentação completa da suíte: `~/projects/docs/dungeon-companion-testes.md` (atualizar a
+- Documentação completa da suíte: `~/projects/docs/dungeon-companion/conceitos/testes.md` (atualizar a
   seção de cobertura quando adicionar uma área nova de testes).

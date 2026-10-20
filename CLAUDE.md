@@ -20,16 +20,13 @@ To run a single test file: `npx vitest run src/app/path/to/file.spec.ts`
 
 This is an Angular 21 single-page app for D&D 5e character creation and management. It requires a backend API running at `http://localhost:3000` in development (configured in `src/environments/environment.ts`).
 
-**Routing** — lazy-loaded standalone components (no NgModules):
-- `/` → home
-- `/create` → character wizard (main feature)
-- `/sheet-result` → character sheet after creation
-- `/characters` → saved character list
-- `/character-sheet/:id` → individual character sheet
+**Routing** (`src/app/app.routes.ts`) — lazy-loaded standalone components (no NgModules):
+- Públicas: `/login`, `/signup`, `/forgot-password`, `/reset-password`, `/privacidade`, `/termos`, `/novidades`
+- Com `authGuard`: `/` (home), `/create` (wizard de criação), `/sheet-result`, `/characters`, `/character-sheet/:id`, `/session-create`, `/session-join`, `/my-sessions`, `/sessions`, `/session/:id` (mesa: combate, rolagens, magias), `/conta`, `/monster-catalog` (+ `/new`, `/:id`), `/spell-catalog`
 
 **State management** — Angular Signals for synchronous local state, RxJS Observables for HTTP responses. `CharacterService` holds cross-route state via signals: `currentCharacter`, `avatarUrl`, `cachedOptions`.
 
-**HTTP layer** — all requests go through `LoadingInterceptor` which automatically shows/hides the loading overlay. API calls are made via `CharacterService` and `BackgroundService`.
+**HTTP layer** — interceptors em `app.config.ts`: `loadingInterceptor` (overlay de loading automático), `credentialsInterceptor` (`withCredentials` só pra API) e `authErrorInterceptor` (401 fora de `/auth/` desloga). Chamadas à API ficam nos services de `src/app/services/`; a sessão em tempo real usa socket.io (`session-socket.service.ts` + `session-event.reducer.ts`).
 
 **Character Wizard** (`src/app/character-wizard/`) — the core feature. A 6-step form with:
 - Three attribute allocation methods: Standard Array, Point Buy, Dice Roll
@@ -37,17 +34,27 @@ This is an Angular 21 single-page app for D&D 5e character creation and manageme
 - Paginated spell/weapon selection
 - Conditional step skipping (magic step is skipped for non-spellcaster classes)
 
-**Backend API endpoints** called by the frontend:
-- `POST /api/character-sheet` — save new character
-- `GET /api/character-sheet` — list all characters
-- `GET /api/character-sheet/:id` — get character by ID
-- `GET /api/character-options` — fetch races, classes, skills, spells, weapons, etc.
-
 ## Code Style
 
 TypeScript strict mode is enabled (`strict`, `strictTemplates`, `noImplicitOverride`, `noImplicitReturns`). Prettier is configured with 100-char line width, single quotes, and the Angular HTML parser (`.prettierrc`). Use 2-space indentation (enforced by `.editorconfig`).
 
 All components are standalone — do not use NgModules.
+
+## Contexto do projeto
+
+Estado atual, pendências, decisões e armadilhas ficam em `~/projects/docs/` (índice em
+`~/projects/docs/README.md`). Antes de começar uma tarefa, ler
+`~/projects/docs/dungeon-companion/estado-atual.md` e `backlog.md`; ao terminar uma entrega,
+atualizar os dois (ver "Manutenção" no índice).
+
+## Convenções que já deram problema
+
+- **Commit e push só com pedido explícito, a cada vez** — mesmo depois de várias aprovações seguidas.
+- **Não testar a UI no browser** (Playwright, screenshots, dev server): o usuário testa. Verificar com `npm run build` (type-check dos templates), testes unitários e prettier.
+- **Prettier**: antes de formatar um arquivo, confirmar com `git stash && npx prettier --check <arquivo> && git stash pop` se o aviso já existia (débito antigo, não mexer) ou veio da edição (aí `--write` só nele). `session-panel.component.*` tem bastante débito antigo.
+- **Orçamento de SCSS** (`angular.json`, `anyComponentStyle.maximumError` = 32 kB): `session-panel.component.scss` está perto do limite. Componente novo da sessão ganha SCSS próprio; keyframes/classes compartilhadas vão pro `styles.scss`. Se estourar, quebrar o componente em vez de subir o limite.
+- **Assets** em `src/assets/*.png`, referenciados como `assets/nome.png` (sem barra inicial).
+- Mais armadilhas por área: `~/projects/docs/dungeon-companion/gotchas.md`.
 
 ## Testes
 

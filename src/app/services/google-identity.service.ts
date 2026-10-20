@@ -5,7 +5,7 @@ export const GOOGLE_IDENTITY_SCRIPT_URL = 'https://accounts.google.com/gsi/clien
 /**
  * Carrega o script de login do Google (Google Identity Services) só quando uma tela que tem o
  * botão abre (login/cadastro), em vez de em todas as páginas pelo index.html — assim quem só
- * navega pelo site não tem o IP enviado ao Google (LGPD, docs/dungeon-companion-lgpd.md item 8).
+ * navega pelo site não tem o IP enviado ao Google (LGPD, docs/dungeon-companion/conceitos/lgpd.md item 8).
  * Também resolve uma corrida antiga: com `async` no index.html, o componente podia chamar
  * `google.accounts.id` antes do script terminar de carregar.
  */
