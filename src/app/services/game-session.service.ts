@@ -11,6 +11,8 @@ import {
   GameSessionResponse,
   GrantXpPayload,
   GrantXpResult,
+  PartyRestPayload,
+  PartyRestResult,
   JoinSessionPayload,
   MonsterAbilityKey,
   MonsterSession,
@@ -221,6 +223,35 @@ export class GameSessionService {
   grantXp(idGameSession: string, payload: GrantXpPayload): Observable<GrantXpResult[]> {
     return this.http.post<GrantXpResult[]>(
       `${this.baseUrl}/api/game-session/${idGameSession}/grant-xp`,
+      payload,
+    );
+  }
+
+  /** Anotações privadas do mestre (só o dono da sessão lê/grava). */
+  getDmNotes(idGameSession: string): Observable<{ notes: string }> {
+    return this.http.get<{ notes: string }>(
+      `${this.baseUrl}/api/game-session/${idGameSession}/dm-notes`,
+      { context: new HttpContext().set(SKIP_LOADING_OVERLAY, true) },
+    );
+  }
+
+  updateDmNotes(idGameSession: string, notes: string): Observable<{ notes: string }> {
+    return this.http.put<{ notes: string }>(
+      `${this.baseUrl}/api/game-session/${idGameSession}/dm-notes`,
+      { notes },
+      { context: new HttpContext().set(SKIP_LOADING_OVERLAY, true) },
+    );
+  }
+
+  /** Apaga a sessão inteira (só o mestre) — os jogadores conectados recebem `session_deleted`. */
+  deleteSession(idGameSession: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/api/game-session/${idGameSession}`);
+  }
+
+  /** Mestre declara descanso curto/longo pros jogadores/NPCs escolhidos. */
+  partyRest(idGameSession: string, payload: PartyRestPayload): Observable<PartyRestResult> {
+    return this.http.post<PartyRestResult>(
+      `${this.baseUrl}/api/game-session/${idGameSession}/rest`,
       payload,
     );
   }

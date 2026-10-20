@@ -219,6 +219,18 @@ describe('applySessionEvent', () => {
       ).toBe(detail);
     });
 
+    it('descanso do grupo não altera o estado (o PV chega em *_hp_updated)', () => {
+      const detail = sessionDetail();
+      expect(
+        apply(detail, { type: 'party_rested', rest_type: 'long', character_names: ['Ana'] }),
+      ).toBe(detail);
+    });
+
+    it('sessão apagada não altera o estado (o aviso é do session-panel)', () => {
+      const detail = sessionDetail();
+      expect(apply(detail, { type: 'session_deleted' })).toBe(detail);
+    });
+
     it('magia lançada não altera o estado', () => {
       const detail = sessionDetail();
       expect(

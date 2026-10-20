@@ -56,6 +56,8 @@ import { DamageImpactService } from '../services/damage-impact.service';
 import { attrLabel } from '../models/level-up.interface';
 import { saveNote } from '../roll-modal/spell-roll-config';
 import { ApplyRequest, ApplyTarget } from '../roll-modal/apply-target';
+import { AreaApplyRequest, DmBoardComponent } from '../dm-board/dm-board.component';
+import { monsterDisplayName } from './monster-display-name';
 
 @Component({
   selector: 'app-session-panel',
@@ -79,6 +81,7 @@ import { ApplyRequest, ApplyTarget } from '../roll-modal/apply-target';
     TurnChangeToastComponent,
     ReferenceImageViewerComponent,
     SecretRollPromptComponent,
+    DmBoardComponent,
   ],
   templateUrl: './session-panel.component.html',
   styleUrls: ['./session-panel.component.scss'],
@@ -229,6 +232,17 @@ export class SessionPanelComponent implements OnDestroy {
         if (event.target_user_id === this.authService.currentUser()?.id) {
           this.receiveSecretRoll(event);
         }
+      }
+      if (event.type === 'session_deleted') {
+        this.onSessionDeleted();
+      }
+      if (event.type === 'party_rested') {
+        this.reactTom(
+          'tom-like.png',
+          event.rest_type === 'long'
+            ? 'Descanso longo! Vida cheia, magias de volta. Agora tentem não morrer de novo.'
+            : 'Descanso curto: recursos de volta. Quem precisar, gaste seus Dados de Vida em AÇÕES.',
+        );
       }
       if (event.type === 'amount_applied') {
         this.showAmountAppliedToast(event.id_character, event.actor_name, event.amount, event.kind, event.target_label);
@@ -796,11 +810,7 @@ export class SessionPanelComponent implements OnDestroy {
   }
 
   monsterDisplayName(monster: MonsterSession): string {
-    if (monster.custom_name) return monster.custom_name;
-    return monster.monster_api_slug
-      .split('-')
-      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(' ');
+    return monsterDisplayName(monster);
   }
 
   /** ========================= PV DOS MONSTROS ========================= */
@@ -2055,6 +2065,62 @@ export class SessionPanelComponent implements OnDestroy {
   }
 
   /** ========================= TESTE SECRETO ========================= */
+
+  /** Jogador: o mestre apagou a sessão — para de atualizar e mostra o aviso (o mestre já saiu). */
+  sessionEnded = signal(false);
+
+  onSessionDeleted(): void {
+    if (this.isOwner()) return;
+    this.disconnectRealtime();
+    this.stopPolling();
+    this.sessionEnded.set(true);
+  }
+
+  /** Mestre apagou a sessão pelo quadro — volta pra lista de sessões dele. */
+  onDmDeletedSession(): void {
+    this.dmBoardOpen.set(false);
+    this.router.navigate(['/my-sessions']);
+  }
+
+  /** Mestre: quadro do mestre (gaveta lateral). Ações que abrem modal fecham a gaveta antes. */
+  dmBoardOpen = signal(false);
+
+  openDmBoard(): void {
+    this.dmBoardOpen.set(true);
+  }
+
+  closeDmBoard(): void {
+    this.dmBoardOpen.set(false);
+  }
+
+  /**
+   * Quadro do mestre: dano/cura em vários alvos de uma vez (bola de fogo, armadilha, cura em
+   * massa). Cada alvo passa pelo mesmo caminho do DANO/CURA do card, com o valor já reduzido à
+   * metade quando o mestre marcou ½. Cura em jogador para no máximo (não vira PV temporário).
+   */
+  applyAreaAmount({ kind, targets }: AreaApplyRequest): void {
+    const detail = this.sessionDetail();
+    if (!detail) return;
+    const sign = kind === 'heal' ? 1 : -1;
+    for (const { type, id, amount } of targets) {
+      if (type === 'player') {
+        const player = detail.players.find((p) => p.id_player_session === id);
+        if (!player?.character) continue;
+        if (kind === 'damage') {
+          this.applyPlayerDamage(player, amount);
+        } else if (!this.savingHp().has(id)) {
+          const healed = Math.min(player.character.max_hit_points, this.editedHp(player) + amount);
+          this.commitPlayerHp(player, healed, this.editedTempHp(player));
+        }
+      } else if (type === 'npc') {
+        const npc = detail.npcs.find((n) => n.id_npc_session === id);
+        if (npc?.character) this.applyNpcHpDelta(npc, sign, amount);
+      } else {
+        const monster = detail.monsters.find((m) => m.id_monster_session === id);
+        if (monster) this.applyMonsterHpDelta(monster, sign, amount);
+      }
+    }
+  }
 
   /** Mestre: modal de pedir teste secreto. */
   secretRequestOpen = signal(false);

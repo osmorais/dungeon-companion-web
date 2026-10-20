@@ -10,9 +10,7 @@
       <button class="mobile-back-btn" (click)="goBack()">&#8592;</button>
       <span class="mobile-title">PAINEL DA SESSÃO</span>
       @if (isOwner()) {
-        <button class="mobile-dm-roll-btn" (click)="openDmRoll()">🎲 ROLAR DADOS</button>
-        <button class="mobile-dm-roll-btn" (click)="openSecretRequest()">🔒 TESTE SECRETO</button>
-        <button class="mobile-dm-roll-btn" (click)="openReferenceImages()">🖼 IMAGENS</button>
+        <button class="mobile-dm-roll-btn" (click)="openDmBoard()">📜 QUADRO DO MESTRE</button>
       }
       <button class="mobile-refresh-btn" (click)="refreshSession()" [disabled]="refreshing()" title="Atualizar sessão">
         {{ refreshing() ? '...' : '↻' }}
@@ -47,9 +45,6 @@
       <!-- Combate -->
       <fieldset class="mobile-panel combat-panel" [class.combat-panel--split]="revealedMonsters().length > 0">
         <legend>COMBATE</legend>
-        @if (isOwner()) {
-          <button class="retro-btn xp-distribute-btn" (click)="openDistributeXpModal()">✦ DISTRIBUIR XP</button>
-        }
         <div class="combat-top">
         @if (!combat()) {
           @if (isOwner()) {
@@ -128,7 +123,7 @@
               <div class="roll-log-row">
                 <div class="roll-log-info">
                   <span class="roll-log-actor">{{ roll.actor_name }}</span>
-                  <span class="roll-log-label">{{ roll.label }}{{ advantageSuffix(roll) }}</span>
+                  <span class="roll-log-label">{{ roll.is_hidden ? '🔒 ' : '' }}{{ roll.label }}{{ advantageSuffix(roll) }}</span>
                 </div>
                 <div class="roll-log-dice">
                   @for (v of roll.rolls; track $index) {
@@ -427,9 +422,6 @@
       <!-- Combate -->
       <fieldset class="retro-panel combat-panel combat-sidebar">
         <legend>COMBATE</legend>
-        @if (isOwner()) {
-          <button class="retro-btn xp-distribute-btn" (click)="openDistributeXpModal()">✦ DISTRIBUIR XP</button>
-        }
         <div class="combat-sidebar-body" [class.combat-sidebar-body--split]="revealedMonsters().length > 0">
         <div class="combat-top">
         @if (!combat()) {
@@ -515,10 +507,8 @@
               {{ sessionDetail()!.players.length }}/{{ sessionDetail()!.game_session.max_player_quantity }} JOGADORES
             </span>
             @if (isOwner()) {
-              <button class="retro-btn dm-roll-btn" (click)="openDmRoll()">🎲 ROLAR DADOS</button>
-              <button class="retro-btn dm-roll-btn" (click)="openSecretRequest()">🔒 TESTE SECRETO</button>
-              <button class="retro-btn dm-roll-btn" (click)="openReferenceImages()">🖼 IMAGENS</button>
-            }
+              <button class="retro-btn dm-roll-btn" (click)="openDmBoard()">📜 QUADRO DO MESTRE</button>
+            } @else {
             <button
               class="retro-btn polling-btn"
               [class.polling-btn--on]="pollingEnabled()"
@@ -535,6 +525,7 @@
             >
               EFEITOS: {{ screenEffectsEnabled() ? 'ON' : 'OFF' }}
             </button>
+            }
             <button class="retro-btn refresh-btn" (click)="refreshSession()" [disabled]="refreshing()">
               {{ refreshing() ? 'ATUALIZANDO...' : '↻ ATUALIZAR' }}
             </button>
@@ -857,7 +848,7 @@
               <div class="roll-log-row">
                 <div class="roll-log-info">
                   <span class="roll-log-actor">{{ roll.actor_name }}</span>
-                  <span class="roll-log-label">{{ roll.label }}{{ advantageSuffix(roll) }}</span>
+                  <span class="roll-log-label">{{ roll.is_hidden ? '🔒 ' : '' }}{{ roll.label }}{{ advantageSuffix(roll) }}</span>
                 </div>
                 <div class="roll-log-dice">
                   @for (v of roll.rolls; track $index) {
@@ -1164,7 +1155,7 @@
         [style.background-image]="rollToastImageUrl(toast) ? ('linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(' + rollToastImageUrl(toast) + ')') : null"
         (click)="$event.stopPropagation()">
         <button class="modal-close-btn" (click)="closeRollToast()">✕</button>
-        <span class="roll-toast-label">{{ toast.label }}{{ advantageSuffix(toast) }}</span>
+        <span class="roll-toast-label">{{ toast.is_hidden ? '🔒 ' : '' }}{{ toast.label }}{{ advantageSuffix(toast) }}</span>
         <div class="roll-toast-avatar-circle">
           @if (toast.id_character === null) {
             <img class="roll-toast-dm-icon" src="assets/dm.png" alt="Mestre" />
@@ -1386,5 +1377,39 @@
   </div>
 }
 
+<!-- ===== SESSÃO APAGADA PELO MESTRE (jogadores) ===== -->
+@if (sessionEnded()) {
+  <div class="overlay modal-overlay">
+    <div class="retro-panel battle-start-panel">
+      <h3 class="modal-title">O MESTRE ENCERROU ESTA SESSÃO</h3>
+      <button class="retro-btn" (click)="goBack()">VOLTAR AO INÍCIO</button>
+    </div>
+  </div>
+}
+<!-- ===== QUADRO DO MESTRE (gaveta lateral, só o dono da sessão) ===== -->
+@if (dmBoardOpen() && isOwner() && sessionDetail(); as detail) {
+  <app-dm-board
+    [detail]="detail"
+    [pollingEnabled]="pollingEnabled()"
+    [screenEffectsEnabled]="screenEffectsEnabled()"
+    [endingCombat]="endingCombat()"
+    [revealingMonsterId]="revealingMonsterId()"
+    (closed)="closeDmBoard()"
+    (rollDice)="closeDmBoard(); openDmRoll()"
+    (secretRoll)="closeDmBoard(); openSecretRequest()"
+    (referenceImages)="closeDmBoard(); openReferenceImages()"
+    (toggleReveal)="toggleMonsterReveal($event.monster, $event.event)"
+    (startFight)="closeDmBoard(); openStartFightModal()"
+    (addToCombat)="closeDmBoard(); openAddToCombatModal()"
+    (endCombat)="closeDmBoard(); endCombat()"
+    (distributeXp)="closeDmBoard(); openDistributeXpModal()"
+    (addNpc)="closeDmBoard(); openAddNpcModal()"
+    (addMonster)="closeDmBoard(); openAddMonsterModal()"
+    (applyArea)="applyAreaAmount($event)"
+    (sessionDeleted)="onDmDeletedSession()"
+    (togglePolling)="togglePolling()"
+    (toggleScreenEffects)="toggleScreenEffects()"
+  />
+}
 <!-- ===== IMPACTO DE DANO (tela cheia, por cima dos toasts) ===== -->
 <app-damage-impact />

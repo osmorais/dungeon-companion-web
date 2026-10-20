@@ -1,0 +1,371 @@
+<div class="dm-board-backdrop" (click)="close()"></div>
+<aside class="dm-board" role="dialog" aria-label="Quadro do mestre">
+  <header class="dm-board-header">
+    <h3 class="dm-board-title">📜 QUADRO DO MESTRE</h3>
+    <button class="dm-board-close" title="Fechar" (click)="close()">✕</button>
+  </header>
+
+  <div class="dm-board-body">
+    <section class="dm-board-section">
+      <h4 class="dm-board-section-title">DADOS</h4>
+      <div class="dm-board-grid">
+        <button class="retro-btn dm-board-btn" (click)="rollDice.emit()">🎲 ROLAR DADOS</button>
+        <button class="retro-btn dm-board-btn" (click)="secretRoll.emit()">🔒 TESTE SECRETO</button>
+      </div>
+    </section>
+
+    <section class="dm-board-section">
+      <h4 class="dm-board-section-title">ROLAGENS OCULTAS</h4>
+      @if (hiddenRolls.length === 0) {
+        <p class="dm-board-hint">NENHUMA ROLAGEM OCULTA OU TESTE SECRETO AINDA.</p>
+      } @else {
+        <ul class="dm-board-list">
+          @for (roll of hiddenRolls; track roll.id_roll) {
+            <li class="dm-board-roll">
+              <span class="dm-board-roll-info">
+                <span class="dm-board-roll-actor">
+                  {{ roll.actor_name }}
+                  <span class="dm-board-tag">{{
+                    isSecretAnswer(roll) ? 'SECRETO' : 'OCULTA'
+                  }}</span>
+                </span>
+                <span class="dm-board-roll-label">{{ roll.label }}</span>
+              </span>
+              <span class="dm-board-roll-total">{{ roll.total }}</span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section class="dm-board-section">
+      <div class="dm-board-section-head">
+        <h4 class="dm-board-section-title">GRUPO</h4>
+        <button
+          class="dm-board-refresh"
+          title="Atualizar fichas"
+          [disabled]="loadingSheets()"
+          (click)="loadSheets()"
+        >
+          {{ loadingSheets() ? '...' : '↻' }}
+        </button>
+      </div>
+      @if (groupRows.length === 0) {
+        <p class="dm-board-hint">NENHUM JOGADOR COM PERSONAGEM.</p>
+      } @else {
+        <div class="dm-board-group">
+          <span class="dm-board-group-head">NOME</span>
+          <span class="dm-board-group-head" title="Classe de Armadura">CA</span>
+          <span class="dm-board-group-head" title="Pontos de Vida">PV</span>
+          <span class="dm-board-group-head" title="Percepção passiva">PP</span>
+          <span class="dm-board-group-head" title="CD de resistência das magias">CD</span>
+          @for (row of groupRows; track row.idPlayerSession) {
+            <span class="dm-board-group-name">{{ row.name }}</span>
+            <span>{{ row.ac ?? '—' }}</span>
+            <span>{{ row.hp }}</span>
+            <span>{{ row.passivePerception ?? '—' }}</span>
+            <span>{{ row.spellSaveDc ?? '—' }}</span>
+            @if (row.effects.length > 0) {
+              <span class="dm-board-group-effects">✦ {{ row.effects.join(' · ') }}</span>
+            }
+          }
+        </div>
+      }
+    </section>
+
+    <section class="dm-board-section">
+      <div class="dm-board-section-head">
+        <h4 class="dm-board-section-title">ANOTAÇÕES</h4>
+        <span class="dm-board-hint">{{ notes().length }}/{{ NOTES_MAX }}</span>
+      </div>
+      @if (notesLoading()) {
+        <p class="dm-board-hint">CARREGANDO...</p>
+      } @else if (!notesLoaded()) {
+        <p class="dm-board-error">{{ notesError() }}</p>
+      } @else {
+        <textarea
+          class="dm-board-notes"
+          rows="6"
+          placeholder="Só você vê. Ganchos, nomes de NPC, o que a mesa descobriu..."
+          [maxLength]="NOTES_MAX"
+          [value]="notes()"
+          (input)="setNotes($event)"
+        ></textarea>
+        @if (notesError()) {
+          <p class="dm-board-error">{{ notesError() }}</p>
+        }
+        <div class="dm-board-section-head">
+          <span class="dm-board-hint">
+            {{ notesSaving() ? 'SALVANDO...' : notesDirty() ? 'ALTERAÇÕES NÃO SALVAS' : 'SALVO' }}
+          </span>
+          <button
+            class="retro-btn dm-board-toggle"
+            [disabled]="!notesDirty() || notesSaving()"
+            (click)="saveNotes()"
+          >
+            SALVAR
+          </button>
+        </div>
+      }
+    </section>
+
+    <section class="dm-board-section">
+      <h4 class="dm-board-section-title">DESCANSO</h4>
+      @if (restType(); as type) {
+        <p class="dm-board-hint">
+          @if (type === 'long') {
+            DESCANSO LONGO: PV CHEIO, METADE DOS DADOS DE VIDA, ESPAÇOS DE MAGIA E RECURSOS. QUEM
+            ESTÁ COM 0 PV FICA DE FORA.
+          } @else {
+            DESCANSO CURTO: RECARREGA OS RECURSOS DE DESCANSO CURTO. CADA JOGADOR GASTA OS PRÓPRIOS
+            DADOS DE VIDA EM AÇÕES.
+          }
+        </p>
+        <ul class="dm-board-list">
+          @for (target of partyTargets; track target.key) {
+            <li>
+              <label class="dm-board-check">
+                <input
+                  type="checkbox"
+                  class="retro-checkbox"
+                  [checked]="restSelected().has(target.key)"
+                  (change)="toggleRestTarget(target.key)"
+                />
+                {{ target.name }}{{ target.type === 'npc' ? ' (NPC)' : '' }}
+              </label>
+            </li>
+          }
+        </ul>
+        @if (restError()) {
+          <p class="dm-board-error">{{ restError() }}</p>
+        }
+        <div class="dm-board-grid">
+          <button class="retro-btn dm-board-toggle" [disabled]="resting()" (click)="cancelRest()">
+            CANCELAR
+          </button>
+          <button
+            class="retro-btn dm-board-btn"
+            [disabled]="resting() || restSelected().size === 0"
+            (click)="confirmRest()"
+          >
+            {{ resting() ? '...' : 'CONFIRMAR' }}
+          </button>
+        </div>
+      } @else if (partyTargets.length === 0) {
+        <p class="dm-board-hint">NENHUM PERSONAGEM NA SESSÃO.</p>
+      } @else {
+        <div class="dm-board-grid">
+          <button class="retro-btn dm-board-btn" (click)="startRest('short')">☕ CURTO</button>
+          <button class="retro-btn dm-board-btn" (click)="startRest('long')">🛌 LONGO</button>
+        </div>
+        @if (restMessage()) {
+          <p class="dm-board-hint">{{ restMessage() }}</p>
+        }
+      }
+    </section>
+
+    <section class="dm-board-section">
+      <h4 class="dm-board-section-title">DANO / CURA EM ÁREA</h4>
+      @if (areaTargets.length === 0) {
+        <p class="dm-board-hint">NINGUÉM NA SESSÃO.</p>
+      } @else {
+        <input
+          type="number"
+          min="1"
+          class="dm-board-amount"
+          placeholder="VALOR"
+          [value]="areaAmount() || ''"
+          (input)="setAreaAmount($event)"
+        />
+        <ul class="dm-board-list">
+          @for (target of areaTargets; track target.key) {
+            <li class="dm-board-row">
+              <label class="dm-board-check">
+                <input
+                  type="checkbox"
+                  class="retro-checkbox"
+                  [checked]="areaSelected().has(target.key)"
+                  (change)="toggleAreaTarget(target.key)"
+                />
+                <span class="dm-board-row-name">{{ target.name }}</span>
+              </label>
+              <button
+                class="retro-btn dm-board-toggle dm-board-half"
+                [class.dm-board-toggle--on]="areaHalf().has(target.key)"
+                title="Leva metade (passou na resistência ou tem resistência ao tipo)"
+                [disabled]="!areaSelected().has(target.key)"
+                (click)="toggleAreaHalf(target.key)"
+              >
+                ½
+              </button>
+            </li>
+          }
+        </ul>
+        <div class="dm-board-grid">
+          <button
+            class="retro-btn dm-board-btn dm-board-btn--danger"
+            [disabled]="!areaAmount() || areaSelected().size === 0"
+            (click)="applyAreaAmount('damage')"
+          >
+            DANO
+          </button>
+          <button
+            class="retro-btn dm-board-btn dm-board-btn--heal"
+            [disabled]="!areaAmount() || areaSelected().size === 0"
+            (click)="applyAreaAmount('heal')"
+          >
+            CURA
+          </button>
+        </div>
+      }
+    </section>
+
+    <section class="dm-board-section">
+      <h4 class="dm-board-section-title">CENA</h4>
+      <button class="retro-btn dm-board-btn dm-board-btn--wide" (click)="referenceImages.emit()">
+        🖼 IMAGENS DE REFERÊNCIA
+      </button>
+      @if (detail.monsters.length > 0) {
+        <p class="dm-board-hint">
+          MONSTROS VISÍVEIS AOS JOGADORES: {{ revealedCount }}/{{ detail.monsters.length }}
+        </p>
+        <ul class="dm-board-list">
+          @for (monster of detail.monsters; track monster.id_monster_session) {
+            <li class="dm-board-row">
+              <span class="dm-board-row-name">{{ monsterName(monster) }}</span>
+              <button
+                class="retro-btn dm-board-toggle"
+                [class.dm-board-toggle--on]="monster.is_revealed"
+                [disabled]="revealingMonsterId === monster.id_monster_session"
+                (click)="toggleReveal.emit({ monster, event: $event })"
+              >
+                {{ monster.is_revealed ? 'VISÍVEL' : 'OCULTO' }}
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section class="dm-board-section">
+      <h4 class="dm-board-section-title">COMBATE</h4>
+      <p class="dm-board-hint">{{ combatLabel }}</p>
+      @if (!detail.combat) {
+        <button class="retro-btn dm-board-btn dm-board-btn--wide" (click)="startFight.emit()">
+          ⚔ INICIAR LUTA
+        </button>
+      } @else {
+        <div class="dm-board-grid">
+          <button class="retro-btn dm-board-btn" (click)="addToCombat.emit()">+ ADICIONAR</button>
+          <button
+            class="retro-btn dm-board-btn dm-board-btn--danger"
+            [disabled]="endingCombat"
+            (click)="endCombat.emit()"
+          >
+            {{ endingCombat ? '...' : 'ENCERRAR' }}
+          </button>
+        </div>
+      }
+    </section>
+
+    <section class="dm-board-section">
+      <h4 class="dm-board-section-title">MESA</h4>
+      <div class="dm-board-grid">
+        <button class="retro-btn dm-board-btn" (click)="addNpc.emit()">+ NPC</button>
+        <button class="retro-btn dm-board-btn" (click)="addMonster.emit()">+ MONSTRO</button>
+      </div>
+    </section>
+
+    <section class="dm-board-section">
+      <h4 class="dm-board-section-title">RECOMPENSAS</h4>
+      <button class="retro-btn dm-board-btn dm-board-btn--wide" (click)="distributeXp.emit()">
+        ✦ DISTRIBUIR XP
+      </button>
+    </section>
+
+    <section class="dm-board-section">
+      <h4 class="dm-board-section-title">SESSÃO</h4>
+      <div class="dm-board-meta">
+        <span>CÓDIGO</span>
+        <span class="dm-board-code">{{ detail.game_session.session_code }}</span>
+      </div>
+      <div class="dm-board-meta">
+        <span>JOGADORES</span>
+        <span>{{ detail.players.length }}/{{ detail.game_session.max_player_quantity }}</span>
+      </div>
+      <div class="dm-board-grid">
+        <button
+          class="retro-btn dm-board-toggle"
+          [class.dm-board-toggle--on]="pollingEnabled"
+          [title]="
+            pollingEnabled
+              ? 'Polling ativo (6s) — clique para usar WebSocket'
+              : 'WebSocket ativo — clique para usar polling (6s)'
+          "
+          (click)="togglePolling.emit()"
+        >
+          POLLING: {{ pollingEnabled ? 'ON' : 'OFF' }}
+        </button>
+        <button
+          class="retro-btn dm-board-toggle"
+          [class.dm-board-toggle--on]="screenEffectsEnabled"
+          [title]="
+            screenEffectsEnabled
+              ? 'Efeitos de tela ligados (impacto ao rolar dano) — clique para desligar'
+              : 'Efeitos de tela desligados — clique para ligar'
+          "
+          (click)="toggleScreenEffects.emit()"
+        >
+          EFEITOS: {{ screenEffectsEnabled ? 'ON' : 'OFF' }}
+        </button>
+      </div>
+    </section>
+
+    <section class="dm-board-section dm-board-danger">
+      <h4 class="dm-board-section-title">ENCERRAR SESSÃO</h4>
+      @if (!confirmingDelete()) {
+        <button
+          class="retro-btn dm-board-btn dm-board-btn--danger dm-board-btn--wide"
+          (click)="startDelete()"
+        >
+          APAGAR SESSÃO
+        </button>
+      } @else {
+        <p class="dm-board-hint">
+          APAGA A SESSÃO PARA TODOS: MONSTROS, NPCS ADICIONADOS, ROLAGENS, IMAGENS DE REFERÊNCIA E
+          ANOTAÇÕES. AS FICHAS DOS PERSONAGENS CONTINUAM. NÃO DÁ PARA DESFAZER.
+        </p>
+        <p class="dm-board-hint">
+          DIGITE O CÓDIGO <span class="dm-board-code">{{ detail.game_session.session_code }}</span>
+          PARA CONFIRMAR:
+        </p>
+        <input
+          type="text"
+          class="dm-board-amount"
+          autocomplete="off"
+          [value]="deleteCode()"
+          (input)="setDeleteCode($event)"
+        />
+        @if (deleteError()) {
+          <p class="dm-board-error">{{ deleteError() }}</p>
+        }
+        <div class="dm-board-grid">
+          <button
+            class="retro-btn dm-board-toggle"
+            [disabled]="deleting()"
+            (click)="cancelDelete()"
+          >
+            CANCELAR
+          </button>
+          <button
+            class="retro-btn dm-board-btn dm-board-btn--danger"
+            [disabled]="!deleteCodeMatches() || deleting()"
+            (click)="confirmDelete()"
+          >
+            {{ deleting() ? '...' : 'APAGAR' }}
+          </button>
+        </div>
+      }
+    </section>
+  </div>
+</aside>

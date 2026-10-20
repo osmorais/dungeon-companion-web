@@ -173,6 +173,14 @@ export function applySessionEvent(
       // session-panel.component.ts, no connectRealtime).
       return detail;
 
+    case 'session_deleted':
+      // Tratado no session-panel (aviso de sessão encerrada); o estado deixa de importar.
+      return detail;
+
+    case 'party_rested':
+      // Só o aviso (Tom no session-panel); o PV do descanso longo chega em *_hp_updated.
+      return detail;
+
     case 'amount_applied':
       // Só o aviso (toast no session-panel); o PV muda pelos eventos de PV de cada tipo.
       return detail;

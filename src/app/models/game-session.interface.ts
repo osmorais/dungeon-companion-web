@@ -256,6 +256,18 @@ export interface JoinSessionPayload {
   id_character: number;
 }
 
+export interface PartyRestPayload {
+  rest_type: 'short' | 'long';
+  id_player_sessions?: string[];
+  id_npc_sessions?: string[];
+}
+
+export interface PartyRestResult {
+  rested: string[];
+  /** Quem ficou de fora (descanso longo exige PV > 0). */
+  skipped: { name: string; reason: string }[];
+}
+
 export interface GrantXpPayload {
   xp_amount: number;
   /** Cada jogador/NPC listado recebe o valor cheio de `xp_amount` (não é dividido entre eles). */

@@ -1547,22 +1547,6 @@
   text-align: center;
 }
 
-.xp-distribute-btn {
-  width: 100%;
-  background-color: var(--btn-color);
-  color: var(--text-color);
-  border: 2px solid var(--border-color);
-  padding: 8px 12px;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 8px;
-  cursor: var(--cp);
-  margin-bottom: 10px;
-
-  &:hover {
-    background-color: var(--btn-color-hover);
-  }
-}
-
 .combat-turn-banner {
   margin: 0;
   font-size: 9px;

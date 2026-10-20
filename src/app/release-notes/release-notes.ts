@@ -33,6 +33,49 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.2.0',
+    date: '2026-10-20',
+    title: 'Quadro do Mestre',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'O mestre ganhou o Quadro do Mestre: uma gaveta lateral, visível só para ele, que reúne rolar dados, teste secreto, imagens de referência, mostrar ou esconder monstros, iniciar e encerrar combate, adicionar NPC e monstro, distribuir XP e as configurações da sessão.',
+      },
+      {
+        kind: 'novidade',
+        text: 'No quadro, o mestre vê a lista das suas rolagens ocultas e dos resultados dos testes secretos, separada das rolagens que a mesa vê.',
+      },
+      {
+        kind: 'novidade',
+        text: 'No quadro, uma visão rápida do grupo mostra Classe de Armadura, vida, Percepção passiva, CD de magia e efeitos ativos de cada personagem, sem precisar abrir ficha por ficha.',
+      },
+      {
+        kind: 'novidade',
+        text: 'O mestre pode declarar um descanso curto ou longo para o grupo de uma vez, escolhendo quem descansa. No longo, todos recuperam a vida, metade dos Dados de Vida, os espaços de magia e os recursos; no curto, os recursos de descanso curto voltam e cada jogador gasta os próprios Dados de Vida.',
+      },
+      {
+        kind: 'novidade',
+        text: 'O mestre pode aplicar dano ou cura em vários alvos de uma vez (bola de fogo, armadilha, cura em grupo), marcando quem leva só metade.',
+      },
+      {
+        kind: 'novidade',
+        text: 'O mestre tem um bloco de anotações em cada sessão, que só ele vê. As anotações entram na exportação dos dados da conta.',
+      },
+      {
+        kind: 'novidade',
+        text: 'O mestre pode apagar a sessão pelo quadro, confirmando com o código da sessão. Quem estiver na mesa vê o aviso de que a sessão foi encerrada.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Para o mestre, as rolagens ocultas agora aparecem com um cadeado no histórico e no aviso de rolagem.',
+      },
+      {
+        kind: 'correcao',
+        text: 'O bruxo agora recupera os espaços de magia de pacto no descanso curto, como manda o livro.',
+      },
+    ],
+  },
+  {
     version: '1.1.7',
     date: '2026-10-18',
     title: 'Talento Habilidoso',

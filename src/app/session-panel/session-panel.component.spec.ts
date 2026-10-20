@@ -73,6 +73,68 @@ describe('SessionPanelComponent', () => {
     else component.setMonsterDamageInput(target, event);
   }
 
+  describe('sessão apagada pelo mestre', () => {
+    it('jogador vê o aviso de sessão encerrada', () => {
+      detail.set(
+        sessionDetail({ game_session: { ...sessionDetail().game_session, user_id: 'outro' } }),
+      );
+      component.onSessionDeleted();
+      expect(component.sessionEnded()).toBe(true);
+    });
+
+    it('o próprio mestre não vê o aviso (ele já está saindo)', () => {
+      component.onSessionDeleted();
+      expect(component.sessionEnded()).toBe(false);
+    });
+  });
+
+  describe('dano/cura em área (quadro do mestre)', () => {
+    function withArea() {
+      const p1 = player('p1', {
+        character: { ...player('p1').character!, current_hit_points: 15, temporary_hit_points: 4 },
+      });
+      const n1 = npc('n1', {
+        character: { ...player('n1').character!, current_hit_points: 10 },
+      });
+      const m1 = monster('m1', { hp_current: 7, hp_max: 7 });
+      detail.set(sessionDetail({ players: [p1], npcs: [n1], monsters: [m1] }));
+    }
+
+    it('dano: cada alvo com o próprio valor, pelo mesmo caminho do card (temporária primeiro)', () => {
+      withArea();
+      component.applyAreaAmount({
+        kind: 'damage',
+        targets: [
+          { type: 'player', id: 'p1', amount: 10 },
+          { type: 'npc', id: 'n1', amount: 5 },
+          { type: 'monster', id: 'm1', amount: 20 },
+        ],
+      });
+      expect(gameSessionService.updatePlayerHp).toHaveBeenCalledWith('p1', 9, 0);
+      expect(gameSessionService.updateNpcHp).toHaveBeenCalledWith('n1', 5);
+      expect(gameSessionService.updateMonsterHp).toHaveBeenCalledWith('m1', 0);
+    });
+
+    it('cura em jogador para no máximo sem virar vida temporária', () => {
+      withArea();
+      component.applyAreaAmount({
+        kind: 'heal',
+        targets: [{ type: 'player', id: 'p1', amount: 50 }],
+      });
+      expect(gameSessionService.updatePlayerHp).toHaveBeenCalledWith('p1', 20, 4);
+      expect(component.pendingTempHp()).toBeNull();
+    });
+
+    it('alvo que saiu da sessão é ignorado', () => {
+      withArea();
+      component.applyAreaAmount({
+        kind: 'damage',
+        targets: [{ type: 'monster', id: 'x', amount: 3 }],
+      });
+      expect(gameSessionService.updateMonsterHp).not.toHaveBeenCalled();
+    });
+  });
+
   describe('PV de jogador', () => {
     const withHp = (current: number, temp: number) =>
       player('p1', {
