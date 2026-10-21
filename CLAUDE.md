@@ -14,7 +14,7 @@ npm run test:run   # Same, single run (no watch) — rodar a cada implementaçã
 
 Test data factories live in `src/testing/` (excluded from the app build in `tsconfig.app.json`).
 
-To run a single test file: `npx vitest run src/app/path/to/file.spec.ts`
+Rodar os testes sempre com `npm run test:run`: `npx vitest run <arquivo>` sozinho não funciona (o ambiente do Angular vem do builder `@angular/build:unit-test`, e o vitest direto falha sem rodar nenhum teste).
 
 ## Architecture
 
