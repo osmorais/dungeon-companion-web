@@ -61,6 +61,7 @@ import { DmBoardTabComponent } from '../dm-board/dm-board-tab.component';
 import { LoadingOverlayService } from '../loading-overlay/loading-overlay.service';
 import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { monsterDisplayName } from './monster-display-name';
+import { hpColor, hpPercent } from './hp-display';
 
 @Component({
   selector: 'app-session-panel',
@@ -1243,9 +1244,9 @@ export class SessionPanelComponent implements OnDestroy {
   }
 
   hpPercent(current: number, max: number): number {
-    if (max <= 0) return 0;
-    return Math.max(0, Math.min(100, Math.round((current / max) * 100)));
+    return hpPercent(current, max);
   }
+
 
   /**
    * Barra de PV com dois segmentos (verde = vida real, azul = vida temporária). As larguras são
@@ -1265,23 +1266,9 @@ export class SessionPanelComponent implements OnDestroy {
   }
 
   hpColor(current: number, max: number): string {
-    const pct = max <= 0 ? 0 : Math.max(0, Math.min(1, current / max));
-    let r: number, g: number, b: number;
-    if (pct >= 0.5) {
-      // verde → amarelo (100% → 50%)
-      const t = (pct - 0.5) / 0.5;
-      r = Math.round(255 - (255 - 76) * t);
-      g = Math.round(193 + (175 - 193) * t);
-      b = Math.round(7 + (80 - 7) * t);
-    } else {
-      // amarelo → vermelho (50% → 0%)
-      const t = pct / 0.5;
-      r = Math.round(229 + (255 - 229) * t);
-      g = Math.round(57 + (193 - 57) * t);
-      b = Math.round(53 + (7 - 53) * t);
-    }
-    return `rgb(${r}, ${g}, ${b})`;
+    return hpColor(current, max);
   }
+
 
   goBack() {
     this.router.navigate(['/']);
@@ -1858,16 +1845,35 @@ export class SessionPanelComponent implements OnDestroy {
         : detail?.revealed_monsters.find((m) => m.id_monster_session === p.id_monster_session)?.image_url;
       return { name, imageUrl: image || this.DEFAULT_MONSTER_IMAGE, avatarPreset: null };
     }
-    const idCharacter =
+    const player =
       p.participant_type === 'player'
-        ? (detail?.players.find((pl) => pl.id_player_session === p.id_player_session)?.id_character ?? null)
-        : (detail?.npcs.find((n) => n.id_npc_session === p.id_npc_session)?.id_character ?? null);
+        ? detail?.players.find((pl) => pl.id_player_session === p.id_player_session)
+        : undefined;
+    const npc =
+      p.participant_type === 'npc' ? detail?.npcs.find((n) => n.id_npc_session === p.id_npc_session) : undefined;
+    const idCharacter = player?.id_character ?? npc?.id_character ?? null;
+    const summary = player?.character ?? npc?.character ?? null;
     return {
       name,
       imageUrl: this.imageUrlForCharacter(idCharacter),
       avatarPreset: this.avatarPresetForCharacter(idCharacter),
+      // Card inteiro (como na sessão): jogador, classe, raça, nível e PV.
+      character: summary
+        ? {
+            playerName: player ? player.player_name : null,
+            className: summary.class,
+            race: summary.race,
+            level: summary.level,
+            hp: {
+              current: summary.current_hit_points,
+              max: summary.max_hit_points,
+              temp: summary.temporary_hit_points ?? 0,
+            },
+          }
+        : null,
     };
   }
+
 
   showTurnChangeToast(fromId: string, toId: string): void {
     const combat = this.combat();

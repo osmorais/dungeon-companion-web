@@ -33,6 +33,21 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.3.13',
+    date: '2026-10-21',
+    title: 'Avisos com moldura e troca de vez com o card inteiro',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'Os avisos em tela cheia da sessão (resultado de rolagem, magia lançada, monstro revelado ou derrotado, subir de nível) ganharam moldura em pixel art, uma para cada tema.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'O aviso de troca de vez mostra o card inteiro de quem joga, como na tela da sessão: imagem, avatar, jogador, classe, nível e vida. Monstros aparecem com a imagem deles.',
+      },
+    ],
+  },
+  {
     version: '1.3.12',
     date: '2026-10-21',
     title: 'Tom sem spoiler',

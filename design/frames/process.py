@@ -8,17 +8,27 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, '..', '..', 'src', 'assets', 'frames')
 SIZE = 512
 
-for name in ('card-frame.png', 'card-frame-sombrio.png'):
+# (arquivo, corta a margem transparente em volta antes de reduzir?) — as molduras dos avisos
+# vieram com sobra transparente fora da moldura; as dos cards encostam na borda da imagem.
+FRAMES = [
+    ('card-frame.png', False),
+    ('card-frame-sombrio.png', False),
+    ('toast-frame.png', True),
+    ('toast-frame-sombrio.png', True),
+]
+
+for name, crop in FRAMES:
     im = Image.open(os.path.join(HERE, name)).convert('RGBA')
     r, g, b, a = im.split()
     a = a.point(lambda v: 0 if v < 60 else 255 if v > 200 else v)
-    im = Image.merge('RGBA', (r, g, b, a)).resize((SIZE, SIZE), Image.LANCZOS)
+    im = Image.merge('RGBA', (r, g, b, a))
+    if crop:
+        im = im.crop(a.getbbox())
+    im = im.resize((SIZE, SIZE), Image.LANCZOS)
     im.save(os.path.join(OUT, name), optimize=True)
-    # Espessura da borda (pra calibrar o border-image-slice): primeira coluna transparente a
-    # partir da esquerda, na altura do meio.
+    # Calibração do 9-slice: onde a faixa termina por dentro (no meio da borda esquerda) e até
+    # onde vai o enfeite do canto (na diagonal).
     alpha = im.getchannel('A')
-    mid = SIZE // 2
-    band = next(x for x in range(SIZE) if alpha.getpixel((x, mid)) == 0)
-    corner = max(y for y in range(SIZE // 2) if alpha.getpixel((band + 4, y)) > 0)
-    print(name, 'faixa', band, 'px; canto até', corner, 'px; centro transparente:',
-          alpha.getpixel((mid, mid)) == 0)
+    band = max(x for x in range(SIZE // 4) if alpha.getpixel((x, SIZE // 2)) > 40)
+    corner = max(d for d in range(SIZE // 3) if alpha.getpixel((d, d)) > 40)
+    print(f'{name}: faixa termina em {band}px, canto até {corner}px (de {SIZE})')

@@ -1547,7 +1547,6 @@
 .roll-toast-panel {
   /* "fieldset.retro-panel" (styles.scss) só vale pra <fieldset> — como este painel é uma
      <div>, precisa repetir fundo/borda aqui. */
-  border: 2px solid var(--border-color);
   background-color: var(--panel-bg);
 
   position: relative;
@@ -1555,7 +1554,7 @@
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  padding: 44px 56px 30px;
+  padding: 28px 40px 18px;
   min-width: 380px;
   max-width: 92vw;
   text-align: center;
@@ -1651,7 +1650,6 @@
 .spell-cast-panel {
   /* "fieldset.retro-panel" (styles.scss) só vale pra <fieldset> — como este painel é uma
      <div>, precisa repetir fundo/borda aqui. */
-  border: 2px solid var(--border-color);
   background-color: var(--panel-bg);
 
   position: relative;
@@ -1659,7 +1657,7 @@
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  padding: 40px 48px 28px;
+  padding: 26px 34px 16px;
   min-width: 320px;
   max-width: 92vw;
   text-align: center;
@@ -1703,7 +1701,6 @@
 }
 
 .monster-defeated-panel {
-  border: 2px solid #ff6b6b;
   background-color: var(--panel-bg);
 
   position: relative;
@@ -1712,7 +1709,7 @@
   align-items: center;
   justify-content: center;
   gap: 20px;
-  padding: 56px 40px 40px;
+  padding: 40px 24px 24px;
   width: 92vw;
   height: 76vh;
   max-width: 720px;
@@ -1772,7 +1769,6 @@
 }
 
 .level-up-eligible-panel {
-  border: 2px solid var(--accent-color);
   background-color: var(--panel-bg);
 
   position: relative;
@@ -1781,7 +1777,7 @@
   align-items: center;
   justify-content: center;
   gap: 14px;
-  padding: 40px;
+  padding: 26px;
   width: 92vw;
   max-width: 420px;
   text-align: center;
@@ -1889,7 +1885,6 @@
 }
 
 .monster-announcement-panel {
-  border: 2px solid var(--border-color);
   background-color: var(--panel-bg);
 
   position: relative;
@@ -1898,7 +1893,7 @@
   align-items: center;
   justify-content: center;
   gap: 20px;
-  padding: 56px 40px 40px;
+  padding: 40px 24px 24px;
   width: 92vw;
   height: 76vh;
   max-width: 720px;

@@ -1152,7 +1152,7 @@
          mesmo elemento .roll-toast-timer-fill e a animação CSS da barra de tempo não reinicia. -->
     @for (toast of [rollToast]; track toast.id_roll) {
       <app-modal-burst variant="roll" />
-      <div class="retro-panel roll-toast-panel"
+      <div class="retro-panel framed-toast roll-toast-panel"
         [class.roll-toast-panel--has-bg]="rollToastImageUrl(toast)"
         [style.background-image]="rollToastImageUrl(toast) ? ('linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(' + rollToastImageUrl(toast) + ')') : null"
         (click)="$event.stopPropagation()">
@@ -1193,7 +1193,7 @@
          recriariam o elemento. -->
     @for (d of [defeated]; track d.key) {
       <app-modal-burst variant="defeat" />
-      <div class="retro-panel monster-defeated-panel" (click)="$event.stopPropagation()">
+      <div class="retro-panel framed-toast monster-defeated-panel" (click)="$event.stopPropagation()">
         <button class="modal-close-btn" (click)="closeMonsterDefeatedToast()">✕</button>
         <div class="monster-defeated-image-wrap">
           <img class="monster-defeated-image" [src]="d.imageUrl || DEFAULT_MONSTER_IMAGE" [alt]="d.name" />
@@ -1215,7 +1215,7 @@
     <!-- @for com track (key) força recriar o painel — mesmo motivo dos outros toasts acima. -->
     @for (c of [cast]; track c.key) {
       <app-modal-burst variant="spell" />
-      <div class="retro-panel spell-cast-panel"
+      <div class="retro-panel framed-toast spell-cast-panel"
         [class.spell-cast-panel--has-bg]="imageUrlForCharacter(c.idCharacter)"
         [style.background-image]="imageUrlForCharacter(c.idCharacter) ? ('linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(' + imageUrlForCharacter(c.idCharacter) + ')') : null"
         (click)="$event.stopPropagation()">
@@ -1242,7 +1242,7 @@
   <div class="overlay level-up-eligible-overlay" (click)="closeLevelUpEligibleToast()">
     @for (l of [leveled]; track l.key) {
       <app-modal-burst variant="levelup" />
-      <div class="retro-panel level-up-eligible-panel" (click)="$event.stopPropagation()">
+      <div class="retro-panel framed-toast level-up-eligible-panel" (click)="$event.stopPropagation()">
         <button class="modal-close-btn" (click)="closeLevelUpEligibleToast()">✕</button>
         <div class="level-up-eligible-avatars">
           @for (e of l.entries; track e.name) {
@@ -1266,7 +1266,7 @@
     <!-- @for com track (key) força recriar o painel — mesmo motivo do roll-toast acima. -->
     @for (a of [announcement]; track a.key) {
       <app-modal-burst variant="reveal" />
-      <div class="retro-panel monster-announcement-panel" (click)="$event.stopPropagation()">
+      <div class="retro-panel framed-toast monster-announcement-panel" (click)="$event.stopPropagation()">
         <button class="modal-close-btn" (click)="closeMonsterAnnouncement()">✕</button>
         <span class="monster-announcement-label">UM MONSTRO FOI REVELADO!</span>
         <img class="monster-announcement-image" [src]="a.imageUrl || DEFAULT_MONSTER_IMAGE" [alt]="a.name" />

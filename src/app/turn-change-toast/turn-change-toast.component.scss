@@ -16,7 +16,7 @@
   align-items: center;
   gap: 12px;
   width: 92vw;
-  max-width: 460px;
+  max-width: 600px;
   padding: 20px 16px 16px;
   box-sizing: border-box;
   border: 2px solid var(--accent-color);
@@ -44,6 +44,81 @@
   min-height: 120px;
 }
 
+/* ===== Card inteiro (como o card da sessão, com a moldura .framed-card do styles.scss) ===== */
+.turn-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-sizing: border-box;
+  width: clamp(130px, 36vw, 220px);
+  min-height: 280px;
+  padding: 10px 8px;
+  background-color: var(--bg-color);
+  background-size: cover;
+  background-position: center;
+  text-align: center;
+}
+
+.turn-card-avatar {
+  width: 88px;
+  height: 88px;
+  overflow: hidden;
+  border: 3px solid var(--border-color);
+  border-radius: 50%;
+  background-color: var(--bg-color);
+}
+
+.turn-card-player {
+  font-size: 6px;
+  color: var(--label-title-color);
+}
+
+.turn-card-name {
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--accent-color);
+  overflow-wrap: anywhere;
+}
+
+.turn-card-meta {
+  font-size: 7px;
+  color: var(--text-color);
+}
+
+.turn-card-hp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+}
+
+.turn-card-hp-bar {
+  width: 100%;
+  height: 6px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-color);
+}
+
+.turn-card-hp-fill {
+  height: 100%;
+}
+
+.turn-card-hp-text {
+  font-size: 8px;
+  color: var(--text-color);
+}
+
+// Monstro: a imagem dele ocupa o card (sem PV — o jogador não vê).
+.turn-card-image {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
 .turn-toast-card {
   display: flex;
   flex-direction: column;
@@ -53,41 +128,20 @@
 
   &--out {
     animation: turn-card-out 0.9s steps(9) 0.2s both;
+
+    // Quem saiu fica menor, ao fundo.
+    .turn-card {
+      transform: scale(0.85);
+    }
   }
 
   &--in {
     animation: turn-card-in 0.7s steps(7) 0.35s both;
 
-    .turn-toast-portrait {
-      width: 96px;
-      height: 96px;
-      border-color: var(--accent-color);
-      box-shadow: 0 0 16px var(--accent-color);
+    .turn-card {
+      box-shadow: 0 0 18px var(--accent-color);
     }
   }
-}
-
-.turn-toast-portrait {
-  width: 64px;
-  height: 64px;
-  border: 2px solid var(--border-color);
-  border-radius: 50%;
-  overflow: hidden;
-  background: var(--bg-color);
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-}
-
-.turn-toast-card-name {
-  max-width: 140px;
-  font-size: 8px;
-  color: var(--text-color);
-  text-align: center;
-  overflow-wrap: anywhere;
 }
 
 .turn-toast-arrow {

@@ -745,6 +745,17 @@ describe('SessionPanelComponent', () => {
       });
     });
 
+    it('jogador vem com os dados do card inteiro (jogador, classe, raça, nível, PV)', () => {
+      const parts = setup('outro-mestre');
+      expect(component.turnCardFor(parts[1]).character).toEqual({
+        playerName: 'Jogador p2',
+        className: 'Guerreiro',
+        race: 'Humano',
+        level: 1,
+        hp: { current: 20, max: 20, temp: 0 },
+      });
+    });
+
     it('mestre vê o monstro com a imagem dele', () => {
       const parts = setup('dm');
       expect(component.turnCardFor(parts[2])).toMatchObject({ imageUrl: 'https://cdn/goblin.png' });

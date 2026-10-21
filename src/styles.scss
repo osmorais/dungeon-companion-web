@@ -46,6 +46,8 @@
   --gold-color: #ccaa44; /* destaques em dourado */
   /* Moldura dos cards de personagem (9-slice, 512 px; originais em design/frames/) */
   --card-frame: url('/assets/frames/card-frame.png');
+  /* Moldura dos avisos em tela cheia da sessão (rolagem, magia, monstro, nível) */
+  --toast-frame: url('/assets/frames/toast-frame.png');
   /* Sprite do dragão (carregamento e wizard): grade 4×4, virado pra direita */
   --dragon-sprite: url('/dragon-sprite.png');
 
@@ -78,6 +80,7 @@
   --sheet-label-color: #c9734f;
   --gold-color: #c9a35c;
   --card-frame: url('/assets/frames/card-frame-sombrio.png');
+  --toast-frame: url('/assets/frames/toast-frame-sombrio.png');
   /* No lugar do dragão vermelho, um dracolich (dragão morto-vivo), mesma grade 4×4 */
   --dragon-sprite: url('/dragon-sprite-sombrio.png');
 }
@@ -919,6 +922,16 @@ input[type="checkbox"].retro-checkbox {
   border-image: var(--card-frame) 72 / 22px round;
   /* Fundo (cor e foto do personagem) só dentro da borda: por baixo dela a foto aparecia pelas
      frestas e o fim da imagem formava uma faixa clara na borda de baixo. */
+  background-clip: padding-box;
+  background-origin: padding-box;
+}
+
+/* ===== Moldura dos avisos em tela cheia (1.3.13) =====
+   Mesmo esquema da .framed-card, mais grossa: imagem desenhada com 34 px (corte de 72 da imagem de
+   512, cabe o enfeite do canto), faixa termina em ~24 px — que é a borda que ocupa espaço. */
+.framed-toast {
+  border: 24px solid transparent;
+  border-image: var(--toast-frame) 72 / 34px round;
   background-clip: padding-box;
   background-origin: padding-box;
 }

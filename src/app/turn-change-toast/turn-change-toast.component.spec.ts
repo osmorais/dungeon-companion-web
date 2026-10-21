@@ -50,4 +50,43 @@ describe('TurnChangeToastComponent', () => {
     (fixture.nativeElement.querySelector('.turn-toast-overlay') as HTMLElement).click();
     expect(closed).toHaveBeenCalled();
   });
+
+  it('jogador/NPC aparece com o card inteiro (jogador, classe, nível e PV); monstro só com imagem', () => {
+    TestBed.configureTestingModule({
+      providers: [{ provide: DamageImpactService, useValue: { enabled: () => false } }],
+    });
+    const fixture = TestBed.createComponent(TurnChangeToastComponent);
+    fixture.componentInstance.from = {
+      name: 'Goblin',
+      imageUrl: 'https://cdn/g.png',
+      avatarPreset: null,
+    };
+    fixture.componentInstance.to = {
+      name: 'Lyra',
+      imageUrl: 'https://cdn/lyra.png',
+      avatarPreset: null,
+      character: {
+        playerName: 'Ana',
+        className: 'Maga',
+        race: 'Elfa',
+        level: 5,
+        hp: { current: 20, max: 27, temp: 3 },
+      },
+    };
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    const incoming = el.querySelector('.turn-toast-card--in .turn-card') as HTMLElement;
+    expect(incoming.classList).toContain('framed-card');
+    expect(incoming.textContent).toContain('Ana');
+    expect(incoming.textContent).toContain('Maga — Elfa');
+    expect(incoming.textContent).toContain('NÍVEL 5');
+    expect(incoming.textContent).toContain('20/27 +3');
+    expect(incoming.style.backgroundImage).toContain('lyra.png');
+    const outgoing = el.querySelector('.turn-toast-card--out .turn-card') as HTMLElement;
+    expect(outgoing.classList).toContain('turn-card--monster');
+    expect(outgoing.querySelector('img.turn-card-image')!.getAttribute('src')).toBe(
+      'https://cdn/g.png',
+    );
+    expect(outgoing.textContent).not.toContain('/');
+  });
 });
