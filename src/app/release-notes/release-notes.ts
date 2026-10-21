@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.3.9',
+    date: '2026-10-21',
+    title: 'Menu inicial numa tela só',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'O menu inicial ficou numa tela só: ao escolher SOU JOGADOR ou SOU MESTRE, as opções abrem ao lado (no celular, logo abaixo), sem precisar voltar para trocar. O Grimório de Magias saiu das opções do mestre e fica sempre à mão, para jogadores e mestres.',
+      },
+    ],
+  },
+  {
     version: '1.3.8',
     date: '2026-10-21',
     title: 'Destaque nos cards de personagem',

@@ -1,7 +1,6 @@
 @if (isMobile()) {
-  <!-- ===== MOBILE LAYOUT ===== -->
+  <!-- ===== MOBILE LAYOUT ===== (papéis em sanfona: as opções abrem logo abaixo do papel escolhido) -->
   <div class="mobile-home-container">
-
     <fieldset class="mobile-home-panel">
       <legend>BEM VINDO AVENTUREIRO!</legend>
 
@@ -9,111 +8,56 @@
         <img src="forja_arcana.png" alt="Forja Arcana" class="mobile-logo" />
       </div>
 
-      @if (view() === 'select') {
-        <!-- Seleção de papel -->
-        <p class="mobile-role-subtitle">QUEM É VOCÊ?</p>
-        <div class="mobile-menu-options">
-
-          <button class="m-card m-card--highlight" (click)="selectPlayer()">
-            <span class="m-card-icon"><img class="ui-icon" src="assets/icons/swords.png" alt="" /></span>
+      <p class="mobile-role-subtitle">QUEM É VOCÊ?</p>
+      <div class="mobile-menu-options">
+        @for (r of roles; track r.role) {
+          <button
+            class="m-card"
+            [class.m-card--selected]="role() === r.role"
+            [attr.aria-expanded]="role() === r.role"
+            (click)="toggleRole(r.role)"
+          >
+            <span class="m-card-icon"
+              ><img class="ui-icon" [src]="'assets/icons/' + r.icon + '.png'" alt=""
+            /></span>
             <span class="m-card-body">
-              <span class="m-card-title">SOU JOGADOR</span>
-              <span class="m-card-desc">Crie e gerencie seus personagens</span>
+              <span class="m-card-title">{{ r.title }}</span>
+              <span class="m-card-desc">{{ r.desc }}</span>
             </span>
+            <span class="m-card-arrow">{{ role() === r.role ? '▼' : '▶' }}</span>
           </button>
+          @if (role() === r.role) {
+            <div class="mobile-role-options">
+              @for (opt of roleOptions(); track opt.title) {
+                <button
+                  class="m-card m-card--compact"
+                  [disabled]="opt.disabled?.()"
+                  (click)="opt.action()"
+                >
+                  <span class="m-card-icon"
+                    ><img class="ui-icon" [src]="'assets/icons/' + opt.icon + '.png'" alt=""
+                  /></span>
+                  <span class="m-card-body">
+                    <span class="m-card-title">{{ opt.title }}</span>
+                    <span class="m-card-desc">{{ opt.desc }}</span>
+                  </span>
+                </button>
+              }
+            </div>
+          }
+        }
 
-          <button class="m-card" (click)="selectMaster()">
-            <span class="m-card-icon"><img class="ui-icon" src="assets/icons/d20.png" alt="" /></span>
-            <span class="m-card-body">
-              <span class="m-card-title">SOU MESTRE</span>
-              <span class="m-card-desc">Gerencie suas sessões e criaturas</span>
-            </span>
-          </button>
-
-        </div>
-      }
-
-      @if (view() === 'player') {
-        <!-- Opções do Jogador -->
-        <p class="mobile-role-subtitle">O QUE DESEJA FAZER?</p>
-        <div class="mobile-menu-options">
-
-          <button class="m-card" (click)="createCharacter()" [disabled]="openingCreate()">
-            <span class="m-card-icon"><img class="ui-icon" src="assets/icons/swords.png" alt="" /></span>
-            <span class="m-card-body">
-              <span class="m-card-title">CRIAR PERSONAGEM</span>
-              <span class="m-card-desc">Forje um novo herói</span>
-            </span>
-          </button>
-
-          <button class="m-card" (click)="listCharacters()">
-            <span class="m-card-icon"><img class="ui-icon" src="assets/icons/scroll.png" alt="" /></span>
-            <span class="m-card-body">
-              <span class="m-card-title">MEUS PERSONAGENS</span>
-              <span class="m-card-desc">Acesse as fichas dos seus aventureiros</span>
-            </span>
-          </button>
-
-          <button class="m-card" (click)="joinSession()">
-            <span class="m-card-icon"><img class="ui-icon" src="assets/icons/compass.png" alt="" /></span>
-            <span class="m-card-body">
-              <span class="m-card-title">ENTRAR EM UMA AVENTURA</span>
-              <span class="m-card-desc">Junte-se a uma sessão</span>
-            </span>
-          </button>
-
-          <button class="m-card" (click)="mySessions()">
-            <span class="m-card-icon"><img class="ui-icon" src="assets/icons/medal.png" alt="" /></span>
-            <span class="m-card-body">
-              <span class="m-card-title">MINHAS AVENTURAS</span>
-              <span class="m-card-desc">Veja suas campanhas ativas</span>
-            </span>
-          </button>
-
-        </div>
-        <button class="retro-btn mobile-back-btn" (click)="goBack()">← VOLTAR</button>
-      }
-
-      @if (view() === 'master') {
-        <!-- Opções do Mestre -->
-        <p class="mobile-role-subtitle">O QUE DESEJA FAZER?</p>
-        <div class="mobile-menu-options">
-
-          <button class="m-card" (click)="createSession()">
-            <span class="m-card-icon"><img class="ui-icon" src="assets/icons/map.png" alt="" /></span>
-            <span class="m-card-body">
-              <span class="m-card-title">CRIAR NOVA SESSÃO</span>
-              <span class="m-card-desc">Inicie uma nova aventura</span>
-            </span>
-          </button>
-
-          <button class="m-card" (click)="listSessions()">
-            <span class="m-card-icon"><img class="ui-icon" src="assets/icons/book-open.png" alt="" /></span>
-            <span class="m-card-body">
-              <span class="m-card-title">SESSÕES CRIADAS</span>
-              <span class="m-card-desc">Gerencie suas campanhas</span>
-            </span>
-          </button>
-
-          <button class="m-card" (click)="catalogMonsters()">
-            <span class="m-card-icon"><img class="ui-icon" src="assets/icons/dragon.png" alt="" /></span>
-            <span class="m-card-body">
-              <span class="m-card-title">CATALOGAR MONSTROS</span>
-              <span class="m-card-desc">Gerencie seu bestiário</span>
-            </span>
-          </button>
-
-          <button class="m-card" (click)="openSpellCatalog()">
-            <span class="m-card-icon"><img class="ui-icon" src="assets/icons/spellbook.png" alt="" /></span>
-            <span class="m-card-body">
-              <span class="m-card-title">GRIMÓRIO DE MAGIAS</span>
-              <span class="m-card-desc">Consulte todas as magias</span>
-            </span>
-          </button>
-
-        </div>
-        <button class="retro-btn mobile-back-btn" (click)="goBack()">← VOLTAR</button>
-      }
+        <p class="mobile-role-subtitle mobile-role-subtitle--shared">PARA TODOS</p>
+        <button class="m-card" (click)="openSpellCatalog()">
+          <span class="m-card-icon"
+            ><img class="ui-icon" src="assets/icons/spellbook.png" alt=""
+          /></span>
+          <span class="m-card-body">
+            <span class="m-card-title">GRIMÓRIO DE MAGIAS</span>
+            <span class="m-card-desc">Consulte todas as magias</span>
+          </span>
+        </button>
+      </div>
 
       <nav class="legal-links">
         <a routerLink="/conta">MINHA CONTA</a>
@@ -122,12 +66,10 @@
         <a routerLink="/novidades">NOVIDADES v{{ currentVersion }}</a>
       </nav>
     </fieldset>
-
   </div>
 } @else {
-  <!-- ===== DESKTOP LAYOUT ===== -->
-  <div class="home-container" [class.home-container--wide]="view() === 'master' || view() === 'player'">
-
+  <!-- ===== DESKTOP LAYOUT ===== (papéis à esquerda, opções do escolhido abrem à direita) -->
+  <div class="home-container">
     <fieldset class="title-panel">
       <legend>BEM VINDO AVENTUREIRO!</legend>
 
@@ -135,95 +77,61 @@
         <img src="forja_arcana.png" alt="Forja Arcana" class="logo" />
       </div>
 
-      @if (view() === 'select') {
-        <!-- Seleção de papel -->
-        <p class="role-subtitle">QUEM É VOCÊ?</p>
-        <div class="menu-options">
+      <div class="home-layout">
+        <div class="home-roles">
+          <p class="role-subtitle">QUEM É VOCÊ?</p>
+          @for (r of roles; track r.role) {
+            <button
+              class="retro-card"
+              [class.retro-card--selected]="role() === r.role"
+              [attr.aria-expanded]="role() === r.role"
+              (click)="toggleRole(r.role)"
+            >
+              <span class="card-icon"
+                ><img class="ui-icon" [src]="'assets/icons/' + r.icon + '.png'" alt=""
+              /></span>
+              <span class="card-title">{{ r.title }}</span>
+              <span class="card-desc">{{ r.desc }}</span>
+            </button>
+          }
 
-          <button class="retro-card retro-card--highlight" (click)="selectPlayer()">
-            <span class="card-icon"><img class="ui-icon" src="assets/icons/swords.png" alt="" /></span>
-            <span class="card-title">SOU JOGADOR</span>
-            <span class="card-desc">Crie e gerencie seus personagens</span>
+          <p class="role-subtitle role-subtitle--shared">PARA TODOS</p>
+          <button class="retro-card retro-card--row" (click)="openSpellCatalog()">
+            <span class="card-icon"
+              ><img class="ui-icon" src="assets/icons/spellbook.png" alt=""
+            /></span>
+            <span class="card-text">
+              <span class="card-title">GRIMÓRIO DE MAGIAS</span>
+              <span class="card-desc">Consulte todas as magias</span>
+            </span>
           </button>
-
-          <button class="retro-card" (click)="selectMaster()">
-            <span class="card-icon"><img class="ui-icon" src="assets/icons/d20.png" alt="" /></span>
-            <span class="card-title">SOU MESTRE</span>
-            <span class="card-desc">Gerencie suas sessões e criaturas</span>
-          </button>
-
         </div>
-      }
 
-      @if (view() === 'player') {
-        <!-- Opções do Jogador -->
-        <p class="role-subtitle">O QUE DESEJA FAZER?</p>
-        <div class="menu-options menu-options--grid">
-
-          <button class="retro-card" (click)="createCharacter()" [disabled]="openingCreate()">
-            <span class="card-icon"><img class="ui-icon" src="assets/icons/swords.png" alt="" /></span>
-            <span class="card-title">CRIAR PERSONAGEM</span>
-            <span class="card-desc">Forje um novo herói</span>
-          </button>
-
-          <button class="retro-card" (click)="listCharacters()">
-            <span class="card-icon"><img class="ui-icon" src="assets/icons/scroll.png" alt="" /></span>
-            <span class="card-title">MEUS PERSONAGENS</span>
-            <span class="card-desc">Acesse as fichas dos seus aventureiros</span>
-          </button>
-
-          <button class="retro-card" (click)="joinSession()">
-            <span class="card-icon"><img class="ui-icon" src="assets/icons/compass.png" alt="" /></span>
-            <span class="card-title">ENTRAR EM UMA AVENTURA</span>
-            <span class="card-desc">Junte-se a uma sessão</span>
-          </button>
-
-          <button class="retro-card" (click)="mySessions()">
-            <span class="card-icon"><img class="ui-icon" src="assets/icons/medal.png" alt="" /></span>
-            <span class="card-title">MINHAS AVENTURAS</span>
-            <span class="card-desc">Veja suas campanhas ativas</span>
-          </button>
-
+        <div class="home-options">
+          @if (role(); as current) {
+            @for (r of [current]; track r) {
+              <div class="home-options-panel">
+                <p class="role-subtitle">
+                  {{ current === 'player' ? 'JOGADOR' : 'MESTRE' }}: O QUE DESEJA FAZER?
+                </p>
+                <div class="menu-options--grid">
+                  @for (opt of roleOptions(); track opt.title) {
+                    <button class="retro-card" [disabled]="opt.disabled?.()" (click)="opt.action()">
+                      <span class="card-icon"
+                        ><img class="ui-icon" [src]="'assets/icons/' + opt.icon + '.png'" alt=""
+                      /></span>
+                      <span class="card-title">{{ opt.title }}</span>
+                      <span class="card-desc">{{ opt.desc }}</span>
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          } @else {
+            <p class="home-options-hint">ESCOLHA JOGADOR OU MESTRE<br />PARA VER AS OPÇÕES</p>
+          }
         </div>
-        <div class="back-row">
-          <button class="retro-btn back-btn" (click)="goBack()">← VOLTAR</button>
-        </div>
-      }
-
-      @if (view() === 'master') {
-        <!-- Opções do Mestre -->
-        <p class="role-subtitle">O QUE DESEJA FAZER?</p>
-        <div class="menu-options menu-options--grid">
-
-          <button class="retro-card" (click)="createSession()">
-            <span class="card-icon"><img class="ui-icon" src="assets/icons/map.png" alt="" /></span>
-            <span class="card-title">CRIAR NOVA SESSÃO</span>
-            <span class="card-desc">Inicie uma nova aventura</span>
-          </button>
-
-          <button class="retro-card" (click)="listSessions()">
-            <span class="card-icon"><img class="ui-icon" src="assets/icons/book-open.png" alt="" /></span>
-            <span class="card-title">SESSÕES CRIADAS</span>
-            <span class="card-desc">Gerencie suas campanhas</span>
-          </button>
-
-          <button class="retro-card" (click)="catalogMonsters()">
-            <span class="card-icon"><img class="ui-icon" src="assets/icons/dragon.png" alt="" /></span>
-            <span class="card-title">CATALOGAR MONSTROS</span>
-            <span class="card-desc">Gerencie seu bestiário</span>
-          </button>
-
-          <button class="retro-card" (click)="openSpellCatalog()">
-            <span class="card-icon"><img class="ui-icon" src="assets/icons/spellbook.png" alt="" /></span>
-            <span class="card-title">GRIMÓRIO DE MAGIAS</span>
-            <span class="card-desc">Consulte todas as magias</span>
-          </button>
-
-        </div>
-        <div class="back-row">
-          <button class="retro-btn back-btn" (click)="goBack()">← VOLTAR</button>
-        </div>
-      }
+      </div>
 
       <nav class="legal-links">
         <a routerLink="/conta">MINHA CONTA</a>
@@ -232,6 +140,5 @@
         <a routerLink="/novidades">NOVIDADES v{{ currentVersion }}</a>
       </nav>
     </fieldset>
-
   </div>
 }
