@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.3.6',
+    date: '2026-10-21',
+    title: 'Formulários do celular no mesmo visual',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'No celular, criar sessão, entrar numa aventura e catalogar monstro seguem o visual do menu inicial: sem quadros, com títulos de seção, campos e escolhas no formato dos cards (a escolha fica destacada com um ✓) e o botão de confirmar largo no fim.',
+      },
+    ],
+  },
+  {
     version: '1.3.5',
     date: '2026-10-21',
     title: 'Celular com o mesmo visual em todas as telas',

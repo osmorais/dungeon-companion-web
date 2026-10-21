@@ -637,3 +637,116 @@ input[type="checkbox"].retro-checkbox {
   text-align: center;
   color: var(--label-title-color);
 }
+
+/* ===== Mobile: formulários no mesmo padrão (1.3.6) =====
+   Sem quadro/legenda: seções com título pequeno (como o "O QUE DESEJA FAZER?" da Home), campos e
+   escolhas com a cara dos cards (fundo de painel, borda 2px, dourado no foco/escolhido), bloco de
+   leitura em .m-box e o botão de enviar largo no fim. */
+.m-section {
+  margin-bottom: 22px;
+}
+
+.m-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 7px;
+  font-weight: normal;
+  letter-spacing: 2px;
+  color: var(--label-title-color);
+}
+
+// Informação à direita do título (ex.: "2 selecionado(s)").
+.m-section-extra {
+  margin-left: auto;
+  letter-spacing: 0;
+  color: var(--accent-color);
+}
+
+.m-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.m-label {
+  font-size: 7px;
+  color: var(--accent-color);
+}
+
+.m-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 9px;
+
+  &::placeholder {
+    color: var(--label-title-color);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--accent-color);
+  }
+
+  // Código de sessão: grande, centralizado e espaçado.
+  &--code {
+    font-size: 16px;
+    letter-spacing: 6px;
+    text-align: center;
+    text-transform: uppercase;
+  }
+}
+
+.m-hint {
+  margin: 0;
+  font-size: 6px;
+  line-height: 1.8;
+  color: var(--label-title-color);
+}
+
+// Bloco de leitura (prévia, código gerado) com a mesma cara dos cards.
+.m-box {
+  padding: 14px 16px;
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+}
+
+// Lista longa de escolhas: rola dentro, não estica a página.
+.m-scroll {
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+// Card mais baixo, pra listas longas de escolha (ex.: monstros do SRD).
+.m-card--compact {
+  gap: 10px;
+  padding: 10px 14px;
+}
+
+.m-submit {
+  display: block;
+  float: none;
+  width: 100%;
+  margin: 8px 0 0;
+  padding: 14px;
+  font-size: 9px;
+}
+
+.m-error {
+  margin: 0 0 10px;
+  font-size: 8px;
+  line-height: 1.6;
+  text-align: center;
+  color: #ff6b6b;
+}

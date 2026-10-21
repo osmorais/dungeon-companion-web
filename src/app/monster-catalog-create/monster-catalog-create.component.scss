@@ -193,30 +193,3 @@
   overflow-x: hidden;
 }
 
-.mobile-panel {
-  width: 100%;
-  box-sizing: border-box;
-  border: 2px solid var(--border-color);
-  background-color: var(--panel-bg);
-  padding: 16px 14px;
-  margin-bottom: 14px;
-
-  legend {
-    border: 2px solid var(--border-color);
-    background-color: var(--bg-color);
-    padding: 4px 8px;
-    font-size: 8px;
-  }
-}
-
-.mobile-empty-msg {
-  font-size: 9px;
-  color: var(--label-title-color);
-  text-align: center;
-  padding: 24px 0;
-  margin: 0;
-
-  &--inner {
-    padding: 8px 0;
-  }
-}

@@ -1,5 +1,5 @@
 @if (isMobile()) {
-  <!-- ===== MOBILE LAYOUT ===== -->
+  <!-- ===== MOBILE LAYOUT ===== (formulário no padrão das telas mobile: .m-* no styles.scss) -->
   <div class="mobile-container">
 
     <div class="m-header">
@@ -7,25 +7,27 @@
       <span class="m-title">CRIAR SESSÃO</span>
     </div>
 
-    <fieldset class="mobile-panel">
-      <legend>DADOS DA SESSÃO</legend>
+    <section class="m-section">
+      <h2 class="m-section-title">DADOS DA SESSÃO</h2>
 
-      <div class="mobile-field">
-        <label class="mobile-label">NOME DA SESSÃO</label>
+      <div class="m-field">
+        <label class="m-label" for="m-session-name">NOME DA SESSÃO</label>
         <input
+          id="m-session-name"
           type="text"
-          class="mobile-input"
+          class="m-input"
           placeholder="Ex: A Maldição de Strahd"
           [ngModel]="sessionName()"
           (ngModelChange)="sessionName.set($event)"
         />
       </div>
 
-      <div class="mobile-field">
-        <label class="mobile-label">Nº MÁXIMO DE JOGADORES</label>
+      <div class="m-field">
+        <label class="m-label" for="m-max-players">Nº MÁXIMO DE JOGADORES</label>
         <input
+          id="m-max-players"
           type="number"
-          class="mobile-input"
+          class="m-input"
           placeholder="Ex: 4"
           min="1"
           max="20"
@@ -34,90 +36,81 @@
         />
       </div>
 
-      <div class="mobile-field">
-        <label class="mobile-label">NOME DO MESTRE</label>
+      <div class="m-field">
+        <label class="m-label" for="m-master-name">NOME DO MESTRE</label>
         <input
+          id="m-master-name"
           type="text"
-          class="mobile-input"
+          class="m-input"
           placeholder="Seu apelido de mestre"
           [ngModel]="masterName()"
           (ngModelChange)="masterName.set($event)"
         />
         <p class="name-privacy-hint">Prefira um apelido: este nome aparece para todos da mesa.</p>
       </div>
-    </fieldset>
+    </section>
 
-    <fieldset class="mobile-panel">
-      <legend>CRIATURAS E ALIADOS</legend>
-
-      <!-- NPCs -->
-      <div class="mobile-section-label">
+    <section class="m-section">
+      <h2 class="m-section-title">
         <img class="ui-icon" src="assets/icons/wizard-hat.png" alt="" /> NPCS
         @if (selectedNpcIds().size > 0) {
-          <span class="mobile-npc-count">{{ selectedNpcIds().size }} selecionado(s)</span>
+          <span class="m-section-extra">{{ selectedNpcIds().size }} selecionado(s)</span>
         }
-      </div>
+      </h2>
 
       @if (loadingNpcs()) {
-        <app-skeleton-rows [rows]="3" [height]="22" />
+        <app-skeleton-rows [rows]="3" [height]="56" />
       } @else if (availableNpcs().length === 0) {
-        <p class="mobile-loading-msg">Nenhum personagem criado ainda.</p>
+        <p class="m-empty">Nenhum personagem criado ainda.</p>
       } @else {
-        <div class="mobile-npc-picker">
+        <div class="m-card-list">
           @for (char of availableNpcs(); track char.id_character) {
-            <div
-              class="mobile-npc-item"
-              [class.mobile-npc-item--selected]="isNpcSelected(char.id_character)"
+            <button
+              class="m-card m-card--compact"
+              [class.m-card--selected]="isNpcSelected(char.id_character)"
               (click)="toggleNpc(char.id_character)"
             >
-              <div class="mobile-npc-check">{{ isNpcSelected(char.id_character) ? '✓' : '' }}</div>
-              <div class="mobile-npc-details">
-                <span class="mobile-npc-name">{{ char.name }}</span>
-                <span class="mobile-npc-meta">{{ char.class }} · {{ char.race }} · NV {{ char.level }}</span>
-              </div>
-            </div>
+              <span class="m-card-body">
+                <span class="m-card-title">{{ char.name }}</span>
+                <span class="m-card-desc">{{ char.class }} · {{ char.race }} · NV {{ char.level }}</span>
+              </span>
+              @if (isNpcSelected(char.id_character)) {
+                <span class="m-card-icon"><img class="ui-icon" src="assets/icons/check.png" alt="" /></span>
+              }
+            </button>
           }
         </div>
       }
+    </section>
 
-      <!-- Monstros (em breve) -->
-      <div class="mobile-section-label mobile-section-label--mt"><img class="ui-icon" src="assets/icons/dragon.png" alt="" /> MONSTROS</div>
-      <button class="mobile-catalog-btn" disabled>
-        <span class="mobile-catalog-text">
-          <span class="mobile-catalog-title">SELECIONAR MONSTROS</span>
-          <span class="mobile-catalog-desc">Em breve...</span>
+    <section class="m-section">
+      <h2 class="m-section-title"><img class="ui-icon" src="assets/icons/dragon.png" alt="" /> MONSTROS</h2>
+      <button class="m-card" disabled>
+        <span class="m-card-body">
+          <span class="m-card-title">SELECIONAR MONSTROS</span>
+          <span class="m-card-desc">Em breve...</span>
         </span>
       </button>
-    </fieldset>
+    </section>
 
-    <fieldset class="mobile-panel">
-      <legend>CÓDIGO DA SESSÃO</legend>
-
-      <button
-        class="retro-btn mobile-generate-btn"
-        [disabled]="!canGenerate()"
-        (click)="generateCode()"
-      >
+    <section class="m-section">
+      <h2 class="m-section-title">CÓDIGO DA SESSÃO</h2>
+      <button class="retro-btn m-submit" [disabled]="!canGenerate()" (click)="generateCode()">
         <img class="ui-icon" src="assets/icons/gear.png" alt="" /> GERAR CÓDIGO
       </button>
-
       @if (sessionCode()) {
-        <div class="mobile-code-display">
-          <span class="mobile-code-label">CÓDIGO GERADO:</span>
-          <span class="mobile-code-value">{{ sessionCode() }}</span>
+        <div class="m-box session-code-box">
+          <span class="m-label">CÓDIGO GERADO</span>
+          <span class="session-code-value">{{ sessionCode() }}</span>
         </div>
       }
-    </fieldset>
+    </section>
 
     @if (saveError()) {
-      <p class="mobile-error-msg">{{ saveError() }}</p>
+      <p class="m-error">{{ saveError() }}</p>
     }
 
-    <button
-      class="retro-btn mobile-create-btn"
-      [disabled]="!canSave() || saving()"
-      (click)="saveSession()"
-    >
+    <button class="retro-btn m-submit" [disabled]="!canSave() || saving()" (click)="saveSession()">
       {{ saving() ? 'SALVANDO...' : 'SALVAR AVENTURA' }}
     </button>
 

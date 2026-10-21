@@ -1,5 +1,5 @@
 @if (isMobile()) {
-  <!-- ===== MOBILE LAYOUT ===== -->
+  <!-- ===== MOBILE LAYOUT ===== (formulário no padrão das telas mobile: .m-* no styles.scss) -->
   <div class="mobile-create-container">
 
     <div class="m-header">
@@ -7,40 +7,52 @@
       <span class="m-title">CATALOGAR MONSTRO</span>
     </div>
 
-    <fieldset class="mobile-panel">
-      <legend>BUSCAR NO SRD</legend>
-      <input
-        type="text"
-        class="search-input"
-        placeholder="Buscar monstro..."
-        [ngModel]="searchText()"
-        (ngModelChange)="searchText.set($event)"
-      />
+    <section class="m-section">
+      <h2 class="m-section-title">BUSCAR NO SRD</h2>
+      <div class="m-field">
+        <input
+          type="text"
+          class="m-input"
+          placeholder="Buscar monstro..."
+          aria-label="Buscar monstro"
+          [ngModel]="searchText()"
+          (ngModelChange)="searchText.set($event)"
+        />
+      </div>
       @if (loadingList()) {
-        <app-skeleton-rows [rows]="6" [height]="16" />
+        <app-skeleton-rows [rows]="6" [height]="36" />
       } @else if (listError()) {
-        <p class="mobile-empty-msg mobile-empty-msg--inner">ERRO AO CARREGAR O SRD.</p>
+        <p class="m-empty">ERRO AO CARREGAR O SRD.</p>
+      } @else if (filteredMonsters().length === 0) {
+        <p class="m-empty">NENHUM MONSTRO ENCONTRADO.</p>
       } @else {
-        <ul class="srd-list">
+        <div class="m-card-list m-scroll">
           @for (m of filteredMonsters(); track m.index) {
-            <li class="srd-row" [class.srd-row--active]="selectedSlug() === m.index" (click)="selectMonster(m)">
-              {{ m.name }}
-            </li>
+            <button
+              class="m-card m-card--compact"
+              [class.m-card--selected]="selectedSlug() === m.index"
+              (click)="selectMonster(m)"
+            >
+              <span class="m-card-body">
+                <span class="m-card-title">{{ m.name }}</span>
+              </span>
+              @if (selectedSlug() === m.index) {
+                <span class="m-card-icon"><img class="ui-icon" src="assets/icons/check.png" alt="" /></span>
+              }
+            </button>
           }
-          @if (filteredMonsters().length === 0) {
-            <p class="mobile-empty-msg mobile-empty-msg--inner">NENHUM MONSTRO ENCONTRADO.</p>
-          }
-        </ul>
+        </div>
       }
-    </fieldset>
+    </section>
 
     @if (selectedSlug()) {
-      <fieldset class="mobile-panel">
-        <legend>PRÉ-VISUALIZAÇÃO</legend>
+      <section class="m-section">
+        <h2 class="m-section-title">PRÉ-VISUALIZAÇÃO</h2>
+        <div class="m-box">
         @if (loadingDetail()) {
           <app-skeleton-rows [rows]="5" [height]="12" />
         } @else if (detailError()) {
-          <p class="mobile-empty-msg mobile-empty-msg--inner">ERRO AO CARREGAR O MONSTRO.</p>
+          <p class="m-empty">ERRO AO CARREGAR O MONSTRO.</p>
         } @else if (selectedDetail(); as detail) {
           <div class="stat-block">
             <h3 class="stat-name">{{ detail.name }}</h3>
@@ -79,9 +91,10 @@
             }
 
             <div class="catalog-form">
-              <label class="catalog-label">NOME CUSTOMIZADO (OPCIONAL)</label>
+              <label class="m-label">NOME CUSTOMIZADO (OPCIONAL)</label>
               <input
                 type="text"
+                class="m-input"
                 [placeholder]="detail.name"
                 [ngModel]="customName()"
                 (ngModelChange)="customName.set($event)"
@@ -89,13 +102,14 @@
               @if (catalogError()) {
                 <p class="catalog-error">{{ catalogError() }}</p>
               }
-              <button class="retro-btn catalog-confirm-btn" [disabled]="cataloging()" (click)="confirmCatalog()">
+              <button class="retro-btn m-submit" [disabled]="cataloging()" (click)="confirmCatalog()">
                 @if (!cataloging()) { <img class="ui-icon" src="assets/icons/book-open.png" alt="" /> }{{ cataloging() ? 'CATALOGANDO...' : 'CATALOGAR ESTE MONSTRO' }}
               </button>
             </div>
           </div>
         }
-      </fieldset>
+        </div>
+      </section>
     }
 
   </div>
