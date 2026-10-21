@@ -331,6 +331,12 @@
 }
 
 // Celular: quase a tela toda, deixando à direita o espaço da aba de recolher.
+.dm-board-cell-skeleton {
+  width: 18px;
+  height: 10px;
+  margin: 0 auto;
+}
+
 @media (max-width: 767px) {
   .dm-board {
     width: calc(100vw - 28px);

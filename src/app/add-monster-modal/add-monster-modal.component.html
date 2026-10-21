@@ -14,7 +14,7 @@
 
     @if (mode() === 'catalog') {
       @if (loadingCatalog()) {
-        <p class="modal-empty">Carregando bestiário...</p>
+        <app-skeleton-rows [rows]="5" [height]="22" />
       } @else if (catalogError()) {
         <p class="modal-empty">Erro ao carregar o bestiário.</p>
       } @else if (catalog().length === 0) {
@@ -52,7 +52,7 @@
         />
 
         @if (loadingSrdList()) {
-          <p class="modal-empty">Carregando SRD...</p>
+          <app-skeleton-rows [rows]="6" [height]="16" />
         } @else if (srdListError()) {
           <p class="modal-empty">Erro ao carregar o SRD.</p>
         } @else {
@@ -71,7 +71,7 @@
         @if (selectedSlug()) {
           <div class="preview-box">
             @if (loadingDetail()) {
-              <p class="modal-empty">Carregando...</p>
+              <app-skeleton-rows [rows]="4" [height]="12" />
             } @else if (detailError()) {
               <p class="modal-empty">Erro ao carregar o monstro.</p>
             } @else if (selectedDetail(); as detail) {

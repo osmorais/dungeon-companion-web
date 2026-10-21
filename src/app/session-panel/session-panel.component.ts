@@ -58,6 +58,8 @@ import { saveNote } from '../roll-modal/spell-roll-config';
 import { ApplyRequest, ApplyTarget } from '../roll-modal/apply-target';
 import { AreaApplyRequest, DmBoardComponent } from '../dm-board/dm-board.component';
 import { DmBoardTabComponent } from '../dm-board/dm-board-tab.component';
+import { LoadingOverlayService } from '../loading-overlay/loading-overlay.service';
+import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { monsterDisplayName } from './monster-display-name';
 
 @Component({
@@ -84,6 +86,7 @@ import { monsterDisplayName } from './monster-display-name';
     SecretRollPromptComponent,
     DmBoardComponent,
     DmBoardTabComponent,
+    SkeletonRowsComponent,
   ],
   templateUrl: './session-panel.component.html',
   styleUrls: ['./session-panel.component.scss'],
@@ -95,6 +98,8 @@ export class SessionPanelComponent implements OnDestroy {
   private charService = inject(CharacterService);
   private authService = inject(AuthService);
   private damageImpact = inject(DamageImpactService);
+  /** Na sessão o carregamento é por skeleton em cada parte — sem o overlay do dragão. */
+  private releaseLoadingOverlay = inject(LoadingOverlayService).suppressHttp();
 
   id = input<string>();
 
@@ -191,6 +196,7 @@ export class SessionPanelComponent implements OnDestroy {
   }
 
   ngOnDestroy() {
+    this.releaseLoadingOverlay();
     this.disconnectRealtime();
     this.stopPolling();
     if (this.rollToastTimer) clearTimeout(this.rollToastTimer);

@@ -12,6 +12,8 @@ export const loadingInterceptor: HttpInterceptorFn = (req, next) => {
   }
 
   const overlay = inject(LoadingOverlayService);
+  // Tela com skeleton aberta (sessão): cada parte mostra o próprio carregamento.
+  if (overlay.httpSuppressed) return next(req);
   overlay.show();
   return next(req).pipe(finalize(() => overlay.hide()));
 };

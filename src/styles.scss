@@ -319,3 +319,46 @@ input[type="checkbox"].retro-checkbox {
   justify-content: center;
   gap: 12px;
 }
+
+/* ===== Skeleton loader =====
+   Blocos no formato do conteúdo enquanto ele carrega — usado na sessão no lugar do overlay do
+   dragão (ver LoadingOverlayService.suppressHttp). O brilho anda em degraus (steps) pra combinar
+   com o visual pixel art. Tamanho de cada bloco vai no próprio elemento (style width/height). */
+.skeleton {
+  display: block;
+  min-height: 10px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.06) 30%,
+    rgba(255, 255, 255, 0.18) 50%,
+    rgba(255, 255, 255, 0.06) 70%
+  );
+  background-size: 300% 100%;
+  animation: skeleton-shimmer 1.2s steps(6) infinite;
+}
+
+.skeleton--circle {
+  border-radius: 50%;
+}
+
+.skeleton-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+@keyframes skeleton-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}

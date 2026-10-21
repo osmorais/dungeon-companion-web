@@ -17,7 +17,28 @@
     @if (error()) {
       <p class="mobile-empty-msg">ERRO AO CARREGAR A SESSÃO.</p>
     } @else if (!sessionDetail()) {
-      <p class="mobile-empty-msg">CARREGANDO...</p>
+      <!-- Skeleton no formato dos quadros da sessão (mobile) -->
+      <div aria-busy="true" aria-label="Carregando a sessão">
+        <fieldset class="mobile-panel">
+          <legend>AVENTURA</legend>
+          <app-skeleton-rows [rows]="4" />
+        </fieldset>
+        <fieldset class="mobile-panel">
+          <legend>COMBATE</legend>
+          <app-skeleton-rows [rows]="2" [height]="18" />
+        </fieldset>
+        <fieldset class="mobile-panel">
+          <legend>AVENTUREIROS</legend>
+          <div class="mobile-players-grid">
+            @for (i of [1, 2, 3, 4]; track i) {
+              <div class="mobile-player-card">
+                <span class="skeleton skeleton--circle" style="width: 56px; height: 56px"></span>
+                <app-skeleton-rows [rows]="3" [height]="9" />
+              </div>
+            }
+          </div>
+        </fieldset>
+      </div>
     } @else {
       <!-- Cabeçalho da sessão -->
       <fieldset class="mobile-panel">
@@ -410,9 +431,34 @@
         <p class="empty-msg">ERRO AO CARREGAR A SESSÃO.</p>
       </fieldset>
     } @else if (!sessionDetail()) {
-      <fieldset class="retro-panel">
-        <p class="empty-msg">CARREGANDO...</p>
-      </fieldset>
+      <!-- Skeleton no formato do layout da sessão (desktop): combate | cabeçalho + cards | rolagens -->
+      <div class="layout" aria-busy="true" aria-label="Carregando a sessão">
+        <fieldset class="retro-panel combat-panel combat-sidebar">
+          <legend>COMBATE</legend>
+          <app-skeleton-rows [rows]="5" [height]="18" />
+        </fieldset>
+        <div class="main-column">
+          <fieldset class="retro-panel session-header-panel">
+            <legend>PAINEL DA SESSÃO</legend>
+            <app-skeleton-rows [rows]="2" [height]="16" />
+          </fieldset>
+          <fieldset class="retro-panel">
+            <legend>AVENTUREIROS</legend>
+            <div class="players-grid">
+              @for (i of [1, 2, 3]; track i) {
+                <div class="player-card">
+                  <span class="skeleton skeleton--circle" style="width: 72px; height: 72px"></span>
+                  <app-skeleton-rows [rows]="4" [height]="10" />
+                </div>
+              }
+            </div>
+          </fieldset>
+        </div>
+        <fieldset class="retro-panel rolls-sidebar">
+          <legend>ROLAGENS RECENTES</legend>
+          <app-skeleton-rows [rows]="6" [height]="16" />
+        </fieldset>
+      </div>
     } @else {
       <div class="layout">
 
@@ -573,7 +619,7 @@
                           }
                         </div>
                       } @else {
-                        <p class="avatar-tooltip-loading">Carregando...</p>
+                        <app-skeleton-rows [rows]="3" [height]="9" />
                       }
                     </div>
                   }
@@ -902,7 +948,7 @@
       <h3 class="modal-title">ADICIONAR NPC</h3>
 
       @if (addNpcLoading()) {
-        <p class="modal-empty">Carregando personagens...</p>
+        <app-skeleton-rows [rows]="4" [height]="22" />
       } @else if (availableToAdd.length === 0) {
         <p class="modal-empty">Todos os personagens já foram adicionados à sessão.</p>
       } @else {

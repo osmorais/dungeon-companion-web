@@ -7,6 +7,26 @@ export class LoadingOverlayService {
   readonly subMessage = signal('AGUARDE ENQUANTO A MAGIA ACONTECE');
 
   private pendingCount = 0;
+  private httpSuppressors = 0;
+
+  /**
+   * Telas que mostram skeleton no lugar do overlay (a sessão) desligam o overlay das requisições
+   * HTTP enquanto estão abertas. Navegação e `show()` explícito continuam funcionando. Devolve a
+   * função que libera — chamar no destroy da tela.
+   */
+  suppressHttp(): () => void {
+    this.httpSuppressors++;
+    let released = false;
+    return () => {
+      if (released) return;
+      released = true;
+      this.httpSuppressors--;
+    };
+  }
+
+  get httpSuppressed(): boolean {
+    return this.httpSuppressors > 0;
+  }
 
   show(message?: string, subMessage?: string) {
     const wasVisible = this.visible();

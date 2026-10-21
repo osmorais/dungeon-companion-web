@@ -32,6 +32,8 @@ export interface GroupRow {
   passivePerception: number | null;
   spellSaveDc: number | null;
   effects: string[];
+  /** Ficha já chegou — enquanto busca, CA/PP/CD mostram skeleton em vez de "—". */
+  hasSheet: boolean;
 }
 
 /** Alvo da mesa no quadro (descanso e dano em área). `key` = `${type}:${id}`. */
@@ -142,6 +144,7 @@ export class DmBoardComponent implements OnInit, OnDestroy {
           passivePerception: sheet?.combat_stats.passive_perception ?? null,
           spellSaveDc: sheet?.spellcasting_info?.spell_save_dc ?? null,
           effects,
+          hasSheet: !!sheet,
         };
       });
   }

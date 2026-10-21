@@ -7,13 +7,14 @@ import {
   SrdMonsterDetail,
   SrdMonsterSummary,
 } from '../models/monster-catalog.interface';
+import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 
 type AddMonsterMode = 'catalog' | 'new';
 
 @Component({
   selector: 'app-add-monster-modal',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, SkeletonRowsComponent],
   templateUrl: './add-monster-modal.component.html',
   styleUrls: ['./add-monster-modal.component.scss'],
 })

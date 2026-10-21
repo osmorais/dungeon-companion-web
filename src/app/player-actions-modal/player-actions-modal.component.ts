@@ -34,6 +34,7 @@ import {
 /** id_class do Paladino em rules.ts — único com Destruição Divina. */
 const PALADIN_CLASS_ID = 11;
 import { attrLabel } from '../models/level-up.interface';
+import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 
 /** Atributo da perícia (sigla em português do banco) → chave em inglês dos traços. */
 const PT_TO_EN: Record<string, string> = {
@@ -54,7 +55,7 @@ export function isLongCastingTime(castingTime: string | null | undefined): boole
 @Component({
   selector: 'app-player-actions-modal',
   standalone: true,
-  imports: [CommonModule, KeyValuePipe, RollModalComponent],
+  imports: [CommonModule, KeyValuePipe, RollModalComponent, SkeletonRowsComponent],
   templateUrl: './player-actions-modal.component.html',
   styleUrls: ['./player-actions-modal.component.scss'],
 })

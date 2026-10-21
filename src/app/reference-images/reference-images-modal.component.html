@@ -44,7 +44,11 @@
     }
 
     @if (loading()) {
-      <p class="refimg-hint">Carregando...</p>
+      <div class="refimg-grid" aria-busy="true" aria-label="Carregando imagens">
+        @for (i of [1, 2, 3, 4]; track i) {
+          <span class="skeleton" style="width: 100%; aspect-ratio: 4 / 3"></span>
+        }
+      </div>
     } @else if (images().length === 0) {
       <p class="refimg-hint">Nenhuma imagem ainda.</p>
     } @else {

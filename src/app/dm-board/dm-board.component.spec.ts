@@ -153,6 +153,7 @@ describe('DmBoardComponent (quadro do mestre)', () => {
         passivePerception: 13,
         spellSaveDc: null,
         effects: ['Fúria'],
+        hasSheet: true,
       },
       {
         idPlayerSession: 'p2',
@@ -162,6 +163,7 @@ describe('DmBoardComponent (quadro do mestre)', () => {
         passivePerception: 11,
         spellSaveDc: 14,
         effects: ['Inspiração Bárdica (d6)'],
+        hasSheet: true,
       },
     ]);
     expect(board.loadingSheets()).toBe(false);
@@ -176,6 +178,7 @@ describe('DmBoardComponent (quadro do mestre)', () => {
     );
     board.ngOnInit();
     expect(board.groupRows.map((r) => r.ac)).toEqual([null, 15]);
+    expect(board.groupRows.map((r) => r.hasSheet)).toEqual([false, true]);
   });
 
   it('sem jogador com personagem não busca ficha nenhuma', () => {

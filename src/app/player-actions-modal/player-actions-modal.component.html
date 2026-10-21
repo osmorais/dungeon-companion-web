@@ -4,7 +4,15 @@
     <h3 class="pa-modal-title">{{ actorName }}</h3>
 
     @if (loading()) {
-      <p class="pa-modal-status">CARREGANDO...</p>
+      <div aria-busy="true" aria-label="Carregando a ficha">
+        <app-skeleton-rows [rows]="1" [height]="30" />
+        @for (section of [4, 3, 5]; track $index) {
+          <div class="pa-section">
+            <span class="skeleton" style="width: 40%; height: 10px"></span>
+            <app-skeleton-rows [rows]="section" [height]="22" />
+          </div>
+        }
+      </div>
     } @else if (error() || !sheet()) {
       <p class="pa-modal-status">ERRO AO CARREGAR A FICHA.</p>
     } @else {

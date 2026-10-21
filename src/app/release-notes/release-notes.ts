@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.2.3',
+    date: '2026-10-20',
+    title: 'Carregamento mais suave na sessão',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'Dentro da sessão, a tela de carregamento com o dragão deu lugar a blocos no formato do conteúdo que está chegando (cards, listas, ficha), e o resto da mesa continua visível enquanto isso. Vale para a abertura da sessão, ações e ficha do personagem, inventário, imagens de referência, monstros e o Quadro do Mestre.',
+      },
+    ],
+  },
+  {
     version: '1.2.2',
     date: '2026-10-20',
     title: 'Quadro do Mestre com aba também no celular',

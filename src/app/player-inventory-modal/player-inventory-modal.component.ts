@@ -12,13 +12,14 @@ import { FormsModule } from '@angular/forms';
 import { PlayerInventoryService } from '../services/player-inventory.service';
 import { CharacterService } from '../services/character.service';
 import { InventoryItem, ItemCatalogEntry } from '../models/player-inventory.interface';
+import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 
 type InventoryModalMode = 'items' | 'catalog';
 
 @Component({
   selector: 'app-player-inventory-modal',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, SkeletonRowsComponent],
   templateUrl: './player-inventory-modal.component.html',
   styleUrls: ['./player-inventory-modal.component.scss'],
 })

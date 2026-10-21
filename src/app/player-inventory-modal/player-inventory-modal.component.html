@@ -23,7 +23,7 @@
 
     @if (mode() === 'items') {
       @if (loadingItems()) {
-        <p class="modal-empty">Carregando inventário...</p>
+        <app-skeleton-rows [rows]="4" [height]="22" />
       } @else if (itemsError()) {
         <p class="modal-empty">Erro ao carregar o inventário.</p>
       } @else if (items().length === 0) {
@@ -88,7 +88,7 @@
         />
 
         @if (loadingCatalog()) {
-          <p class="modal-empty">Carregando catálogo...</p>
+          <app-skeleton-rows [rows]="6" [height]="22" />
         } @else if (catalogError()) {
           <p class="modal-empty">Erro ao carregar o catálogo.</p>
         } @else {

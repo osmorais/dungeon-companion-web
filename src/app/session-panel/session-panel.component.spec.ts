@@ -23,6 +23,7 @@ import {
   sessionDetail,
 } from '../../testing/session-fixtures';
 import { DamageImpactService } from '../services/damage-impact.service';
+import { LoadingOverlayService } from '../loading-overlay/loading-overlay.service';
 import { RollLogEntry } from '../models/game-session.interface';
 
 /**
@@ -72,6 +73,15 @@ describe('SessionPanelComponent', () => {
     else if ('id_player_session' in target) component.setPlayerDamageInput(target, event);
     else component.setMonsterDamageInput(target, event);
   }
+
+  describe('carregamento por skeleton', () => {
+    it('com a sessão aberta o overlay do dragão fica desligado; ao sair volta', () => {
+      const overlay = TestBed.inject(LoadingOverlayService);
+      expect(overlay.httpSuppressed).toBe(true);
+      component.ngOnDestroy();
+      expect(overlay.httpSuppressed).toBe(false);
+    });
+  });
 
   describe('sessão apagada pelo mestre', () => {
     it('jogador vê o aviso de sessão encerrada', () => {
