@@ -17,7 +17,7 @@
         [class.mode-tab--active]="mode() === 'catalog'"
         (click)="setMode('catalog')"
       >
-        🛒 MERCADO DE ITENS
+        <img class="ui-icon" src="assets/icons/coin-pouch.png" alt="" /> MERCADO DE ITENS
       </button>
     </div>
 
@@ -27,7 +27,7 @@
       } @else if (itemsError()) {
         <p class="modal-empty">Erro ao carregar o inventário.</p>
       } @else if (items().length === 0) {
-        <p class="modal-empty">Nenhum item ainda. Use a aba "🛒 MERCADO DE ITENS".</p>
+        <p class="modal-empty">Nenhum item ainda. Use a aba "MERCADO DE ITENS".</p>
       } @else {
         <p class="inventory-total-weight">Peso total: {{ totalWeight() }}kg</p>
         <div class="inventory-list">

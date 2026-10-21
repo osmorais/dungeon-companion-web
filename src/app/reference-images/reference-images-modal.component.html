@@ -1,7 +1,9 @@
 <div class="refimg-overlay" (click)="closed.emit()">
   <div class="refimg-panel" (click)="$event.stopPropagation()">
     <button class="refimg-close" (click)="closed.emit()">✕</button>
-    <h3 class="refimg-title">🖼 IMAGENS DA SESSÃO</h3>
+    <h3 class="refimg-title">
+      <img class="ui-icon" src="assets/icons/picture.png" alt="" /> IMAGENS DA SESSÃO
+    </h3>
     <p class="refimg-hint">
       Suba mapas, cenas ou retratos e mostre em tela cheia para todos os jogadores. Use só imagens
       que você pode compartilhar.

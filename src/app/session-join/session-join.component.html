@@ -57,7 +57,7 @@
                 <span class="mobile-char-level">NÍVEL {{ char.level }}</span>
               </div>
               @if (isSelected(char)) {
-                <span class="mobile-selected-mark">✔</span>
+                <span class="mobile-selected-mark"><img class="ui-icon" src="assets/icons/check.png" alt="" /></span>
               }
             </button>
           }
@@ -141,7 +141,7 @@
               <div class="char-card-top">
                 <span class="char-name">{{ char.name }}</span>
                 @if (isSelected(char)) {
-                  <span class="selected-mark">✔</span>
+                  <span class="selected-mark"><img class="ui-icon" src="assets/icons/check.png" alt="" /></span>
                 }
               </div>
               <span class="char-meta">{{ char.class }} — {{ char.race }}</span>

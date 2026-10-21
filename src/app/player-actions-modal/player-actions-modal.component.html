@@ -22,7 +22,7 @@
         <p class="pa-action-error">{{ err }}</p>
       }
 
-      <button class="pa-freeform-btn" (click)="openFreeformRoll()">🎲 ROLAR DADO</button>
+      <button class="pa-freeform-btn" (click)="openFreeformRoll()"><img class="ui-icon" src="assets/icons/d20.png" alt="" /> ROLAR DADO</button>
 
       <div class="pa-section">
         <h4 class="pa-section-title">
@@ -40,10 +40,10 @@
             [disabled]="rollingHitDie() || hitDiceAvailable() === 0 || isAtMaxHp()"
             (click)="rollHitDieNow()"
           >
-            {{ rollingHitDie() ? '...' : '🎲 DESCANSO CURTO' }}
+            @if (!rollingHitDie()) { <img class="ui-icon" src="assets/icons/d20.png" alt="" /> }{{ rollingHitDie() ? '...' : 'DESCANSO CURTO' }}
           </button>
           <button class="pa-freeform-btn" [disabled]="restingLong()" (click)="longRestNow()">
-            {{ restingLong() ? '...' : '🌙 DESCANSO LONGO' }}
+            @if (!restingLong()) { <img class="ui-icon" src="assets/icons/moon.png" alt="" /> }{{ restingLong() ? '...' : 'DESCANSO LONGO' }}
           </button>
         </div>
         @if (lastHitDieResult(); as hd) {
@@ -221,7 +221,7 @@
                       }
                     </div>
                     @if (isLongCastInCombat(spell)) {
-                      <span class="pa-long-cast">⏳ {{ spell.casting_time }} — fora do ritmo do combate</span>
+                      <span class="pa-long-cast"><img class="ui-icon" src="assets/icons/hourglass.png" alt="" /> {{ spell.casting_time }} — fora do ritmo do combate</span>
                     }
                     @if (isOnHitSpell(spell) && isCastable(spell)) {
                       <span class="pa-no-slots">use ao acertar um ataque com arma</span>

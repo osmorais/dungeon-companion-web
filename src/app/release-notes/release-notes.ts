@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.3.3',
+    date: '2026-10-21',
+    title: 'Ícones em pixel art',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'Os emojis do site deram lugar a ícones em pixel art no mesmo estilo do resto do visual: menu inicial, sessão, Quadro do Mestre, ficha, testes e descansos. Os ícones dos botões AÇÕES, FICHA e ITENS também foram refeitos.',
+      },
+    ],
+  },
+  {
     version: '1.3.2',
     date: '2026-10-21',
     title: 'Topo da sessão mais limpo',

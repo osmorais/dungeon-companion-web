@@ -1238,7 +1238,7 @@
       <button class="item-modal-close" (click)="closeWeaponModal()">✕</button>
       <h3 class="item-modal-title">{{ selectedWeapon.name }}</h3>
       <div class="item-modal-image">
-        <span>{{ selectedWeapon.isRanged ? '🏹' : '⚔️' }}</span>
+        <span><img class="ui-icon" [src]="selectedWeapon.isRanged ? 'assets/icons/bow.png' : 'assets/icons/swords.png'" alt="" /></span>
       </div>
       <div class="item-modal-info">
         <div class="item-modal-row">

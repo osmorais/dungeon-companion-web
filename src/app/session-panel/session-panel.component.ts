@@ -2226,11 +2226,14 @@ export class SessionPanelComponent implements OnDestroy {
     return npc?.character?.name ?? 'NPC';
   }
 
-  turnBannerText(current: CombatParticipant): string {
+  /** Faixa da vez no combate. `action` = é a vez de quem está olhando agir (mostra o d20). */
+  turnBanner(current: CombatParticipant): { text: string; action: boolean } {
     const name = this.combatParticipantName(current);
     if (current.participant_type === 'npc' || current.participant_type === 'monster') {
       const label = current.participant_type === 'monster' ? 'MONSTRO' : 'NPC';
-      return this.isOwner() ? `🎲 TURNO DE ${name} — AJA PELO ${label}!` : `AGUARDANDO O MESTRE (${name})...`;
+      return this.isOwner()
+        ? { text: `TURNO DE ${name} — AJA PELO ${label}!`, action: true }
+        : { text: `AGUARDANDO O MESTRE (${name})...`, action: false };
     }
     const user = this.authService.currentUser();
     const detail = this.sessionDetail();
@@ -2238,7 +2241,9 @@ export class SessionPanelComponent implements OnDestroy {
       !!user &&
       !!detail &&
       detail.players.some((pl) => pl.id_player_session === current.id_player_session && pl.user_id === user.id);
-    return isMe ? `🎲 É A SUA VEZ, ${name}!` : `AGUARDANDO ${name}...`;
+    return isMe
+      ? { text: `É A SUA VEZ, ${name}!`, action: true }
+      : { text: `AGUARDANDO ${name}...`, action: false };
   }
 
   openInitiativeRoll(pending: CombatParticipant): void {

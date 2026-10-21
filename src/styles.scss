@@ -430,3 +430,14 @@ input[type="checkbox"].retro-checkbox {
     scrollbar-color: var(--border-color) var(--bg-color);
   }
 }
+
+/* ===== Ícones pixel art (src/assets/icons/, 96 px) =====
+   No lugar dos emojis: `<img class="ui-icon" src="assets/icons/NOME.png" alt="" />`. O tamanho
+   acompanha a fonte do elemento em volta (em), então o mesmo ícone serve em botão e em card. */
+.ui-icon {
+  display: inline-block;
+  width: 1.5em;
+  height: 1.5em;
+  vertical-align: -0.4em;
+  object-fit: contain;
+}

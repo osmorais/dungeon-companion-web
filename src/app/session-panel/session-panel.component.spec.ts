@@ -74,6 +74,19 @@ describe('SessionPanelComponent', () => {
     else component.setMonsterDamageInput(target, event);
   }
 
+  describe('faixa da vez no combate', () => {
+    it('mestre na vez de um NPC: precisa agir (com o d20); na vez de um jogador: só aguarda', () => {
+      detail.set(sessionDetail({ players: [player('p1')], npcs: [npc('n1')] }));
+      expect(
+        component.turnBanner(participant('c1', { participant_type: 'npc', id_npc_session: 'n1' })),
+      ).toEqual({ text: 'TURNO DE Personagem n1 — AJA PELO NPC!', action: true });
+      expect(component.turnBanner(participant('c2', { id_player_session: 'p1' }))).toEqual({
+        text: 'AGUARDANDO Personagem p1...',
+        action: false,
+      });
+    });
+  });
+
   describe('carregamento por skeleton', () => {
     it('com a sessão aberta o overlay do dragão fica desligado; ao sair volta', () => {
       const overlay = TestBed.inject(LoadingOverlayService);

@@ -10,15 +10,21 @@
     <span class="dm-board-tab-label">QUADRO DO MESTRE</span>
   </button>
   <header class="dm-board-header">
-    <h3 class="dm-board-title">📜 QUADRO DO MESTRE</h3>
+    <h3 class="dm-board-title">
+      <img class="ui-icon" src="assets/icons/scroll.png" alt="" /> QUADRO DO MESTRE
+    </h3>
   </header>
 
   <div class="dm-board-body">
     <section class="dm-board-section">
       <h4 class="dm-board-section-title">DADOS</h4>
       <div class="dm-board-grid">
-        <button class="retro-btn dm-board-btn" (click)="rollDice.emit()">🎲 ROLAR DADOS</button>
-        <button class="retro-btn dm-board-btn" (click)="secretRoll.emit()">🔒 TESTE SECRETO</button>
+        <button class="retro-btn dm-board-btn" (click)="rollDice.emit()">
+          <img class="ui-icon" src="assets/icons/d20.png" alt="" /> ROLAR DADOS
+        </button>
+        <button class="retro-btn dm-board-btn" (click)="secretRoll.emit()">
+          <img class="ui-icon" src="assets/icons/padlock.png" alt="" /> TESTE SECRETO
+        </button>
       </div>
     </section>
 
@@ -173,8 +179,12 @@
         <p class="dm-board-hint">NENHUM PERSONAGEM NA SESSÃO.</p>
       } @else {
         <div class="dm-board-grid">
-          <button class="retro-btn dm-board-btn" (click)="startRest('short')">☕ CURTO</button>
-          <button class="retro-btn dm-board-btn" (click)="startRest('long')">🛌 LONGO</button>
+          <button class="retro-btn dm-board-btn" (click)="startRest('short')">
+            <img class="ui-icon" src="assets/icons/campfire.png" alt="" /> CURTO
+          </button>
+          <button class="retro-btn dm-board-btn" (click)="startRest('long')">
+            <img class="ui-icon" src="assets/icons/moon.png" alt="" /> LONGO
+          </button>
         </div>
         @if (restMessage()) {
           <p class="dm-board-hint">{{ restMessage() }}</p>
@@ -241,7 +251,7 @@
     <section class="dm-board-section">
       <h4 class="dm-board-section-title">CENA</h4>
       <button class="retro-btn dm-board-btn dm-board-btn--wide" (click)="referenceImages.emit()">
-        🖼 IMAGENS DE REFERÊNCIA
+        <img class="ui-icon" src="assets/icons/picture.png" alt="" /> IMAGENS DE REFERÊNCIA
       </button>
       @if (detail.monsters.length > 0) {
         <p class="dm-board-hint">
@@ -270,7 +280,7 @@
       <p class="dm-board-hint">{{ combatLabel }}</p>
       @if (!detail.combat) {
         <button class="retro-btn dm-board-btn dm-board-btn--wide" (click)="startFight.emit()">
-          ⚔ INICIAR LUTA
+          <img class="ui-icon" src="assets/icons/swords.png" alt="" /> INICIAR LUTA
         </button>
       } @else {
         <div class="dm-board-grid">
@@ -297,7 +307,7 @@
     <section class="dm-board-section">
       <h4 class="dm-board-section-title">RECOMPENSAS</h4>
       <button class="retro-btn dm-board-btn dm-board-btn--wide" (click)="distributeXp.emit()">
-        ✦ DISTRIBUIR XP
+        <img class="ui-icon" src="assets/icons/xp-gem.png" alt="" /> DISTRIBUIR XP
       </button>
     </section>
 

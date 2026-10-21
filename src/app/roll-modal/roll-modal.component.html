@@ -3,7 +3,9 @@
     <button class="roll-modal-close" (click)="close()">✕</button>
     <h3 class="roll-modal-title">{{ title }}</h3>
     @for (reminder of reminders; track reminder) {
-      <p class="roll-modifier-line">💡 {{ reminder }}</p>
+      <p class="roll-modifier-line">
+        <img class="ui-icon" src="assets/icons/candle.png" alt="" /> {{ reminder }}
+      </p>
     }
     @if (saveLine; as line) {
       <p class="roll-hit-question">{{ line }}</p>
@@ -111,7 +113,7 @@
                 [disabled]="isRolling()"
                 (click)="setFreeformHidden(true)"
               >
-                🔒 OCULTO
+                <img class="ui-icon" src="assets/icons/padlock.png" alt="" /> OCULTO
               </button>
             </div>
           </div>
@@ -163,10 +165,15 @@
           <p class="roll-modifier-line">Quem passar na resistência: {{ saveSuccessTotal }}</p>
         }
         @if (canHideRoll && freeformHidden()) {
-          <p class="roll-hidden-note">🔒 Só você vê esse resultado</p>
+          <p class="roll-hidden-note">
+            <img class="ui-icon" src="assets/icons/padlock.png" alt="" /> Só você vê esse resultado
+          </p>
         }
         @if (secretRequestId) {
-          <p class="roll-hidden-note">🔒 Teste secreto: só você e o mestre veem</p>
+          <p class="roll-hidden-note">
+            <img class="ui-icon" src="assets/icons/padlock.png" alt="" /> Teste secreto: só você e o
+            mestre veem
+          </p>
         }
         @if (postFailed()) {
           <p class="roll-post-error">Não foi possível registrar na sessão.</p>
@@ -177,9 +184,12 @@
     @if (canApply) {
       <div class="roll-apply" [class.roll-apply--heal]="applyKind !== 'damage'">
         <p class="roll-apply-title">
+          @if (applyKind === 'damage') {
+            <img class="ui-icon" src="assets/icons/swords.png" alt="" />
+          }
           {{
             applyKind === 'damage'
-              ? '⚔ APLICAR O DANO'
+              ? 'APLICAR O DANO'
               : applyKind === 'heal'
                 ? '✚ APLICAR A CURA'
                 : '✚ APLICAR OS PV TEMPORÁRIOS'
@@ -281,22 +291,26 @@
       <div class="roll-modal-actions">
         @if (canUseInspiration) {
           <button class="roll-btn-secondary" (click)="useInspiration()">
-            🎵 INSPIRAÇÃO BÁRDICA (d{{ inspirationSides }})
+            <img class="ui-icon" src="assets/icons/lute.png" alt="" /> INSPIRAÇÃO BÁRDICA (d{{
+              inspirationSides
+            }})
           </button>
         }
         @if (canIndomitable) {
           <button class="roll-btn-secondary" (click)="rerollIndomitable()">
-            🛡 INDOMÁVEL: ROLAR DE NOVO
+            <img class="ui-icon" src="assets/icons/shield.png" alt="" /> INDOMÁVEL: ROLAR DE NOVO
           </button>
         }
         @if (canHalflingReroll) {
           <button class="roll-btn-secondary" (click)="rerollHalfling()">
-            🍀 SORTUDO: ROLAR O 1 DE NOVO
+            <img class="ui-icon" src="assets/icons/clover.png" alt="" /> SORTUDO: ROLAR O 1 DE NOVO
           </button>
         }
         @if (canUseLuck) {
           <button class="roll-btn-secondary" (click)="useLuck()">
-            🍀 PONTO DE SORTE ({{ config.mode === 'ability' ? config.luckPoints : 0 }})
+            <img class="ui-icon" src="assets/icons/clover.png" alt="" /> PONTO DE SORTE ({{
+              config.mode === 'ability' ? config.luckPoints : 0
+            }})
           </button>
         }
       </div>
@@ -314,19 +328,24 @@
       @if (isCritical()) {
         <p class="roll-hit-question">ACERTO CRÍTICO! Os dados de dano dobram.</p>
         <div class="roll-modal-actions">
-          <button class="roll-btn-primary" (click)="rollDamageNow()">🎲 ROLAR DANO EM DOBRO</button>
+          <button class="roll-btn-primary" (click)="rollDamageNow()">
+            <img class="ui-icon" src="assets/icons/d20.png" alt="" /> ROLAR DANO EM DOBRO
+          </button>
         </div>
       } @else {
         <p class="roll-hit-question">O ataque passou da CA do alvo?</p>
         <div class="roll-modal-actions">
-          <button class="roll-btn-primary" (click)="rollDamageNow()">🎲 ROLAR DANO</button>
+          <button class="roll-btn-primary" (click)="rollDamageNow()">
+            <img class="ui-icon" src="assets/icons/d20.png" alt="" /> ROLAR DANO
+          </button>
           <button class="roll-btn-secondary" (click)="confirmMiss()">NÃO ACERTEI</button>
         </div>
       }
     } @else if (isOfferingNextInstance) {
       <div class="roll-modal-actions">
         <button class="roll-btn-primary" (click)="nextInstance()">
-          🎲 PRÓXIMO: {{ nextInstanceLabel.toUpperCase() }}
+          <img class="ui-icon" src="assets/icons/d20.png" alt="" /> PRÓXIMO:
+          {{ nextInstanceLabel.toUpperCase() }}
         </button>
         <button class="roll-btn-secondary" (click)="finishInstances()">ENCERRAR</button>
       </div>
@@ -402,7 +421,9 @@
         }
       }
       <div class="roll-modal-actions">
-        <button class="roll-btn-primary" (click)="confirmSmiteChoice()">🎲 ROLAR DANO</button>
+        <button class="roll-btn-primary" (click)="confirmSmiteChoice()">
+          <img class="ui-icon" src="assets/icons/d20.png" alt="" /> ROLAR DANO
+        </button>
       </div>
     } @else {
       <div class="roll-modal-actions">

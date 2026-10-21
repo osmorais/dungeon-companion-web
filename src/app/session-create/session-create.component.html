@@ -52,7 +52,7 @@
 
       <!-- NPCs -->
       <div class="mobile-section-label">
-        🧙 NPCS
+        <img class="ui-icon" src="assets/icons/wizard-hat.png" alt="" /> NPCS
         @if (selectedNpcIds().size > 0) {
           <span class="mobile-npc-count">{{ selectedNpcIds().size }} selecionado(s)</span>
         }
@@ -81,7 +81,7 @@
       }
 
       <!-- Monstros (em breve) -->
-      <div class="mobile-section-label mobile-section-label--mt">🐉 MONSTROS</div>
+      <div class="mobile-section-label mobile-section-label--mt"><img class="ui-icon" src="assets/icons/dragon.png" alt="" /> MONSTROS</div>
       <button class="mobile-catalog-btn" disabled>
         <span class="mobile-catalog-text">
           <span class="mobile-catalog-title">SELECIONAR MONSTROS</span>
@@ -98,7 +98,7 @@
         [disabled]="!canGenerate()"
         (click)="generateCode()"
       >
-        ⚙ GERAR CÓDIGO
+        <img class="ui-icon" src="assets/icons/gear.png" alt="" /> GERAR CÓDIGO
       </button>
 
       @if (sessionCode()) {
@@ -177,7 +177,7 @@
         <!-- NPCs -->
         <div class="npc-picker-panel">
           <div class="npc-picker-header">
-            <span class="catalog-icon">🧙</span>
+            <span class="catalog-icon"><img class="ui-icon" src="assets/icons/wizard-hat.png" alt="" /></span>
             <span class="catalog-title">NPCS</span>
             @if (selectedNpcIds().size > 0) {
               <span class="npc-selected-badge">{{ selectedNpcIds().size }} selecionado(s)</span>
@@ -209,7 +209,7 @@
 
         <!-- Monstros (em breve) -->
         <button class="catalog-btn" disabled>
-          <span class="catalog-icon">🐉</span>
+          <span class="catalog-icon"><img class="ui-icon" src="assets/icons/dragon.png" alt="" /></span>
           <span class="catalog-title">SELECIONAR MONSTROS</span>
           <span class="catalog-desc">Em breve...</span>
         </button>
@@ -226,7 +226,7 @@
           [disabled]="!canGenerate()"
           (click)="generateCode()"
         >
-          ⚙ GERAR CÓDIGO
+          <img class="ui-icon" src="assets/icons/gear.png" alt="" /> GERAR CÓDIGO
         </button>
 
         @if (sessionCode()) {

@@ -51,7 +51,7 @@
         <div class="combat-top">
         @if (!combat()) {
           @if (isOwner()) {
-            <button class="retro-btn combat-start-btn" (click)="openStartFightModal()">⚔ INICIAR LUTA</button>
+            <button class="retro-btn combat-start-btn" (click)="openStartFightModal()"><img class="ui-icon" src="assets/icons/swords.png" alt="" /> INICIAR LUTA</button>
           } @else {
             <p class="mobile-empty-msg mobile-empty-msg--inner">NENHUM COMBATE EM ANDAMENTO.</p>
           }
@@ -63,7 +63,8 @@
           } @else if (c.encounter.status === 'active') {
             <p class="combat-status-label">RONDA {{ c.encounter.round_number }}</p>
             @if (currentTurnParticipant(); as current) {
-              <p class="combat-turn-banner">{{ turnBannerText(current) }}</p>
+              @let banner = turnBanner(current);
+              <p class="combat-turn-banner">@if (banner.action) { <img class="ui-icon" src="assets/icons/d20.png" alt="" /> }{{ banner.text }}</p>
             }
           }
 
@@ -72,7 +73,7 @@
               <div class="combat-order-item" [class.combat-order-item--current]="p.is_current_turn"
                 [attr.data-turn-id]="p.id_combat_participant">
                 <span class="combat-order-name">
-                  {{ combatParticipantName(p) }}{{ p.delayed_this_round ? ' ⏳' : '' }}
+                  {{ combatParticipantName(p) }}@if (p.delayed_this_round) { <img class="ui-icon" src="assets/icons/hourglass.png" alt="" /> }
                 </span>
                 <span class="combat-order-initiative">{{ p.initiative_total === null ? '...' : p.initiative_total }}</span>
                 @if (isOwner() && p.participant_type === 'player' && p.initiative_total === null) {
@@ -126,7 +127,7 @@
               <div class="roll-log-row">
                 <div class="roll-log-info">
                   <span class="roll-log-actor">{{ roll.actor_name }}</span>
-                  <span class="roll-log-label">{{ roll.is_hidden ? '🔒 ' : '' }}{{ roll.label }}{{ advantageSuffix(roll) }}</span>
+                  <span class="roll-log-label">@if (roll.is_hidden) { <img class="ui-icon" src="assets/icons/padlock.png" alt="" /> }{{ roll.label }}{{ advantageSuffix(roll) }}</span>
                 </div>
                 <div class="roll-log-dice">
                   @for (v of roll.rolls; track $index) {
@@ -185,7 +186,7 @@
                       }
                     </div>
                     <span class="mobile-hp-value">
-                      ❤ {{ editedHp(player) }}/{{ player.character.max_hit_points }}{{ editedTempHp(player) > 0 ? ' +' + editedTempHp(player) : '' }}
+                      <img class="ui-icon" src="assets/icons/heart.png" alt="" /> {{ editedHp(player) }}/{{ player.character.max_hit_points }}{{ editedTempHp(player) > 0 ? ' +' + editedTempHp(player) : '' }}
                     </span>
                     @if (canEditHp(player)) {
                       <div class="hp-delta-controls">
@@ -212,13 +213,13 @@
                       @if (isPlayerCurrentTurn(player) && canEndCurrentTurn()) {
                         <button class="mobile-player-action-btn"
                           [disabled]="endingTurn()" (click)="endTurn()">
-                          <span class="mobile-player-action-emoji">⏭</span>
+                          <span class="mobile-player-action-emoji"><img class="ui-icon" src="assets/icons/skip-turn.png" alt="" /></span>
                           <span>{{ endingTurn() ? '...' : 'FINALIZAR' }}</span>
                         </button>
                         @if (canDelayCurrentTurn()) {
                           <button class="mobile-player-action-btn"
                             [disabled]="delayingTurn()" (click)="delayTurn()">
-                            <span class="mobile-player-action-emoji">⏳</span>
+                            <span class="mobile-player-action-emoji"><img class="ui-icon" src="assets/icons/hourglass.png" alt="" /></span>
                             <span>{{ delayingTurn() ? '...' : 'ATRASAR' }}</span>
                           </button>
                         }
@@ -265,7 +266,7 @@
                   @if (npc.character) {
                     <span class="mobile-npc-name">{{ npc.character.name }}</span>
                     <span class="mobile-npc-meta">{{ npc.character.class }} · {{ npc.character.race }} · NV {{ npc.character.level }}</span>
-                    <span class="mobile-npc-hp">❤ {{ editedNpcHp(npc) }}/{{ npc.character.max_hit_points }}</span>
+                    <span class="mobile-npc-hp"><img class="ui-icon" src="assets/icons/heart.png" alt="" /> {{ editedNpcHp(npc) }}/{{ npc.character.max_hit_points }}</span>
                     @if (isOwner()) {
                       <div class="hp-delta-controls">
                         <input type="number" min="0" class="hp-delta-input" placeholder="0"
@@ -287,7 +288,7 @@
                 @if (isOwner()) {
                   <div class="mobile-npc-row-actions">
                     <button class="retro-btn mobile-npc-actions-btn" (click)="openPlayerActions(npc.id_character, npc.character?.name ?? ('NPC #' + npc.id_character))">
-                      🎲 AÇÕES
+                      <img class="ui-icon" src="assets/icons/d20.png" alt="" /> AÇÕES
                     </button>
                     @if (isNpcCurrentTurn(npc) && canEndCurrentTurn()) {
                       <button class="retro-btn turn-end-btn" [disabled]="endingTurn()" (click)="endTurn()">
@@ -337,7 +338,7 @@
                         [style.background-color]="hpColor(monster.hp_current, monster.hp_max)">
                       </div>
                     </div>
-                    <span class="mobile-monster-hp-text">❤ {{ monster.hp_current }}/{{ monster.hp_max }}</span>
+                    <span class="mobile-monster-hp-text"><img class="ui-icon" src="assets/icons/heart.png" alt="" /> {{ monster.hp_current }}/{{ monster.hp_max }}</span>
                   </div>
                   @if (isOwner()) {
                     <div class="hp-delta-controls" (click)="$event.stopPropagation()">
@@ -368,7 +369,7 @@
                       [disabled]="defeatingMonsterId() === monster.id_monster_session"
                       (click)="$event.stopPropagation(); openDefeatMonsterXpModal(monster)"
                     >
-                      ⚔
+                      <img class="ui-icon" src="assets/icons/swords.png" alt="" />
                     </button>
                     <button
                       class="monster-edit-btn"
@@ -464,7 +465,7 @@
         <div class="combat-top">
         @if (!combat()) {
           @if (isOwner()) {
-            <button class="retro-btn combat-start-btn" (click)="openStartFightModal()">⚔ INICIAR LUTA</button>
+            <button class="retro-btn combat-start-btn" (click)="openStartFightModal()"><img class="ui-icon" src="assets/icons/swords.png" alt="" /> INICIAR LUTA</button>
           } @else {
             <p class="empty-msg">NENHUM COMBATE EM ANDAMENTO.</p>
           }
@@ -476,7 +477,8 @@
           } @else if (c.encounter.status === 'active') {
             <p class="combat-status-label">RONDA {{ c.encounter.round_number }}</p>
             @if (currentTurnParticipant(); as current) {
-              <p class="combat-turn-banner">{{ turnBannerText(current) }}</p>
+              @let banner = turnBanner(current);
+              <p class="combat-turn-banner">@if (banner.action) { <img class="ui-icon" src="assets/icons/d20.png" alt="" /> }{{ banner.text }}</p>
             }
           }
 
@@ -485,7 +487,7 @@
               <div class="combat-order-item" [class.combat-order-item--current]="p.is_current_turn"
                 [attr.data-turn-id]="p.id_combat_participant">
                 <span class="combat-order-name">
-                  {{ combatParticipantName(p) }}{{ p.delayed_this_round ? ' ⏳' : '' }}
+                  {{ combatParticipantName(p) }}@if (p.delayed_this_round) { <img class="ui-icon" src="assets/icons/hourglass.png" alt="" /> }
                 </span>
                 <span class="combat-order-initiative">{{ p.initiative_total === null ? '...' : p.initiative_total }}</span>
                 @if (isOwner() && p.participant_type === 'player' && p.initiative_total === null) {
@@ -600,7 +602,7 @@
                       }
                     </div>
                     <span class="hp-text">
-                      ❤ {{ editedHp(player) }}/{{ player.character.max_hit_points }}{{ editedTempHp(player) > 0 ? ' +' + editedTempHp(player) : '' }}
+                      <img class="ui-icon" src="assets/icons/heart.png" alt="" /> {{ editedHp(player) }}/{{ player.character.max_hit_points }}{{ editedTempHp(player) > 0 ? ' +' + editedTempHp(player) : '' }}
                     </span>
                     @if (canEditHp(player)) {
                       <div class="hp-delta-controls">
@@ -627,13 +629,13 @@
                       @if (isPlayerCurrentTurn(player) && canEndCurrentTurn()) {
                         <button class="player-action-btn" title="Finalizar turno"
                           [disabled]="endingTurn()" (click)="endTurn()">
-                          <span class="player-action-emoji">⏭</span>
+                          <span class="player-action-emoji"><img class="ui-icon" src="assets/icons/skip-turn.png" alt="" /></span>
                           <span>{{ endingTurn() ? '...' : 'FINALIZAR' }}</span>
                         </button>
                         @if (canDelayCurrentTurn()) {
                           <button class="player-action-btn" title="Atrasar turno"
                             [disabled]="delayingTurn()" (click)="delayTurn()">
-                            <span class="player-action-emoji">⏳</span>
+                            <span class="player-action-emoji"><img class="ui-icon" src="assets/icons/hourglass.png" alt="" /></span>
                             <span>{{ delayingTurn() ? '...' : 'ATRASAR' }}</span>
                           </button>
                         }
@@ -688,7 +690,7 @@
                           [style.background-color]="hpColor(editedNpcHp(npc), npc.character.max_hit_points)">
                         </div>
                       </div>
-                      <span class="npc-hp-text">❤ {{ editedNpcHp(npc) }}/{{ npc.character.max_hit_points }}</span>
+                      <span class="npc-hp-text"><img class="ui-icon" src="assets/icons/heart.png" alt="" /> {{ editedNpcHp(npc) }}/{{ npc.character.max_hit_points }}</span>
                     </div>
                     @if (isOwner()) {
                       <div class="hp-delta-controls">
@@ -711,7 +713,7 @@
                 @if (isOwner()) {
                   <div class="npc-row-actions">
                     <button class="retro-btn npc-actions-btn" (click)="openPlayerActions(npc.id_character, npc.character?.name ?? ('NPC #' + npc.id_character))">
-                      🎲 AÇÕES
+                      <img class="ui-icon" src="assets/icons/d20.png" alt="" /> AÇÕES
                     </button>
                     @if (isNpcCurrentTurn(npc) && canEndCurrentTurn()) {
                       <button class="retro-btn turn-end-btn" [disabled]="endingTurn()" (click)="endTurn()">
@@ -794,7 +796,7 @@
                       [disabled]="defeatingMonsterId() === monster.id_monster_session"
                       (click)="$event.stopPropagation(); openDefeatMonsterXpModal(monster)"
                     >
-                      ⚔
+                      <img class="ui-icon" src="assets/icons/swords.png" alt="" />
                     </button>
                     <button
                       class="monster-edit-btn"
@@ -846,7 +848,7 @@
               <div class="roll-log-row">
                 <div class="roll-log-info">
                   <span class="roll-log-actor">{{ roll.actor_name }}</span>
-                  <span class="roll-log-label">{{ roll.is_hidden ? '🔒 ' : '' }}{{ roll.label }}{{ advantageSuffix(roll) }}</span>
+                  <span class="roll-log-label">@if (roll.is_hidden) { <img class="ui-icon" src="assets/icons/padlock.png" alt="" /> }{{ roll.label }}{{ advantageSuffix(roll) }}</span>
                 </div>
                 <div class="roll-log-dice">
                   @for (v of roll.rolls; track $index) {
@@ -1021,7 +1023,7 @@
     <div class="overlay modal-overlay">
       <div class="retro-panel battle-start-panel">
         <h3 class="modal-title">
-          {{ combat()?.encounter?.status === 'active' ? '⚔ VOCÊ ENTROU NO COMBATE!' : '⚔ A BATALHA VAI COMEÇAR!' }}
+          <img class="ui-icon" src="assets/icons/swords.png" alt="" /> {{ combat()?.encounter?.status === 'active' ? 'VOCÊ ENTROU NO COMBATE!' : 'A BATALHA VAI COMEÇAR!' }}
         </h3>
         <button class="retro-btn" (click)="openInitiativeRoll(pending)">ROLAR INICIATIVA</button>
       </div>
@@ -1033,7 +1035,7 @@
 @if (showBattlePreparePrompt()) {
   <div class="overlay modal-overlay">
     <div class="retro-panel battle-start-panel battle-prepare-prompt-panel">
-      <h3 class="modal-title">⚔ A LUTA VAI COMEÇAR!</h3>
+      <h3 class="modal-title"><img class="ui-icon" src="assets/icons/swords.png" alt="" /> A LUTA VAI COMEÇAR!</h3>
       <p class="battle-prepare-question">
         Deseja selecionar suas magias preparadas? Em combate não é possível preparar magias.
       </p>
@@ -1152,7 +1154,7 @@
         [style.background-image]="rollToastImageUrl(toast) ? ('linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(' + rollToastImageUrl(toast) + ')') : null"
         (click)="$event.stopPropagation()">
         <button class="modal-close-btn" (click)="closeRollToast()">✕</button>
-        <span class="roll-toast-label">{{ toast.is_hidden ? '🔒 ' : '' }}{{ toast.label }}{{ advantageSuffix(toast) }}</span>
+        <span class="roll-toast-label">@if (toast.is_hidden) { <img class="ui-icon" src="assets/icons/padlock.png" alt="" /> }{{ toast.label }}{{ advantageSuffix(toast) }}</span>
         <div class="roll-toast-avatar-circle">
           @if (toast.id_character === null) {
             <img class="roll-toast-dm-icon" src="assets/dm.png" alt="Mestre" />

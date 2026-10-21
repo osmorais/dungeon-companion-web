@@ -90,7 +90,7 @@
                 <p class="catalog-error">{{ catalogError() }}</p>
               }
               <button class="retro-btn catalog-confirm-btn" [disabled]="cataloging()" (click)="confirmCatalog()">
-                {{ cataloging() ? 'CATALOGANDO...' : '📖 CATALOGAR ESTE MONSTRO' }}
+                @if (!cataloging()) { <img class="ui-icon" src="assets/icons/book-open.png" alt="" /> }{{ cataloging() ? 'CATALOGANDO...' : 'CATALOGAR ESTE MONSTRO' }}
               </button>
             </div>
           </div>
@@ -193,7 +193,7 @@
                 <p class="catalog-error">{{ catalogError() }}</p>
               }
               <button class="retro-btn catalog-confirm-btn" [disabled]="cataloging()" (click)="confirmCatalog()">
-                {{ cataloging() ? 'CATALOGANDO...' : '📖 CATALOGAR ESTE MONSTRO' }}
+                @if (!cataloging()) { <img class="ui-icon" src="assets/icons/book-open.png" alt="" /> }{{ cataloging() ? 'CATALOGANDO...' : 'CATALOGAR ESTE MONSTRO' }}
               </button>
             </div>
           </div>
