@@ -1912,6 +1912,8 @@ export class SessionPanelComponent implements OnDestroy {
   showBattlePreparePrompt = signal(false);
   showBattlePrepareModal = signal(false);
   private battlePrepareSheet = signal<CharacterSheetResponse | null>(null);
+  /** Recusa da API (ex.: já rolou a iniciativa) — aparece no modal em vez de sumir em silêncio. */
+  battlePrepareError = signal<string | null>(null);
 
   private checkBattlePrepareSpells(pending: CombatParticipant): void {
     if (this.battlePrepareCheckedFor.has(pending.id_combat_participant)) return;
@@ -1942,12 +1944,14 @@ export class SessionPanelComponent implements OnDestroy {
 
   openBattlePrepareModal(): void {
     this.showBattlePreparePrompt.set(false);
+    this.battlePrepareError.set(null);
     this.showBattlePrepareModal.set(true);
   }
 
   closeBattlePrepareModal(): void {
     this.showBattlePrepareModal.set(false);
     this.battlePrepareSheet.set(null);
+    this.battlePrepareError.set(null);
   }
 
   battlePrepareCircleName(circle: number): string {
@@ -1985,13 +1989,26 @@ export class SessionPanelComponent implements OnDestroy {
     return this.battlePreparedCount() < this.battlePrepareMax();
   }
 
-  battleTogglePrepared(spell: Spell): void {
+  /**
+   * O checkbox nativo se marca sozinho no clique — se o preparo for recusado (limite ou API), ele
+   * volta pro estado real (`box.checked`), senão ficaria marcado sem ter gravado nada.
+   */
+  battleTogglePrepared(spell: Spell, event?: Event): void {
+    const box = event?.target as HTMLInputElement | undefined;
+    const revert = () => {
+      if (box) box.checked = !!spell.is_prepared;
+    };
     const id = this.battlePrepareSheet()?.character_sheet.id_character;
-    if (!id) return;
+    if (!id) return revert();
     const next = !spell.is_prepared;
-    if (next && !this.battleCanPrepareMore()) return;
+    if (next && !this.battleCanPrepareMore()) return revert();
 
+    this.battlePrepareError.set(null);
     this.charService.setSpellPrepared(id, spell.id_spell, next).subscribe({
+      error: (err) => {
+        revert();
+        this.battlePrepareError.set(apiErrorMessage(err, 'Não foi possível preparar a magia.'));
+      },
       next: () => {
         this.battlePrepareSheet.update((sheet) =>
           sheet

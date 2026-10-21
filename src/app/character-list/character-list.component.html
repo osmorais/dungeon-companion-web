@@ -79,7 +79,7 @@
         @for (char of characters(); track char.id_character) {
           @let info = cardInfo(char.id_character);
           <article
-            class="d-card d-card--deletable char-card"
+            class="d-card d-card--deletable char-card framed-card"
             [style.background-image]="info?.imageUrl ? 'linear-gradient(rgba(0,0,0,0.62), rgba(0,0,0,0.62)), url(' + info?.imageUrl + ')' : null"
             (click)="openSheet(char.id_character)"
           >

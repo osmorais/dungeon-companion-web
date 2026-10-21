@@ -175,3 +175,8 @@
   border-radius: 50%;
   background-color: var(--bg-color);
 }
+
+/* Com moldura (.framed-card) a cor da borda não aparece: o destaque do hover é o brilho. */
+.char-card:hover {
+  box-shadow: 0 0 10px var(--accent-color);
+}

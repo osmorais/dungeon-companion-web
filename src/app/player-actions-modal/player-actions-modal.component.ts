@@ -824,14 +824,22 @@ export class PlayerActionsModalComponent implements OnInit {
     return !!this.sheet()?.character_sheet.in_active_combat;
   }
 
-  togglePrepared(spell: Spell): void {
-    if (this.isInActiveCombat()) return;
+  /** Recusado (combate, limite ou API): o checkbox nativo volta pro estado real. */
+  togglePrepared(spell: Spell, event?: Event): void {
+    const box = event?.target as HTMLInputElement | undefined;
+    const revert = () => {
+      if (box) box.checked = !!spell.is_prepared;
+    };
+    if (this.isInActiveCombat()) return revert();
     const next = !spell.is_prepared;
-    if (next && !this.canPrepareMore()) return;
+    if (next && !this.canPrepareMore()) return revert();
     this.actionError.set(null);
     this.charService.setSpellPrepared(this.idCharacter, spell.id_spell, next).subscribe({
       next: () => this.applyPreparedLocally(spell.id_spell, next),
-      error: (err) => this.handleActionError(err),
+      error: (err) => {
+        revert();
+        this.handleActionError(err);
+      },
     });
   }
 

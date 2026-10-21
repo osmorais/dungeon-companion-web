@@ -29,7 +29,7 @@
           <legend>AVENTUREIROS</legend>
           <div class="mobile-players-grid">
             @for (i of [1, 2, 3, 4]; track i) {
-              <div class="mobile-player-card">
+              <div class="mobile-player-card framed-card">
                 <span class="skeleton skeleton--circle" style="width: 56px; height: 56px"></span>
                 <app-skeleton-rows [rows]="3" [height]="9" />
               </div>
@@ -154,7 +154,7 @@
         } @else {
           <div class="mobile-players-grid">
             @for (player of sessionDetail()!.players; track player.id_player_session) {
-              <div class="mobile-player-card"
+              <div class="mobile-player-card framed-card"
                 [class.mobile-player-card--current-turn]="isPlayerCurrentTurn(player)"
                 [class.mobile-player-card--has-bg]="player.character?.image_url"
                 [style.background-image]="player.character?.image_url ? ('linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(' + player.character?.image_url + ')') : null">
@@ -432,7 +432,7 @@
             <legend>AVENTUREIROS</legend>
             <div class="players-grid">
               @for (i of [1, 2, 3]; track i) {
-                <div class="player-card">
+                <div class="player-card framed-card">
                   <span class="skeleton skeleton--circle" style="width: 72px; height: 72px"></span>
                   <app-skeleton-rows [rows]="4" [height]="10" />
                 </div>
@@ -542,7 +542,7 @@
         } @else {
           <div class="players-grid">
             @for (player of sessionDetail()!.players; track player.id_player_session) {
-              <div class="player-card"
+              <div class="player-card framed-card"
                 [class.player-card--current-turn]="isPlayerCurrentTurn(player)"
                 [class.player-card--has-bg]="player.character?.image_url"
                 [class.player-card--tooltip-active]="avatarTooltipVisibleFor(player.id_character)"
@@ -1061,11 +1061,14 @@
               <input type="checkbox" class="retro-checkbox"
                      [checked]="spell.is_prepared"
                      [disabled]="!spell.is_prepared && !battleCanPrepareMore()"
-                     (change)="battleTogglePrepared(spell)">
+                     (change)="battleTogglePrepared(spell, $event)">
               {{ spell.name }}
             </label>
           }
         </div>
+      }
+      @if (battlePrepareError(); as err) {
+        <p class="m-error">{{ err }}</p>
       }
       <button class="retro-btn battle-prepare-done-btn" (click)="closeBattlePrepareModal()">CONCLUÍDO</button>
     </div>

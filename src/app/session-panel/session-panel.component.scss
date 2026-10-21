@@ -149,7 +149,20 @@
   /* Todas as linhas com a altura da maior: o card com controles (o seu, ou todos pro mestre) não
      deixa a linha dele maior que as outras. */
   grid-auto-rows: 1fr;
-  gap: 16px;
+  gap: 12px;
+}
+
+/* AVENTUREIROS como último quadro da coluna do meio (visão do jogador): a grade estica até o fim do
+   quadro e as linhas dividem a altura — cards maiores em tela grande, sem vão embaixo. Com NPCs/
+   monstros abaixo (mestre), o quadro não é o último e a grade fica no tamanho natural. */
+.main-column > #players-section:last-of-type {
+  display: flex;
+  flex-direction: column;
+
+  .players-grid {
+    flex: 1;
+    min-height: 0;
+  }
 }
 
 .player-card {
@@ -157,9 +170,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 20px 14px 16px;
-  border: 2px solid var(--border-color);
+  gap: 6px;
+  /* Card esticado (linha mais alta que o conteúdo): conteúdo no meio, não grudado no topo. */
+  justify-content: center;
+  /* Borda = moldura (.framed-card, global; a imagem avança ~11 px pra dentro): o padding afasta o
+     conteúdo dos enfeites dos cantos. */
+  padding: 10px 8px;
   background-color: var(--bg-color);
   text-align: center;
 
@@ -207,8 +223,10 @@
 }
 
 .avatar-circle {
-  width: 100px;
-  height: 100px;
+  /* Acompanha a altura da tela: 2 linhas de 3 cards cabem sem rolar em 1080p (e em telas mais
+     baixas o avatar encolhe antes de aparecer rolagem). */
+  width: clamp(60px, 9vh, 120px);
+  height: clamp(60px, 9vh, 120px);
   border-radius: 50%;
   overflow: hidden;
   border: 3px solid var(--border-color);
@@ -957,8 +975,7 @@
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  padding: 14px 10px 12px;
-  border: 1px solid var(--border-color);
+  padding: 10px 6px;
   background-color: var(--bg-color);
   text-align: center;
 

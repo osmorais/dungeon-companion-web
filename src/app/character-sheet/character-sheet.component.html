@@ -986,7 +986,7 @@
               <input type="checkbox" class="retro-checkbox"
                      [checked]="selectedSpell.is_prepared"
                      [disabled]="isInActiveCombat() || (!selectedSpell.is_prepared && !canPrepareMore())"
-                     (change)="togglePrepared(selectedSpell)">
+                     (change)="togglePrepared(selectedSpell, $event)">
               PREPARADA ({{ preparedCount() }}/{{ maxPrepared() }})
             </label>
             @if (isInActiveCombat()) {
@@ -1094,7 +1094,7 @@
               <input type="checkbox" class="retro-checkbox"
                      [checked]="spell.is_prepared"
                      [disabled]="isInActiveCombat() || (!spell.is_prepared && !canPrepareMore())"
-                     (change)="togglePrepared(spell)">
+                     (change)="togglePrepared(spell, $event)">
               {{ spell.name }}
             </label>
           }

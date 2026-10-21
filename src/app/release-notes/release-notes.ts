@@ -33,6 +33,25 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.3.11',
+    date: '2026-10-21',
+    title: 'Aventureiros que se ajustam à altura da tela',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'No computador, os cards dos aventureiros na sessão ocupam a altura do quadro e se ajustam ao monitor (maiores em telas altas, mais compactos nas menores). Em telas Full HD, até seis personagens cabem sem precisar rolar.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Os cards dos personagens (na sessão e na lista de personagens) ganharam moldura em pixel art: madeira, dourado e gemas no tema Fantasia; ferro escuro e caveiras no tema Sombrio.',
+      },
+      {
+        kind: 'correcao',
+        text: 'Quando o mestre inicia a luta, escolher as magias preparadas agora funciona de verdade: dá para preparar e trocar magias até rolar a iniciativa, o limite é respeitado e, se algo for recusado, a marcação volta e aparece o motivo.',
+      },
+    ],
+  },
+  {
     version: '1.3.10',
     date: '2026-10-21',
     title: 'Menu inicial cabendo na tela',

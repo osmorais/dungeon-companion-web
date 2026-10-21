@@ -214,7 +214,7 @@
                             class="retro-checkbox"
                             [checked]="spell.is_prepared"
                             [disabled]="isInActiveCombat() || (!spell.is_prepared && !canPrepareMore())"
-                            (change)="togglePrepared(spell)"
+                            (change)="togglePrepared(spell, $event)"
                           />
                           <span class="pa-prepare-toggle-label">Preparar</span>
                         </label>

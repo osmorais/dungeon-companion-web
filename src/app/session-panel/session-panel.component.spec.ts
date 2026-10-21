@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { signal } from '@angular/core';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { SessionPanelComponent } from './session-panel.component';
 import { GameSessionService } from '../services/game-session.service';
 import { SessionStateService } from '../services/session-state.service';
@@ -25,6 +25,8 @@ import {
 import { DamageImpactService } from '../services/damage-impact.service';
 import { LoadingOverlayService } from '../loading-overlay/loading-overlay.service';
 import { RollLogEntry } from '../models/game-session.interface';
+import { CharacterSheetResponse } from '../models/character-response.interface';
+import { Spell } from '../models/character-options.interface';
 
 /**
  * Lógica do painel de sessão sem renderizar o template: sem `id` de entrada o componente não
@@ -73,6 +75,58 @@ describe('SessionPanelComponent', () => {
     else if ('id_player_session' in target) component.setPlayerDamageInput(target, event);
     else component.setMonsterDamageInput(target, event);
   }
+
+  describe('magias preparadas antes da luta', () => {
+    const spell = (id: number, prepared: boolean) =>
+      ({ id_spell: id, name: `Magia ${id}`, spellLevel: 1, is_prepared: prepared }) as Spell;
+    function openWith(spells: Spell[], max: number) {
+      component['battlePrepareSheet'].set({
+        character_sheet: {
+          id_character: 7,
+          spells,
+          spellcasting_info: { max_prepared_spells: max },
+        },
+      } as unknown as CharacterSheetResponse);
+    }
+    const checkbox = (checked: boolean) =>
+      ({ target: { checked } }) as unknown as Event & { target: { checked: boolean } };
+
+    it('API recusa (ex.: já rolou a iniciativa): o checkbox volta e a mensagem aparece', () => {
+      const charService = TestBed.inject(CharacterService) as unknown as Record<string, unknown>;
+      charService['setSpellPrepared'] = vi.fn(() =>
+        throwError(() => ({
+          error: { error: { message: 'Não é possível preparar magias durante o combate' } },
+        })),
+      );
+      openWith([spell(1, false)], 3);
+      const event = checkbox(true);
+      component.battleTogglePrepared(spell(1, false), event);
+      expect(event.target.checked).toBe(false);
+      expect(component.battlePreparedCount()).toBe(0);
+      expect(component.battlePrepareError()).toBe(
+        'Não é possível preparar magias durante o combate',
+      );
+    });
+
+    it('limite atingido: não chama a API e o checkbox volta', () => {
+      const setSpellPrepared = vi.fn();
+      (TestBed.inject(CharacterService) as unknown as Record<string, unknown>)['setSpellPrepared'] =
+        setSpellPrepared;
+      openWith([spell(1, true), spell(2, false)], 1);
+      const event = checkbox(true);
+      component.battleTogglePrepared(spell(2, false), event);
+      expect(event.target.checked).toBe(false);
+      expect(setSpellPrepared).not.toHaveBeenCalled();
+    });
+
+    it('API aceita: conta a nova preparada', () => {
+      (TestBed.inject(CharacterService) as unknown as Record<string, unknown>)['setSpellPrepared'] =
+        vi.fn(() => of({ success: true }));
+      openWith([spell(1, false)], 3);
+      component.battleTogglePrepared(spell(1, false), checkbox(true));
+      expect(component.battlePreparedCount()).toBe(1);
+    });
+  });
 
   describe('faixa da vez no combate', () => {
     it('mestre na vez de um NPC: precisa agir (com o d20); na vez de um jogador: só aguarda', () => {

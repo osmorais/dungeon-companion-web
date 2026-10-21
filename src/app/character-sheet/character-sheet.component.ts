@@ -578,14 +578,20 @@ export class CharacterSheetComponent {
     return !!this.sheetData()?.character_sheet.in_active_combat;
   }
 
-  togglePrepared(spell: Spell): void {
+  /** Recusado (combate, limite ou API): o checkbox nativo volta pro estado real. */
+  togglePrepared(spell: Spell, event?: Event): void {
+    const box = event?.target as HTMLInputElement | undefined;
+    const revert = () => {
+      if (box) box.checked = !!spell.is_prepared;
+    };
     const id = this.sheetData()?.character_sheet.id_character;
-    if (!id || this.isInActiveCombat()) return;
+    if (!id || this.isInActiveCombat()) return revert();
     const next = !spell.is_prepared;
-    if (next && !this.canPrepareMore()) return;
+    if (next && !this.canPrepareMore()) return revert();
 
     this.charService.setSpellPrepared(id, spell.id_spell, next).subscribe({
       next: () => this.applySpellPreparedLocally(spell.id_spell, next),
+      error: () => revert(),
     });
   }
 
