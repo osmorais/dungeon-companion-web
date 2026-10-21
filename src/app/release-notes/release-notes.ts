@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.3.4',
+    date: '2026-10-21',
+    title: 'Monstro revelado entra na luta',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'Com um combate em andamento, revelar um monstro agora coloca ele na luta, com a iniciativa rolada e no fim da ordem de turnos — igual ao botão ADICIONAR do combate.',
+      },
+    ],
+  },
+  {
     version: '1.3.3',
     date: '2026-10-21',
     title: 'Ícones em pixel art',
