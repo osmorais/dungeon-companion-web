@@ -171,31 +171,6 @@
   overflow-x: hidden;
 }
 
-.mobile-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border-color);
-  margin-bottom: 16px;
-}
-
-.mobile-back-btn {
-  background: none;
-  border: 1px solid var(--border-color);
-  color: var(--accent-color);
-  font-size: 16px;
-  padding: 4px 10px;
-  cursor: var(--cp);
-  line-height: 1;
-}
-
-.mobile-title {
-  font-size: 10px;
-  color: var(--accent-color);
-  letter-spacing: 1px;
-}
-
 .mobile-panel {
   width: 100%;
   box-sizing: border-box;
@@ -271,65 +246,6 @@
   font-size: 7px;
   color: var(--label-title-color);
   margin-top: 6px;
-}
-
-.mobile-char-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.mobile-char-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 12px;
-  background-color: var(--bg-color);
-  color: var(--text-color);
-  border: 2px solid var(--border-color);
-  font-family: 'Press Start 2P', monospace;
-  cursor: var(--cp);
-  text-align: left;
-  transition: border-color 0.15s;
-
-  &:hover {
-    border-color: var(--accent-color);
-  }
-
-  &--selected {
-    border-color: var(--accent-color);
-    background-color: var(--btn-color-hover);
-  }
-}
-
-.mobile-char-info {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex: 1;
-}
-
-.mobile-char-name {
-  font-size: 9px;
-  color: var(--accent-color);
-}
-
-.mobile-char-meta {
-  font-size: 6px;
-  color: var(--label-title-color);
-  line-height: 1.8;
-}
-
-.mobile-char-level {
-  font-size: 6px;
-  color: var(--label-title-color);
-}
-
-.mobile-selected-mark {
-  font-size: 14px;
-  color: #4caf50;
-  flex-shrink: 0;
 }
 
 .mobile-join-btn {

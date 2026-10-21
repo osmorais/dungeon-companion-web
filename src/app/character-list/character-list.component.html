@@ -2,39 +2,41 @@
   <!-- ===== MOBILE LAYOUT ===== -->
   <div class="mobile-character-list-container">
 
-    <div class="mobile-header">
-      <button class="mobile-back-btn" (click)="goBack()">&#8592;</button>
-      <span class="mobile-title">MEUS PERSONAGENS</span>
+    <div class="m-header">
+      <button class="m-back" (click)="goBack()">&#8592;</button>
+      <span class="m-title">MEUS PERSONAGENS</span>
     </div>
 
     @if (error()) {
-      <p class="mobile-empty-msg">ERRO AO CARREGAR PERSONAGENS.</p>
+      <p class="m-empty">ERRO AO CARREGAR PERSONAGENS.</p>
     } @else if (loading()) {
       <div aria-busy="true" aria-label="Carregando">
-        <app-skeleton-rows [rows]="5" [height]="48" />
+        <app-skeleton-rows [rows]="5" [height]="70" />
       </div>
     } @else if (characters().length === 0) {
-      <p class="mobile-empty-msg">NENHUM PERSONAGEM ENCONTRADO.</p>
+      <p class="m-empty">NENHUM PERSONAGEM ENCONTRADO.</p>
     } @else {
-      <ul class="mobile-character-list">
+      <ul class="m-card-list">
         @for (char of characters(); track char.id_character) {
-          <li class="mobile-character-card" (click)="openSheet(char.id_character)">
-            <button class="mobile-delete-btn" title="Remover personagem" (click)="requestDelete(char, $event)">✕</button>
-            <span class="mobile-char-name">{{ char.name }}</span>
-            <span class="mobile-char-meta">{{ char.class }} &mdash; {{ char.race }}</span>
-            <span class="mobile-char-level">Nível {{ char.level }}</span>
-            <span class="mobile-char-arrow">&#9658;</span>
+          <li class="m-card m-card--deletable" (click)="openSheet(char.id_character)">
+            <button class="m-card-delete" title="Remover personagem" (click)="requestDelete(char, $event)">✕</button>
+            <span class="m-card-icon"><img class="ui-icon" src="assets/icons/swords.png" alt="" /></span>
+            <span class="m-card-body">
+              <span class="m-card-title">{{ char.name }}</span>
+              <span class="m-card-desc">{{ char.class }} &mdash; {{ char.race }} &mdash; NÍVEL {{ char.level }}</span>
+            </span>
+            <span class="m-card-arrow">&#9658;</span>
           </li>
         }
       </ul>
 
-      <div class="mobile-pagination">
-        <button class="mobile-page-btn" [disabled]="!hasPrev()" (click)="prevPage()">&#9664;</button>
-        <span class="mobile-page-info">{{ page() }} / {{ totalPages() }}</span>
-        <button class="mobile-page-btn" [disabled]="!hasNext()" (click)="nextPage()">&#9654;</button>
+      <div class="m-pagination">
+        <button class="m-page-btn" [disabled]="!hasPrev()" (click)="prevPage()">&#9664;</button>
+        <span class="m-page-info">{{ page() }} / {{ totalPages() }}</span>
+        <button class="m-page-btn" [disabled]="!hasNext()" (click)="nextPage()">&#9654;</button>
       </div>
 
-      <p class="mobile-total-count">TOTAL: {{ totalCount() }}</p>
+      <p class="m-total">TOTAL: {{ totalCount() }}</p>
     }
 
   </div>

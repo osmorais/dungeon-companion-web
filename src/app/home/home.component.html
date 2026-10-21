@@ -14,19 +14,19 @@
         <p class="mobile-role-subtitle">QUEM É VOCÊ?</p>
         <div class="mobile-menu-options">
 
-          <button class="mobile-retro-card mobile-retro-card--highlight" (click)="selectPlayer()">
-            <span class="mobile-card-icon"><img class="ui-icon" src="assets/icons/swords.png" alt="" /></span>
-            <span class="mobile-card-text">
-              <span class="mobile-card-title">SOU JOGADOR</span>
-              <span class="mobile-card-desc">Crie e gerencie seus personagens</span>
+          <button class="m-card m-card--highlight" (click)="selectPlayer()">
+            <span class="m-card-icon"><img class="ui-icon" src="assets/icons/swords.png" alt="" /></span>
+            <span class="m-card-body">
+              <span class="m-card-title">SOU JOGADOR</span>
+              <span class="m-card-desc">Crie e gerencie seus personagens</span>
             </span>
           </button>
 
-          <button class="mobile-retro-card" (click)="selectMaster()">
-            <span class="mobile-card-icon"><img class="ui-icon" src="assets/icons/d20.png" alt="" /></span>
-            <span class="mobile-card-text">
-              <span class="mobile-card-title">SOU MESTRE</span>
-              <span class="mobile-card-desc">Gerencie suas sessões e criaturas</span>
+          <button class="m-card" (click)="selectMaster()">
+            <span class="m-card-icon"><img class="ui-icon" src="assets/icons/d20.png" alt="" /></span>
+            <span class="m-card-body">
+              <span class="m-card-title">SOU MESTRE</span>
+              <span class="m-card-desc">Gerencie suas sessões e criaturas</span>
             </span>
           </button>
 
@@ -38,35 +38,35 @@
         <p class="mobile-role-subtitle">O QUE DESEJA FAZER?</p>
         <div class="mobile-menu-options">
 
-          <button class="mobile-retro-card" (click)="createCharacter()" [disabled]="openingCreate()">
-            <span class="mobile-card-icon"><img class="ui-icon" src="assets/icons/swords.png" alt="" /></span>
-            <span class="mobile-card-text">
-              <span class="mobile-card-title">CRIAR PERSONAGEM</span>
-              <span class="mobile-card-desc">Forje um novo herói</span>
+          <button class="m-card" (click)="createCharacter()" [disabled]="openingCreate()">
+            <span class="m-card-icon"><img class="ui-icon" src="assets/icons/swords.png" alt="" /></span>
+            <span class="m-card-body">
+              <span class="m-card-title">CRIAR PERSONAGEM</span>
+              <span class="m-card-desc">Forje um novo herói</span>
             </span>
           </button>
 
-          <button class="mobile-retro-card" (click)="listCharacters()">
-            <span class="mobile-card-icon"><img class="ui-icon" src="assets/icons/scroll.png" alt="" /></span>
-            <span class="mobile-card-text">
-              <span class="mobile-card-title">MEUS PERSONAGENS</span>
-              <span class="mobile-card-desc">Acesse as fichas dos seus aventureiros</span>
+          <button class="m-card" (click)="listCharacters()">
+            <span class="m-card-icon"><img class="ui-icon" src="assets/icons/scroll.png" alt="" /></span>
+            <span class="m-card-body">
+              <span class="m-card-title">MEUS PERSONAGENS</span>
+              <span class="m-card-desc">Acesse as fichas dos seus aventureiros</span>
             </span>
           </button>
 
-          <button class="mobile-retro-card" (click)="joinSession()">
-            <span class="mobile-card-icon"><img class="ui-icon" src="assets/icons/compass.png" alt="" /></span>
-            <span class="mobile-card-text">
-              <span class="mobile-card-title">ENTRAR EM UMA AVENTURA</span>
-              <span class="mobile-card-desc">Junte-se a uma sessão</span>
+          <button class="m-card" (click)="joinSession()">
+            <span class="m-card-icon"><img class="ui-icon" src="assets/icons/compass.png" alt="" /></span>
+            <span class="m-card-body">
+              <span class="m-card-title">ENTRAR EM UMA AVENTURA</span>
+              <span class="m-card-desc">Junte-se a uma sessão</span>
             </span>
           </button>
 
-          <button class="mobile-retro-card" (click)="mySessions()">
-            <span class="mobile-card-icon"><img class="ui-icon" src="assets/icons/medal.png" alt="" /></span>
-            <span class="mobile-card-text">
-              <span class="mobile-card-title">MINHAS AVENTURAS</span>
-              <span class="mobile-card-desc">Veja suas campanhas ativas</span>
+          <button class="m-card" (click)="mySessions()">
+            <span class="m-card-icon"><img class="ui-icon" src="assets/icons/medal.png" alt="" /></span>
+            <span class="m-card-body">
+              <span class="m-card-title">MINHAS AVENTURAS</span>
+              <span class="m-card-desc">Veja suas campanhas ativas</span>
             </span>
           </button>
 
@@ -79,35 +79,35 @@
         <p class="mobile-role-subtitle">O QUE DESEJA FAZER?</p>
         <div class="mobile-menu-options">
 
-          <button class="mobile-retro-card" (click)="createSession()">
-            <span class="mobile-card-icon"><img class="ui-icon" src="assets/icons/map.png" alt="" /></span>
-            <span class="mobile-card-text">
-              <span class="mobile-card-title">CRIAR NOVA SESSÃO</span>
-              <span class="mobile-card-desc">Inicie uma nova aventura</span>
+          <button class="m-card" (click)="createSession()">
+            <span class="m-card-icon"><img class="ui-icon" src="assets/icons/map.png" alt="" /></span>
+            <span class="m-card-body">
+              <span class="m-card-title">CRIAR NOVA SESSÃO</span>
+              <span class="m-card-desc">Inicie uma nova aventura</span>
             </span>
           </button>
 
-          <button class="mobile-retro-card" (click)="listSessions()">
-            <span class="mobile-card-icon"><img class="ui-icon" src="assets/icons/book-open.png" alt="" /></span>
-            <span class="mobile-card-text">
-              <span class="mobile-card-title">SESSÕES CRIADAS</span>
-              <span class="mobile-card-desc">Gerencie suas campanhas</span>
+          <button class="m-card" (click)="listSessions()">
+            <span class="m-card-icon"><img class="ui-icon" src="assets/icons/book-open.png" alt="" /></span>
+            <span class="m-card-body">
+              <span class="m-card-title">SESSÕES CRIADAS</span>
+              <span class="m-card-desc">Gerencie suas campanhas</span>
             </span>
           </button>
 
-          <button class="mobile-retro-card" (click)="catalogMonsters()">
-            <span class="mobile-card-icon"><img class="ui-icon" src="assets/icons/dragon.png" alt="" /></span>
-            <span class="mobile-card-text">
-              <span class="mobile-card-title">CATALOGAR MONSTROS</span>
-              <span class="mobile-card-desc">Gerencie seu bestiário</span>
+          <button class="m-card" (click)="catalogMonsters()">
+            <span class="m-card-icon"><img class="ui-icon" src="assets/icons/dragon.png" alt="" /></span>
+            <span class="m-card-body">
+              <span class="m-card-title">CATALOGAR MONSTROS</span>
+              <span class="m-card-desc">Gerencie seu bestiário</span>
             </span>
           </button>
 
-          <button class="mobile-retro-card" (click)="openSpellCatalog()">
-            <span class="mobile-card-icon"><img class="ui-icon" src="assets/icons/spellbook.png" alt="" /></span>
-            <span class="mobile-card-text">
-              <span class="mobile-card-title">GRIMÓRIO DE MAGIAS</span>
-              <span class="mobile-card-desc">Consulte todas as magias</span>
+          <button class="m-card" (click)="openSpellCatalog()">
+            <span class="m-card-icon"><img class="ui-icon" src="assets/icons/spellbook.png" alt="" /></span>
+            <span class="m-card-body">
+              <span class="m-card-title">GRIMÓRIO DE MAGIAS</span>
+              <span class="m-card-desc">Consulte todas as magias</span>
             </span>
           </button>
 

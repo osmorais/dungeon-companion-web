@@ -165,67 +165,6 @@
   width: 100%;
 }
 
-.mobile-retro-card {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 14px;
-  width: 100%;
-  padding: 14px 16px;
-  background-color: var(--panel-bg);
-  color: var(--text-color);
-  border: 2px solid var(--border-color);
-  font-family: 'Press Start 2P', monospace;
-  cursor: var(--cp);
-  text-align: left;
-  transition: background-color 0.15s, border-color 0.15s;
-
-  &:hover {
-    background-color: var(--btn-color-hover);
-    border-color: var(--accent-color);
-  }
-
-  &:active {
-    transform: translateY(1px);
-  }
-
-  &--highlight {
-    border-color: var(--accent-color);
-  }
-
-  &--disabled {
-    opacity: 0.5;
-    cursor: var(--cx);
-
-    &:hover {
-      background-color: var(--panel-bg);
-      border-color: var(--border-color);
-    }
-  }
-}
-
-.mobile-card-icon {
-  font-size: 22px;
-  flex-shrink: 0;
-}
-
-.mobile-card-text {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.mobile-card-title {
-  font-size: 9px;
-  color: var(--accent-color);
-}
-
-.mobile-card-desc {
-  font-size: 6px;
-  color: var(--label-title-color);
-  line-height: 1.8;
-}
-
 .mobile-back-btn {
   float: none;
   margin-top: 12px;

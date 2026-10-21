@@ -2,40 +2,41 @@
   <!-- ===== MOBILE LAYOUT ===== -->
   <div class="mobile-container">
 
-    <div class="mobile-header">
-      <button class="mobile-back-btn" (click)="goBack()">&#8592;</button>
-      <span class="mobile-title">MINHAS AVENTURAS</span>
+    <div class="m-header">
+      <button class="m-back" (click)="goBack()">&#8592;</button>
+      <span class="m-title">MINHAS AVENTURAS</span>
     </div>
 
     @if (error()) {
-      <p class="mobile-empty-msg">ERRO AO CARREGAR AS AVENTURAS.</p>
+      <p class="m-empty">ERRO AO CARREGAR AS AVENTURAS.</p>
     } @else if (loading()) {
       <div aria-busy="true" aria-label="Carregando">
-        <app-skeleton-rows [rows]="5" [height]="48" />
+        <app-skeleton-rows [rows]="5" [height]="70" />
       </div>
     } @else if (sessions().length === 0) {
-      <p class="mobile-empty-msg">VOCÊ AINDA NÃO ENTROU EM NENHUMA AVENTURA.</p>
+      <p class="m-empty">VOCÊ AINDA NÃO ENTROU EM NENHUMA AVENTURA.</p>
     } @else {
-      <ul class="mobile-session-list">
+      <ul class="m-card-list">
         @for (session of sessions(); track session.id_game_session) {
-          <li class="mobile-session-card" (click)="openSession(session.id_game_session)">
-            <div class="mobile-session-info">
-              <span class="mobile-session-name">{{ session.session_name }}</span>
-              <span class="mobile-session-meta">MESTRE: {{ session.dm_name }}</span>
-              <span class="mobile-session-meta">JOGADORES: {{ session.max_player_quantity }} &mdash; CÓDIGO: {{ session.session_code }}</span>
-            </div>
-            <span class="mobile-session-arrow">&#9658;</span>
+          <li class="m-card" (click)="openSession(session.id_game_session)">
+            <span class="m-card-icon"><img class="ui-icon" src="assets/icons/compass.png" alt="" /></span>
+            <span class="m-card-body">
+              <span class="m-card-title">{{ session.session_name }}</span>
+              <span class="m-card-desc">MESTRE: {{ session.dm_name }}</span>
+              <span class="m-card-desc">JOGADORES: {{ session.max_player_quantity }} &mdash; CÓDIGO: {{ session.session_code }}</span>
+            </span>
+            <span class="m-card-arrow">&#9658;</span>
           </li>
         }
       </ul>
 
-      <div class="mobile-pagination">
-        <button class="mobile-page-btn" [disabled]="!hasPrev()" (click)="prevPage()">&#9664;</button>
-        <span class="mobile-page-info">{{ page() }} / {{ totalPages() }}</span>
-        <button class="mobile-page-btn" [disabled]="!hasNext()" (click)="nextPage()">&#9654;</button>
+      <div class="m-pagination">
+        <button class="m-page-btn" [disabled]="!hasPrev()" (click)="prevPage()">&#9664;</button>
+        <span class="m-page-info">{{ page() }} / {{ totalPages() }}</span>
+        <button class="m-page-btn" [disabled]="!hasNext()" (click)="nextPage()">&#9654;</button>
       </div>
 
-      <p class="mobile-total-count">TOTAL: {{ totalCount() }}</p>
+      <p class="m-total">TOTAL: {{ totalCount() }}</p>
     }
 
   </div>

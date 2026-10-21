@@ -2,9 +2,9 @@
   <!-- ===== MOBILE LAYOUT ===== -->
   <div class="mobile-catalog-container">
 
-    <div class="mobile-header">
-      <button class="mobile-back-btn" (click)="goBack()">&#8592;</button>
-      <span class="mobile-title">GRIMÓRIO DE MAGIAS</span>
+    <div class="m-header">
+      <button class="m-back" (click)="goBack()">&#8592;</button>
+      <span class="m-title">GRIMÓRIO DE MAGIAS</span>
     </div>
 
     <input
@@ -17,31 +17,33 @@
 
     @if (loading()) {
       <div aria-busy="true" aria-label="Carregando as magias">
-        <app-skeleton-rows [rows]="6" [height]="40" />
+        <app-skeleton-rows [rows]="6" [height]="70" />
       </div>
     } @else if (error()) {
-      <p class="mobile-empty-msg">ERRO AO CARREGAR AS MAGIAS.</p>
+      <p class="m-empty">ERRO AO CARREGAR AS MAGIAS.</p>
     } @else if (spells().length === 0) {
-      <p class="mobile-empty-msg">NENHUMA MAGIA ENCONTRADA.</p>
+      <p class="m-empty">NENHUMA MAGIA ENCONTRADA.</p>
     } @else {
-      <ul class="mobile-spell-list">
+      <ul class="m-card-list">
         @for (spell of spells(); track spell.id_spell) {
-          <li class="mobile-spell-card" (click)="openDetail(spell)">
-            <div class="mobile-spell-info">
-              <span class="mobile-spell-name">{{ spell.name }}</span>
-              <span class="mobile-spell-meta">{{ circleName(spell.spellLevel) }} &mdash; {{ spell.school }}</span>
-            </div>
+          <li class="m-card" (click)="openDetail(spell)">
+            <span class="m-card-icon"><img class="ui-icon" src="assets/icons/spellbook.png" alt="" /></span>
+            <span class="m-card-body">
+              <span class="m-card-title">{{ spell.name }}</span>
+              <span class="m-card-desc">{{ circleName(spell.spellLevel) }} &mdash; {{ spell.school }}</span>
+            </span>
+            <span class="m-card-arrow">&#9658;</span>
           </li>
         }
       </ul>
 
-      <div class="mobile-pagination">
-        <button class="mobile-page-btn" [disabled]="!hasPrev()" (click)="prevPage()">&#9664;</button>
-        <span class="mobile-page-info">{{ page() }} / {{ totalPages() }}</span>
-        <button class="mobile-page-btn" [disabled]="!hasNext()" (click)="nextPage()">&#9654;</button>
+      <div class="m-pagination">
+        <button class="m-page-btn" [disabled]="!hasPrev()" (click)="prevPage()">&#9664;</button>
+        <span class="m-page-info">{{ page() }} / {{ totalPages() }}</span>
+        <button class="m-page-btn" [disabled]="!hasNext()" (click)="nextPage()">&#9654;</button>
       </div>
 
-      <p class="mobile-total-count">TOTAL: {{ totalCount() }}</p>
+      <p class="m-total">TOTAL: {{ totalCount() }}</p>
     }
 
   </div>

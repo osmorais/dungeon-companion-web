@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.3.5',
+    date: '2026-10-21',
+    title: 'Celular com o mesmo visual em todas as telas',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'No celular, as listas de personagens, aventuras, sessões, monstros e magias (e a escolha de personagem ao entrar numa aventura) agora usam os mesmos cards do menu inicial, com ícone, nome em destaque e detalhes. O cabeçalho com o botão de voltar ficou igual em todas as telas.',
+      },
+    ],
+  },
+  {
     version: '1.3.4',
     date: '2026-10-21',
     title: 'Monstro revelado entra na luta',

@@ -2,47 +2,44 @@
   <!-- ===== MOBILE LAYOUT ===== -->
   <div class="mobile-catalog-container">
 
-    <div class="mobile-header">
-      <button class="mobile-back-btn" (click)="goBack()">&#8592;</button>
-      <span class="mobile-title">BESTIÁRIO</span>
+    <div class="m-header">
+      <button class="m-back" (click)="goBack()">&#8592;</button>
+      <span class="m-title">BESTIÁRIO</span>
     </div>
 
     <button class="retro-btn mobile-new-btn" (click)="catalogNew()">+ CATALOGAR NOVO MONSTRO</button>
 
     @if (error()) {
-      <p class="mobile-empty-msg">ERRO AO CARREGAR O BESTIÁRIO.</p>
+      <p class="m-empty">ERRO AO CARREGAR O BESTIÁRIO.</p>
     } @else if (loading()) {
       <div aria-busy="true" aria-label="Carregando">
-        <app-skeleton-rows [rows]="5" [height]="48" />
+        <app-skeleton-rows [rows]="5" [height]="70" />
       </div>
     } @else if (monsters().length === 0) {
-      <p class="mobile-empty-msg">NENHUM MONSTRO CATALOGADO AINDA.</p>
+      <p class="m-empty">NENHUM MONSTRO CATALOGADO AINDA.</p>
     } @else {
-      <ul class="mobile-monster-list">
+      <ul class="m-card-list">
         @for (monster of monsters(); track monster.id_monster_catalog) {
-          <li class="mobile-monster-card" (click)="openDetail(monster)">
-            <button class="mobile-delete-btn" title="Remover monstro" (click)="requestDelete(monster, $event)">✕</button>
-            <img class="mobile-monster-thumb" [src]="monster.image_url || DEFAULT_MONSTER_IMAGE" [alt]="monsterName(monster)" />
-            <div class="mobile-monster-info">
-              <span class="mobile-monster-name">{{ monsterName(monster) }}</span>
-              <span class="mobile-monster-meta">{{ monster.data_snapshot.size }} &mdash; {{ monster.data_snapshot.type }}</span>
-              <div class="mobile-monster-stats">
-                <span class="mobile-monster-stat">CA {{ monster.ac }}</span>
-                <span class="mobile-monster-stat">PV {{ monster.hp_max }}</span>
-                <span class="mobile-monster-stat">ND {{ monster.data_snapshot.challenge_rating }}</span>
-              </div>
-            </div>
+          <li class="m-card m-card--deletable" (click)="openDetail(monster)">
+            <button class="m-card-delete" title="Remover monstro" (click)="requestDelete(monster, $event)">✕</button>
+            <img class="m-card-thumb" [src]="monster.image_url || DEFAULT_MONSTER_IMAGE" [alt]="monsterName(monster)" />
+            <span class="m-card-body">
+              <span class="m-card-title">{{ monsterName(monster) }}</span>
+              <span class="m-card-desc">{{ monster.data_snapshot.size }} &mdash; {{ monster.data_snapshot.type }}</span>
+              <span class="m-card-desc">CA {{ monster.ac }} &middot; PV {{ monster.hp_max }} &middot; ND {{ monster.data_snapshot.challenge_rating }}</span>
+            </span>
+            <span class="m-card-arrow">&#9658;</span>
           </li>
         }
       </ul>
 
-      <div class="mobile-pagination">
-        <button class="mobile-page-btn" [disabled]="!hasPrev()" (click)="prevPage()">&#9664;</button>
-        <span class="mobile-page-info">{{ page() }} / {{ totalPages() }}</span>
-        <button class="mobile-page-btn" [disabled]="!hasNext()" (click)="nextPage()">&#9654;</button>
+      <div class="m-pagination">
+        <button class="m-page-btn" [disabled]="!hasPrev()" (click)="prevPage()">&#9664;</button>
+        <span class="m-page-info">{{ page() }} / {{ totalPages() }}</span>
+        <button class="m-page-btn" [disabled]="!hasNext()" (click)="nextPage()">&#9654;</button>
       </div>
 
-      <p class="mobile-total-count">TOTAL: {{ totalCount() }}</p>
+      <p class="m-total">TOTAL: {{ totalCount() }}</p>
     }
 
   </div>

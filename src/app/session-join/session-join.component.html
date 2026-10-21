@@ -2,9 +2,9 @@
   <!-- ===== MOBILE LAYOUT ===== -->
   <div class="mobile-container">
 
-    <div class="mobile-header">
-      <button class="mobile-back-btn" (click)="goBack()">&#8592;</button>
-      <span class="mobile-title">ENTRAR EM AVENTURA</span>
+    <div class="m-header">
+      <button class="m-back" (click)="goBack()">&#8592;</button>
+      <span class="m-title">ENTRAR EM AVENTURA</span>
     </div>
 
     <!-- Código + nome do jogador -->
@@ -40,24 +40,20 @@
       @if (loadError()) {
         <p class="mobile-empty-msg">ERRO AO CARREGAR PERSONAGENS.</p>
       } @else if (loadingCharacters()) {
-        <app-skeleton-rows [rows]="3" [height]="40" />
+        <app-skeleton-rows [rows]="3" [height]="70" />
       } @else if (characters().length === 0) {
         <p class="mobile-empty-msg">NENHUM PERSONAGEM ENCONTRADO.</p>
       } @else {
-        <div class="mobile-char-list">
+        <div class="m-card-list">
           @for (char of characters(); track char.id_character) {
-            <button
-              class="mobile-char-card"
-              [class.mobile-char-card--selected]="isSelected(char)"
-              (click)="selectCharacter(char)"
-            >
-              <div class="mobile-char-info">
-                <span class="mobile-char-name">{{ char.name }}</span>
-                <span class="mobile-char-meta">{{ char.class }} — {{ char.race }}</span>
-                <span class="mobile-char-level">NÍVEL {{ char.level }}</span>
-              </div>
+            <button class="m-card" [class.m-card--selected]="isSelected(char)" (click)="selectCharacter(char)">
+              <span class="m-card-icon"><img class="ui-icon" src="assets/icons/swords.png" alt="" /></span>
+              <span class="m-card-body">
+                <span class="m-card-title">{{ char.name }}</span>
+                <span class="m-card-desc">{{ char.class }} — {{ char.race }} — NÍVEL {{ char.level }}</span>
+              </span>
               @if (isSelected(char)) {
-                <span class="mobile-selected-mark"><img class="ui-icon" src="assets/icons/check.png" alt="" /></span>
+                <span class="m-card-icon"><img class="ui-icon" src="assets/icons/check.png" alt="" /></span>
               }
             </button>
           }

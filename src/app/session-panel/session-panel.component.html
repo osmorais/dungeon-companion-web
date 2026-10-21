@@ -6,10 +6,10 @@
   <!-- ===== MOBILE LAYOUT ===== -->
   <div class="mobile-container">
 
-    <div class="mobile-header">
-      <button class="mobile-back-btn" (click)="goBack()">&#8592;</button>
+    <div class="m-header">
+      <button class="m-back" (click)="goBack()">&#8592;</button>
       @if (sessionDetail(); as detail) {
-        <h1 class="mobile-title">{{ detail.game_session.session_name }}</h1>
+        <h1 class="m-title">{{ detail.game_session.session_name }}</h1>
       } @else {
         <span class="skeleton mobile-title" style="height: 14px"></span>
       }

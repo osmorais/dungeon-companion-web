@@ -236,31 +236,6 @@
   overflow-x: hidden;
 }
 
-.mobile-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border-color);
-  margin-bottom: 16px;
-}
-
-.mobile-back-btn {
-  background: none;
-  border: 1px solid var(--border-color);
-  color: var(--accent-color);
-  font-size: 16px;
-  padding: 4px 10px;
-  cursor: var(--cp);
-  line-height: 1;
-}
-
-.mobile-title {
-  font-size: 11px;
-  color: var(--accent-color);
-  letter-spacing: 1px;
-}
-
 .mobile-panel {
   width: 100%;
   box-sizing: border-box;
@@ -326,11 +301,6 @@
   cursor: var(--cx);
   text-align: left;
   opacity: 0.5;
-}
-
-.mobile-catalog-icon {
-  font-size: 20px;
-  flex-shrink: 0;
 }
 
 .mobile-catalog-text {
