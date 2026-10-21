@@ -142,59 +142,6 @@
   }
 }
 
-/* Topo da sessão (desktop e mobile): nome + mestre/código/jogadores, sem quadro, direto sobre a
-   arte de fundo — a sombra em degrau garante leitura em qualquer imagem. */
-.session-topbar {
-  position: relative;
-  flex-shrink: 0;
-  margin-bottom: 16px;
-  text-align: center;
-  text-shadow: 2px 2px 0 var(--bg-color);
-}
-
-.session-topbar-name {
-  margin: 0 0 12px;
-  font-size: 18px;
-  line-height: 1.4;
-  color: var(--accent-color);
-}
-
-.session-topbar-meta {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px 24px;
-  font-size: 8px;
-  color: var(--label-title-color);
-  text-shadow: 2px 2px 0 var(--bg-color);
-
-  strong {
-    margin-left: 6px;
-    font-weight: normal;
-    color: var(--text-color);
-  }
-
-  .session-topbar-code {
-    color: var(--accent-color);
-    letter-spacing: 3px;
-  }
-
-  &--mobile {
-    gap: 8px 16px;
-    margin-bottom: 16px;
-    font-size: 7px;
-  }
-}
-
-.session-topbar-back {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  margin: 0;
-  transform: translateY(-50%);
-  text-shadow: none;
-}
-
 /* Grid vertical de players */
 .players-grid {
   display: grid;

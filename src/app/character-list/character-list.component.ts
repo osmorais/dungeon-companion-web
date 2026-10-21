@@ -1,6 +1,8 @@
 import { Component, inject, OnInit, signal, computed, HostListener } from '@angular/core';
-import { finalize } from 'rxjs';
+import { catchError, finalize, forkJoin, of } from 'rxjs';
 import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
+import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
+import { CharacterCardInfo, characterCardInfo, formatModifier, xpPercent } from './character-card';
 import { Router } from '@angular/router';
 import { CharacterService } from '../services/character.service';
 import { CharacterSummary } from '../models/character-summary.interface';
@@ -10,7 +12,7 @@ const PAGE_SIZE = 10;
 @Component({
   selector: 'app-character-list',
   standalone: true,
-  imports: [SkeletonRowsComponent],
+  imports: [SkeletonRowsComponent, AvatarDisplayComponent],
   templateUrl: './character-list.component.html',
   styleUrls: ['./character-list.component.scss'],
 })
@@ -54,9 +56,35 @@ export class CharacterListComponent implements OnInit {
       next: res => {
         this.characters.set(res.CharacterPagedList);
         this.totalCount.set(res.total_count);
+        this.loadCards(res.CharacterPagedList.map(c => c.id_character));
       },
       error: () => this.error.set(true),
     });
+  }
+
+  /**
+   * Avatar, PV, CA, atributos e XP vêm da ficha calculada de cada personagem da página (10 buscas
+   * em paralelo, sem overlay). Ficha que falhar deixa o card só com o resumo da lista.
+   */
+  cards = signal<ReadonlyMap<number, CharacterCardInfo>>(new Map());
+  readonly xpPercent = xpPercent;
+  readonly formatModifier = formatModifier;
+
+  private loadCards(ids: number[]): void {
+    this.cards.set(new Map());
+    if (ids.length === 0) return;
+    forkJoin(ids.map(id => this.charService.getCharacterById(id, true).pipe(catchError(() => of(null)))))
+      .subscribe(sheets => {
+        const next = new Map<number, CharacterCardInfo>();
+        sheets.forEach((sheet, i) => {
+          if (sheet) next.set(ids[i], characterCardInfo(sheet));
+        });
+        this.cards.set(next);
+      });
+  }
+
+  cardInfo(idCharacter: number): CharacterCardInfo | null {
+    return this.cards().get(idCharacter) ?? null;
   }
 
   prevPage() {

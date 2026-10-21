@@ -41,51 +41,48 @@
 
   </div>
 } @else {
-  <!-- ===== DESKTOP LAYOUT ===== -->
-  <div class="container">
+  <!-- ===== DESKTOP LAYOUT ===== (página no tamanho da sessão: .page/.page-topbar/.d-grid no styles.scss) -->
+  <div class="page">
 
-    <fieldset class="retro-panel title-panel">
-      <legend>MINHAS AVENTURAS</legend>
-    </fieldset>
+    <header class="page-topbar">
+      <button class="retro-btn page-topbar-back" (click)="goBack()">← VOLTAR</button>
+      <h1 class="page-topbar-name">MINHAS AVENTURAS</h1>
+      @if (!loading() && !error() && totalCount() > 0) {
+        <div class="page-topbar-meta"><span>AVENTURAS <strong>{{ totalCount() }}</strong></span></div>
+      }
+    </header>
 
     @if (error()) {
-      <fieldset class="retro-panel">
-        <p class="empty-msg">ERRO AO CARREGAR AS AVENTURAS.</p>
-      </fieldset>
+      <p class="m-empty">ERRO AO CARREGAR AS AVENTURAS.</p>
     } @else if (loading()) {
-      <fieldset class="retro-panel" aria-busy="true" aria-label="Carregando">
-        <app-skeleton-rows [rows]="6" [height]="26" />
-      </fieldset>
+      <div class="d-grid" aria-busy="true" aria-label="Carregando">
+        @for (i of [1, 2, 3, 4]; track i) {
+          <div class="d-card"><app-skeleton-rows [rows]="3" [height]="12" /></div>
+        }
+      </div>
     } @else if (sessions().length === 0) {
-      <fieldset class="retro-panel">
-        <p class="empty-msg">VOCÊ AINDA NÃO ENTROU EM NENHUMA AVENTURA.</p>
-      </fieldset>
+      <p class="m-empty">VOCÊ AINDA NÃO ENTROU EM NENHUMA AVENTURA.</p>
     } @else {
-      <fieldset class="retro-panel">
-        <legend>SELECIONE UMA AVENTURA</legend>
-        <ul class="session-list">
-          @for (session of sessions(); track session.id_game_session) {
-            <li class="session-row" (click)="openSession(session.id_game_session)">
-              <div class="session-main">
-                <span class="session-name">{{ session.session_name }}</span>
-                <span class="session-meta">MESTRE: {{ session.dm_name }} &mdash; JOGADORES: {{ session.max_player_quantity }} &mdash; CÓDIGO: {{ session.session_code }}</span>
-              </div>
-              <span class="session-arrow">&#9658;</span>
-            </li>
-          }
-        </ul>
-      </fieldset>
-
-      <div class="pagination">
-        <button class="retro-btn page-btn" [disabled]="!hasPrev()" (click)="prevPage()">&#9664; ANTERIOR</button>
-        <span class="page-info">{{ page() }} / {{ totalPages() }}</span>
-        <button class="retro-btn page-btn" [disabled]="!hasNext()" (click)="nextPage()">PRÓXIMA &#9654;</button>
+      <div class="d-grid">
+        @for (session of sessions(); track session.id_game_session) {
+          <article class="d-card" (click)="openSession(session.id_game_session)">
+            <div class="d-card-head">
+              <span class="d-card-icon"><img class="ui-icon" src="assets/icons/compass.png" alt="" /></span>
+              <h2 class="d-card-title">{{ session.session_name }}</h2>
+            </div>
+            <p class="d-card-desc">MESTRE <span class="d-card-value">{{ session.dm_name }}</span></p>
+            <p class="d-card-desc">CÓDIGO <span class="d-card-value d-card-code">{{ session.session_code }}</span></p>
+            <p class="d-card-desc">ATÉ <span class="d-card-value">{{ session.max_player_quantity }}</span> JOGADORES</p>
+          </article>
+        }
       </div>
 
-      <p class="total-count">TOTAL DE AVENTURAS: {{ totalCount() }}</p>
+      <div class="m-pagination">
+        <button class="m-page-btn" [disabled]="!hasPrev()" (click)="prevPage()">&#9664;</button>
+        <span class="m-page-info">{{ page() }} / {{ totalPages() }}</span>
+        <button class="m-page-btn" [disabled]="!hasNext()" (click)="nextPage()">&#9654;</button>
+      </div>
     }
-
-    <button class="retro-btn back-btn" (click)="goBack()">VOLTAR</button>
 
   </div>
 }

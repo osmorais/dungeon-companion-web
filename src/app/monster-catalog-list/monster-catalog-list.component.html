@@ -44,59 +44,55 @@
 
   </div>
 } @else {
-  <!-- ===== DESKTOP LAYOUT ===== -->
-  <div class="list-container">
+  <!-- ===== DESKTOP LAYOUT ===== (página no tamanho da sessão: .page/.page-topbar/.d-grid no styles.scss) -->
+  <div class="page">
 
-    <fieldset class="retro-panel title-panel">
-      <legend>BESTIÁRIO</legend>
-    </fieldset>
+    <header class="page-topbar">
+      <button class="retro-btn page-topbar-back" (click)="goBack()">← VOLTAR</button>
+      <h1 class="page-topbar-name">BESTIÁRIO</h1>
+      @if (!loading() && !error() && totalCount() > 0) {
+        <div class="page-topbar-meta"><span>MONSTROS <strong>{{ totalCount() }}</strong></span></div>
+      }
+    </header>
 
-    <div class="new-row">
+    <div class="page-toolbar">
+      <span></span>
       <button class="retro-btn new-btn" (click)="catalogNew()">+ CATALOGAR NOVO MONSTRO</button>
     </div>
 
     @if (error()) {
-      <fieldset class="retro-panel">
-        <p class="empty-msg">ERRO AO CARREGAR O BESTIÁRIO.</p>
-      </fieldset>
+      <p class="m-empty">ERRO AO CARREGAR O BESTIÁRIO.</p>
     } @else if (loading()) {
-      <fieldset class="retro-panel" aria-busy="true" aria-label="Carregando">
-        <app-skeleton-rows [rows]="6" [height]="26" />
-      </fieldset>
+      <div class="d-grid" aria-busy="true" aria-label="Carregando">
+        @for (i of [1, 2, 3, 4, 5]; track i) {
+          <div class="d-card"><app-skeleton-rows [rows]="5" [height]="12" /></div>
+        }
+      </div>
     } @else if (monsters().length === 0) {
-      <fieldset class="retro-panel">
-        <p class="empty-msg">NENHUM MONSTRO CATALOGADO AINDA.</p>
-      </fieldset>
+      <p class="m-empty">NENHUM MONSTRO CATALOGADO AINDA.</p>
     } @else {
-      <fieldset class="retro-panel">
-        <legend>MONSTROS CATALOGADOS</legend>
-        <div class="monster-grid">
-          @for (monster of monsters(); track monster.id_monster_catalog) {
-            <div class="monster-card" (click)="openDetail(monster)">
-              <button class="delete-btn" title="Remover monstro" (click)="requestDelete(monster, $event)">✕</button>
-              <img class="monster-thumb" [src]="monster.image_url || DEFAULT_MONSTER_IMAGE" [alt]="monsterName(monster)" />
-              <span class="monster-name">{{ monsterName(monster) }}</span>
-              <span class="monster-meta">{{ monster.data_snapshot.size }} &mdash; {{ monster.data_snapshot.type }}</span>
-              <div class="monster-stats">
-                <span class="monster-stat">CA {{ monster.ac }}</span>
-                <span class="monster-stat">PV {{ monster.hp_max }}</span>
-                <span class="monster-stat">ND {{ monster.data_snapshot.challenge_rating }}</span>
-              </div>
+      <div class="d-grid">
+        @for (monster of monsters(); track monster.id_monster_catalog) {
+          <article class="d-card d-card--deletable" (click)="openDetail(monster)">
+            <button class="m-card-delete" title="Remover monstro" (click)="requestDelete(monster, $event)">✕</button>
+            <img class="monster-card-image" [src]="monster.image_url || DEFAULT_MONSTER_IMAGE" [alt]="monsterName(monster)" />
+            <h2 class="d-card-title">{{ monsterName(monster) }}</h2>
+            <p class="d-card-desc">{{ monster.data_snapshot.size }} &mdash; {{ monster.data_snapshot.type }}</p>
+            <div class="monster-card-stats">
+              <span>CA <strong>{{ monster.ac }}</strong></span>
+              <span>PV <strong>{{ monster.hp_max }}</strong></span>
+              <span>ND <strong>{{ monster.data_snapshot.challenge_rating }}</strong></span>
             </div>
-          }
-        </div>
-      </fieldset>
-
-      <div class="pagination">
-        <button class="retro-btn page-btn" [disabled]="!hasPrev()" (click)="prevPage()">&#9664; ANTERIOR</button>
-        <span class="page-info">{{ page() }} / {{ totalPages() }}</span>
-        <button class="retro-btn page-btn" [disabled]="!hasNext()" (click)="nextPage()">PRÓXIMA &#9654;</button>
+          </article>
+        }
       </div>
 
-      <p class="total-count">TOTAL DE MONSTROS: {{ totalCount() }}</p>
+      <div class="m-pagination">
+        <button class="m-page-btn" [disabled]="!hasPrev()" (click)="prevPage()">&#9664;</button>
+        <span class="m-page-info">{{ page() }} / {{ totalPages() }}</span>
+        <button class="m-page-btn" [disabled]="!hasNext()" (click)="nextPage()">&#9654;</button>
+      </div>
     }
-
-    <button class="retro-btn back-btn" (click)="goBack()">VOLTAR</button>
 
   </div>
 }

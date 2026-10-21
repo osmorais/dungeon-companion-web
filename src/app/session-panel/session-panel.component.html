@@ -39,9 +39,9 @@
       </div>
     } @else {
       <!-- Mestre, código e jogadores logo abaixo do nome (que fica no cabeçalho), sem quadro -->
-      <div class="session-topbar-meta session-topbar-meta--mobile">
+      <div class="page-topbar-meta page-topbar-meta--mobile">
         <span>MESTRE <strong>{{ sessionDetail()!.game_session.dm_name }}</strong></span>
-        <span>CÓDIGO <strong class="session-topbar-code">{{ sessionDetail()!.game_session.session_code }}</strong></span>
+        <span>CÓDIGO <strong class="page-topbar-code">{{ sessionDetail()!.game_session.session_code }}</strong></span>
         <span>JOGADORES <strong>{{ sessionDetail()!.players.length }}/{{ sessionDetail()!.game_session.max_player_quantity }}</strong></span>
       </div>
 
@@ -418,7 +418,7 @@
       </fieldset>
     } @else if (!sessionDetail()) {
       <!-- Skeleton no formato do layout da sessão (desktop): topo | combate | cards | rolagens -->
-      <div class="session-topbar" aria-hidden="true">
+      <div class="page-topbar" aria-hidden="true">
         <span class="skeleton" style="width: 36%; height: 22px; margin: 0 auto 12px"></span>
         <span class="skeleton" style="width: 50%; height: 10px; margin: 0 auto"></span>
       </div>
@@ -447,12 +447,12 @@
       </div>
     } @else {
       <!-- Topo da sessão: nome, mestre, código e jogadores, fora de qualquer quadro -->
-      <header class="session-topbar">
-        <button class="retro-btn back-btn session-topbar-back" (click)="goBack()">← VOLTAR</button>
-        <h1 class="session-topbar-name">{{ sessionDetail()!.game_session.session_name }}</h1>
-        <div class="session-topbar-meta">
+      <header class="page-topbar">
+        <button class="retro-btn page-topbar-back" (click)="goBack()">← VOLTAR</button>
+        <h1 class="page-topbar-name">{{ sessionDetail()!.game_session.session_name }}</h1>
+        <div class="page-topbar-meta">
           <span>MESTRE <strong>{{ sessionDetail()!.game_session.dm_name }}</strong></span>
-          <span>CÓDIGO <strong class="session-topbar-code">{{ sessionDetail()!.game_session.session_code }}</strong></span>
+          <span>CÓDIGO <strong class="page-topbar-code">{{ sessionDetail()!.game_session.session_code }}</strong></span>
           <span>JOGADORES <strong>{{ sessionDetail()!.players.length }}/{{ sessionDetail()!.game_session.max_player_quantity }}</strong></span>
         </div>
       </header>

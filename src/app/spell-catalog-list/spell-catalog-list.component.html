@@ -48,59 +48,60 @@
 
   </div>
 } @else {
-  <!-- ===== DESKTOP LAYOUT ===== -->
-  <div class="list-container">
+  <!-- ===== DESKTOP LAYOUT ===== (página no tamanho da sessão: .page/.page-topbar/.d-grid no styles.scss) -->
+  <div class="page">
 
-    <fieldset class="retro-panel title-panel">
-      <legend>GRIMÓRIO DE MAGIAS</legend>
-    </fieldset>
+    <header class="page-topbar">
+      <button class="retro-btn page-topbar-back" (click)="goBack()">← VOLTAR</button>
+      <h1 class="page-topbar-name">GRIMÓRIO DE MAGIAS</h1>
+      @if (!loading() && !error() && totalCount() > 0) {
+        <div class="page-topbar-meta"><span>MAGIAS <strong>{{ totalCount() }}</strong></span></div>
+      }
+    </header>
 
-    <div class="search-row">
+    <div class="page-toolbar">
       <input
-        class="search-input"
+        class="m-input spell-search"
         type="text"
         placeholder="Buscar magia pelo nome..."
+        aria-label="Buscar magia pelo nome"
         [ngModel]="searchTerm()"
         (ngModelChange)="onSearchChange($event)"
       />
     </div>
 
     @if (loading()) {
-      <fieldset class="retro-panel" aria-busy="true" aria-label="Carregando as magias">
-        <app-skeleton-rows [rows]="8" [height]="24" />
-      </fieldset>
+      <div class="d-grid" aria-busy="true" aria-label="Carregando">
+        @for (i of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track i) {
+          <div class="d-card"><app-skeleton-rows [rows]="3" [height]="12" /></div>
+        }
+      </div>
     } @else if (error()) {
-      <fieldset class="retro-panel">
-        <p class="empty-msg">ERRO AO CARREGAR AS MAGIAS.</p>
-      </fieldset>
+      <p class="m-empty">ERRO AO CARREGAR AS MAGIAS.</p>
     } @else if (spells().length === 0) {
-      <fieldset class="retro-panel">
-        <p class="empty-msg">NENHUMA MAGIA ENCONTRADA.</p>
-      </fieldset>
+      <p class="m-empty">NENHUMA MAGIA ENCONTRADA.</p>
     } @else {
-      <fieldset class="retro-panel">
-        <legend>MAGIAS</legend>
-        <div class="spell-grid">
-          @for (spell of spells(); track spell.id_spell) {
-            <div class="spell-card" (click)="openDetail(spell)">
-              <span class="spell-name">{{ spell.name }}</span>
-              <span class="spell-meta">{{ circleName(spell.spellLevel) }}</span>
-              <span class="spell-school">{{ spell.school }}</span>
+      <div class="d-grid">
+        @for (spell of spells(); track spell.id_spell) {
+          <article class="d-card" (click)="openDetail(spell)">
+            <div class="d-card-head">
+              <span class="d-card-icon"><img class="ui-icon" src="assets/icons/spellbook.png" alt="" /></span>
+              <h2 class="d-card-title">{{ spell.name }}</h2>
             </div>
-          }
-        </div>
-      </fieldset>
-
-      <div class="pagination">
-        <button class="retro-btn page-btn" [disabled]="!hasPrev()" (click)="prevPage()">&#9664; ANTERIOR</button>
-        <span class="page-info">{{ page() }} / {{ totalPages() }}</span>
-        <button class="retro-btn page-btn" [disabled]="!hasNext()" (click)="nextPage()">PRÓXIMA &#9654;</button>
+            <p class="d-card-desc">{{ circleName(spell.spellLevel) }} &mdash; {{ spell.school }}</p>
+            <p class="d-card-desc">
+              {{ spell.casting_time ?? '—' }}{{ spell.range_distance != null ? ' · ' + spell.range_distance + ' m' : '' }}
+            </p>
+          </article>
+        }
       </div>
 
-      <p class="total-count">TOTAL DE MAGIAS: {{ totalCount() }}</p>
+      <div class="m-pagination">
+        <button class="m-page-btn" [disabled]="!hasPrev()" (click)="prevPage()">&#9664;</button>
+        <span class="m-page-info">{{ page() }} / {{ totalPages() }}</span>
+        <button class="m-page-btn" [disabled]="!hasNext()" (click)="nextPage()">&#9654;</button>
+      </div>
     }
-
-    <button class="retro-btn back-btn" (click)="goBack()">VOLTAR</button>
 
   </div>
 }

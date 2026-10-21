@@ -33,6 +33,29 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.3.7',
+    date: '2026-10-21',
+    title: 'Listagens maiores e mais completas',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'No computador, as listas de personagens, aventuras, sessões, monstros e magias ficaram do tamanho da tela da sessão, com o mesmo topo e os itens em cards lado a lado.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A lista de personagens mostra o avatar, a imagem de fundo, vida, CA, iniciativa, percepção passiva, os seis atributos e a barra de experiência (com aviso quando dá para subir de nível). No celular, o card do personagem mostra o avatar.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'O grimório de magias mostra também o tempo de conjuração e o alcance em cada carta.',
+      },
+      {
+        kind: 'correcao',
+        text: 'Saiu a linha clara em volta das opções do menu inicial, do login e da criação de personagem no celular.',
+      },
+    ],
+  },
+  {
     version: '1.3.6',
     date: '2026-10-21',
     title: 'Formulários do celular no mesmo visual',

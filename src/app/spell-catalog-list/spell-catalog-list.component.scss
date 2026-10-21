@@ -1,105 +1,3 @@
-.list-container {
-  width: 900px;
-  max-width: 96vw;
-}
-
-.title-panel {
-  text-align: center;
-  margin-bottom: 0;
-}
-
-.search-row {
-  margin: 14px 0;
-}
-
-.search-input {
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.spell-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-.spell-card {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 14px 14px 12px;
-  border: 2px solid var(--border-color);
-  background-color: var(--bg-color);
-  cursor: var(--cp);
-  transition: border-color 0.15s;
-
-  &:hover {
-    border-color: var(--accent-color);
-  }
-}
-
-.spell-name {
-  font-size: 9px;
-  color: var(--accent-color);
-  line-height: 1.6;
-  word-break: break-word;
-}
-
-.spell-meta {
-  font-size: 7px;
-  color: var(--label-title-color);
-}
-
-.spell-school {
-  font-size: 7px;
-  color: var(--text-color);
-  text-transform: capitalize;
-}
-
-.empty-msg,
-.error-msg {
-  margin: 0;
-  font-size: 9px;
-  color: var(--label-title-color);
-  text-align: center;
-  padding: 10px 0;
-}
-
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 12px;
-}
-
-.page-btn {
-  font-size: 7px;
-  padding: 6px 12px;
-
-  &:disabled {
-    opacity: 0.35;
-    cursor: var(--cx);
-  }
-}
-
-.page-info {
-  font-size: 8px;
-  color: var(--label-title-color);
-}
-
-.total-count {
-  font-size: 7px;
-  color: var(--label-title-color);
-  text-align: right;
-  margin: 6px 0 0;
-}
-
-.back-btn {
-  float: none;
-  display: block;
-  margin-top: 20px;
-}
-
 /* ===== MODAL: DETALHES DA MAGIA ===== */
 
 .overlay {
@@ -221,3 +119,8 @@
   margin-bottom: 16px;
 }
 
+/* ===== DESKTOP: busca na linha de ações (.page-toolbar) ===== */
+
+.spell-search {
+  max-width: 420px;
+}
