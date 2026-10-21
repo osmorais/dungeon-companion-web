@@ -259,14 +259,15 @@ export class CharacterSheetComponent {
       .sort((a, b) => a.spellLevel - b.spellLevel || a.name.localeCompare(b.name, 'pt-BR'));
   }
 
-  private collapsedCircles = signal<Set<number>>(new Set());
+  /** Círculos abertos — truques e círculos começam todos fechados; o jogador abre o que quer ver. */
+  private expandedCircles = signal<Set<number>>(new Set());
 
   isCircleCollapsed(circle: number): boolean {
-    return this.collapsedCircles().has(circle);
+    return !this.expandedCircles().has(circle);
   }
 
   toggleCircle(circle: number): void {
-    this.collapsedCircles.update((current) => {
+    this.expandedCircles.update((current) => {
       const next = new Set(current);
       if (next.has(circle)) next.delete(circle);
       else next.add(circle);

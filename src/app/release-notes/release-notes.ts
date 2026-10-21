@@ -33,6 +33,29 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.3.14',
+    date: '2026-10-21',
+    title: 'Ficha de personagem com a cara do resto do site',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'No celular, a ficha de personagem ganhou o mesmo visual das outras telas: cabeçalho com voltar, card do personagem com moldura e imagem de fundo, abas em botões e as informações em cards.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'No celular, basta tocar numa perícia para rolar o teste, e as resistências em que o personagem é proficiente aparecem destacadas em dourado.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'No computador, a ficha usa o mesmo topo das outras páginas, com o nome do personagem em destaque, e um card com moldura reúne retrato, pontos de vida, CA, iniciativa, movimento, bônus de proficiência, percepção passiva e experiência. Rolar dado e imprimir ficam no alto, e clicar numa perícia já rola o teste.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Na lista de magias da ficha, os truques e cada círculo começam fechados: abra só o que quiser ver.',
+      },
+    ],
+  },
+  {
     version: '1.3.13',
     date: '2026-10-21',
     title: 'Avisos com moldura e troca de vez com o card inteiro',

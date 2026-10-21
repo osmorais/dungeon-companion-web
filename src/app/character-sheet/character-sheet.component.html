@@ -1,65 +1,67 @@
 @if (sheetData(); as data) {
 
   @if (isMobile()) {
-    <!-- ===== MOBILE LAYOUT ===== -->
-    <div class="mobile-sheet-container"
-      [class.mobile-sheet-container--has-bg]="data.character_sheet.image_url"
-      [style.background-image]="data.character_sheet.image_url ? ('linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)), url(' + data.character_sheet.image_url + ')') : null">
+    <!-- ===== MOBILE LAYOUT ===== (identidade mobile: .m-* no styles.scss) -->
+    <div class="mobile-sheet-container">
 
-      <div class="mobile-header">
-        <button class="mobile-back-arrow retro-btn" (click)="goBack()">←</button>
-        <div class="mobile-portrait-wrap">
+      <div class="m-header">
+        <button class="m-back" (click)="goBack()">&#8592;</button>
+        <span class="m-title">FICHA</span>
+      </div>
+
+      <!-- Card do personagem: moldura e foto de fundo como os cards da sessão -->
+      <div class="mobile-hero framed-card"
+        [style.background-image]="data.character_sheet.image_url ? ('linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(' + data.character_sheet.image_url + ')') : null">
+        <div class="mobile-hero-top">
           <div class="mobile-portrait avatar-editable" (click)="openAvatarEditor()" title="Editar avatar">
             <app-avatar-display [preset]="data.character_sheet.avatar_preset" />
             <div class="avatar-edit-hint">✎</div>
           </div>
-          <label class="retro-btn image-upload-btn mobile-image-upload-btn">
-            {{ uploadingImage() ? 'ENVIANDO...' : data.character_sheet.image_url ? 'TROCAR IMAGEM DE FUNDO' : 'UPLOAD IMAGEM DE FUNDO' }}
-            <input type="file" accept="image/*" hidden [disabled]="uploadingImage()" (change)="onImageSelected($event)" />
-          </label>
-          @if (imageUploadError()) {
-            <p class="image-upload-error">{{ imageUploadError() }}</p>
-          }
-        </div>
-        <div class="mobile-char-info">
-          <h2>{{ data.character_sheet.header.name }}</h2>
-          <p>{{ data.character_sheet.header.class_and_level }}</p>
-          <p class="mobile-race">{{ data.character_sheet.header.race || 'Humano' }}</p>
-          <p class="xp-line">
-            XP: {{ data.character_sheet.header.experience_points }}
-            @if (data.character_sheet.header.next_level_xp !== null) {
-              / {{ data.character_sheet.header.next_level_xp }}
-            }
-          </p>
-          @if (canLevelUp()) {
-            <button class="retro-btn level-up-btn mobile-level-up-btn" (click)="openLevelUpModal()"><img class="ui-icon" src="assets/icons/level-up.png" alt="" /> SUBIR DE NÍVEL</button>
-          } @else if (data.character_sheet.combat_stats.hit_dice_total < 20) {
-            <p class="xp-missing-hint">Faltam {{ xpMissingForLevelUp() }} XP pro próximo nível</p>
-          }
-        </div>
-        <div class="mobile-hp-badge">
-          <div class="mobile-hp-controls">
-            <button class="hp-btn" (click)="changeHp(-1)">−</button>
-            <div class="mobile-hp-value">
-              <span class="hp-current">{{ data.character_sheet.combat_stats.hit_points.current }}</span>
-              <span class="hp-sep">/</span>
-              <span class="hp-max">{{ data.character_sheet.combat_stats.hit_points.max }}</span>
-            </div>
-            <button class="hp-btn" (click)="changeHp(1)">+</button>
+          <div class="mobile-char-info">
+            <h2>{{ data.character_sheet.header.name }}</h2>
+            <p>{{ data.character_sheet.header.class_and_level }}</p>
+            <p class="mobile-race">{{ data.character_sheet.header.race || 'Humano' }}</p>
+            <p class="mobile-xp">
+              XP {{ data.character_sheet.header.experience_points }}
+              @if (data.character_sheet.header.next_level_xp !== null) {
+                / {{ data.character_sheet.header.next_level_xp }}
+              }
+            </p>
           </div>
-          <small>PV</small>
-          @if (hpSaved()) {
-            <span class="hp-saved-msg">HP SALVO!</span>
-          }
+        </div>
+
+        @if (canLevelUp()) {
+          <button class="retro-btn level-up-btn mobile-wide-btn" (click)="openLevelUpModal()"><img class="ui-icon" src="assets/icons/level-up.png" alt="" /> SUBIR DE NÍVEL</button>
+        } @else if (data.character_sheet.combat_stats.hit_dice_total < 20) {
+          <p class="m-hint mobile-hero-hint">Faltam {{ xpMissingForLevelUp() }} XP pro próximo nível</p>
+        }
+
+        <div class="mobile-hp-row">
+          <span class="mobile-hp-label">PV</span>
+          <button class="hp-btn" (click)="changeHp(-1)">−</button>
+          <div class="mobile-hp-value">
+            <span class="hp-current">{{ data.character_sheet.combat_stats.hit_points.current }}</span>
+            <span class="hp-sep">/</span>
+            <span class="hp-max">{{ data.character_sheet.combat_stats.hit_points.max }}</span>
+          </div>
+          <button class="hp-btn" (click)="changeHp(1)">+</button>
           <button class="retro-btn mobile-hp-save-btn" (click)="saveHp()" [disabled]="savingHp()">
-            {{ savingHp() ? '...' : 'SALVAR HP' }}
+            {{ savingHp() ? '...' : hpSaved() ? 'SALVO!' : 'SALVAR' }}
           </button>
         </div>
+
+        <label class="mobile-image-upload" [class.mobile-image-upload--busy]="uploadingImage()">
+          {{ uploadingImage() ? 'ENVIANDO...' : data.character_sheet.image_url ? 'TROCAR IMAGEM DE FUNDO' : 'ENVIAR IMAGEM DE FUNDO' }}
+          <input type="file" accept="image/*" hidden [disabled]="uploadingImage()" (change)="onImageSelected($event)" />
+        </label>
+        @if (imageUploadError()) {
+          <p class="m-error mobile-hero-error">{{ imageUploadError() }}</p>
+        }
       </div>
 
       <div class="mobile-sheet-toolbar">
-        <button class="retro-btn mobile-roll-btn" (click)="openFreeformRoll()"><img class="ui-icon" src="assets/icons/d20.png" alt="" /> ROLAR DADO</button>
-        <button class="retro-btn mobile-print-btn" (click)="printSheet()" [disabled]="printingSheet()">
+        <button class="retro-btn" (click)="openFreeformRoll()"><img class="ui-icon" src="assets/icons/d20.png" alt="" /> ROLAR DADO</button>
+        <button class="retro-btn" (click)="printSheet()" [disabled]="printingSheet()">
           @if (!printingSheet()) { <img class="ui-icon" src="assets/icons/print.png" alt="" /> }{{ printingSheet() ? '...' : 'IMPRIMIR' }}
         </button>
       </div>
@@ -81,89 +83,95 @@
         @switch (activeTab()) {
 
           @case ('combat') {
-            <div class="mobile-combat-stats">
-              <div class="mobile-stat-card">
-                <label>CA</label>
-                <span>{{ data.character_sheet.combat_stats.armor_class }}</span>
-                <button class="equipment-edit-btn" (click)="openEquipmentModal()">✎</button>
+            <div class="m-section">
+              <div class="mobile-stat-grid">
+                <div class="mobile-stat-card">
+                  <label>CA</label>
+                  <span>{{ data.character_sheet.combat_stats.armor_class }}</span>
+                  <button class="equipment-edit-btn mobile-stat-edit" (click)="openEquipmentModal()" title="Trocar equipamento">✎</button>
+                </div>
+                <div class="mobile-stat-card">
+                  <label>INICIATIVA</label>
+                  <span>{{ formatMod(data.character_sheet.combat_stats.initiative) }}</span>
+                </div>
+                <div class="mobile-stat-card">
+                  <label>MOVIMENTO</label>
+                  <span>{{ data.character_sheet.combat_stats.speed }}</span>
+                </div>
+                <div class="mobile-stat-card">
+                  <label>BÔNUS PROF.</label>
+                  <span>{{ formatMod(data.character_sheet.combat_stats.proficiency_bonus) }}</span>
+                </div>
               </div>
-              <div class="mobile-stat-card">
-                <label>INICIATIVA</label>
-                <span>{{ formatMod(data.character_sheet.combat_stats.initiative) }}</span>
+              <div class="mobile-info-row">
+                <span>PERCEPÇÃO PASSIVA</span>
+                <strong>{{ data.character_sheet.combat_stats.passive_perception }}</strong>
               </div>
-              <div class="mobile-stat-card">
-                <label>MOVIMENTO</label>
-                <span>{{ data.character_sheet.combat_stats.speed }}</span>
+              <div class="mobile-info-row">
+                <span>DADO DE VIDA</span>
+                <strong>{{ data.character_sheet.combat_stats.hit_dice }}</strong>
               </div>
-              <div class="mobile-stat-card">
-                <label>BÔNUS PROF.</label>
-                <span>{{ formatMod(data.character_sheet.combat_stats.proficiency_bonus) }}</span>
-              </div>
-            </div>
-            <div class="mobile-info-row">
-              <span>Percepção Passiva:</span>
-              <strong>{{ data.character_sheet.combat_stats.passive_perception }}</strong>
-            </div>
-            <div class="mobile-info-row">
-              <span>Dado de Vida:</span>
-              <strong>{{ data.character_sheet.combat_stats.hit_dice }}</strong>
             </div>
 
-            <div class="hit-dice-box">
-              <p class="hit-dice-title">
+            <div class="m-section">
+              <h3 class="m-section-title">
                 DADOS DE VIDA
-                <span class="hit-dice-count">{{ hitDiceAvailable() }}/{{ hitDiceTotal() }}</span>
-              </p>
-              <div class="hit-dice-pips">
-                @for (i of hitDicePips(); track i) {
-                  <span class="hit-dice-pip" [class.spent]="i >= hitDiceAvailable()"></span>
+                <span class="m-section-extra">{{ hitDiceAvailable() }}/{{ hitDiceTotal() }}</span>
+              </h3>
+              <div class="m-box mobile-tracker">
+                <div class="hit-dice-pips">
+                  @for (i of hitDicePips(); track i) {
+                    <span class="hit-dice-pip" [class.spent]="i >= hitDiceAvailable()"></span>
+                  }
+                </div>
+                <div class="mobile-btn-row">
+                  <button class="retro-btn"
+                          [disabled]="rollingHitDie() || hitDiceAvailable() === 0 || isAtMaxHp()"
+                          (click)="rollHitDieNow()">
+                    @if (!rollingHitDie()) { <img class="ui-icon" src="assets/icons/d20.png" alt="" /> }{{ rollingHitDie() ? '...' : 'DESCANSO CURTO' }}
+                  </button>
+                  <button class="retro-btn" [disabled]="restingLong()" (click)="longRestNow()">
+                    @if (!restingLong()) { <img class="ui-icon" src="assets/icons/moon.png" alt="" /> }{{ restingLong() ? '...' : 'DESCANSO LONGO' }}
+                  </button>
+                </div>
+                @if (lastHitDieResult(); as hd) {
+                  <p class="hit-die-result">
+                    {{ hd.roll }} {{ formatMod(hd.con_mod) }} = curou {{ hd.healed }} PV
+                  </p>
                 }
               </div>
-              <div class="rest-buttons-row">
-                <button class="retro-btn hit-die-btn"
-                        [disabled]="rollingHitDie() || hitDiceAvailable() === 0 || isAtMaxHp()"
-                        (click)="rollHitDieNow()">
-                  @if (!rollingHitDie()) { <img class="ui-icon" src="assets/icons/d20.png" alt="" /> }{{ rollingHitDie() ? '...' : 'DESCANSO CURTO' }}
-                </button>
-                <button class="retro-btn spell-rest-btn" [disabled]="restingLong()" (click)="longRestNow()">
-                  @if (!restingLong()) { <img class="ui-icon" src="assets/icons/moon.png" alt="" /> }{{ restingLong() ? '...' : 'DESCANSO LONGO' }}
-                </button>
-              </div>
-              @if (lastHitDieResult(); as hd) {
-                <p class="hit-die-result">
-                  {{ hd.roll }} {{ formatMod(hd.con_mod) }} = curou {{ hd.healed }} PV
-                </p>
-              }
             </div>
 
             @for (res of resourceTrackers(); track res.name) {
-              <div class="hit-dice-box">
-                <p class="hit-dice-title">
+              <div class="m-section">
+                <h3 class="m-section-title">
                   {{ res.name.toUpperCase() }}
-                  <span class="hit-dice-count">
+                  <span class="m-section-extra">
                     {{ res.max === 'unlimited' ? 'ILIMITADO' : resourceAvailable(res) + '/' + res.max }}
                   </span>
-                </p>
-                @if (res.max !== 'unlimited') {
-                  <div class="hit-dice-pips">
-                    @for (i of resourcePips(res); track i) {
-                      <span class="hit-dice-pip" [class.spent]="i >= resourceAvailable(res)"></span>
-                    }
-                  </div>
-                  <div class="rest-buttons-row">
-                    <button class="retro-btn hit-die-btn"
-                            [disabled]="expendingResource() || resourceAvailable(res) === 0"
-                            (click)="expendResource(res.name, 1)">
-                      GASTAR
-                    </button>
-                    <button class="retro-btn spell-rest-btn"
-                            [disabled]="expendingResource() || resourceAvailable(res) >= res.max"
-                            (click)="expendResource(res.name, -1)">
-                      DESFAZER
-                    </button>
-                  </div>
-                }
-                <p class="hit-die-result">Recarrega em descanso {{ res.recharge_on === 'short_rest' ? 'curto ou longo' : 'longo' }}.</p>
+                </h3>
+                <div class="m-box mobile-tracker">
+                  @if (res.max !== 'unlimited') {
+                    <div class="hit-dice-pips">
+                      @for (i of resourcePips(res); track i) {
+                        <span class="hit-dice-pip" [class.spent]="i >= resourceAvailable(res)"></span>
+                      }
+                    </div>
+                    <div class="mobile-btn-row">
+                      <button class="retro-btn"
+                              [disabled]="expendingResource() || resourceAvailable(res) === 0"
+                              (click)="expendResource(res.name, 1)">
+                        GASTAR
+                      </button>
+                      <button class="retro-btn"
+                              [disabled]="expendingResource() || resourceAvailable(res) >= res.max"
+                              (click)="expendResource(res.name, -1)">
+                        DESFAZER
+                      </button>
+                    </div>
+                  }
+                  <p class="m-hint">Recarrega em descanso {{ res.recharge_on === 'short_rest' ? 'curto ou longo' : 'longo' }}.</p>
+                </div>
               </div>
             }
 
@@ -176,77 +184,89 @@
                   <span class="attr-name">{{ attrLabel(attr.key) }}</span>
                   <span class="attr-score">{{ attr.value.score }}</span>
                   <span class="attr-mod">{{ formatMod(attr.value.modifier) }}</span>
-                  <div class="attr-save">
-                    <span class="prof-dot">{{ attr.value.save_proficiency ? '●' : '○' }}</span>
-                    Resistência: {{ formatMod(attr.value.save) }}
-                    <button class="roll-trigger-btn" (click)="rollSave(attr.key, attr.value.save)"><img class="ui-icon" src="assets/icons/d20.png" alt="" /></button>
-                  </div>
+                  <button class="mobile-attr-save" [class.mobile-attr-save--prof]="attr.value.save_proficiency"
+                          title="Rolar resistência" (click)="rollSave(attr.key, attr.value.save)">
+                    <span>RES {{ formatMod(attr.value.save) }}</span>
+                    <img class="ui-icon" src="assets/icons/d20.png" alt="" />
+                  </button>
                 </div>
               }
             </div>
+            <p class="m-hint mobile-legend">Dourado = proficiente na resistência. Toque pra rolar.</p>
           }
 
           @case ('skills') {
-            <ul class="mobile-skills-list">
+            <ul class="m-card-list mobile-skill-list">
               @for (skill of sortedSkills(); track skill.id_skill) {
-                <li [class.trained]="skill.is_trained">
-                  <span class="prof-dot">{{ skill.is_trained ? '●' : '○' }}</span>
-                  <span class="skill-mod">{{ formatMod(skill.total_skill_value) }}</span>
-                  <span class="skill-name">{{ skill.name }}</span>
-                  @if (skill.is_expert) {
-                    <span class="skill-expert-badge" title="Especialização: bônus de proficiência dobrado">★</span>
-                  }
-                  <span class="skill-attr">({{ skill.attribute_name }})</span>
-                  <button class="roll-trigger-btn" (click)="rollSkill(skill)"><img class="ui-icon" src="assets/icons/d20.png" alt="" /></button>
+                <li class="m-card m-card--compact" [class.m-card--highlight]="skill.is_trained" (click)="rollSkill(skill)">
+                  <span class="mobile-skill-mod" [class.mobile-skill-mod--trained]="skill.is_trained">{{ formatMod(skill.total_skill_value) }}</span>
+                  <span class="m-card-body">
+                    <span class="m-card-title">
+                      {{ skill.name }}
+                      @if (skill.is_expert) {
+                        <span class="skill-expert-badge" title="Especialização: bônus de proficiência dobrado">★</span>
+                      }
+                    </span>
+                    <span class="m-card-desc">{{ skill.attribute_name }}{{ skill.is_trained ? ' · TREINADA' : '' }}</span>
+                  </span>
+                  <img class="ui-icon m-card-arrow" src="assets/icons/d20.png" alt="" />
                 </li>
               }
             </ul>
           }
 
           @case ('traits') {
-            <ul class="mobile-traits-list">
-              @for (trait of data.character_sheet.features_and_traits; track trait.name) {
-                <li>
-                  <strong>{{ trait.name }}</strong>
-                  <p>{{ trait.description }}</p>
-                </li>
-              }
-            </ul>
-            <div class="mobile-prof-section">
-              <h4>PROFICIÊNCIAS</h4>
-              <p>Armaduras: {{ data.character_sheet.proficiencies_and_languages.armor.join(', ') || '—' }}</p>
-              <p>Armas: {{ data.character_sheet.proficiencies_and_languages.weapons.join(', ') || '—' }}</p>
-              <p>Idiomas: {{ data.character_sheet.proficiencies_and_languages.languages.join(', ') || '—' }}</p>
+            <div class="m-section">
+              <h3 class="m-section-title">TRAÇOS E HABILIDADES</h3>
+              <ul class="m-card-list">
+                @for (trait of data.character_sheet.features_and_traits; track trait.name) {
+                  <li class="m-box mobile-trait">
+                    <strong>{{ trait.name }}</strong>
+                    <p>{{ trait.description }}</p>
+                  </li>
+                }
+              </ul>
+            </div>
+            <div class="m-section">
+              <h3 class="m-section-title">PROFICIÊNCIAS</h3>
+              <div class="m-box mobile-prof">
+                <p><span>ARMADURAS</span>{{ data.character_sheet.proficiencies_and_languages.armor.join(', ') || '—' }}</p>
+                <p><span>ARMAS</span>{{ data.character_sheet.proficiencies_and_languages.weapons.join(', ') || '—' }}</p>
+                <p><span>IDIOMAS</span>{{ data.character_sheet.proficiencies_and_languages.languages.join(', ') || '—' }}</p>
+              </div>
             </div>
           }
 
           @case ('equipment') {
-            @if (data.character_sheet.weapons.length) {
-              <div class="mobile-weapon-cards">
-                @for (weapon of data.character_sheet.weapons; track weapon.id_weapon) {
-                  <div class="mobile-weapon-card" (click)="openWeaponModal(weapon)">
-                    <div class="weapon-card-name">
-                      {{ weapon.name }}
-                      <button class="roll-trigger-btn" (click)="rollAttack(weapon); $event.stopPropagation()"><img class="ui-icon" src="assets/icons/d20.png" alt="" /></button>
-                    </div>
-                    <div class="weapon-card-stats">
-                      <span><strong>ATAQUE</strong>{{ formatMod(weapon.attack_bonus) }}</span>
-                      <span><strong>DANO</strong>{{ weapon.damage_die ?? '—' }} {{ weapon.damage_type ?? '' }}</span>
-                      @if (weapon.properties) {
-                        <span><strong>PROP.</strong>{{ weapon.properties }}</span>
-                      }
-                    </div>
-                  </div>
-                }
-              </div>
-            } @else {
-              <p class="empty-label">Nenhuma arma equipada</p>
-            }
+            <div class="m-section">
+              <h3 class="m-section-title">ARMAS</h3>
+              @if (data.character_sheet.weapons.length) {
+                <ul class="m-card-list">
+                  @for (weapon of data.character_sheet.weapons; track weapon.id_weapon) {
+                    <li class="m-card mobile-weapon-card" (click)="openWeaponModal(weapon)">
+                      <span class="m-card-body">
+                        <span class="m-card-title">{{ weapon.name }}</span>
+                        <span class="weapon-card-stats">
+                          <span><strong>ATAQUE</strong>{{ formatMod(weapon.attack_bonus) }}</span>
+                          <span><strong>DANO</strong>{{ weapon.damage_die ?? '—' }} {{ weapon.damage_type ?? '' }}</span>
+                        </span>
+                        @if (weapon.properties) {
+                          <span class="m-card-desc">{{ weapon.properties }}</span>
+                        }
+                      </span>
+                      <button class="roll-trigger-btn mobile-roll-btn" title="Rolar ataque" (click)="rollAttack(weapon); $event.stopPropagation()"><img class="ui-icon" src="assets/icons/d20.png" alt="" /></button>
+                    </li>
+                  }
+                </ul>
+              } @else {
+                <p class="m-empty">NENHUMA ARMA EQUIPADA.</p>
+              }
+            </div>
 
             @if (data.character_sheet.class_resources) {
-              <div class="class-resources-box">
-                <p class="mobile-panel-subtitle">RECURSOS DE CLASSE</p>
-                <div class="class-resources-list">
+              <div class="m-section">
+                <h3 class="m-section-title">RECURSOS DE CLASSE</h3>
+                <div class="m-box class-resources-list">
                   @for (r of data.character_sheet.class_resources | keyvalue; track r.key) {
                     <div class="class-resource-row">
                       <span class="class-resource-name">{{ r.key }}</span>
@@ -257,73 +277,83 @@
               </div>
             }
 
-            <div class="currency-box">
-              <p class="mobile-panel-subtitle">DINHEIRO</p>
+            <div class="m-section">
+              <h3 class="m-section-title">
+                DINHEIRO
+                @if (currencySaved()) {
+                  <span class="m-section-extra">SALVO!</span>
+                }
+              </h3>
               @if (currencyDraft() !== null) {
-                <div class="currency-edit-row">
-                  <input type="number" min="0" step="0.01" class="currency-input"
+                <div class="mobile-currency-edit">
+                  <input type="number" min="0" step="0.01" class="m-input"
                          [value]="currencyDraft()"
                          (input)="currencyDraft.set($any($event.target).valueAsNumber)">
                   <button class="retro-btn" (click)="saveCurrency()" [disabled]="savingCurrency()">
                     {{ savingCurrency() ? '...' : '✓' }}
                   </button>
-                  <button class="retro-btn mobile-secondary-btn" (click)="cancelEditCurrency()">✕</button>
+                  <button class="retro-btn" (click)="cancelEditCurrency()">✕</button>
                 </div>
               } @else {
-                <div class="currency-display-row">
-                  <span class="currency-value">{{ data.character_sheet.equipment.currency.gp }} PO</span>
-                  <button class="equipment-edit-btn" (click)="startEditCurrency()">✎</button>
-                </div>
-                @if (currencySaved()) {
-                  <span class="hp-saved-msg">SALVO!</span>
-                }
+                <button class="m-card" (click)="startEditCurrency()">
+                  <span class="m-card-body">
+                    <span class="m-card-title">{{ data.character_sheet.equipment.currency.gp }} PO</span>
+                  </span>
+                  <span class="m-card-arrow">✎</span>
+                </button>
               }
             </div>
           }
 
           @case ('spells') {
             @if (data.character_sheet.spellcasting_info) {
-              <div class="spellcasting-info-mobile">
-                <div class="mobile-spell-stat-box">
-                  <span class="spell-stat-label">ATRIBUTO</span>
-                  <span class="spell-stat-value">{{ attrLabel(data.character_sheet.spellcasting_info.spellcasting_ability) }}</span>
+              <div class="mobile-stat-grid mobile-stat-grid--3 m-section">
+                <div class="mobile-stat-card">
+                  <label>ATRIBUTO</label>
+                  <span>{{ attrLabel(data.character_sheet.spellcasting_info.spellcasting_ability) }}</span>
                 </div>
-                <div class="mobile-spell-stat-box">
-                  <span class="spell-stat-label">CD</span>
-                  <span class="spell-stat-value">{{ data.character_sheet.spellcasting_info.spell_save_dc }}</span>
+                <div class="mobile-stat-card">
+                  <label>CD</label>
+                  <span>{{ data.character_sheet.spellcasting_info.spell_save_dc }}</span>
                 </div>
-                <div class="mobile-spell-stat-box">
-                  <span class="spell-stat-label">ATAQUE</span>
-                  <span class="spell-stat-value">{{ formatMod(data.character_sheet.spellcasting_info.spell_attack_bonus) }}</span>
+                <div class="mobile-stat-card">
+                  <label>ATAQUE</label>
+                  <span>{{ formatMod(data.character_sheet.spellcasting_info.spell_attack_bonus) }}</span>
                 </div>
               </div>
             }
             @if (slotLevels().length > 0) {
-              <div class="spell-slots-bar">
-                @for (key of slotLevels(); track key) {
-                  <div class="spell-slot-row">
-                    <span class="spell-slot-label">NV{{ slotLevelNumber(key) }}</span>
-                    <div class="spell-slot-pips">
-                      @for (i of pipsFor(key); track i) {
-                        <span class="spell-slot-pip" [class.spent]="i >= slotsAvailable(key)"></span>
-                      }
+              <div class="m-section">
+                <h3 class="m-section-title">ESPAÇOS DE MAGIA</h3>
+                <div class="m-box spell-slots-bar">
+                  @for (key of slotLevels(); track key) {
+                    <div class="spell-slot-row">
+                      <span class="spell-slot-label">NV{{ slotLevelNumber(key) }}</span>
+                      <div class="spell-slot-pips">
+                        @for (i of pipsFor(key); track i) {
+                          <span class="spell-slot-pip" [class.spent]="i >= slotsAvailable(key)"></span>
+                        }
+                      </div>
+                      <span class="spell-slot-count">{{ slotsAvailable(key) }}/{{ slotsTotal(key) }}</span>
+                      <div class="spell-slot-adjust">
+                        <button class="spell-slot-adjust-btn" title="Gastar um espaço"
+                          [disabled]="expendingSlot() || slotsAvailable(key) === 0"
+                          (click)="expendSlot(slotLevelNumber(key), 1)">−</button>
+                        <button class="spell-slot-adjust-btn" title="Recuperar um espaço"
+                          [disabled]="expendingSlot() || slotsAvailable(key) >= slotsTotal(key)"
+                          (click)="expendSlot(slotLevelNumber(key), -1)">+</button>
+                      </div>
                     </div>
-                    <span class="spell-slot-count">{{ slotsAvailable(key) }}/{{ slotsTotal(key) }}</span>
-                    <div class="spell-slot-adjust">
-                      <button class="spell-slot-adjust-btn" title="Gastar um espaço"
-                        [disabled]="expendingSlot() || slotsAvailable(key) === 0"
-                        (click)="expendSlot(slotLevelNumber(key), 1)">−</button>
-                      <button class="spell-slot-adjust-btn" title="Recuperar um espaço"
-                        [disabled]="expendingSlot() || slotsAvailable(key) >= slotsTotal(key)"
-                        (click)="expendSlot(slotLevelNumber(key), -1)">+</button>
-                    </div>
-                  </div>
-                }
+                  }
+                </div>
               </div>
             }
             @if (data.character_sheet.spellcasting_info?.prepares_spells && preparedSpells().length > 0) {
-              <div class="prepared-spells-quickview">
-                <p class="prepared-spells-quickview-title">MAGIAS PREPARADAS ({{ preparedCount() }}/{{ maxPrepared() }})</p>
+              <div class="m-section">
+                <h3 class="m-section-title">
+                  MAGIAS PREPARADAS
+                  <span class="m-section-extra">{{ preparedCount() }}/{{ maxPrepared() }}</span>
+                </h3>
                 <div class="prepared-spells-quickview-list">
                   @for (spell of preparedSpells(); track spell.id_spell) {
                     <button type="button" class="prepared-spell-chip" (click)="openSpellModal(spell)">
@@ -334,47 +364,51 @@
                 </div>
               </div>
             }
-            <div class="mobile-spell-cards">
-              @for (group of spellsByCircle(); track group.circle) {
-                <button
-                  type="button"
-                  class="spell-circle-header"
-                  [attr.aria-expanded]="!isCircleCollapsed(group.circle)"
-                  (click)="toggleCircle(group.circle)"
-                >
-                  <span
-                    class="spell-circle-chevron"
-                    [class.spell-circle-chevron--open]="!isCircleCollapsed(group.circle)"
-                    aria-hidden="true"
-                    >▸</span
+            <div class="m-section">
+              <h3 class="m-section-title">GRIMÓRIO</h3>
+              <div class="m-card-list">
+                @for (group of spellsByCircle(); track group.circle) {
+                  <button
+                    type="button"
+                    class="spell-circle-header"
+                    [attr.aria-expanded]="!isCircleCollapsed(group.circle)"
+                    (click)="toggleCircle(group.circle)"
                   >
-                  <span class="spell-circle-name">{{ circleName(group.circle) }}</span>
-                  <span class="spell-circle-count">{{ group.spells.length }}</span>
-                </button>
-                @if (!isCircleCollapsed(group.circle)) {
-                  @for (spell of group.spells; track spell.id_spell) {
-                    <div class="mobile-spell-card" (click)="openSpellModal(spell)">
-                      <div class="spell-card-left">
-                        <div class="spell-card-name">
-                          {{ spell.name }}
-                          @if (spell.is_prepared) { <span class="prepared-dot" title="Preparada">●</span> }
-                        </div>
-                        <div class="spell-card-meta">{{ spell.school ?? '' }}{{ spell.casting_time ? ' · ' + spell.casting_time : '' }}</div>
+                    <span
+                      class="spell-circle-chevron"
+                      [class.spell-circle-chevron--open]="!isCircleCollapsed(group.circle)"
+                      aria-hidden="true"
+                      >▸</span
+                    >
+                    <span class="spell-circle-name">{{ circleName(group.circle) }}</span>
+                    <span class="spell-circle-count">{{ group.spells.length }}</span>
+                  </button>
+                  @if (!isCircleCollapsed(group.circle)) {
+                    @for (spell of group.spells; track spell.id_spell) {
+                      <div class="m-card m-card--compact" [class.m-card--highlight]="spell.is_prepared" (click)="openSpellModal(spell)">
+                        <span class="mobile-spell-level">{{ spell.spellLevel === 0 ? 'T' : spell.spellLevel }}</span>
+                        <span class="m-card-body">
+                          <span class="m-card-title">
+                            {{ spell.name }}
+                            @if (spell.is_prepared) { <span class="prepared-dot" title="Preparada">●</span> }
+                          </span>
+                          <span class="m-card-desc">{{ spell.school ?? '' }}{{ spell.casting_time ? ' · ' + spell.casting_time : '' }}</span>
+                        </span>
+                        <span class="m-card-arrow">&#9658;</span>
                       </div>
-                      <div class="spell-card-level">{{ spell.spellLevel === 0 ? 'T' : spell.spellLevel }}</div>
-                    </div>
+                    }
                   }
                 }
-              }
+              </div>
             </div>
 
             @if (chiAbilities().length > 0) {
-              <div class="chi-panel-mobile">
-                <p class="chi-panel-title">PODERES DE CLASSE</p>
+              <div class="m-section">
+                <h3 class="m-section-title">PODERES DE CLASSE</h3>
                 @for (key of chiAbilityResourceKeys(); track key) {
                   @if (resourceTrackerByKey(key); as res) {
                     @if (res.max !== 'unlimited') {
-                      <div class="spell-slots-bar">
+                      <div class="m-box spell-slots-bar">
                         <div class="spell-slot-row">
                           <span class="spell-slot-label spell-slot-label--wide">{{ key.toUpperCase() }}</span>
                           <div class="spell-slot-pips">
@@ -388,14 +422,15 @@
                     }
                   }
                 }
-                <div class="mobile-spell-cards">
+                <div class="m-card-list">
                   @for (ability of chiAbilities(); track ability.name) {
-                    <div class="mobile-spell-card" (click)="openChiAbilityModal(ability)">
-                      <div class="spell-card-left">
-                        <div class="spell-card-name">{{ ability.name }}</div>
-                        <div class="spell-card-meta">{{ ability.resource_key }}</div>
-                      </div>
-                      <div class="spell-card-level">{{ ability.cost }}</div>
+                    <div class="m-card m-card--compact" (click)="openChiAbilityModal(ability)">
+                      <span class="mobile-spell-level">{{ ability.cost }}</span>
+                      <span class="m-card-body">
+                        <span class="m-card-title">{{ ability.name }}</span>
+                        <span class="m-card-desc">{{ ability.resource_key }}</span>
+                      </span>
+                      <span class="m-card-arrow">&#9658;</span>
                     </div>
                   }
                 </div>
@@ -404,33 +439,28 @@
           }
 
           @case ('notes') {
-            <div class="notes-page">
-              <div class="notes-field">
-                <label class="notes-label">HISTÓRIA DO PERSONAGEM</label>
+            <div class="m-section">
+              <div class="m-field">
+                <label class="m-label">HISTÓRIA DO PERSONAGEM</label>
                 <textarea
-                  class="notes-textarea"
+                  class="m-input mobile-notes-textarea"
                   placeholder="Escreva a história do seu personagem aqui..."
                   [value]="historyText()"
                   (input)="historyText.set($any($event.target).value)">
                 </textarea>
               </div>
-              <div class="notes-field">
-                <label class="notes-label">ANOTAÇÕES GERAIS</label>
+              <div class="m-field">
+                <label class="m-label">ANOTAÇÕES GERAIS</label>
                 <textarea
-                  class="notes-textarea"
+                  class="m-input mobile-notes-textarea"
                   placeholder="Anotações, lembretes, segredos..."
                   [value]="notesText()"
                   (input)="notesText.set($any($event.target).value)">
                 </textarea>
               </div>
-              <div class="notes-actions">
-                @if (notesSaved()) {
-                  <span class="notes-saved-msg">NOTAS SALVAS!</span>
-                }
-                <button class="retro-btn notes-save-btn" (click)="saveNotes()" [disabled]="savingNotes()">
-                  {{ savingNotes() ? 'SALVANDO...' : 'SALVAR NOTAS' }}
-                </button>
-              </div>
+              <button class="retro-btn m-submit" (click)="saveNotes()" [disabled]="savingNotes()">
+                {{ savingNotes() ? 'SALVANDO...' : notesSaved() ? 'NOTAS SALVAS!' : 'SALVAR NOTAS' }}
+              </button>
             </div>
           }
 
@@ -438,51 +468,104 @@
 
       </div>
     </div>
-
   } @else {
     <!-- ===== DESKTOP LAYOUT ===== -->
-    <div class="full-sheet-container">
+    <div class="page sheet-page">
 
-      <fieldset class="retro-panel header-panel"
-        [class.header-panel--has-bg]="data.character_sheet.image_url"
-        [style.background-image]="data.character_sheet.image_url ? ('linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(' + data.character_sheet.image_url + ')') : null">
+      <header class="page-topbar">
+        <button class="retro-btn page-topbar-back" (click)="goBack()">← VOLTAR</button>
+        <h1 class="page-topbar-name">{{ data.character_sheet.header.name }}</h1>
+        <div class="page-topbar-meta">
+          <span>{{ data.character_sheet.header.class_and_level }}</span>
+          <span>{{ data.character_sheet.header.race || 'Humano' }}</span>
+          <span>ANTECEDENTE <strong>{{ data.character_sheet.header.background }}</strong></span>
+          <span>ALINHAMENTO <strong>{{ data.character_sheet.header.alignment }}</strong></span>
+        </div>
+      </header>
+
+      <!-- Card do personagem: moldura e foto de fundo como os cards da sessão -->
+      <div class="sheet-hero framed-card"
+        [style.background-image]="data.character_sheet.image_url ? ('linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(' + data.character_sheet.image_url + ')') : null">
         <div class="portrait-section">
           <div class="portrait-box avatar-editable" (click)="openAvatarEditor()" title="Editar avatar">
             <app-avatar-display [preset]="data.character_sheet.avatar_preset" />
             <div class="avatar-edit-hint">✎</div>
           </div>
-          <label class="retro-btn image-upload-btn">
-            {{ uploadingImage() ? 'ENVIANDO...' : data.character_sheet.image_url ? 'TROCAR IMAGEM DE FUNDO' : 'UPLOAD IMAGEM DE FUNDO' }}
+          <label class="sheet-image-upload" [class.sheet-image-upload--busy]="uploadingImage()">
+            {{ uploadingImage() ? 'ENVIANDO...' : data.character_sheet.image_url ? 'TROCAR IMAGEM DE FUNDO' : 'ENVIAR IMAGEM DE FUNDO' }}
             <input type="file" accept="image/*" hidden [disabled]="uploadingImage()" (change)="onImageSelected($event)" />
           </label>
           @if (imageUploadError()) {
             <p class="image-upload-error">{{ imageUploadError() }}</p>
           }
         </div>
-        <div class="char-title">
-          <h1>{{ data.character_sheet.header.name }}</h1>
-          <p>{{ data.character_sheet.header.class_and_level }} &mdash; {{ data.character_sheet.header.race || 'Humano' }}</p>
+
+        <div class="sheet-hero-hp">
+          <span class="sheet-hero-label">PONTOS DE VIDA</span>
+          <div class="hp-controls">
+            <button class="hp-btn" (click)="changeHp(-1)">−</button>
+            <span class="sheet-hero-hp-value">
+              <span class="hp-current">{{ data.character_sheet.combat_stats.hit_points.current }}</span>
+              <span class="hp-max">/ {{ data.character_sheet.combat_stats.hit_points.max }}</span>
+            </span>
+            <button class="hp-btn" (click)="changeHp(1)">+</button>
+          </div>
+          <button class="retro-btn hp-save-btn" (click)="saveHp()" [disabled]="savingHp()">
+            {{ savingHp() ? 'SALVANDO...' : hpSaved() ? 'HP SALVO!' : 'SALVAR HP' }}
+          </button>
+        </div>
+
+        <div class="sheet-hero-stats">
+          <div class="sheet-stat">
+            <span class="sheet-hero-label">CA</span>
+            <span class="sheet-stat-value">{{ data.character_sheet.combat_stats.armor_class }}</span>
+            <button class="equipment-edit-btn sheet-stat-edit" (click)="openEquipmentModal()" title="Trocar equipamento">✎</button>
+          </div>
+          <div class="sheet-stat">
+            <span class="sheet-hero-label">INICIATIVA</span>
+            <span class="sheet-stat-value">{{ formatMod(data.character_sheet.combat_stats.initiative) }}</span>
+          </div>
+          <div class="sheet-stat">
+            <span class="sheet-hero-label">MOVIMENTO</span>
+            <span class="sheet-stat-value">{{ data.character_sheet.combat_stats.speed }}</span>
+          </div>
+          <div class="sheet-stat">
+            <span class="sheet-hero-label">BÔNUS PROF.</span>
+            <span class="sheet-stat-value">{{ formatMod(data.character_sheet.combat_stats.proficiency_bonus) }}</span>
+          </div>
+          <div class="sheet-stat">
+            <span class="sheet-hero-label">PERC. PASSIVA</span>
+            <span class="sheet-stat-value">{{ data.character_sheet.combat_stats.passive_perception }}</span>
+          </div>
+        </div>
+
+        <div class="sheet-hero-xp">
+          <span class="sheet-hero-label">EXPERIÊNCIA</span>
+          <span class="sheet-hero-xp-value">
+            {{ data.character_sheet.header.experience_points }}
+            @if (data.character_sheet.header.next_level_xp !== null) {
+              / {{ data.character_sheet.header.next_level_xp }}
+            }
+          </span>
           @if (canLevelUp()) {
             <button class="retro-btn level-up-btn" (click)="openLevelUpModal()"><img class="ui-icon" src="assets/icons/level-up.png" alt="" /> SUBIR DE NÍVEL</button>
           } @else if (data.character_sheet.combat_stats.hit_dice_total < 20) {
             <p class="xp-missing-hint">Faltam {{ xpMissingForLevelUp() }} XP pro próximo nível</p>
           }
         </div>
-        <div class="char-details">
-          <p>Antecedente: {{ data.character_sheet.header.background }}</p>
-          <p>Alinhamento: {{ data.character_sheet.header.alignment }}</p>
-          <p>
-            XP: {{ data.character_sheet.header.experience_points }}
-            @if (data.character_sheet.header.next_level_xp !== null) {
-              / {{ data.character_sheet.header.next_level_xp }}
-            }
-          </p>
-        </div>
-      </fieldset>
+      </div>
 
-      <div class="desktop-page-tabs">
-        <button [class.active]="desktopPage() === 'sheet'" (click)="desktopPage.set('sheet')">FICHA</button>
-        <button [class.active]="desktopPage() === 'notes'" (click)="desktopPage.set('notes')">HISTÓRIA & NOTAS</button>
+      <div class="page-toolbar sheet-toolbar">
+        <div class="desktop-page-tabs">
+          <button [class.active]="desktopPage() === 'sheet'" (click)="desktopPage.set('sheet')">FICHA</button>
+          <button [class.active]="desktopPage() === 'notes'" (click)="desktopPage.set('notes')">HISTÓRIA & NOTAS</button>
+        </div>
+        <div class="sheet-toolbar-actions">
+          <button class="retro-btn" (click)="openFreeformRoll()"><img class="ui-icon" src="assets/icons/d20.png" alt="" /> ROLAR DADO</button>
+          <button class="retro-btn" (click)="printSheet()" [disabled]="printingSheet()">
+            @if (!printingSheet()) { <img class="ui-icon" src="assets/icons/print.png" alt="" /> }{{ printingSheet() ? 'CARREGANDO...' : 'IMPRIMIR / PDF' }}
+          </button>
+        </div>
       </div>
 
       @if (desktopPage() === 'notes') {
@@ -534,11 +617,11 @@
                   <span class="attr-name">{{ attrLabel(attr.key) }}</span>
                   <span class="attr-score">{{ attr.value.score }}</span>
                   <span class="attr-mod">{{ formatMod(attr.value.modifier) }}</span>
-                  <div class="save-box">
-                    <span class="prof-dot">{{ attr.value.save_proficiency ? '●' : '○' }}</span>
-                    Resistência: {{ formatMod(attr.value.save) }}
-                    <button class="roll-trigger-btn" (click)="rollSave(attr.key, attr.value.save)"><img class="ui-icon" src="assets/icons/d20.png" alt="" /></button>
-                  </div>
+                  <button class="save-box" [class.save-box--prof]="attr.value.save_proficiency"
+                          title="Rolar resistência" (click)="rollSave(attr.key, attr.value.save)">
+                    RESISTÊNCIA {{ formatMod(attr.value.save) }}
+                    <img class="ui-icon" src="assets/icons/d20.png" alt="" />
+                  </button>
                 </div>
               }
             </div>
@@ -549,29 +632,7 @@
         <div class="column">
           <fieldset class="retro-panel combat-panel">
             <legend>COMBATE</legend>
-            <div class="stats-row">
-              <div><label>CA</label><span>{{ data.character_sheet.combat_stats.armor_class }}</span><button class="equipment-edit-btn" (click)="openEquipmentModal()">✎</button></div>
-              <div><label>INIT</label><span>{{ formatMod(data.character_sheet.combat_stats.initiative) }}</span></div>
-              <div><label>MOV</label><span>{{ data.character_sheet.combat_stats.speed }}</span></div>
-              <div><label>BÔNUS PROF</label><span>{{ formatMod(data.character_sheet.combat_stats.proficiency_bonus) }}</span></div>
-            </div>
-            <div class="hp-box">
-              <p>PONTOS DE VIDA</p>
-              <div class="hp-controls">
-                <button class="hp-btn" (click)="changeHp(-1)">−</button>
-                <h3>{{ data.character_sheet.combat_stats.hit_points.current }} / {{ data.character_sheet.combat_stats.hit_points.max }}</h3>
-                <button class="hp-btn" (click)="changeHp(1)">+</button>
-              </div>
-              <div class="hp-save-row">
-                @if (hpSaved()) {
-                  <span class="hp-saved-msg">HP SALVO!</span>
-                }
-                <button class="retro-btn hp-save-btn" (click)="saveHp()" [disabled]="savingHp()">
-                  {{ savingHp() ? 'SALVANDO...' : 'SALVAR HP' }}
-                </button>
-              </div>
-              <small>Dado de Vida: {{ data.character_sheet.combat_stats.hit_dice }}</small>
-            </div>
+            <p class="sheet-panel-line">DADO DE VIDA <strong>{{ data.character_sheet.combat_stats.hit_dice }}</strong></p>
 
             <div class="hit-dice-box">
               <p class="hit-dice-title">
@@ -631,23 +692,22 @@
               </div>
             }
 
-            <div class="passive-box">
-              <p>Percepção Passiva: {{ data.character_sheet.combat_stats.passive_perception }}</p>
-            </div>
           </fieldset>
 
           <fieldset class="retro-panel skills-panel">
             <legend>PERÍCIAS</legend>
             <ul>
               @for (skill of sortedSkills(); track skill.id_skill) {
-                <li [class.trained]="skill.is_trained">
-                  <span class="prof-dot">{{ skill.is_trained ? '●' : '○' }}</span>
-                  {{ formatMod(skill.total_skill_value) }} {{ skill.name }}
-                  @if (skill.is_expert) {
-                    <span class="skill-expert-badge" title="Especialização: bônus de proficiência dobrado">★</span>
-                  }
-                  <span class="skill-attribute">({{ skill.attribute_name }})</span>
-                  <button class="roll-trigger-btn" (click)="rollSkill(skill)"><img class="ui-icon" src="assets/icons/d20.png" alt="" /></button>
+                <li [class.trained]="skill.is_trained" (click)="rollSkill(skill)" title="Rolar {{ skill.name }}">
+                  <span class="skill-mod">{{ formatMod(skill.total_skill_value) }}</span>
+                  <span class="skill-name">
+                    {{ skill.name }}
+                    @if (skill.is_expert) {
+                      <span class="skill-expert-badge" title="Especialização: bônus de proficiência dobrado">★</span>
+                    }
+                  </span>
+                  <span class="skill-attribute">{{ skill.attribute_name }}</span>
+                  <img class="ui-icon skill-roll-icon" src="assets/icons/d20.png" alt="" />
                 </li>
               }
             </ul>
@@ -706,7 +766,7 @@
               </tbody>
             </table>
           } @else {
-            <p class="empty-label">Nenhuma arma equipada</p>
+            <p class="m-empty">NENHUMA ARMA EQUIPADA.</p>
           }
         </fieldset>
 
@@ -894,14 +954,6 @@
             }
           }
         </fieldset>
-      </div>
-
-      <div class="sheet-actions">
-        <button class="retro-btn" (click)="goBack()">VOLTAR</button>
-        <button class="retro-btn print-btn" (click)="printSheet()" [disabled]="printingSheet()">
-          @if (!printingSheet()) { <img class="ui-icon" src="assets/icons/print.png" alt="" /> }{{ printingSheet() ? 'CARREGANDO...' : 'IMPRIMIR / PDF' }}
-        </button>
-        <button class="retro-btn" (click)="openFreeformRoll()"><img class="ui-icon" src="assets/icons/d20.png" alt="" /> ROLAR DADO</button>
       </div>
 
       } <!-- end @if desktopPage === 'sheet' -->
@@ -1134,22 +1186,34 @@
   <!-- Skeleton no formato da ficha: cabeçalho (retrato + nome) e as colunas -->
   @if (isMobile()) {
     <div class="mobile-sheet-container" aria-busy="true" aria-label="Carregando a ficha">
+      <div class="m-header">
+        <button class="m-back" (click)="goBack()">&#8592;</button>
+        <span class="m-title">FICHA</span>
+      </div>
       <div class="sheet-skeleton-mobile">
-        <span class="skeleton" style="width: 72px; height: 72px; margin: 0 auto"></span>
-        <app-skeleton-rows [rows]="2" [height]="14" />
-        @for (rows of [4, 6, 5]; track $index) {
-          <fieldset class="retro-panel">
+        <div class="m-box sheet-skeleton-hero">
+          <span class="skeleton" style="width: 64px; height: 64px; flex-shrink: 0"></span>
+          <app-skeleton-rows [rows]="3" [height]="12" />
+        </div>
+        <app-skeleton-rows [rows]="1" [height]="32" />
+        @for (rows of [4, 3]; track $index) {
+          <div class="m-box">
             <app-skeleton-rows [rows]="rows" [height]="14" />
-          </fieldset>
+          </div>
         }
       </div>
     </div>
   } @else {
-    <div class="full-sheet-container" aria-busy="true" aria-label="Carregando a ficha">
-      <fieldset class="retro-panel header-panel">
-        <span class="skeleton" style="width: 80px; height: 80px; flex-shrink: 0"></span>
+    <div class="page sheet-page" aria-busy="true" aria-label="Carregando a ficha">
+      <header class="page-topbar">
+        <button class="retro-btn page-topbar-back" (click)="goBack()">← VOLTAR</button>
+        <span class="skeleton" style="display: block; width: 280px; height: 22px; margin: 0 auto 12px"></span>
+        <span class="skeleton" style="display: block; width: 420px; height: 10px; margin: 0 auto"></span>
+      </header>
+      <div class="sheet-hero framed-card">
+        <span class="skeleton" style="width: 96px; height: 96px; flex-shrink: 0"></span>
         <app-skeleton-rows [rows]="3" [height]="14" />
-      </fieldset>
+      </div>
       <div class="sheet-grid">
         @for (rows of [8, 10, 9]; track $index) {
           <div class="column">

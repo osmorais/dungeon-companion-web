@@ -1,38 +1,23 @@
-.full-sheet-container {
-  width: 960px;
-  max-width: 95vw;
-  margin: 20px auto;
+/* ===== DESKTOP LAYOUT =====
+   Página no tamanho da sessão (.page/.page-topbar/.page-toolbar do styles.scss, como as listagens),
+   card do personagem com a moldura dos cards da sessão e os quadros (fieldset.retro-panel) da mesa.
+   Caixas internas: borda 2px e fundo escuro translúcido, cores sempre das variáveis do tema. */
+
+.sheet-page {
   padding-bottom: 40px;
 }
 
-.header-panel {
+// Card do personagem (moldura .framed-card: não definir border aqui)
+.sheet-hero {
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
   align-items: center;
-  border-color: var(--border-color);
-  gap: 20px;
-
-  &.header-panel--has-bg {
-    background-size: cover;
-    background-position: center;
-  }
-
-  h1 {
-    margin: 0 0 8px;
-    font-size: 16px;
-    color: var(--text-soft);
-  }
-
-  p {
-    margin: 4px 0;
-    font-size: 10px;
-    color: var(--gold-color);
-  }
-
-  .char-details p {
-    color: #aaa;
-    font-size: 8px;
-  }
+  gap: 20px 28px;
+  padding: 16px 24px;
+  background-color: var(--panel-bg);
+  background-size: cover;
+  background-position: center;
+  text-shadow: 2px 2px 0 var(--bg-color);
 }
 
 .portrait-section {
@@ -40,34 +25,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-}
-
-.image-upload-btn {
-  display: inline-block;
-  cursor: var(--cp);
-  font-size: 6px;
-  text-align: center;
-  padding: 5px 6px;
-
-  &:has(input:disabled) {
-    opacity: 0.6;
-    cursor: var(--cx);
-  }
-}
-
-.image-upload-error {
-  margin: 0;
-  font-size: 6px;
-  color: #ff6b6b;
-  text-align: center;
-  max-width: 90px;
+  gap: 8px;
 }
 
 .portrait-box {
-  width: 80px;
-  height: 80px;
-  border: 2px solid var(--panel-bg);
+  width: 96px;
+  height: 96px;
+  border: 2px solid var(--border-color);
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -83,9 +47,144 @@
   }
 }
 
-.portrait-placeholder {
-  font-size: 24px;
-  color: var(--panel-bg);
+.sheet-image-upload {
+  font-size: 6px;
+  color: var(--label-title-color);
+  text-decoration: underline;
+  cursor: var(--cp);
+
+  &:hover {
+    color: var(--accent-color);
+  }
+
+  &--busy {
+    opacity: 0.6;
+    cursor: var(--cx);
+  }
+}
+
+.image-upload-error {
+  margin: 0;
+  font-size: 6px;
+  color: #ff6b6b;
+  text-align: center;
+  max-width: 110px;
+}
+
+.sheet-hero-label {
+  font-size: 7px;
+  color: var(--label-title-color);
+}
+
+.sheet-hero-hp {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 2px solid var(--border-color);
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.sheet-hero-hp-value {
+  min-width: 110px;
+  text-align: center;
+
+  .hp-current {
+    font-size: 20px;
+    color: #00ff00;
+  }
+
+  .hp-max {
+    font-size: 11px;
+    color: var(--text-soft);
+  }
+}
+
+// Em tela desktop estreita os números descem pra linha de baixo em vez de espremer.
+.sheet-hero-stats {
+  flex: 1 1 480px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+.sheet-stat {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 6px;
+  border: 2px solid var(--border-color);
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.sheet-stat-value {
+  font-size: 18px;
+  color: var(--accent-color);
+}
+
+.equipment-edit-btn.sheet-stat-edit {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+.sheet-hero-xp {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 160px;
+}
+
+.sheet-hero-xp-value {
+  font-size: 10px;
+  color: var(--gold-color);
+}
+
+.sheet-toolbar {
+  margin: 20px 0 0;
+}
+
+.sheet-toolbar-actions {
+  display: flex;
+  gap: 10px;
+
+  .retro-btn {
+    float: none;
+    margin: 0;
+    padding: 8px 14px;
+    font-size: 8px;
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: var(--cx);
+    }
+  }
+}
+
+// Linha de valor dentro de um quadro (ex.: "DADO DE VIDA 1d8").
+.sheet-panel-line {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  padding: 10px 12px;
+  border: 2px solid var(--border-color);
+  background: rgba(0, 0, 0, 0.25);
+  font-size: 7px;
+  color: var(--label-title-color);
+
+  strong {
+    font-weight: normal;
+    color: var(--accent-color);
+  }
 }
 
 .sheet-grid {
@@ -109,41 +208,57 @@
 .attributes-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 
   .attr-box {
-    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 6px 8px;
+    border: 2px solid var(--border-color);
+    background: rgba(0, 0, 0, 0.25);
     text-align: center;
-    padding: 8px 4px;
 
     .attr-name {
-      display: block;
-      font-size: 8px;
-      margin-bottom: 4px;
-      color: var(--sheet-label-color);
+      font-size: 7px;
+      color: var(--label-title-color);
     }
 
     .attr-score {
-      display: block;
-      font-size: 16px;
-      margin-bottom: 4px;
+      font-size: 18px;
+      color: var(--text-soft);
     }
 
     .attr-mod {
-      display: block;
       font-size: 10px;
-      margin-bottom: 4px;
+      color: var(--accent-color);
     }
+  }
+}
 
-    .save-box {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      font-size: 8px;
-      border-top: 1px dashed #555;
-      padding-top: 4px;
-    }
+// Botão de rolar resistência (dourado = proficiente), igual ao do celular.
+.save-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 4px;
+  border: 1px solid var(--border-color);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--label-title-color);
+  font-family: inherit;
+  font-size: 7px;
+  cursor: var(--cp);
+
+  &:hover {
+    border-color: var(--accent-color);
+  }
+
+  &--prof {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
   }
 }
 
@@ -159,54 +274,12 @@
   font-size: 12px;
 }
 
-.chi-panel-mobile {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border-color);
-}
-
-.chi-panel-title {
-  margin: 0 0 8px;
-  font-size: 10px;
-  color: var(--label-title-color);
-  letter-spacing: 0.05em;
-}
-
 /* Combate */
-.combat-panel .stats-row {
-  display: flex;
-  justify-content: space-around;
-  text-align: center;
-  margin-bottom: 15px;
-
-  label {
-    display: block;
-    font-size: 7px;
-    color: var(--sheet-label-color);
-    margin-bottom: 4px;
-  }
-
-  span {
-    font-size: 14px;
-  }
-}
-
-.hp-box {
-  border: 1px solid var(--border-color);
-  text-align: center;
-  padding: 10px;
-
-  p { margin: 0 0 8px; font-size: 8px; }
-  h3 { margin: 0; font-size: 16px; color: #00ff00; }
-  small { font-size: 7px; color: #888; }
-}
-
 .hp-controls {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  margin-bottom: 4px;
 }
 
 .hp-btn {
@@ -227,14 +300,6 @@
   &:active { background: rgba(0, 255, 0, 0.2); }
 }
 
-.hp-save-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 6px;
-}
-
 .hp-saved-msg {
   font-size: 7px;
   color: #4caf50;
@@ -244,22 +309,14 @@
 
 .hp-save-btn {
   float: none !important;
+  margin: 0;
   font-size: 7px;
-  padding: 5px 8px;
+  padding: 6px 10px;
 
   &:disabled {
     opacity: 0.4;
     cursor: var(--cx);
   }
-}
-
-.passive-box {
-  margin-top: 10px;
-  text-align: center;
-  font-size: 8px;
-  color: #aaa;
-
-  p { margin: 0; }
 }
 
 /* Perícias */
@@ -269,32 +326,67 @@ ul {
   margin: 0;
 }
 
+// Linha inteira rola o teste; treinada fica em dourado (igual ao celular).
+.skills-panel ul {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .skills-panel li {
-  margin-bottom: 4px;
-  font-size: 10px;
   display: flex;
   align-items: center;
-  padding: 2px 4px;
+  gap: 10px;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  font-size: 8px;
   color: var(--text-soft);
+  cursor: var(--cp);
 
-  .skill-attribute { font-size: 0.85em; opacity: 0.6; margin-left: 3px; }
-  small { color: #555; margin-left: 4px; }
+  &:hover {
+    border-color: var(--accent-color);
+    background: rgba(0, 0, 0, 0.25);
+  }
+
+  .skill-mod {
+    flex-shrink: 0;
+    min-width: 26px;
+    text-align: right;
+  }
+
+  .skill-name {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .skill-attribute {
+    flex-shrink: 0;
+    font-size: 6px;
+    color: var(--label-title-color);
+  }
+
+  .skill-roll-icon {
+    flex-shrink: 0;
+    opacity: 0.5;
+  }
+
+  &:hover .skill-roll-icon {
+    opacity: 1;
+  }
 
   &.trained {
-    color: var(--gold-color);
-    background: rgba(100, 180, 100, 0.08);
-    border-left: 2px solid #4caf50;
-    padding-left: 4px;
-
-    .skill-attribute { opacity: 0.8; }
+    border-left: 2px solid var(--accent-color);
+    background: rgba(0, 0, 0, 0.25);
+    color: var(--accent-color);
   }
 }
 
 /* Traços */
 .traits-list li {
-  font-size: 8px;
-  margin-bottom: 12px;
-  line-height: 1.6;
+  font-size: 7px;
+  margin-bottom: 14px;
+  line-height: 1.8;
+  color: var(--text-soft);
 
   strong {
     color: var(--accent-color);
@@ -323,7 +415,8 @@ ul {
 }
 
 .spell-stat-box {
-  border: 1px solid var(--border-color);
+  border: 2px solid var(--border-color);
+  background: rgba(0, 0, 0, 0.25);
   text-align: center;
   padding: 6px 12px;
   min-width: 60px;
@@ -331,7 +424,7 @@ ul {
   .spell-stat-label {
     display: block;
     font-size: 7px;
-    color: var(--sheet-label-color);
+    color: var(--label-title-color);
     margin-bottom: 4px;
     letter-spacing: 0.05em;
   }
@@ -344,7 +437,8 @@ ul {
 }
 
 .hit-dice-box {
-  border: 1px solid var(--border-color);
+  border: 2px solid var(--border-color);
+  background: rgba(0, 0, 0, 0.25);
   padding: 10px 12px;
   margin-top: 10px;
   text-align: center;
@@ -380,7 +474,7 @@ ul {
 
   &.spent {
     background-color: transparent;
-    border-color: #555;
+    border-color: var(--border-color);
   }
 }
 
@@ -410,7 +504,8 @@ ul {
 }
 
 .spell-slots-bar {
-  border: 1px solid var(--border-color);
+  border: 2px solid var(--border-color);
+  background: rgba(0, 0, 0, 0.25);
   padding: 10px 12px;
   margin-bottom: 12px;
   display: flex;
@@ -439,7 +534,8 @@ ul {
 }
 
 .prepared-spells-quickview {
-  border: 1px solid var(--border-color);
+  border: 2px solid var(--border-color);
+  background: rgba(0, 0, 0, 0.25);
   padding: 10px 12px;
   margin-bottom: 12px;
 }
@@ -491,7 +587,7 @@ ul {
 
   &.spent {
     background-color: transparent;
-    border-color: #555;
+    border-color: var(--border-color);
   }
 }
 
@@ -634,7 +730,7 @@ ul {
 
 .spell-circle-count {
   font-size: 8px;
-  color: #888;
+  color: var(--label-title-color);
 }
 
 tr.spell-circle-header-row {
@@ -679,9 +775,10 @@ tr.spell-circle-header-row {
 
 /* Proficiências */
 .prof-label {
-  font-size: 8px;
+  font-size: 7px;
+  line-height: 1.8;
   margin: 6px 0;
-  color: #aaa;
+  color: var(--text-soft);
 }
 
 /* Equipamento */
@@ -708,7 +805,7 @@ tr.spell-circle-header-row {
 
   td {
     padding: 5px 6px;
-    border-bottom: 1px dashed #333;
+    border-bottom: 1px dashed var(--border-color);
     vertical-align: middle;
   }
 
@@ -722,7 +819,7 @@ tr.spell-circle-header-row {
   }
 
   .props-cell {
-    color: #888;
+    color: var(--label-title-color);
     font-size: 7px;
   }
 }
@@ -738,19 +835,6 @@ tr.spell-circle-header-row {
   color: #f7f7f7;
   text-align: center;
   padding: 10px 0;
-}
-
-.sheet-actions {
-  margin-top: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-
-  .retro-btn {
-    float: none;
-    margin-top: 0;
-  }
 }
 
 .modal-overlay {
@@ -877,67 +961,59 @@ tr.spell-circle-header-row {
   50% { opacity: 0; }
 }
 
-/* ===== MOBILE LAYOUT ===== */
-
-.sheet-skeleton-mobile {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding: 16px;
-}
+/* ===== MOBILE LAYOUT =====
+   Segue a identidade mobile do styles.scss (.m-header, .m-section, .m-card, .m-box, .m-input):
+   cabeçalho, cards e campos vêm de lá — aqui só o que é da ficha (card do personagem, PV, abas,
+   grades de números). Não redefinir as classes .m-* aqui. */
 
 .mobile-sheet-container {
   width: 100vw;
   max-width: 100vw;
   min-height: 100vh;
+  padding: 0 12px 24px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.sheet-skeleton-mobile {
   display: flex;
   flex-direction: column;
-  overflow-x: hidden;
-  box-sizing: border-box;
+  gap: 14px;
+}
 
-  &.mobile-sheet-container--has-bg {
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
+.sheet-skeleton-hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  app-skeleton-rows {
+    flex: 1;
   }
 }
 
-.mobile-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--border-color);
-  background: rgba(0, 0, 0, 0.3);
-}
-
-.mobile-back-arrow {
-  flex-shrink: 0;
-  padding: 4px 8px;
-  font-size: 14px;
-  line-height: 1;
-  float: none !important;
-  margin-top: 0 !important;
-}
-
-.mobile-portrait-wrap {
-  flex-shrink: 0;
+/* Card do personagem (moldura .framed-card: não definir border aqui) */
+.mobile-hero {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 3px;
+  gap: 12px;
+  padding: 12px;
+  background-color: var(--panel-bg);
+  background-size: cover;
+  background-position: center;
+  text-shadow: 2px 2px 0 var(--bg-color);
 }
 
-.mobile-image-upload-btn {
-  font-size: 5px;
-  padding: 3px 4px;
+.mobile-hero-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .mobile-portrait {
   flex-shrink: 0;
-  width: 52px;
-  height: 52px;
-  border: 2px solid var(--panel-bg);
+  width: 64px;
+  height: 64px;
+  border: 2px solid var(--border-color);
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -950,67 +1026,105 @@ tr.spell-circle-header-row {
     object-fit: cover;
     image-rendering: pixelated;
   }
+
+  // Sem hover no toque: o lápis fica sempre à vista.
+  .avatar-edit-hint {
+    opacity: 1;
+  }
 }
 
 .mobile-char-info {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 
   h2 {
-    font-size: 12px;
-    margin: 0 0 2px;
-    color: var(--text-soft);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--accent-color);
+    overflow-wrap: anywhere;
   }
 
   p {
-    font-size: 9px;
-    margin: 1px 0;
-    color: var(--gold-color);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    margin: 0;
+    font-size: 7px;
+    color: var(--text-soft);
   }
 
   .mobile-race {
-    color: #888;
-    font-size: 8px;
+    color: var(--label-title-color);
+  }
+
+  .mobile-xp {
+    color: var(--gold-color);
   }
 }
 
-.mobile-hp-badge {
-  flex-shrink: 0;
+.level-up-btn.mobile-wide-btn {
+  width: 100%;
+  margin: 0;
+  padding: 10px;
+  font-size: 8px;
+}
+
+.mobile-hero-hint {
   text-align: center;
-
-  small {
-    display: block;
-    font-size: 7px;
-    color: #888;
-    margin-top: 2px;
-    letter-spacing: 0.05em;
-  }
 }
 
-.mobile-hp-controls {
+.mobile-hero-error {
+  margin: 0;
+}
+
+.mobile-hp-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 2px solid var(--border-color);
+  background: rgba(0, 0, 0, 0.35);
 
   .hp-btn {
-    width: 28px;
-    height: 28px;
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
     font-size: 16px;
   }
 }
 
+.mobile-hp-label {
+  font-size: 8px;
+  color: var(--label-title-color);
+}
+
+.mobile-hp-value {
+  flex: 1;
+  text-align: center;
+  line-height: 1;
+
+  .hp-current {
+    font-size: 18px;
+    color: #00ff00;
+  }
+
+  .hp-sep,
+  .hp-max {
+    font-size: 10px;
+    color: var(--text-soft);
+  }
+
+  .hp-sep {
+    margin: 0 2px;
+  }
+}
+
 .mobile-hp-save-btn {
-  float: none !important;
-  font-size: 5px;
-  padding: 4px 6px;
-  margin-top: 4px;
-  width: 100%;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 8px;
+  font-size: 7px;
 
   &:disabled {
     opacity: 0.4;
@@ -1018,398 +1132,378 @@ tr.spell-circle-header-row {
   }
 }
 
-.mobile-hp-value {
-  text-align: center;
-  line-height: 1;
+.mobile-image-upload {
+  align-self: center;
+  font-size: 6px;
+  color: var(--label-title-color);
+  text-decoration: underline;
+  cursor: var(--cp);
 
-  .hp-current {
-    font-size: 16px;
-    color: #00ff00;
-  }
-
-  .hp-sep {
-    font-size: 10px;
-    color: #555;
-    margin: 0 1px;
-  }
-
-  .hp-max {
-    font-size: 10px;
-    color: #888;
+  &--busy {
+    opacity: 0.6;
+    cursor: var(--cx);
   }
 }
 
+.mobile-sheet-toolbar,
+.mobile-btn-row {
+  display: flex;
+  gap: 10px;
+
+  .retro-btn {
+    flex: 1;
+    float: none;
+    margin: 0;
+    padding: 10px 6px;
+    font-size: 7px;
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: var(--cx);
+    }
+  }
+}
+
+.mobile-sheet-toolbar {
+  margin: 14px 0;
+}
+
+/* Abas: botões no formato dos cards (painel, borda 2px, dourado na escolhida). Quebram em linhas
+   de 4 (a última estica) em vez de rolar pro lado: todas ficam à vista sem arrastar. */
 .mobile-tabs {
   display: flex;
-  overflow-x: auto;
-  border-bottom: 1px solid var(--border-color);
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  flex-shrink: 0;
-
-  &::-webkit-scrollbar { display: none; }
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
 
   button {
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid transparent;
-    color: #666;
+    flex: 1 0 calc(25% - 6px);
+    min-width: 0;
+    padding: 10px 2px;
+    border: 2px solid var(--border-color);
+    background-color: var(--panel-bg);
+    color: var(--label-title-color);
     font-family: inherit;
-    font-size: 8px;
-    padding: 10px 14px;
+    font-size: 7px;
     white-space: nowrap;
     cursor: var(--cp);
-    letter-spacing: 0.08em;
-    transition: color 0.15s, border-color 0.15s;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
 
     &.active {
+      border-color: var(--accent-color);
+      background-color: var(--btn-color-hover);
       color: var(--accent-color);
-      border-bottom-color: var(--accent-color);
     }
-
-    &:active { background: rgba(255, 255, 255, 0.04); }
   }
 }
 
+/* Painéis compartilhados com o desktop: no celular ganham a cara do .m-box */
 .mobile-tab-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 14px 12px;
-  -webkit-overflow-scrolling: touch;
+  .spell-slots-bar {
+    border-width: 2px;
+    background-color: var(--panel-bg);
+    margin-bottom: 10px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .spell-circle-header {
+    margin: 0;
+    padding: 10px 14px;
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 8px;
+  }
+
+  .prepared-spell-chip {
+    border-width: 2px;
+    padding: 8px 10px;
+  }
+
+  .hit-dice-pips {
+    margin-bottom: 12px;
+  }
+
+  .hit-die-result {
+    text-align: center;
+  }
 }
 
-/* Combat tab */
-.mobile-combat-stats {
+.mobile-tracker {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  .hit-dice-pips {
+    margin-bottom: 0;
+  }
+
+  .m-hint {
+    text-align: center;
+  }
+}
+
+/* Números grandes (combate, conjuração) */
+.mobile-stat-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
+
+  &--3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .mobile-stat-card {
-  border: 1px solid var(--border-color);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 6px;
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
   text-align: center;
-  padding: 12px 8px;
 
   label {
-    display: block;
-    font-size: 7px;
-    color: var(--sheet-label-color);
-    margin-bottom: 6px;
-    letter-spacing: 0.05em;
+    font-size: 6px;
+    color: var(--label-title-color);
   }
 
   span {
-    font-size: 22px;
-    color: var(--text-soft);
+    font-size: 18px;
+    color: var(--accent-color);
   }
+}
+
+.equipment-edit-btn.mobile-stat-edit {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 20px;
+  height: 20px;
+  margin: 0;
 }
 
 .mobile-info-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 9px;
-  color: #888;
-  padding: 8px 10px;
-  border: 1px solid var(--border-color);
-  margin-bottom: 8px;
+  padding: 12px 14px;
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+  margin-bottom: 10px;
+  font-size: 7px;
+  color: var(--label-title-color);
+
+  &:last-child {
+    margin-bottom: 0;
+  }
 
   strong {
-    color: var(--text-soft);
     font-size: 10px;
+    font-weight: normal;
+    color: var(--accent-color);
   }
 }
 
-/* Attributes tab */
+/* Atributos */
 .mobile-attrs-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  gap: 10px;
 }
 
 .mobile-attr-card {
-  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 4px 8px;
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
   text-align: center;
-  padding: 10px 4px;
 
   .attr-name {
-    display: block;
-    font-size: 7px;
-    color: var(--sheet-label-color);
-    margin-bottom: 4px;
-    letter-spacing: 0.03em;
+    font-size: 6px;
+    color: var(--label-title-color);
   }
 
   .attr-score {
-    display: block;
-    font-size: 22px;
+    font-size: 20px;
     color: var(--text-soft);
-    margin-bottom: 2px;
   }
 
   .attr-mod {
-    display: block;
-    font-size: 12px;
-    color: var(--gold-color);
-    margin-bottom: 5px;
-  }
-
-  .attr-save {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    font-size: 7px;
-    color: #888;
-    border-top: 1px dashed #444;
-    padding-top: 4px;
-  }
-}
-
-/* Skills tab */
-.mobile-skills-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-
-  li {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 7px 4px;
-    border-bottom: 1px dashed #333;
     font-size: 11px;
-    color: var(--text-soft);
-
-    &:last-child { border-bottom: none; }
-
-    &.trained {
-      color: var(--gold-color);
-      background: rgba(100, 180, 100, 0.06);
-      border-left: 2px solid #4caf50;
-      padding-left: 4px;
-
-      .skill-attr { opacity: 0.8; }
-    }
-
-    .skill-mod {
-      min-width: 28px;
-      text-align: right;
-      color: var(--accent-color);
-      font-size: 11px;
-      flex-shrink: 0;
-    }
-
-    .skill-name {
-      flex: 1;
-    }
-
-    .skill-attr {
-      font-size: 8px;
-      color: #666;
-      flex-shrink: 0;
-    }
+    color: var(--accent-color);
   }
 }
 
-/* Traits tab */
-.mobile-traits-list {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 16px;
+.mobile-attr-save {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  margin-top: 2px;
+  padding: 6px 2px;
+  border: 1px solid var(--border-color);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--label-title-color);
+  font-family: inherit;
+  font-size: 6px;
+  cursor: var(--cp);
 
-  li {
-    padding: 10px 0;
-    border-bottom: 1px dashed #333;
-
-    &:last-child { border-bottom: none; }
-
-    strong {
-      display: block;
-      font-size: 9px;
-      color: var(--accent-color);
-      margin-bottom: 5px;
-    }
-
-    p {
-      font-size: 8px;
-      color: #bbb;
-      margin: 0;
-      line-height: 1.6;
-    }
+  &--prof {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
   }
 }
 
-.mobile-prof-section {
-  border-top: 1px solid var(--border-color);
-  padding-top: 12px;
-  margin-top: 4px;
+.mobile-legend {
+  margin-top: 12px;
+  text-align: center;
+}
 
-  h4 {
+/* Perícias */
+.mobile-skill-list {
+  gap: 8px;
+}
+
+.mobile-skill-mod {
+  flex-shrink: 0;
+  min-width: 30px;
+  font-size: 11px;
+  text-align: right;
+  color: var(--text-soft);
+
+  &--trained {
+    color: var(--accent-color);
+  }
+}
+
+/* Traços e proficiências */
+.mobile-trait {
+  strong {
+    display: block;
+    margin-bottom: 8px;
     font-size: 8px;
-    color: var(--sheet-label-color);
-    margin: 0 0 8px;
-    letter-spacing: 0.1em;
+    font-weight: normal;
+    color: var(--accent-color);
   }
 
   p {
-    font-size: 8px;
-    color: #aaa;
-    margin: 5px 0;
-  }
-}
-
-/* Weapons tab */
-.mobile-weapon-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.mobile-weapon-card {
-  border: 1px solid var(--border-color);
-  padding: 12px;
-  cursor: var(--cp);
-
-  &:active { background: rgba(255, 255, 255, 0.03); }
-
-  .weapon-card-name {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 11px;
+    margin: 0;
+    font-size: 7px;
+    line-height: 1.8;
     color: var(--text-soft);
-    margin-bottom: 8px;
+  }
+}
+
+.mobile-prof p {
+  margin: 0 0 10px;
+  font-size: 7px;
+  line-height: 1.8;
+  color: var(--text-soft);
+
+  &:last-child {
+    margin-bottom: 0;
   }
 
-  .weapon-card-stats {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
+  span {
+    display: block;
+    font-size: 6px;
+    color: var(--label-title-color);
+  }
+}
 
-    span {
-      font-size: 10px;
-      color: var(--text-soft);
+/* Armas */
+.mobile-weapon-card .weapon-card-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
 
-      strong {
-        display: block;
-        font-size: 7px;
-        color: var(--sheet-label-color);
-        margin-bottom: 2px;
-        letter-spacing: 0.05em;
-      }
+  span {
+    font-size: 8px;
+    color: var(--text-soft);
+
+    strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 6px;
+      font-weight: normal;
+      color: var(--label-title-color);
     }
   }
 }
 
-/* Spells tab */
-.spellcasting-info-mobile {
+.roll-trigger-btn.mobile-roll-btn {
+  width: 32px;
+  height: 32px;
+  margin-left: 0;
+  font-size: 14px;
+}
+
+.mobile-currency-edit {
   display: flex;
   gap: 8px;
-  margin-bottom: 14px;
-}
 
-.mobile-spell-stat-box {
-  flex: 1;
-  border: 1px solid var(--border-color);
-  text-align: center;
-  padding: 8px 6px;
-
-  .spell-stat-label {
-    display: block;
-    font-size: 7px;
-    color: var(--sheet-label-color);
-    margin-bottom: 4px;
-    letter-spacing: 0.05em;
-  }
-
-  .spell-stat-value {
-    display: block;
-    font-size: 16px;
-    color: var(--text-soft);
-  }
-}
-
-.mobile-spell-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.mobile-spell-card {
-  border: 1px solid var(--border-color);
-  padding: 10px 12px;
-  cursor: var(--cp);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-
-  &:active { background: rgba(255, 255, 255, 0.03); }
-
-  .spell-card-left {
+  .m-input {
     flex: 1;
-    min-width: 0;
   }
 
-  .spell-card-name {
-    font-size: 10px;
-    color: var(--text-soft);
-    margin-bottom: 3px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .spell-card-meta {
-    font-size: 8px;
-    color: #888;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .spell-card-level {
-    flex-shrink: 0;
-    font-size: 11px;
-    color: var(--gold-color);
-    border: 1px solid var(--gold-color);
-    padding: 3px 8px;
-    min-width: 26px;
-    text-align: center;
+  .retro-btn {
+    float: none;
+    margin: 0;
+    padding: 0 14px;
   }
 }
+
+/* Magias */
+.mobile-spell-level {
+  flex-shrink: 0;
+  min-width: 26px;
+  padding: 4px 6px;
+  border: 1px solid var(--gold-color);
+  font-size: 9px;
+  text-align: center;
+  color: var(--gold-color);
+}
+
+.mobile-notes-textarea {
+  min-height: 160px;
+  line-height: 1.7;
+  resize: vertical;
+}
+
 /* ===== DESKTOP PAGE TABS ===== */
 
+// Abas FICHA / HISTÓRIA & NOTAS: botões no formato dos cards, como as abas do celular.
 .desktop-page-tabs {
   display: flex;
-  gap: 0;
-  margin-top: 16px;
-  border-bottom: 1px solid var(--border-color);
+  gap: 8px;
 
   button {
-    background: transparent;
-    border: 1px solid var(--border-color);
-    border-bottom: none;
-    color: #666;
+    padding: 10px 18px;
+    border: 2px solid var(--border-color);
+    background-color: var(--panel-bg);
+    color: var(--label-title-color);
     font-family: inherit;
     font-size: 8px;
-    padding: 8px 20px;
     cursor: var(--cp);
-    letter-spacing: 0.1em;
-    transition: color 0.15s, background 0.15s;
-    margin-bottom: -1px;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
 
+    &:hover,
     &.active {
+      border-color: var(--accent-color);
       color: var(--accent-color);
-      background: rgba(163, 44, 23, 0.08);
-      border-color: var(--border-color);
-      border-bottom-color: transparent;
     }
 
-    &:hover:not(.active) {
-      color: #aaa;
-      background: rgba(255, 255, 255, 0.03);
+    &.active {
+      background-color: var(--btn-color-hover);
     }
   }
 }
@@ -1422,7 +1516,7 @@ tr.spell-circle-header-row {
   gap: 16px;
 
   &.desktop-notes {
-    margin-top: 20px;
+    margin-top: 24px;
     padding-bottom: 40px;
   }
 }
@@ -1435,7 +1529,7 @@ tr.spell-circle-header-row {
 
 .notes-label {
   font-size: 8px;
-  color: var(--sheet-label-color);
+  color: var(--label-title-color);
   letter-spacing: 0.1em;
 }
 
@@ -1443,7 +1537,7 @@ tr.spell-circle-header-row {
   width: 100%;
   min-height: 160px;
   background: rgba(0, 0, 0, 0.4);
-  border: 1px solid var(--border-color);
+  border: 2px solid var(--border-color);
   color: var(--text-color);
   font-family: inherit;
   font-size: 10px;
@@ -1454,11 +1548,11 @@ tr.spell-circle-header-row {
   outline: none;
 
   &::placeholder {
-    color: #444;
+    color: var(--label-title-color);
   }
 
   &:focus {
-    border-color: var(--panel-bg);
+    border-color: var(--accent-color);
     background: rgba(0, 0, 0, 0.6);
   }
 }
@@ -1489,25 +1583,6 @@ tr.spell-circle-header-row {
 
 .print-btn {
   float: none !important;
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: var(--cx);
-  }
-}
-
-.mobile-sheet-toolbar {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  padding: 4px 0 8px;
-}
-
-.mobile-print-btn,
-.mobile-roll-btn {
-  float: none !important;
-  font-size: 7px;
-  padding: 6px 10px;
 
   &:disabled {
     opacity: 0.4;
@@ -1772,9 +1847,4 @@ tr.spell-circle-header-row {
   margin-top: 6px;
   font-size: 8px;
   opacity: 0.7;
-}
-
-.mobile-level-up-btn {
-  font-size: 6px;
-  padding: 5px 8px;
 }
