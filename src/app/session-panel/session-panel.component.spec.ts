@@ -76,6 +76,34 @@ describe('SessionPanelComponent', () => {
     else component.setMonsterDamageInput(target, event);
   }
 
+  describe('reação do Tom às rolagens', () => {
+    const d20 = (id: string, actor: string, natural: number) =>
+      ({
+        ...roll(id),
+        roll_type: 'attack',
+        actor_name: actor,
+        rolls: [natural],
+        modifier: 0,
+        total: natural,
+        created_at: `2026-01-01T00:00:0${id.length}Z`,
+      }) as RollLogEntry;
+
+    it('só comenta quando o aviso da rolagem aparece na tela, não quando chega na fila', () => {
+      detail.set(sessionDetail({ recent_rolls: [] }));
+      TestBed.tick();
+      // Duas rolagens chegam juntas: a primeira vira aviso; a segunda fica na fila.
+      detail.set(sessionDetail({ recent_rolls: [d20('bb', 'Bia', 1), d20('a', 'Ana', 20)] }));
+      TestBed.tick();
+      expect(component.activeRollToast()?.actor_name).toBe('Ana');
+      expect(component.tomState().message).toContain('Ana');
+      expect(component.tomState().message).not.toContain('Bia');
+
+      component.closeRollToast();
+      expect(component.activeRollToast()?.actor_name).toBe('Bia');
+      expect(component.tomState().message).toContain('Bia');
+    });
+  });
+
   describe('magias preparadas antes da luta', () => {
     const spell = (id: number, prepared: boolean) =>
       ({ id_spell: id, name: `Magia ${id}`, spellLevel: 1, is_prepared: prepared }) as Spell;

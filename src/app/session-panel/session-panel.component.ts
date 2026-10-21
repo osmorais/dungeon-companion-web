@@ -1433,14 +1433,13 @@ export class SessionPanelComponent implements OnDestroy {
     if (newRolls.length === 0) return;
     newRolls.forEach((r) => this.seenRollIds.add(r.id_roll));
 
-    const lastVisible = [...newRolls].reverse().find((r) => !r.is_hidden);
-    if (lastVisible) this.reactTomToRoll(lastVisible);
-
     // Enquanto o próprio jogador está rolando (ação ou iniciativa), ele já vê a animação no
     // roll-modal correspondente — evita empilhar o toast de tela cheia por cima disso. Como
-    // essas rolagens nunca passam pela fila de toast, liberam pro histórico na hora.
+    // essas rolagens nunca passam pela fila de toast, liberam pro histórico (e pro Tom) na hora.
     if (this.activeActionsCharacter() || this.activeInitiativeRoll()) {
       this.revealRolls(newRolls.map((r) => r.id_roll));
+      const lastVisible = [...newRolls].reverse().find((r) => !r.is_hidden);
+      if (lastVisible) this.reactTomToRoll(lastVisible);
       return;
     }
 
@@ -1456,8 +1455,10 @@ export class SessionPanelComponent implements OnDestroy {
     const next = this.rollToastQueue.shift();
     this.activeRollToast.set(next ?? null);
     if (next) {
-      // Só entra no histórico quando o toast realmente aparece em tela, não quando é enfileirado.
+      // Só entra no histórico — e o Tom só comenta — quando o toast realmente aparece em tela, não
+      // quando é enfileirado (com várias rolagens seguidas, o Tom adiantava o resultado).
       this.revealRolls([next.id_roll]);
+      if (!next.is_hidden) this.reactTomToRoll(next);
       // Dano: o impacto em tela cheia toca junto com o toast (quem rolou já viu no roll-modal).
       if ((next.roll_type === 'damage' || next.roll_type === 'heal') && !next.is_hidden) {
         this.damageImpact.trigger(next);

@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.3.12',
+    date: '2026-10-21',
+    title: 'Tom sem spoiler',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'Na sessão, o Tom só comenta uma rolagem quando ela aparece na tela — antes, com várias rolagens seguidas, ele reagia antes do resultado ser mostrado.',
+      },
+    ],
+  },
+  {
     version: '1.3.11',
     date: '2026-10-21',
     title: 'Aventureiros que se ajustam à altura da tela',
