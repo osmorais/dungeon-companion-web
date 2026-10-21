@@ -394,3 +394,39 @@ input[type="checkbox"].retro-checkbox {
     animation: none;
   }
 }
+
+/* ===== Barras de rolagem =====
+   No estilo do site e do tema: fina, quadrada, trilho na cor do fundo, alça na cor da borda dos
+   quadros (destaque ao passar o mouse), sem as setas. Chrome/Edge/Safari usam os ::-webkit-*;
+   o Firefox não tem esses seletores e cai no scrollbar-color (o Chrome ignora os ::-webkit-* se
+   scrollbar-color estiver definido, por isso só entra onde ::-webkit-scrollbar não existe). */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border: 2px solid var(--bg-color);
+
+  &:hover {
+    background-color: var(--accent-color);
+  }
+}
+
+::-webkit-scrollbar-button,
+::-webkit-scrollbar-corner {
+  display: none;
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) var(--bg-color);
+  }
+}

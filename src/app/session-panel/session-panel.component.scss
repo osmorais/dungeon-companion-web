@@ -8,6 +8,16 @@
 .container {
   width: 1440px;
   max-width: 96vw;
+  /* Página única: ocupa a altura da tela menos os 48px que o body reserva pro rodapé global
+     (styles.scss). Topo + quadros dividem esse espaço; o que não couber rola dentro de cada
+     quadro, nunca a página. */
+  height: calc(100vh - 48px);
+  box-sizing: border-box;
+  /* Espaço embaixo aqui, não no .layout: os quadros laterais (absolute, bottom: 0) iriam até o
+     fim do padding e passariam da base do quadro do meio. */
+  padding: 12px 0;
+  display: flex;
+  flex-direction: column;
 }
 
 /* A coluna do meio (.main-column) é quem dita a altura da linha: ela é a única
@@ -22,15 +32,26 @@
   position: relative;
   display: flex;
   gap: 20px;
+  flex: 1;
+  min-height: 0;
 }
 
 .main-column {
   flex: 1;
   min-width: 0;
+  min-height: 0;
   margin-left: 320px; /* largura do combat-sidebar (300px) + gap (20px) */
   margin-right: 320px; /* largura do rolls-sidebar (300px) + gap (20px) */
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+
+  /* Último quadro estica até o fim e sem margem: a base dele alinha com a dos quadros laterais
+     (que vão de cima a baixo do .layout). */
+  > fieldset:last-of-type {
+    flex: 1 0 auto;
+    margin-bottom: 0;
+  }
 }
 
 .rolls-sidebar {
@@ -121,91 +142,66 @@
   }
 }
 
-.session-header-panel {
-  margin-bottom: 0;
-  /* Painel bem menor que o padrão dos outros fieldsets — é só um cabeçalho de
-     identificação, não precisa do mesmo respiro de um painel de conteúdo. */
-  padding: 8px 16px;
+/* Topo da sessão (desktop e mobile): nome + mestre/código/jogadores, sem quadro, direto sobre a
+   arte de fundo — a sombra em degrau garante leitura em qualquer imagem. */
+.session-topbar {
+  position: relative;
+  flex-shrink: 0;
+  margin-bottom: 16px;
+  text-align: center;
+  text-shadow: 2px 2px 0 var(--bg-color);
+}
 
-  legend {
-    font-size: 9px;
-    padding: 3px 8px;
+.session-topbar-name {
+  margin: 0 0 12px;
+  font-size: 18px;
+  line-height: 1.4;
+  color: var(--accent-color);
+}
+
+.session-topbar-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 24px;
+  font-size: 8px;
+  color: var(--label-title-color);
+  text-shadow: 2px 2px 0 var(--bg-color);
+
+  strong {
+    margin-left: 6px;
+    font-weight: normal;
+    color: var(--text-color);
+  }
+
+  .session-topbar-code {
+    color: var(--accent-color);
+    letter-spacing: 3px;
+  }
+
+  &--mobile {
+    gap: 8px 16px;
+    margin-bottom: 16px;
+    font-size: 7px;
   }
 }
 
-.session-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-}
-
-.session-title-block {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.session-name {
+.session-topbar-back {
+  position: absolute;
+  top: 50%;
+  left: 0;
   margin: 0;
-  font-size: 11px;
-  color: var(--accent-color);
-  font-family: 'Press Start 2P', monospace;
-}
-
-.session-dm {
-  font-size: 7px;
-  color: var(--label-title-color);
-}
-
-.session-code-block {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.session-code-label {
-  display: none;
-}
-
-.session-code {
-  font-size: 12px;
-  color: var(--accent-color);
-  letter-spacing: 2px;
-  border: 1px solid var(--accent-color);
-  padding: 3px 8px;
-  background-color: var(--bg-color);
-}
-
-.session-players-count {
-  font-size: 7px;
-  color: var(--label-title-color);
-  white-space: nowrap;
-}
-
-.refresh-btn {
-  float: none;
-  font-size: 7px;
-  padding: 5px 8px;
-  margin-top: 0;
-}
-
-.polling-btn {
-  float: none;
-  font-size: 7px;
-  padding: 5px 8px;
-  margin-top: 0;
-
-  &--on {
-    color: #4caf50;
-    border-color: #4caf50;
-  }
+  transform: translateY(-50%);
+  text-shadow: none;
 }
 
 /* Grid vertical de players */
 .players-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  /* Todas as linhas com a altura da maior: o card com controles (o seu, ou todos pro mestre) não
+     deixa a linha dele maior que as outras. */
+  grid-auto-rows: 1fr;
   gap: 16px;
 }
 
@@ -986,23 +982,8 @@
   line-height: 1;
 }
 
-.mobile-refresh-btn {
-  background: none;
-  border: 1px solid var(--border-color);
-  color: var(--accent-color);
-  font-family: 'Press Start 2P', monospace;
-  font-size: 14px;
-  padding: 4px 10px;
-  cursor: var(--cp);
-  line-height: 1;
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: var(--cx);
-  }
-}
-
 .mobile-title {
+  margin: 0;
   font-size: 10px;
   color: var(--accent-color);
   letter-spacing: 1px;
@@ -1034,48 +1015,11 @@
   }
 }
 
-.mobile-session-name {
-  font-size: 12px;
-  color: var(--accent-color);
-  margin: 0 0 12px;
-  line-height: 1.6;
-}
-
-.mobile-session-meta {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-}
-
-.mobile-meta-label {
-  font-size: 7px;
-  color: var(--label-title-color);
-  white-space: nowrap;
-}
-
-.mobile-meta-value {
-  font-size: 8px;
-  color: var(--text-color);
-}
-
-.mobile-code {
-  font-size: 16px;
-  color: var(--accent-color);
-  letter-spacing: 5px;
-  border: 2px solid var(--accent-color);
-  padding: 4px 10px;
-  background-color: var(--bg-color);
-}
-
 /* Grid 2 colunas no mobile */
 .mobile-players-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: 1fr; /* mesmo motivo do .players-grid */
   gap: 12px;
 }
 

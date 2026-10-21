@@ -33,6 +33,29 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.3.2',
+    date: '2026-10-21',
+    title: 'Topo da sessão mais limpo',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'Na sessão, o nome da aventura, o mestre, o código e o número de jogadores ficam no topo da página, sem quadro em volta. Os botões de polling, efeitos e atualizar saíram da tela (o mestre continua com polling e efeitos no Quadro do Mestre).',
+      },
+      {
+        kind: 'correcao',
+        text: 'Os cards dos aventureiros na sessão agora têm todos o mesmo tamanho, inclusive na linha do seu personagem.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'No computador, a sessão cabe numa tela só, sem rolar a página: os quadros de combate, aventureiros e rolagens ficam alinhados de cima a baixo e, se faltar espaço, rolam por dentro. O botão VOLTAR foi para o topo, ao lado do nome da aventura.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'As barras de rolagem do site agora seguem o visual do tema: finas, quadradas e nas cores dos quadros.',
+      },
+    ],
+  },
+  {
     version: '1.3.1',
     date: '2026-10-20',
     title: 'Carregamento sem tela de espera',

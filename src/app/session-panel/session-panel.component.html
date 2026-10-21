@@ -8,10 +8,11 @@
 
     <div class="mobile-header">
       <button class="mobile-back-btn" (click)="goBack()">&#8592;</button>
-      <span class="mobile-title">PAINEL DA SESSÃO</span>
-      <button class="mobile-refresh-btn" (click)="refreshSession()" [disabled]="refreshing()" title="Atualizar sessão">
-        {{ refreshing() ? '...' : '↻' }}
-      </button>
+      @if (sessionDetail(); as detail) {
+        <h1 class="mobile-title">{{ detail.game_session.session_name }}</h1>
+      } @else {
+        <span class="skeleton mobile-title" style="height: 14px"></span>
+      }
     </div>
 
     @if (error()) {
@@ -19,10 +20,7 @@
     } @else if (!sessionDetail()) {
       <!-- Skeleton no formato dos quadros da sessão (mobile) -->
       <div aria-busy="true" aria-label="Carregando a sessão">
-        <fieldset class="mobile-panel">
-          <legend>AVENTURA</legend>
-          <app-skeleton-rows [rows]="4" />
-        </fieldset>
+        <span class="skeleton" style="width: 80%; height: 10px; margin: 0 auto 16px"></span>
         <fieldset class="mobile-panel">
           <legend>COMBATE</legend>
           <app-skeleton-rows [rows]="2" [height]="18" />
@@ -40,25 +38,12 @@
         </fieldset>
       </div>
     } @else {
-      <!-- Cabeçalho da sessão -->
-      <fieldset class="mobile-panel">
-        <legend>AVENTURA</legend>
-        <p class="mobile-session-name">{{ sessionDetail()!.game_session.session_name }}</p>
-        <div class="mobile-session-meta">
-          <span class="mobile-meta-label">CÓDIGO:</span>
-          <span class="mobile-code">{{ sessionDetail()!.game_session.session_code }}</span>
-        </div>
-        <div class="mobile-session-meta">
-          <span class="mobile-meta-label">MESTRE:</span>
-          <span class="mobile-meta-value">{{ sessionDetail()!.game_session.dm_name }}</span>
-        </div>
-        <div class="mobile-session-meta">
-          <span class="mobile-meta-label">JOGADORES:</span>
-          <span class="mobile-meta-value">
-            {{ sessionDetail()!.players.length }} / {{ sessionDetail()!.game_session.max_player_quantity }}
-          </span>
-        </div>
-      </fieldset>
+      <!-- Mestre, código e jogadores logo abaixo do nome (que fica no cabeçalho), sem quadro -->
+      <div class="session-topbar-meta session-topbar-meta--mobile">
+        <span>MESTRE <strong>{{ sessionDetail()!.game_session.dm_name }}</strong></span>
+        <span>CÓDIGO <strong class="session-topbar-code">{{ sessionDetail()!.game_session.session_code }}</strong></span>
+        <span>JOGADORES <strong>{{ sessionDetail()!.players.length }}/{{ sessionDetail()!.game_session.max_player_quantity }}</strong></span>
+      </div>
 
       <!-- Combate -->
       <fieldset class="mobile-panel combat-panel" [class.combat-panel--split]="revealedMonsters().length > 0">
@@ -431,17 +416,17 @@
         <p class="empty-msg">ERRO AO CARREGAR A SESSÃO.</p>
       </fieldset>
     } @else if (!sessionDetail()) {
-      <!-- Skeleton no formato do layout da sessão (desktop): combate | cabeçalho + cards | rolagens -->
+      <!-- Skeleton no formato do layout da sessão (desktop): topo | combate | cards | rolagens -->
+      <div class="session-topbar" aria-hidden="true">
+        <span class="skeleton" style="width: 36%; height: 22px; margin: 0 auto 12px"></span>
+        <span class="skeleton" style="width: 50%; height: 10px; margin: 0 auto"></span>
+      </div>
       <div class="layout" aria-busy="true" aria-label="Carregando a sessão">
         <fieldset class="retro-panel combat-panel combat-sidebar">
           <legend>COMBATE</legend>
           <app-skeleton-rows [rows]="5" [height]="18" />
         </fieldset>
         <div class="main-column">
-          <fieldset class="retro-panel session-header-panel">
-            <legend>PAINEL DA SESSÃO</legend>
-            <app-skeleton-rows [rows]="2" [height]="16" />
-          </fieldset>
           <fieldset class="retro-panel">
             <legend>AVENTUREIROS</legend>
             <div class="players-grid">
@@ -460,6 +445,16 @@
         </fieldset>
       </div>
     } @else {
+      <!-- Topo da sessão: nome, mestre, código e jogadores, fora de qualquer quadro -->
+      <header class="session-topbar">
+        <button class="retro-btn back-btn session-topbar-back" (click)="goBack()">← VOLTAR</button>
+        <h1 class="session-topbar-name">{{ sessionDetail()!.game_session.session_name }}</h1>
+        <div class="session-topbar-meta">
+          <span>MESTRE <strong>{{ sessionDetail()!.game_session.dm_name }}</strong></span>
+          <span>CÓDIGO <strong class="session-topbar-code">{{ sessionDetail()!.game_session.session_code }}</strong></span>
+          <span>JOGADORES <strong>{{ sessionDetail()!.players.length }}/{{ sessionDetail()!.game_session.max_player_quantity }}</strong></span>
+        </div>
+      </header>
       <div class="layout">
 
       <!-- Combate -->
@@ -535,45 +530,6 @@
       </fieldset>
 
       <div class="main-column">
-      <!-- Cabeçalho da sessão -->
-      <fieldset class="retro-panel session-header-panel">
-        <legend>PAINEL DA SESSÃO</legend>
-        <div class="session-header">
-          <div class="session-title-block">
-            <h2 class="session-name">{{ sessionDetail()!.game_session.session_name }}</h2>
-            <span class="session-dm">MESTRE: {{ sessionDetail()!.game_session.dm_name }}</span>
-          </div>
-          <div class="session-code-block">
-            <span class="session-code-label">CÓDIGO DA SESSÃO</span>
-            <span class="session-code">{{ sessionDetail()!.game_session.session_code }}</span>
-            <span class="session-players-count">
-              {{ sessionDetail()!.players.length }}/{{ sessionDetail()!.game_session.max_player_quantity }} JOGADORES
-            </span>
-            <!-- Mestre: o quadro abre pela aba na lateral esquerda (POLLING/EFEITOS ficam lá). -->
-            @if (!isOwner()) {
-            <button
-              class="retro-btn polling-btn"
-              [class.polling-btn--on]="pollingEnabled()"
-              (click)="togglePolling()"
-              [title]="pollingEnabled() ? 'Polling ativo (6s) — clique para usar WebSocket' : 'WebSocket ativo — clique para usar polling (6s)'"
-            >
-              POLLING: {{ pollingEnabled() ? 'ON' : 'OFF' }}
-            </button>
-            <button
-              class="retro-btn polling-btn"
-              [class.polling-btn--on]="screenEffectsEnabled()"
-              (click)="toggleScreenEffects()"
-              [title]="screenEffectsEnabled() ? 'Efeitos de tela ligados (impacto ao rolar dano) — clique para desligar' : 'Efeitos de tela desligados — clique para ligar'"
-            >
-              EFEITOS: {{ screenEffectsEnabled() ? 'ON' : 'OFF' }}
-            </button>
-            }
-            <button class="retro-btn refresh-btn" (click)="refreshSession()" [disabled]="refreshing()">
-              {{ refreshing() ? 'ATUALIZANDO...' : '↻ ATUALIZAR' }}
-            </button>
-          </div>
-        </div>
-      </fieldset>
 
       <!-- Grid de players -->
       <fieldset id="players-section" class="retro-panel">
@@ -910,7 +866,6 @@
       </fieldset>
       </div>
 
-      <button class="retro-btn back-btn" (click)="goBack()">← VOLTAR</button>
     }
 
   </div>
