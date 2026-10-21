@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.3.15',
+    date: '2026-10-21',
+    title: 'Dinheiro em destaque na ficha',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'O dinheiro do personagem saiu da parte de armas e foi para o card do personagem, junto dos pontos de vida e da experiência: fica sempre à vista e dá pra editar ali mesmo.',
+      },
+    ],
+  },
+  {
     version: '1.3.14',
     date: '2026-10-21',
     title: 'Ficha de personagem com a cara do resto do site',

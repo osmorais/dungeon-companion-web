@@ -50,6 +50,25 @@
           </button>
         </div>
 
+        <!-- Dinheiro junto do PV: os dois "saldos" do personagem, sempre à vista -->
+        <div class="mobile-hp-row mobile-purse-row">
+          <span class="mobile-hp-label">PO</span>
+          @if (currencyDraft() !== null) {
+            <input type="number" min="0" step="0.01" class="m-input mobile-purse-input"
+                   [value]="currencyDraft()"
+                   (input)="currencyDraft.set($any($event.target).valueAsNumber)">
+            <button class="retro-btn mobile-hp-save-btn" (click)="saveCurrency()" [disabled]="savingCurrency()">
+              {{ savingCurrency() ? '...' : '✓' }}
+            </button>
+            <button class="retro-btn mobile-hp-save-btn" (click)="cancelEditCurrency()">✕</button>
+          } @else {
+            <span class="mobile-purse-value">{{ data.character_sheet.equipment.currency.gp }}</span>
+            <button class="retro-btn mobile-hp-save-btn" (click)="startEditCurrency()" title="Editar dinheiro">
+              {{ currencySaved() ? 'SALVO!' : '✎ EDITAR' }}
+            </button>
+          }
+        </div>
+
         <label class="mobile-image-upload" [class.mobile-image-upload--busy]="uploadingImage()">
           {{ uploadingImage() ? 'ENVIANDO...' : data.character_sheet.image_url ? 'TROCAR IMAGEM DE FUNDO' : 'ENVIAR IMAGEM DE FUNDO' }}
           <input type="file" accept="image/*" hidden [disabled]="uploadingImage()" (change)="onImageSelected($event)" />
@@ -277,32 +296,6 @@
               </div>
             }
 
-            <div class="m-section">
-              <h3 class="m-section-title">
-                DINHEIRO
-                @if (currencySaved()) {
-                  <span class="m-section-extra">SALVO!</span>
-                }
-              </h3>
-              @if (currencyDraft() !== null) {
-                <div class="mobile-currency-edit">
-                  <input type="number" min="0" step="0.01" class="m-input"
-                         [value]="currencyDraft()"
-                         (input)="currencyDraft.set($any($event.target).valueAsNumber)">
-                  <button class="retro-btn" (click)="saveCurrency()" [disabled]="savingCurrency()">
-                    {{ savingCurrency() ? '...' : '✓' }}
-                  </button>
-                  <button class="retro-btn" (click)="cancelEditCurrency()">✕</button>
-                </div>
-              } @else {
-                <button class="m-card" (click)="startEditCurrency()">
-                  <span class="m-card-body">
-                    <span class="m-card-title">{{ data.character_sheet.equipment.currency.gp }} PO</span>
-                  </span>
-                  <span class="m-card-arrow">✎</span>
-                </button>
-              }
-            </div>
           }
 
           @case ('spells') {
@@ -551,6 +544,27 @@
             <button class="retro-btn level-up-btn" (click)="openLevelUpModal()"><img class="ui-icon" src="assets/icons/level-up.png" alt="" /> SUBIR DE NÍVEL</button>
           } @else if (data.character_sheet.combat_stats.hit_dice_total < 20) {
             <p class="xp-missing-hint">Faltam {{ xpMissingForLevelUp() }} XP pro próximo nível</p>
+          }
+
+          <span class="sheet-hero-label sheet-hero-purse-label">DINHEIRO</span>
+          @if (currencyDraft() !== null) {
+            <div class="currency-edit-row">
+              <input type="number" min="0" step="0.01" class="currency-input"
+                     [value]="currencyDraft()"
+                     (input)="currencyDraft.set($any($event.target).valueAsNumber)">
+              <button class="retro-btn currency-btn" (click)="saveCurrency()" [disabled]="savingCurrency()">
+                {{ savingCurrency() ? '...' : '✓' }}
+              </button>
+              <button class="retro-btn currency-btn" (click)="cancelEditCurrency()">✕</button>
+            </div>
+          } @else {
+            <div class="currency-display-row">
+              <span class="currency-value">{{ data.character_sheet.equipment.currency.gp }} PO</span>
+              <button class="equipment-edit-btn" (click)="startEditCurrency()" title="Editar dinheiro">✎</button>
+            </div>
+            @if (currencySaved()) {
+              <span class="hp-saved-msg">SALVO!</span>
+            }
           }
         </div>
       </div>
@@ -932,28 +946,6 @@
           </fieldset>
         }
 
-        <fieldset class="retro-panel">
-          <legend>DINHEIRO</legend>
-          @if (currencyDraft() !== null) {
-            <div class="currency-edit-row">
-              <input type="number" min="0" step="0.01" class="currency-input"
-                     [value]="currencyDraft()"
-                     (input)="currencyDraft.set($any($event.target).valueAsNumber)">
-              <button class="retro-btn" (click)="saveCurrency()" [disabled]="savingCurrency()">
-                {{ savingCurrency() ? '...' : '✓' }}
-              </button>
-              <button class="retro-btn secondary" (click)="cancelEditCurrency()">✕</button>
-            </div>
-          } @else {
-            <div class="currency-display-row">
-              <span class="currency-value">{{ data.character_sheet.equipment.currency.gp }} PO</span>
-              <button class="equipment-edit-btn" (click)="startEditCurrency()">✎</button>
-            </div>
-            @if (currencySaved()) {
-              <span class="hp-saved-msg">SALVO!</span>
-            }
-          }
-        </fieldset>
       </div>
 
       } <!-- end @if desktopPage === 'sheet' -->
