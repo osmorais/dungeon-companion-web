@@ -9,6 +9,10 @@
 
     @if (error()) {
       <p class="mobile-empty-msg">ERRO AO CARREGAR PERSONAGENS.</p>
+    } @else if (loading()) {
+      <div aria-busy="true" aria-label="Carregando">
+        <app-skeleton-rows [rows]="5" [height]="48" />
+      </div>
     } @else if (characters().length === 0) {
       <p class="mobile-empty-msg">NENHUM PERSONAGEM ENCONTRADO.</p>
     } @else {
@@ -45,6 +49,10 @@
     @if (error()) {
       <fieldset class="retro-panel">
         <p class="empty-msg">ERRO AO CARREGAR PERSONAGENS.</p>
+      </fieldset>
+    } @else if (loading()) {
+      <fieldset class="retro-panel" aria-busy="true" aria-label="Carregando">
+        <app-skeleton-rows [rows]="6" [height]="26" />
       </fieldset>
     } @else if (characters().length === 0) {
       <fieldset class="retro-panel">

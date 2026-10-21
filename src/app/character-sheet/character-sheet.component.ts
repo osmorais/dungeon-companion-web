@@ -1,4 +1,5 @@
 import { Component, inject, input, effect, untracked, signal, HostListener } from '@angular/core';
+import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { CommonModule, KeyValuePipe } from '@angular/common';
@@ -24,7 +25,7 @@ const NOTES_SEPARATOR = '\n\n[ANOTAÇÕES]\n\n';
 @Component({
   selector: 'app-character-sheet',
   standalone: true,
-  imports: [CommonModule, KeyValuePipe, AvatarDisplayComponent, AvatarCustomizerComponent, RollModalComponent, LevelUpModalComponent, EquipmentModalComponent],
+  imports: [CommonModule, KeyValuePipe, AvatarDisplayComponent, AvatarCustomizerComponent, RollModalComponent, LevelUpModalComponent, EquipmentModalComponent, SkeletonRowsComponent],
   templateUrl: './character-sheet.component.html',
   styleUrls: ['./character-sheet.component.scss'],
 })

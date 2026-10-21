@@ -55,7 +55,12 @@ export class HomeComponent {
     this.view.set('select');
   }
 
+  /** Busca as opções antes de abrir o wizard — o botão fica travado até lá (sem overlay agora). */
+  openingCreate = signal(false);
+
   createCharacter() {
+    if (this.openingCreate()) return;
+    this.openingCreate.set(true);
     this.charService.getCharacterOptions().subscribe({
       next: options => {
         this.charService.cachedOptions.set(options);

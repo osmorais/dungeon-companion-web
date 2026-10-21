@@ -44,6 +44,8 @@
   --text-soft: #efeeeb; /* texto claro levemente creme */
   --sheet-label-color: #a32c17; /* rótulos em vermelho */
   --gold-color: #ccaa44; /* destaques em dourado */
+  /* Sprite do dragão (carregamento e wizard): grade 4×4, virado pra direita */
+  --dragon-sprite: url('/dragon-sprite.png');
 
   /* Cursores do tema (pixel art em assets/cursors/, origem em design/cursors/). Nomes curtos de
      propósito: são usados ~200 vezes nos SCSS dos componentes e o session-panel está no limite
@@ -73,6 +75,8 @@
   --text-soft: #dccfbb;
   --sheet-label-color: #c9734f;
   --gold-color: #c9a35c;
+  /* No lugar do dragão vermelho, um dracolich (dragão morto-vivo), mesma grade 4×4 */
+  --dragon-sprite: url('/dragon-sprite-sombrio.png');
 }
 
 html {

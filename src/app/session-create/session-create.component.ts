@@ -1,4 +1,5 @@
 import { Component, HostListener, inject, OnInit, signal } from '@angular/core';
+import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { GameSessionService } from '../services/game-session.service';
@@ -8,7 +9,7 @@ import { CharacterSummary } from '../models/character-summary.interface';
 @Component({
   selector: 'app-session-create',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, SkeletonRowsComponent],
   templateUrl: './session-create.component.html',
   styleUrls: ['./session-create.component.scss'],
 })
@@ -24,6 +25,8 @@ export class SessionCreateComponent implements OnInit {
   masterName = signal('');
   sessionCode = signal('');
   saveError = signal('');
+  /** Salvando — trava o botão (sem o overlay que bloqueava a tela). */
+  saving = signal(false);
 
   availableNpcs = signal<CharacterSummary[]>([]);
   loadingNpcs = signal(false);
@@ -79,8 +82,9 @@ export class SessionCreateComponent implements OnInit {
   }
 
   saveSession() {
-    if (!this.canSave()) return;
+    if (!this.canSave() || this.saving()) return;
     this.saveError.set('');
+    this.saving.set(true);
 
     const npcs = Array.from(this.selectedNpcIds()).map(id => ({ id_character: id }));
 
@@ -95,7 +99,10 @@ export class SessionCreateComponent implements OnInit {
       })
       .subscribe({
         next: res => this.router.navigate(['/session', res.game_session.id_game_session]),
-        error: () => this.saveError.set('ERRO AO SALVAR AVENTURA. TENTE NOVAMENTE.'),
+        error: () => {
+          this.saving.set(false);
+          this.saveError.set('ERRO AO SALVAR AVENTURA. TENTE NOVAMENTE.');
+        },
       });
   }
 

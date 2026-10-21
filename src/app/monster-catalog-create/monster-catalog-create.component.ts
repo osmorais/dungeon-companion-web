@@ -1,4 +1,5 @@
 import { Component, inject, OnInit, signal, computed, HostListener } from '@angular/core';
+import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MonsterCatalogService } from '../services/monster-catalog.service';
@@ -7,7 +8,7 @@ import { SrdMonsterDetail, SrdMonsterSummary } from '../models/monster-catalog.i
 @Component({
   selector: 'app-monster-catalog-create',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, SkeletonRowsComponent],
   templateUrl: './monster-catalog-create.component.html',
   styleUrls: ['./monster-catalog-create.component.scss'],
 })

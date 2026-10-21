@@ -4,7 +4,10 @@
     <h3 class="modal-title">SUBIR DE NÍVEL</h3>
 
     @if (loading()) {
-      <p class="lu-loading">Calculando...</p>
+      <div aria-busy="true" aria-label="Calculando o próximo nível">
+        <span class="skeleton" style="width: 60%; height: 22px; margin: 0 auto 16px"></span>
+        <app-skeleton-rows [rows]="5" [height]="16" />
+      </div>
     } @else if (!preview()) {
       <p class="lu-error">{{ error() }}</p>
       <div class="lu-actions">

@@ -1,4 +1,6 @@
 import { Component, inject, OnInit, signal, computed, HostListener } from '@angular/core';
+import { finalize } from 'rxjs';
+import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { Router } from '@angular/router';
 import { CharacterService } from '../services/character.service';
 import { CharacterSummary } from '../models/character-summary.interface';
@@ -8,6 +10,7 @@ const PAGE_SIZE = 10;
 @Component({
   selector: 'app-character-list',
   standalone: true,
+  imports: [SkeletonRowsComponent],
   templateUrl: './character-list.component.html',
   styleUrls: ['./character-list.component.scss'],
 })
@@ -24,6 +27,8 @@ export class CharacterListComponent implements OnInit {
 
   characters = signal<CharacterSummary[]>([]);
   error = signal(false);
+  /** Buscando a página — mostra skeleton em vez de "nenhum encontrado". */
+  loading = signal(true);
   page = signal(1);
   totalCount = signal(0);
   pageSize = PAGE_SIZE;
@@ -42,7 +47,10 @@ export class CharacterListComponent implements OnInit {
 
   loadPage() {
     this.error.set(false);
-    this.charService.getCharacters(this.page(), this.pageSize).subscribe({
+    this.loading.set(true);
+    this.charService.getCharacters(this.page(), this.pageSize)
+      .pipe(finalize(() => this.loading.set(false)))
+      .subscribe({
       next: res => {
         this.characters.set(res.CharacterPagedList);
         this.totalCount.set(res.total_count);

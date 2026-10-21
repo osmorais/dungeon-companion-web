@@ -1,4 +1,6 @@
 import { Component, computed, HostListener, inject, OnInit, signal } from '@angular/core';
+import { finalize } from 'rxjs';
+import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { Router } from '@angular/router';
 import { GameSessionService } from '../services/game-session.service';
 import { GameSessionSummary } from '../models/game-session.interface';
@@ -8,7 +10,7 @@ const PAGE_SIZE = 10;
 @Component({
   selector: 'app-session-list',
   standalone: true,
-  imports: [],
+  imports: [SkeletonRowsComponent],
   templateUrl: './session-list.component.html',
   styleUrls: ['./session-list.component.scss'],
 })
@@ -19,6 +21,8 @@ export class SessionListComponent implements OnInit {
   isMobile = signal(typeof window !== 'undefined' && window.innerWidth < 768);
   sessions = signal<GameSessionSummary[]>([]);
   error = signal(false);
+  /** Buscando a página — mostra skeleton em vez de "nenhum encontrado". */
+  loading = signal(true);
   page = signal(1);
   totalCount = signal(0);
   pageSize = PAGE_SIZE;
@@ -38,7 +42,10 @@ export class SessionListComponent implements OnInit {
 
   loadPage() {
     this.error.set(false);
-    this.gameSessionService.getMySessions(this.page(), this.pageSize, 'dm').subscribe({
+    this.loading.set(true);
+    this.gameSessionService.getMySessions(this.page(), this.pageSize, 'dm')
+      .pipe(finalize(() => this.loading.set(false)))
+      .subscribe({
       next: res => {
         this.sessions.set(res.GameSessionPagedList);
         this.totalCount.set(res.total_count);

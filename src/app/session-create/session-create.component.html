@@ -59,7 +59,7 @@
       </div>
 
       @if (loadingNpcs()) {
-        <p class="mobile-loading-msg">Carregando personagens...</p>
+        <app-skeleton-rows [rows]="3" [height]="22" />
       } @else if (availableNpcs().length === 0) {
         <p class="mobile-loading-msg">Nenhum personagem criado ainda.</p>
       } @else {
@@ -115,10 +115,10 @@
 
     <button
       class="retro-btn mobile-create-btn"
-      [disabled]="!canSave()"
+      [disabled]="!canSave() || saving()"
       (click)="saveSession()"
     >
-      SALVAR AVENTURA
+      {{ saving() ? 'SALVANDO...' : 'SALVAR AVENTURA' }}
     </button>
 
   </div>
@@ -185,7 +185,7 @@
           </div>
 
           @if (loadingNpcs()) {
-            <p class="npc-picker-empty">Carregando personagens...</p>
+            <app-skeleton-rows [rows]="3" [height]="22" />
           } @else if (availableNpcs().length === 0) {
             <p class="npc-picker-empty">Nenhum personagem criado ainda.</p>
           } @else {
@@ -246,10 +246,10 @@
       <button class="retro-btn back-btn" (click)="goBack()">← VOLTAR</button>
       <button
         class="retro-btn create-btn"
-        [disabled]="!canSave()"
+        [disabled]="!canSave() || saving()"
         (click)="saveSession()"
       >
-        SALVAR AVENTURA
+        {{ saving() ? 'SALVANDO...' : 'SALVAR AVENTURA' }}
       </button>
     </div>
 

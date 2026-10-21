@@ -1130,7 +1130,38 @@
     (saved)="onEquipmentSaved($event)" />
 }
 
-} @else if (!loading()) {
+} @else if (loading()) {
+  <!-- Skeleton no formato da ficha: cabeçalho (retrato + nome) e as colunas -->
+  @if (isMobile()) {
+    <div class="mobile-sheet-container" aria-busy="true" aria-label="Carregando a ficha">
+      <div class="sheet-skeleton-mobile">
+        <span class="skeleton" style="width: 72px; height: 72px; margin: 0 auto"></span>
+        <app-skeleton-rows [rows]="2" [height]="14" />
+        @for (rows of [4, 6, 5]; track $index) {
+          <fieldset class="retro-panel">
+            <app-skeleton-rows [rows]="rows" [height]="14" />
+          </fieldset>
+        }
+      </div>
+    </div>
+  } @else {
+    <div class="full-sheet-container" aria-busy="true" aria-label="Carregando a ficha">
+      <fieldset class="retro-panel header-panel">
+        <span class="skeleton" style="width: 80px; height: 80px; flex-shrink: 0"></span>
+        <app-skeleton-rows [rows]="3" [height]="14" />
+      </fieldset>
+      <div class="sheet-grid">
+        @for (rows of [8, 10, 9]; track $index) {
+          <div class="column">
+            <fieldset class="retro-panel">
+              <app-skeleton-rows [rows]="rows" [height]="14" />
+            </fieldset>
+          </div>
+        }
+      </div>
+    </div>
+  }
+} @else {
   <div class="overlay">
     <div class="retro-panel blinking-text">
       <p>NENHUMA FICHA ENCONTRADA</p>

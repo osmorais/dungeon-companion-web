@@ -39,6 +39,8 @@
 
       @if (loadError()) {
         <p class="mobile-empty-msg">ERRO AO CARREGAR PERSONAGENS.</p>
+      } @else if (loadingCharacters()) {
+        <app-skeleton-rows [rows]="3" [height]="40" />
       } @else if (characters().length === 0) {
         <p class="mobile-empty-msg">NENHUM PERSONAGEM ENCONTRADO.</p>
       } @else {
@@ -69,10 +71,10 @@
 
     <button
       class="retro-btn mobile-join-btn"
-      [disabled]="!canJoin()"
+      [disabled]="!canJoin() || joining()"
       (click)="join()"
     >
-      ENTRAR NA AVENTURA
+      {{ joining() ? 'ENTRANDO...' : 'ENTRAR NA AVENTURA' }}
     </button>
 
   </div>
@@ -124,6 +126,8 @@
 
       @if (loadError()) {
         <p class="empty-msg">ERRO AO CARREGAR PERSONAGENS.</p>
+      } @else if (loadingCharacters()) {
+        <app-skeleton-rows [rows]="4" [height]="40" />
       } @else if (characters().length === 0) {
         <p class="empty-msg">NENHUM PERSONAGEM ENCONTRADO. CRIE UM PERSONAGEM PRIMEIRO.</p>
       } @else {
@@ -156,10 +160,10 @@
       <button class="retro-btn back-btn" (click)="goBack()">← VOLTAR</button>
       <button
         class="retro-btn join-btn"
-        [disabled]="!canJoin()"
+        [disabled]="!canJoin() || joining()"
         (click)="join()"
       >
-        ENTRAR NA AVENTURA
+        {{ joining() ? 'ENTRANDO...' : 'ENTRAR NA AVENTURA' }}
       </button>
     </div>
 

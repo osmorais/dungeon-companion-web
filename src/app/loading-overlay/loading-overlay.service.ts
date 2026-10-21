@@ -5,6 +5,8 @@ export class LoadingOverlayService {
   readonly visible = signal(false);
   readonly message = signal('CARREGANDO...');
   readonly subMessage = signal('AGUARDE ENQUANTO A MAGIA ACONTECE');
+  /** Só mostra texto quando quem chamou passou uma mensagem (o carregamento comum é só dragões). */
+  readonly showMessage = signal(false);
 
   private pendingCount = 0;
   private httpSuppressors = 0;
@@ -36,6 +38,7 @@ export class LoadingOverlayService {
     if (!wasVisible || message !== undefined) {
       this.message.set(message ?? 'CARREGANDO...');
       this.subMessage.set(subMessage ?? 'AGUARDE ENQUANTO A MAGIA ACONTECE');
+      this.showMessage.set(message !== undefined);
     }
     this.visible.set(true);
   }

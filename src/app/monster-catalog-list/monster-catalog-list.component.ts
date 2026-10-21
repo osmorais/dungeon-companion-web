@@ -1,4 +1,6 @@
 import { Component, inject, OnInit, signal, computed, HostListener } from '@angular/core';
+import { finalize } from 'rxjs';
+import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { Router } from '@angular/router';
 import { MonsterCatalogService } from '../services/monster-catalog.service';
 import { MonsterCatalogEntry } from '../models/monster-catalog.interface';
@@ -8,6 +10,7 @@ const PAGE_SIZE = 12;
 @Component({
   selector: 'app-monster-catalog-list',
   standalone: true,
+  imports: [SkeletonRowsComponent],
   templateUrl: './monster-catalog-list.component.html',
   styleUrls: ['./monster-catalog-list.component.scss'],
 })
@@ -27,6 +30,8 @@ export class MonsterCatalogListComponent implements OnInit {
 
   monsters = signal<MonsterCatalogEntry[]>([]);
   error = signal(false);
+  /** Buscando a página — mostra skeleton em vez de "nenhum encontrado". */
+  loading = signal(true);
   page = signal(1);
   totalCount = signal(0);
   pageSize = PAGE_SIZE;
@@ -45,7 +50,10 @@ export class MonsterCatalogListComponent implements OnInit {
 
   loadPage() {
     this.error.set(false);
-    this.monsterCatalogService.getCatalog(this.page(), this.pageSize).subscribe({
+    this.loading.set(true);
+    this.monsterCatalogService.getCatalog(this.page(), this.pageSize)
+      .pipe(finalize(() => this.loading.set(false)))
+      .subscribe({
       next: res => {
         this.monsters.set(res.MonsterCatalogPagedList);
         this.totalCount.set(res.total_count);

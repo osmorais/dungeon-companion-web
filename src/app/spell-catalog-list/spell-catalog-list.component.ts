@@ -1,4 +1,5 @@
 import { Component, inject, OnInit, OnDestroy, signal, computed, HostListener } from '@angular/core';
+import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SpellCatalogService } from '../services/spell-catalog.service';
@@ -10,7 +11,7 @@ const SEARCH_DEBOUNCE_MS = 350;
 @Component({
   selector: 'app-spell-catalog-list',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, SkeletonRowsComponent],
   templateUrl: './spell-catalog-list.component.html',
   styleUrls: ['./spell-catalog-list.component.scss'],
 })

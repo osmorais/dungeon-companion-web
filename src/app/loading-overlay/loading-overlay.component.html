@@ -1,10 +1,19 @@
-@if (svc.visible()) {
-  <div class="overlay">
-    <app-dragon-animation [stationary]="true" />
-    <div class="retro-panel blinking-text">
-      <p>{{ svc.message() }}</p>
-      <p>{{ svc.subMessage() }}</p>
+<div class="flying-dragons" aria-hidden="true">
+  @for (dragon of dragons(); track dragon.id) {
+    <div
+      class="flying-dragon"
+      [class.flying-dragon--reverse]="dragon.reverse"
+      [style.top.%]="dragon.top"
+      [style.width.px]="dragon.size"
+      [style.height.px]="dragon.size"
+      [style.animation-duration.s]="dragon.duration"
+      [style.animation-delay.s]="dragon.delay"
+      (animationend)="onFlightEnd(dragon)"
+    >
+      <div class="flying-dragon-sprite"></div>
     </div>
-    <app-dragon-animation [stationaryInvert]="true" />
-  </div>
+  }
+</div>
+@if (svc.visible() && svc.showMessage()) {
+  <p class="loading-message" role="status">{{ svc.message() }}</p>
 }

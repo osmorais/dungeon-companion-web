@@ -8,6 +8,7 @@ import {
   signal,
   computed,
 } from '@angular/core';
+import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { CharacterService } from '../services/character.service';
 import { Armour } from '../models/character-options.interface';
 import { CLASS_ARMOUR_RULES } from '../constants/armour-rules';
@@ -21,6 +22,7 @@ export interface EquipmentSaved {
 @Component({
   selector: 'app-equipment-modal',
   standalone: true,
+  imports: [SkeletonRowsComponent],
   templateUrl: './equipment-modal.component.html',
   styleUrls: ['./equipment-modal.component.scss'],
 })

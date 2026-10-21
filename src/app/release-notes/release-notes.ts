@@ -33,6 +33,21 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.3.1',
+    date: '2026-10-20',
+    title: 'Carregamento sem tela de espera',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'A tela de espera com o dragão saiu do site todo: enquanto algo carrega, cada página mostra blocos no formato do conteúdo (listas, ficha, catálogos, conta) e um dragão atravessa a tela voando (no tema Sombrio, um dragão morto-vivo), sem impedir que você continue usando o site.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Os botões de criar sessão, entrar em sessão, criar personagem e salvar personagem ficam travados (com "SALVANDO..." / "ENTRANDO...") enquanto esperam a resposta, para não enviar duas vezes.',
+      },
+    ],
+  },
+  {
     version: '1.3.0',
     date: '2026-10-20',
     title: 'Tema Sombrio',

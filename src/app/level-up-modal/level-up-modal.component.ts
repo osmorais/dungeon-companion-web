@@ -9,6 +9,7 @@ import {
   signal,
   computed,
 } from '@angular/core';
+import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { forkJoin } from 'rxjs';
 import { CharacterService } from '../services/character.service';
 import { PixelNumericDieComponent } from '../pixel-numeric-die/pixel-numeric-die.component';
@@ -55,7 +56,7 @@ const STEP_LABELS: Record<FixedStepId, string> = {
 @Component({
   selector: 'app-level-up-modal',
   standalone: true,
-  imports: [PixelNumericDieComponent, NgTemplateOutlet],
+  imports: [PixelNumericDieComponent, NgTemplateOutlet, SkeletonRowsComponent],
   templateUrl: './level-up-modal.component.html',
   styleUrls: ['./level-up-modal.component.scss'],
 })

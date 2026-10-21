@@ -610,7 +610,7 @@
 
         <div class="mobile-wizard-actions">
           <button class="retro-btn mobile-secondary-btn" (click)="prevStep()">← VOLTAR</button>
-          <button class="retro-btn mobile-primary-btn" (click)="saveCharacter()">SALVAR →</button>
+          <button class="retro-btn mobile-primary-btn" [disabled]="savingCharacter" (click)="saveCharacter()">{{ savingCharacter ? 'SALVANDO...' : 'SALVAR →' }}</button>
         </div>
       }
 
@@ -1195,7 +1195,7 @@
 
         <div class="action-buttons">
           <button class="retro-btn secondary" (click)="prevStep()">VOLTAR</button>
-          <button class="retro-btn primary" (click)="saveCharacter()">SALVAR PERSONAGEM</button>
+          <button class="retro-btn primary" [disabled]="savingCharacter" (click)="saveCharacter()">{{ savingCharacter ? 'SALVANDO...' : 'SALVAR PERSONAGEM' }}</button>
         </div>
       }
 

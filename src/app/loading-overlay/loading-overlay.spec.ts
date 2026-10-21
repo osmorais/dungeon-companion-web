@@ -62,4 +62,14 @@ describe('overlay de carregamento: desligado em tela com skeleton (sessão)', ()
     expect(overlay.visible()).toBe(true);
     release();
   });
+
+  it('mensagem só aparece quando quem chamou passou uma (carregamento comum é só dragões)', () => {
+    overlay.show();
+    expect(overlay.showMessage()).toBe(false);
+    overlay.hideImmediate();
+    overlay.show('SALVANDO SEU PERSONAGEM...');
+    expect(overlay.showMessage()).toBe(true);
+    expect(overlay.message()).toBe('SALVANDO SEU PERSONAGEM...');
+    overlay.hideImmediate();
+  });
 });

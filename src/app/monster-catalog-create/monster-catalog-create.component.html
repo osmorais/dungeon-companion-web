@@ -17,7 +17,7 @@
         (ngModelChange)="searchText.set($event)"
       />
       @if (loadingList()) {
-        <p class="mobile-empty-msg mobile-empty-msg--inner">CARREGANDO...</p>
+        <app-skeleton-rows [rows]="6" [height]="16" />
       } @else if (listError()) {
         <p class="mobile-empty-msg mobile-empty-msg--inner">ERRO AO CARREGAR O SRD.</p>
       } @else {
@@ -38,7 +38,7 @@
       <fieldset class="mobile-panel">
         <legend>PRÉ-VISUALIZAÇÃO</legend>
         @if (loadingDetail()) {
-          <p class="mobile-empty-msg mobile-empty-msg--inner">CARREGANDO...</p>
+          <app-skeleton-rows [rows]="5" [height]="12" />
         } @else if (detailError()) {
           <p class="mobile-empty-msg mobile-empty-msg--inner">ERRO AO CARREGAR O MONSTRO.</p>
         } @else if (selectedDetail(); as detail) {
@@ -119,7 +119,7 @@
           (ngModelChange)="searchText.set($event)"
         />
         @if (loadingList()) {
-          <p class="empty-msg">CARREGANDO...</p>
+          <app-skeleton-rows [rows]="10" [height]="16" />
         } @else if (listError()) {
           <p class="empty-msg">ERRO AO CARREGAR O SRD.</p>
         } @else {
@@ -141,7 +141,7 @@
         @if (!selectedSlug()) {
           <p class="empty-msg">SELECIONE UM MONSTRO NA LISTA AO LADO.</p>
         } @else if (loadingDetail()) {
-          <p class="empty-msg">CARREGANDO...</p>
+          <app-skeleton-rows [rows]="7" [height]="12" />
         } @else if (detailError()) {
           <p class="empty-msg">ERRO AO CARREGAR O MONSTRO.</p>
         } @else if (selectedDetail(); as detail) {

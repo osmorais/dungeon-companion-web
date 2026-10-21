@@ -1402,7 +1402,11 @@ export class CharacterWizardComponent implements OnInit {
 
   /** ========================= SAVE ========================= */
 
+  /** Salvando — trava o botão: o carregamento não bloqueia mais a tela (só os dragões voando). */
+  savingCharacter = false;
+
   saveCharacter() {
+    if (this.savingCharacter) return;
     // Clampeia contra escolha de subclasse trocada depois de já ter marcado perícias de
     // Especialização/Bênção do Conhecimento pra uma subclasse diferente (ids ficariam órfãos).
     const validPoolIds = new Set(this.expertisePoolSkills.map(s => s.id_skill));
@@ -1410,6 +1414,7 @@ export class CharacterWizardComponent implements OnInit {
       .filter(id => validPoolIds.has(id))
       .slice(0, this.expertiseGrantCount);
 
+    this.savingCharacter = true;
     this.loadingOverlay.show('SALVANDO SEU PERSONAGEM...', 'AGUARDE ENQUANTO A MAGIA ACONTECE');
 
     this.charService.saveCharacter(this.characterData).subscribe({
@@ -1424,6 +1429,7 @@ export class CharacterWizardComponent implements OnInit {
       },
       error: (err) => {
         console.error(err);
+        this.savingCharacter = false;
         this.loadingOverlay.hide();
         alert('Erro ao salvar personagem!');
       }

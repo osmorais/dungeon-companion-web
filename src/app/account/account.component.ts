@@ -1,4 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AccountService } from '../services/account.service';
@@ -21,7 +22,7 @@ export function exportFileName(date: Date): string {
 @Component({
   selector: 'app-account',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, SkeletonRowsComponent],
   templateUrl: './account.component.html',
   styleUrls: ['./account.component.scss'],
 })

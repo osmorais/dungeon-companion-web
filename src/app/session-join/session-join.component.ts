@@ -1,4 +1,5 @@
 import { Component, HostListener, inject, OnInit, signal } from '@angular/core';
+import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -9,7 +10,7 @@ import { CharacterSummary } from '../models/character-summary.interface';
 @Component({
   selector: 'app-session-join',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, SkeletonRowsComponent],
   templateUrl: './session-join.component.html',
   styleUrls: ['./session-join.component.scss'],
 })
@@ -20,6 +21,10 @@ export class SessionJoinComponent implements OnInit {
 
   isMobile = signal(typeof window !== 'undefined' && window.innerWidth < 768);
   characters = signal<CharacterSummary[]>([]);
+  /** Buscando os personagens — skeleton em vez de "nenhum encontrado". */
+  loadingCharacters = signal(true);
+  /** Entrando na sessão — trava o botão (sem o overlay que bloqueava a tela). */
+  joining = signal(false);
   selectedCharacter = signal<CharacterSummary | null>(null);
   sessionCode = signal('');
   playerName = signal('');
@@ -33,8 +38,14 @@ export class SessionJoinComponent implements OnInit {
 
   ngOnInit() {
     this.charService.getCharacters(1, 100).subscribe({
-      next: res => this.characters.set(res.CharacterPagedList),
-      error: () => this.loadError.set(true),
+      next: res => {
+        this.characters.set(res.CharacterPagedList);
+        this.loadingCharacters.set(false);
+      },
+      error: () => {
+        this.loadError.set(true);
+        this.loadingCharacters.set(false);
+      },
     });
   }
 
@@ -59,8 +70,9 @@ export class SessionJoinComponent implements OnInit {
   }
 
   join() {
-    if (!this.canJoin()) return;
+    if (!this.canJoin() || this.joining()) return;
     this.joinError.set('');
+    this.joining.set(true);
 
     this.gameSessionService
       .joinSession({
@@ -71,6 +83,7 @@ export class SessionJoinComponent implements OnInit {
       .subscribe({
         next: res => this.router.navigate(['/session', res.id_game_session]),
         error: (err: HttpErrorResponse) => {
+          this.joining.set(false);
           if (err.status === 404) {
             this.joinError.set('SESSÃO NÃO ENCONTRADA. VERIFIQUE O CÓDIGO.');
           } else if (err.status === 422) {

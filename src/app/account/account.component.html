@@ -121,6 +121,15 @@
         <a [routerLink]="legalRoutes.privacy">POLÍTICA DE PRIVACIDADE</a>
         <a [routerLink]="legalRoutes.terms">TERMOS DE USO</a>
       </nav>
+    } @else {
+      <div aria-busy="true" aria-label="Carregando a conta">
+        @for (rows of [2, 3, 4]; track $index) {
+          <section class="account-section">
+            <span class="skeleton" style="width: 45%; height: 12px"></span>
+            <app-skeleton-rows [rows]="rows" [height]="12" />
+          </section>
+        }
+      </div>
     }
 
     <div class="row-actions">

@@ -38,7 +38,7 @@
         <p class="mobile-role-subtitle">O QUE DESEJA FAZER?</p>
         <div class="mobile-menu-options">
 
-          <button class="mobile-retro-card" (click)="createCharacter()">
+          <button class="mobile-retro-card" (click)="createCharacter()" [disabled]="openingCreate()">
             <span class="mobile-card-icon">⚔</span>
             <span class="mobile-card-text">
               <span class="mobile-card-title">CRIAR PERSONAGEM</span>
@@ -160,7 +160,7 @@
         <p class="role-subtitle">O QUE DESEJA FAZER?</p>
         <div class="menu-options menu-options--grid">
 
-          <button class="retro-card" (click)="createCharacter()">
+          <button class="retro-card" (click)="createCharacter()" [disabled]="openingCreate()">
             <span class="card-icon">⚔</span>
             <span class="card-title">CRIAR PERSONAGEM</span>
             <span class="card-desc">Forje um novo herói</span>

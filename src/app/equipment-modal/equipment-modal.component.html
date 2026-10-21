@@ -4,7 +4,7 @@
     <h3 class="modal-title">EQUIPAMENTO</h3>
 
     @if (loading()) {
-      <p class="eq-loading">Carregando...</p>
+      <app-skeleton-rows [rows]="5" [height]="22" />
     } @else {
       <div class="eq-block">
         <span class="eq-section-label">ARMADURA</span>
