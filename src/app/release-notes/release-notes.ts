@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.3.10',
+    date: '2026-10-21',
+    title: 'Menu inicial cabendo na tela',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'O menu inicial perdeu o título "Bem-vindo, aventureiro" e agora cabe inteiro na tela, centralizado, sem precisar rolar: a logo se ajusta à altura da tela e os cards ficaram mais compactos.',
+      },
+    ],
+  },
+  {
     version: '1.3.9',
     date: '2026-10-21',
     title: 'Menu inicial numa tela só',
