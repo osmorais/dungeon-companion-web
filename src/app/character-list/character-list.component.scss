@@ -78,10 +78,6 @@
 
 /* ===== DESKTOP: card de personagem (grade .d-grid / .d-card do styles.scss) ===== */
 
-.char-card--has-bg {
-  border-color: var(--border-color);
-}
-
 .char-card-avatar {
   flex-shrink: 0;
   width: 64px;

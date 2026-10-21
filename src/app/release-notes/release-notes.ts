@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.3.8',
+    date: '2026-10-21',
+    title: 'Destaque nos cards de personagem',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'Na lista de personagens, o contorno do card volta a ficar dourado ao passar o mouse, inclusive nos personagens com imagem de fundo.',
+      },
+    ],
+  },
+  {
     version: '1.3.7',
     date: '2026-10-21',
     title: 'Listagens maiores e mais completas',
