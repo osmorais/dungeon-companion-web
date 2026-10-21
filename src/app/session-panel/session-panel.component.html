@@ -37,11 +37,6 @@
             {{ sessionDetail()!.players.length }} / {{ sessionDetail()!.game_session.max_player_quantity }}
           </span>
         </div>
-        @if (isOwner()) {
-          <button class="retro-btn dm-roll-btn mobile-npc-add-btn" (click)="openDmBoard()">
-            📜 QUADRO DO MESTRE
-          </button>
-        }
       </fieldset>
 
       <!-- Combate -->
@@ -1388,13 +1383,12 @@
   </div>
 }
 <!-- ===== QUADRO DO MESTRE (gaveta lateral, só o dono da sessão) ===== -->
-@if (isOwner() && !isMobile() && !dmBoardOpen() && sessionDetail()) {
+@if (isOwner() && !dmBoardOpen() && sessionDetail()) {
   <app-dm-board-tab (expand)="openDmBoard()" />
 }
 @if (dmBoardOpen() && isOwner() && sessionDetail(); as detail) {
   <app-dm-board
     [detail]="detail"
-    [mobile]="isMobile()"
     [pollingEnabled]="pollingEnabled()"
     [screenEffectsEnabled]="screenEffectsEnabled()"
     [endingCombat]="endingCombat()"

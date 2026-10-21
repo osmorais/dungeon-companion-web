@@ -7,38 +7,20 @@
   background: rgba(0, 0, 0, 0.55);
 }
 
+// Gaveta pela esquerda, com a aba de recolher presa na borda direita (mesma altura da aba
+// recolhida, então parece a mesma aba indo e voltando).
 .dm-board {
   position: fixed;
   top: 0;
-  right: 0;
   bottom: 0;
+  left: 0;
   z-index: 951;
   display: flex;
   flex-direction: column;
   width: 340px;
-  max-width: 100vw;
-  border-left: 2px solid var(--border-color);
-  background-color: var(--panel-bg);
-  animation: dm-board-slide-in 0.25s steps(5) both;
-}
-
-@keyframes dm-board-slide-in {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
-// Desktop: gaveta pela esquerda, com a aba de recolher presa na borda direita (mesma altura da
-// aba recolhida, então parece a mesma aba indo e voltando).
-.dm-board--left {
-  right: auto;
-  left: 0;
-  border-left: none;
   border-right: 2px solid var(--border-color);
-  animation-name: dm-board-slide-in-left;
+  background-color: var(--panel-bg);
+  animation: dm-board-slide-in-left 0.25s steps(5) both;
 }
 
 @keyframes dm-board-slide-in-left {
@@ -70,15 +52,6 @@
   margin: 0;
   font-size: 11px;
   color: var(--accent-color);
-}
-
-.dm-board-close {
-  background: none;
-  border: none;
-  color: var(--text-color);
-  font-family: inherit;
-  font-size: 12px;
-  cursor: var(--cp);
 }
 
 .dm-board-body {
@@ -357,9 +330,9 @@
   color: #e53935;
 }
 
+// Celular: quase a tela toda, deixando à direita o espaço da aba de recolher.
 @media (max-width: 767px) {
   .dm-board {
-    width: 100vw;
-    border-left: none;
+    width: calc(100vw - 28px);
   }
 }

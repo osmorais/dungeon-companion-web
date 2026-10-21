@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.2.2',
+    date: '2026-10-20',
+    title: 'Quadro do Mestre com aba também no celular',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'No celular, o Quadro do Mestre agora funciona como no computador: abre pela lateral esquerda numa aba sempre visível na borda da tela, que expande e recolhe o quadro.',
+      },
+    ],
+  },
+  {
     version: '1.2.1',
     date: '2026-10-20',
     title: 'Quadro do Mestre mais fácil de achar',

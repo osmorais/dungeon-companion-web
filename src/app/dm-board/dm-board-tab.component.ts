@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 
-/** Aba do Quadro do Mestre recolhido (desktop): fica na lateral esquerda e expande a gaveta. */
+/** Aba do Quadro do Mestre recolhido: fica na lateral esquerda e expande a gaveta. */
 @Component({
   selector: 'app-dm-board-tab',
   standalone: true,

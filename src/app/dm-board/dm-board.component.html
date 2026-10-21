@@ -1,26 +1,16 @@
 <div class="dm-board-backdrop" (click)="close()"></div>
-<aside
-  class="dm-board"
-  [class.dm-board--left]="!mobile"
-  role="dialog"
-  aria-label="Quadro do mestre"
->
-  @if (!mobile) {
-    <button
-      class="dm-board-tab dm-board-tab--attached"
-      title="Recolher o quadro do mestre"
-      aria-expanded="true"
-      (click)="close()"
-    >
-      <span>◀</span>
-      <span class="dm-board-tab-label">QUADRO DO MESTRE</span>
-    </button>
-  }
+<aside class="dm-board" role="dialog" aria-label="Quadro do mestre">
+  <button
+    class="dm-board-tab dm-board-tab--attached"
+    title="Recolher o quadro do mestre"
+    aria-expanded="true"
+    (click)="close()"
+  >
+    <span>◀</span>
+    <span class="dm-board-tab-label">QUADRO DO MESTRE</span>
+  </button>
   <header class="dm-board-header">
     <h3 class="dm-board-title">📜 QUADRO DO MESTRE</h3>
-    @if (mobile) {
-      <button class="dm-board-close" title="Fechar" (click)="close()">✕</button>
-    }
   </header>
 
   <div class="dm-board-body">

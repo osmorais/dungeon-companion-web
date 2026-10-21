@@ -65,8 +65,6 @@ export class DmBoardComponent implements OnInit, OnDestroy {
   private gameSessionService = inject(GameSessionService);
 
   @Input({ required: true }) detail!: GameSessionDetail;
-  /** Mobile: tela cheia com ✕. Desktop: abre pela esquerda e recolhe pela aba na borda. */
-  @Input() mobile = false;
   @Input() pollingEnabled = false;
   @Input() screenEffectsEnabled = false;
   @Input() endingCombat = false;
