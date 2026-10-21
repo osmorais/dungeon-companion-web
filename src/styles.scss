@@ -15,6 +15,12 @@
   &--fading {
     opacity: 0;
   }
+
+  /* Sombrio: as artes de fundo continuam visíveis, só um pouco mais escuras e puxadas pro sépia
+     (brightness bem baixo some com a imagem atrás dos painéis). */
+  :root[data-theme='sombrio'] & {
+    filter: sepia(0.35) saturate(0.85) brightness(0.75);
+  }
 }
 
 // :root {
@@ -34,6 +40,10 @@
   --btn-color: #6b1616; /* Azul dos botões */
   --btn-color-hover: #8b1c1c; /* Azul mais claro para hover */
   --label-title-color: #a75454; /* Azul claro para títulos de seções */
+  /* Cores da ficha de personagem (antes fixas no SCSS dela) */
+  --text-soft: #efeeeb; /* texto claro levemente creme */
+  --sheet-label-color: #a32c17; /* rótulos em vermelho */
+  --gold-color: #ccaa44; /* destaques em dourado */
 
   /* Cursores do tema (pixel art em assets/cursors/, origem em design/cursors/). Nomes curtos de
      propósito: são usados ~200 vezes nos SCSS dos componentes e o session-panel está no limite
@@ -45,6 +55,24 @@
   --cx: url('/assets/cursors/cursor-disabled.png') 8 1, not-allowed; /* desabilitado: escudo */
   --cg: url('/assets/cursors/cursor-grab.png') 11 13, grab; /* arrastável: mão aberta */
   --cgg: url('/assets/cursors/cursor-grabbing.png') 9 12, grabbing; /* arrastando: punho */
+}
+
+/* Tema SOMBRIO (ThemeService, data-theme no <html>): mesmo layout, mais escuro e menos saturado
+   que o fantasia — base do usuário: fundo #1C0B0B, painel #40251A, destaque #D8A33E; o resto é
+   derivado na mesma família quente (marrons, bege, creme, ferrugem). Só as variáveis mudam;
+   efeitos de tela cheia (dano, magia, explosão dos modais) mantêm as cores próprias. */
+:root[data-theme='sombrio'] {
+  --bg-color: #1c0b0b;
+  --panel-bg: #40251a;
+  --text-color: #eadfcf;
+  --accent-color: #d8a33e;
+  --border-color: #6b4329;
+  --btn-color: #52301f;
+  --btn-color-hover: #663b26;
+  --label-title-color: #b8936c;
+  --text-soft: #dccfbb;
+  --sheet-label-color: #c9734f;
+  --gold-color: #c9a35c;
 }
 
 html {
@@ -212,7 +240,7 @@ input[type="checkbox"].retro-checkbox {
 
 .drag-item.rolling {
   animation: shake 0.2s infinite;
-  background: #8b1c1c;
+  background: var(--btn-color-hover);
 }
 
 @keyframes shake {

@@ -33,6 +33,25 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.3.0',
+    date: '2026-10-20',
+    title: 'Tema Sombrio',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'Agora dá para trocar as cores do site no botão TEMA, no rodapé: FANTASIA é o visual de sempre e SOMBRIO é uma versão mais escura e sóbria, em marrons e dourado, com as artes de fundo levemente escurecidas e puxadas para o sépia. A escolha fica salva no seu navegador.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A ficha de personagem, a criação de personagem e a escolha de avatar passam a seguir o tema escolhido.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A Política de Privacidade passa a citar a preferência de tema, guardada só no seu navegador.',
+      },
+    ],
+  },
+  {
     version: '1.2.3',
     date: '2026-10-20',
     title: 'Carregamento mais suave na sessão',

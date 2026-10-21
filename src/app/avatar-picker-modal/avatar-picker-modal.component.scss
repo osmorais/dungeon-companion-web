@@ -16,10 +16,10 @@
 }
 
 .modal-panel {
-  border-color: #ffaa00;
+  border-color: var(--accent-color);
 
   legend {
-    color: #ffaa00;
+    color: var(--accent-color);
     font-size: 12px;
     padding: 0 8px;
   }
@@ -44,11 +44,11 @@
   transition: border-color 0.15s;
 
   &:hover {
-    border-color: #ccaa44;
+    border-color: var(--gold-color);
   }
 
   &.selected {
-    border-color: #ffaa00;
+    border-color: var(--accent-color);
     background: rgba(255, 170, 0, 0.1);
   }
 
@@ -70,7 +70,7 @@
   position: absolute;
   top: 2px;
   right: 4px;
-  color: #ffaa00;
+  color: var(--accent-color);
   font-size: 12px;
   line-height: 1;
 }

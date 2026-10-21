@@ -20,13 +20,13 @@
   h1 {
     margin: 0 0 8px;
     font-size: 16px;
-    color: #efeeeb;
+    color: var(--text-soft);
   }
 
   p {
     margin: 4px 0;
     font-size: 10px;
-    color: #ccaa44;
+    color: var(--gold-color);
   }
 
   .char-details p {
@@ -67,12 +67,12 @@
 .portrait-box {
   width: 80px;
   height: 80px;
-  border: 2px solid #5e2d12;
+  border: 2px solid var(--panel-bg);
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #1d0a0a;
+  background: var(--bg-color);
 
   img {
     width: 100%;
@@ -85,7 +85,7 @@
 
 .portrait-placeholder {
   font-size: 24px;
-  color: #5e2d12;
+  color: var(--panel-bg);
 }
 
 .sheet-grid {
@@ -120,7 +120,7 @@
       display: block;
       font-size: 8px;
       margin-bottom: 4px;
-      color: #a32c17;
+      color: var(--sheet-label-color);
     }
 
     .attr-score {
@@ -182,7 +182,7 @@
   label {
     display: block;
     font-size: 7px;
-    color: #a32c17;
+    color: var(--sheet-label-color);
     margin-bottom: 4px;
   }
 
@@ -275,13 +275,13 @@ ul {
   display: flex;
   align-items: center;
   padding: 2px 4px;
-  color: #efeeeb;
+  color: var(--text-soft);
 
   .skill-attribute { font-size: 0.85em; opacity: 0.6; margin-left: 3px; }
   small { color: #555; margin-left: 4px; }
 
   &.trained {
-    color: #ccaa44;
+    color: var(--gold-color);
     background: rgba(100, 180, 100, 0.08);
     border-left: 2px solid #4caf50;
     padding-left: 4px;
@@ -297,7 +297,7 @@ ul {
   line-height: 1.6;
 
   strong {
-    color: #ffaa00;
+    color: var(--accent-color);
     display: block;
     margin-bottom: 2px;
   }
@@ -306,7 +306,7 @@ ul {
 /* Magia */
 .magic-panel p {
   font-size: 8px;
-  color: #a32c17;
+  color: var(--sheet-label-color);
   margin: 8px 0 4px;
 }
 
@@ -331,7 +331,7 @@ ul {
   .spell-stat-label {
     display: block;
     font-size: 7px;
-    color: #a32c17;
+    color: var(--sheet-label-color);
     margin-bottom: 4px;
     letter-spacing: 0.05em;
   }
@@ -339,7 +339,7 @@ ul {
   .spell-stat-value {
     display: block;
     font-size: 14px;
-    color: #efeeeb;
+    color: var(--text-soft);
   }
 }
 
@@ -361,7 +361,7 @@ ul {
 }
 
 .hit-dice-count {
-  color: #efeeeb;
+  color: var(--text-soft);
 }
 
 .hit-dice-pips {
@@ -497,7 +497,7 @@ ul {
 
 .spell-slot-count {
   font-size: 8px;
-  color: #efeeeb;
+  color: var(--text-soft);
   margin-left: auto;
   flex-shrink: 0;
 }
@@ -700,7 +700,7 @@ tr.spell-circle-header-row {
 
   th {
     font-size: 7px;
-    color: #a32c17;
+    color: var(--sheet-label-color);
     text-align: left;
     padding: 4px 6px;
     border-bottom: 1px solid var(--border-color);
@@ -718,7 +718,7 @@ tr.spell-circle-header-row {
 
   .text-center {
     text-align: center;
-    color: #ffaa00;
+    color: var(--accent-color);
   }
 
   .props-cell {
@@ -930,12 +930,12 @@ tr.spell-circle-header-row {
   flex-shrink: 0;
   width: 52px;
   height: 52px;
-  border: 2px solid #5e2d12;
+  border: 2px solid var(--panel-bg);
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #1d0a0a;
+  background: var(--bg-color);
 
   img {
     width: 100%;
@@ -952,7 +952,7 @@ tr.spell-circle-header-row {
   h2 {
     font-size: 12px;
     margin: 0 0 2px;
-    color: #efeeeb;
+    color: var(--text-soft);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -961,7 +961,7 @@ tr.spell-circle-header-row {
   p {
     font-size: 9px;
     margin: 1px 0;
-    color: #ccaa44;
+    color: var(--gold-color);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1087,14 +1087,14 @@ tr.spell-circle-header-row {
   label {
     display: block;
     font-size: 7px;
-    color: #a32c17;
+    color: var(--sheet-label-color);
     margin-bottom: 6px;
     letter-spacing: 0.05em;
   }
 
   span {
     font-size: 22px;
-    color: #efeeeb;
+    color: var(--text-soft);
   }
 }
 
@@ -1109,7 +1109,7 @@ tr.spell-circle-header-row {
   margin-bottom: 8px;
 
   strong {
-    color: #efeeeb;
+    color: var(--text-soft);
     font-size: 10px;
   }
 }
@@ -1129,7 +1129,7 @@ tr.spell-circle-header-row {
   .attr-name {
     display: block;
     font-size: 7px;
-    color: #a32c17;
+    color: var(--sheet-label-color);
     margin-bottom: 4px;
     letter-spacing: 0.03em;
   }
@@ -1137,14 +1137,14 @@ tr.spell-circle-header-row {
   .attr-score {
     display: block;
     font-size: 22px;
-    color: #efeeeb;
+    color: var(--text-soft);
     margin-bottom: 2px;
   }
 
   .attr-mod {
     display: block;
     font-size: 12px;
-    color: #ccaa44;
+    color: var(--gold-color);
     margin-bottom: 5px;
   }
 
@@ -1173,12 +1173,12 @@ tr.spell-circle-header-row {
     padding: 7px 4px;
     border-bottom: 1px dashed #333;
     font-size: 11px;
-    color: #efeeeb;
+    color: var(--text-soft);
 
     &:last-child { border-bottom: none; }
 
     &.trained {
-      color: #ccaa44;
+      color: var(--gold-color);
       background: rgba(100, 180, 100, 0.06);
       border-left: 2px solid #4caf50;
       padding-left: 4px;
@@ -1189,7 +1189,7 @@ tr.spell-circle-header-row {
     .skill-mod {
       min-width: 28px;
       text-align: right;
-      color: #ffaa00;
+      color: var(--accent-color);
       font-size: 11px;
       flex-shrink: 0;
     }
@@ -1221,7 +1221,7 @@ tr.spell-circle-header-row {
     strong {
       display: block;
       font-size: 9px;
-      color: #ffaa00;
+      color: var(--accent-color);
       margin-bottom: 5px;
     }
 
@@ -1241,7 +1241,7 @@ tr.spell-circle-header-row {
 
   h4 {
     font-size: 8px;
-    color: #a32c17;
+    color: var(--sheet-label-color);
     margin: 0 0 8px;
     letter-spacing: 0.1em;
   }
@@ -1272,7 +1272,7 @@ tr.spell-circle-header-row {
     align-items: center;
     justify-content: space-between;
     font-size: 11px;
-    color: #efeeeb;
+    color: var(--text-soft);
     margin-bottom: 8px;
   }
 
@@ -1283,12 +1283,12 @@ tr.spell-circle-header-row {
 
     span {
       font-size: 10px;
-      color: #efeeeb;
+      color: var(--text-soft);
 
       strong {
         display: block;
         font-size: 7px;
-        color: #a32c17;
+        color: var(--sheet-label-color);
         margin-bottom: 2px;
         letter-spacing: 0.05em;
       }
@@ -1312,7 +1312,7 @@ tr.spell-circle-header-row {
   .spell-stat-label {
     display: block;
     font-size: 7px;
-    color: #a32c17;
+    color: var(--sheet-label-color);
     margin-bottom: 4px;
     letter-spacing: 0.05em;
   }
@@ -1320,7 +1320,7 @@ tr.spell-circle-header-row {
   .spell-stat-value {
     display: block;
     font-size: 16px;
-    color: #efeeeb;
+    color: var(--text-soft);
   }
 }
 
@@ -1347,7 +1347,7 @@ tr.spell-circle-header-row {
 
   .spell-card-name {
     font-size: 10px;
-    color: #efeeeb;
+    color: var(--text-soft);
     margin-bottom: 3px;
     white-space: nowrap;
     overflow: hidden;
@@ -1365,8 +1365,8 @@ tr.spell-circle-header-row {
   .spell-card-level {
     flex-shrink: 0;
     font-size: 11px;
-    color: #ccaa44;
-    border: 1px solid #ccaa44;
+    color: var(--gold-color);
+    border: 1px solid var(--gold-color);
     padding: 3px 8px;
     min-width: 26px;
     text-align: center;
@@ -1428,7 +1428,7 @@ tr.spell-circle-header-row {
 
 .notes-label {
   font-size: 8px;
-  color: #a32c17;
+  color: var(--sheet-label-color);
   letter-spacing: 0.1em;
 }
 
@@ -1451,7 +1451,7 @@ tr.spell-circle-header-row {
   }
 
   &:focus {
-    border-color: #5e2d12;
+    border-color: var(--panel-bg);
     background: rgba(0, 0, 0, 0.6);
   }
 }

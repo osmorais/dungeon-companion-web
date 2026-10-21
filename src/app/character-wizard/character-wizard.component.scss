@@ -395,7 +395,7 @@
       font-size: 24px;
       cursor: var(--cp);
       overflow: hidden;
-      background: #1d0a0a;
+      background: var(--bg-color);
 
       img {
         width: 100%;
@@ -406,7 +406,7 @@
       }
 
       &:hover {
-        border-color: #ffaa00;
+        border-color: var(--accent-color);
       }
 
       &:hover .portrait-overlay {
@@ -424,7 +424,7 @@
       opacity: 0;
       transition: opacity 0.2s;
       font-size: 18px;
-      color: #ffaa00;
+      color: var(--accent-color);
     }
 
     .char-name {
@@ -938,7 +938,7 @@
   font-size: 20px;
   cursor: var(--cp);
   overflow: hidden;
-  background: #1d0a0a;
+  background: var(--bg-color);
 
   img {
     width: 100%;
@@ -948,7 +948,7 @@
     display: block;
   }
 
-  &:hover { border-color: #ffaa00; }
+  &:hover { border-color: var(--accent-color); }
   &:hover .portrait-overlay { opacity: 1; }
 }
 

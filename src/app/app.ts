@@ -5,6 +5,7 @@ import { LoadingOverlayService } from './loading-overlay/loading-overlay.service
 import { BackgroundService } from './services/background.service';
 import { ServerWakeupComponent } from './server-wakeup/server-wakeup.component';
 import { AuthService } from './services/auth.service';
+import { ThemeService } from './services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -18,6 +19,13 @@ import { AuthService } from './services/auth.service';
     @if (authService.isLoggedIn()) {
       <footer class="global-footer">
         <span class="global-footer__email">{{ authService.currentUser()!.email }}</span>
+        <button
+          class="retro-btn global-footer__logout"
+          [title]="'Trocar as cores do site (agora: ' + theme.label + ')'"
+          (click)="theme.toggle()"
+        >
+          TEMA: {{ theme.label }}
+        </button>
         <button class="retro-btn global-footer__logout" (click)="logout()">SAIR</button>
       </footer>
     }
@@ -61,6 +69,8 @@ export class App {
   private overlay = inject(LoadingOverlayService);
   readonly bg = inject(BackgroundService);
   readonly authService = inject(AuthService);
+  /** Injetado aqui pra aplicar o tema salvo desde a primeira tela. */
+  readonly theme = inject(ThemeService);
 
   constructor() {
     inject(Router).events.subscribe(event => {
