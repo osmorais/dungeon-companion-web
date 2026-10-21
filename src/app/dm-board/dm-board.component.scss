@@ -31,6 +31,32 @@
   }
 }
 
+// Desktop: gaveta pela esquerda, com a aba de recolher presa na borda direita (mesma altura da
+// aba recolhida, então parece a mesma aba indo e voltando).
+.dm-board--left {
+  right: auto;
+  left: 0;
+  border-left: none;
+  border-right: 2px solid var(--border-color);
+  animation-name: dm-board-slide-in-left;
+}
+
+@keyframes dm-board-slide-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.dm-board-tab--attached {
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  transform: translateY(-50%);
+}
+
 .dm-board-header {
   display: flex;
   align-items: center;

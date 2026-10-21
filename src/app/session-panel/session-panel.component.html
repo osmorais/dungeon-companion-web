@@ -9,9 +9,6 @@
     <div class="mobile-header">
       <button class="mobile-back-btn" (click)="goBack()">&#8592;</button>
       <span class="mobile-title">PAINEL DA SESSÃO</span>
-      @if (isOwner()) {
-        <button class="mobile-dm-roll-btn" (click)="openDmBoard()">📜 QUADRO DO MESTRE</button>
-      }
       <button class="mobile-refresh-btn" (click)="refreshSession()" [disabled]="refreshing()" title="Atualizar sessão">
         {{ refreshing() ? '...' : '↻' }}
       </button>
@@ -40,6 +37,11 @@
             {{ sessionDetail()!.players.length }} / {{ sessionDetail()!.game_session.max_player_quantity }}
           </span>
         </div>
+        @if (isOwner()) {
+          <button class="retro-btn dm-roll-btn mobile-npc-add-btn" (click)="openDmBoard()">
+            📜 QUADRO DO MESTRE
+          </button>
+        }
       </fieldset>
 
       <!-- Combate -->
@@ -506,9 +508,8 @@
             <span class="session-players-count">
               {{ sessionDetail()!.players.length }}/{{ sessionDetail()!.game_session.max_player_quantity }} JOGADORES
             </span>
-            @if (isOwner()) {
-              <button class="retro-btn dm-roll-btn" (click)="openDmBoard()">📜 QUADRO DO MESTRE</button>
-            } @else {
+            <!-- Mestre: o quadro abre pela aba na lateral esquerda (POLLING/EFEITOS ficam lá). -->
+            @if (!isOwner()) {
             <button
               class="retro-btn polling-btn"
               [class.polling-btn--on]="pollingEnabled()"
@@ -1387,9 +1388,13 @@
   </div>
 }
 <!-- ===== QUADRO DO MESTRE (gaveta lateral, só o dono da sessão) ===== -->
+@if (isOwner() && !isMobile() && !dmBoardOpen() && sessionDetail()) {
+  <app-dm-board-tab (expand)="openDmBoard()" />
+}
 @if (dmBoardOpen() && isOwner() && sessionDetail(); as detail) {
   <app-dm-board
     [detail]="detail"
+    [mobile]="isMobile()"
     [pollingEnabled]="pollingEnabled()"
     [screenEffectsEnabled]="screenEffectsEnabled()"
     [endingCombat]="endingCombat()"

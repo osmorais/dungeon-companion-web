@@ -57,6 +57,7 @@ import { attrLabel } from '../models/level-up.interface';
 import { saveNote } from '../roll-modal/spell-roll-config';
 import { ApplyRequest, ApplyTarget } from '../roll-modal/apply-target';
 import { AreaApplyRequest, DmBoardComponent } from '../dm-board/dm-board.component';
+import { DmBoardTabComponent } from '../dm-board/dm-board-tab.component';
 import { monsterDisplayName } from './monster-display-name';
 
 @Component({
@@ -82,6 +83,7 @@ import { monsterDisplayName } from './monster-display-name';
     ReferenceImageViewerComponent,
     SecretRollPromptComponent,
     DmBoardComponent,
+    DmBoardTabComponent,
   ],
   templateUrl: './session-panel.component.html',
   styleUrls: ['./session-panel.component.scss'],

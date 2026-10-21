@@ -33,6 +33,21 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.2.1',
+    date: '2026-10-20',
+    title: 'Quadro do Mestre mais fácil de achar',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'No celular, o botão do Quadro do Mestre saiu da barra do topo e agora fica no quadro da aventura, ocupando a largura toda.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'No computador, o Quadro do Mestre abre pela lateral esquerda e fica sempre à mão numa aba presa na borda da tela: clique na aba para expandir e de novo para recolher.',
+      },
+    ],
+  },
+  {
     version: '1.2.0',
     date: '2026-10-20',
     title: 'Quadro do Mestre',

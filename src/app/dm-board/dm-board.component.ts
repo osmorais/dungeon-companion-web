@@ -58,13 +58,15 @@ export interface AreaApplyRequest {
   selector: 'app-dm-board',
   standalone: true,
   templateUrl: './dm-board.component.html',
-  styleUrls: ['./dm-board.component.scss'],
+  styleUrls: ['./dm-board.component.scss', './dm-board-tab.scss'],
 })
 export class DmBoardComponent implements OnInit, OnDestroy {
   private charService = inject(CharacterService);
   private gameSessionService = inject(GameSessionService);
 
   @Input({ required: true }) detail!: GameSessionDetail;
+  /** Mobile: tela cheia com ✕. Desktop: abre pela esquerda e recolhe pela aba na borda. */
+  @Input() mobile = false;
   @Input() pollingEnabled = false;
   @Input() screenEffectsEnabled = false;
   @Input() endingCombat = false;
