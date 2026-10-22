@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.6.4',
+    date: '2026-10-22',
+    title: 'Sessão no celular sem o Tom',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'No celular, o Tom não aparece mais na sessão, deixando a tela livre. No computador ele continua comentando o jogo.',
+      },
+    ],
+  },
+  {
     version: '1.6.3',
     date: '2026-10-22',
     title: 'Verso da carta aparecendo no aviso',

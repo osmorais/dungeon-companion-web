@@ -1,4 +1,5 @@
-@if (tomState().message) {
+<!-- Tom só no desktop: no celular ocupava a tela da sessão -->
+@if (!isMobile() && tomState().message) {
   <app-tom-assistant variant="left" [image]="tomState().image" [message]="tomState().message" />
 }
 
