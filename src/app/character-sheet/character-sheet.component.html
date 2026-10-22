@@ -377,19 +377,20 @@
                     <span class="spell-circle-count">{{ group.spells.length }}</span>
                   </button>
                   @if (!isCircleCollapsed(group.circle)) {
-                    @for (spell of group.spells; track spell.id_spell) {
-                      <div class="m-card m-card--compact" [class.m-card--highlight]="spell.is_prepared" (click)="openSpellModal(spell)">
-                        <span class="mobile-spell-level">{{ spell.spellLevel === 0 ? 'T' : spell.spellLevel }}</span>
-                        <span class="m-card-body">
-                          <span class="m-card-title">
-                            {{ spell.name }}
-                            @if (spell.is_prepared) { <span class="prepared-dot" title="Preparada">●</span> }
-                          </span>
-                          <span class="m-card-desc">{{ spell.school ?? '' }}{{ spell.casting_time ? ' · ' + spell.casting_time : '' }}</span>
-                        </span>
-                        <span class="m-card-arrow">&#9658;</span>
-                      </div>
-                    }
+                    <div class="card-grid sheet-card-grid">
+                      @for (spell of group.spells; track spell.id_spell) {
+                        <app-game-card
+                          class="card-clickable"
+                          [card]="spellCards().get(spell.id_spell)!"
+                          [state]="spellCardState(spell)"
+                          role="button"
+                          tabindex="0"
+                          [attr.aria-label]="'Ver a carta de ' + spell.name"
+                          (click)="openSpellModal(spell)"
+                          (keydown.enter)="openSpellModal(spell)"
+                        />
+                      }
+                    </div>
                   }
                 }
               </div>
@@ -853,55 +854,41 @@
                 </div>
               </div>
             }
-            <table class="weapons-table spells-table">
-              <thead>
-                <tr>
-                  <th>NOME</th>
-                  <th>NÍV</th>
-                  <th>CONJURAÇÃO</th>
-                  <th>DISTÂNCIA</th>
-                  <th>DURAÇÃO</th>
-                  <th>ESCOLA</th>
-                  <th>COMP.</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (group of spellsByCircle(); track group.circle) {
-                  <tr
-                    class="spell-circle-header-row"
-                    (click)="toggleCircle(group.circle)"
-                    [attr.aria-expanded]="!isCircleCollapsed(group.circle)"
+            <div class="sheet-spell-circles">
+              @for (group of spellsByCircle(); track group.circle) {
+                <button
+                  type="button"
+                  class="spell-circle-header"
+                  [attr.aria-expanded]="!isCircleCollapsed(group.circle)"
+                  (click)="toggleCircle(group.circle)"
+                >
+                  <span
+                    class="spell-circle-chevron"
+                    [class.spell-circle-chevron--open]="!isCircleCollapsed(group.circle)"
+                    aria-hidden="true"
+                    >▸</span
                   >
-                    <td colspan="7">
-                      <span
-                        class="spell-circle-chevron"
-                        [class.spell-circle-chevron--open]="!isCircleCollapsed(group.circle)"
-                        aria-hidden="true"
-                        >▸</span
-                      >
-                      <span class="spell-circle-name">{{ circleName(group.circle) }}</span>
-                      <span class="spell-circle-count">{{ group.spells.length }}</span>
-                    </td>
-                  </tr>
-                  @if (!isCircleCollapsed(group.circle)) {
+                  <span class="spell-circle-name">{{ circleName(group.circle) }}</span>
+                  <span class="spell-circle-count">{{ group.spells.length }}</span>
+                </button>
+                @if (!isCircleCollapsed(group.circle)) {
+                  <div class="card-grid sheet-card-grid">
                     @for (spell of group.spells; track spell.id_spell) {
-                      <tr class="clickable-row" (click)="openSpellModal(spell)">
-                        <td>
-                          {{ spell.name }}
-                          @if (spell.is_prepared) { <span class="prepared-dot" title="Preparada">●</span> }
-                        </td>
-                        <td class="text-center">{{ spell.spellLevel === 0 ? 'T' : spell.spellLevel }}</td>
-                        <td>{{ spell.casting_time ?? '—' }}</td>
-                        <td>{{ spell.range_distance != null ? spell.range_distance + 'm' : '—' }}</td>
-                        <td>{{ spell.duration ?? '—' }}</td>
-                        <td>{{ spell.school ?? '—' }}</td>
-                        <td class="text-center">{{ spellComponents(spell) }}</td>
-                      </tr>
+                      <app-game-card
+                        class="card-clickable"
+                        [card]="spellCards().get(spell.id_spell)!"
+                        [state]="spellCardState(spell)"
+                        role="button"
+                        tabindex="0"
+                        [attr.aria-label]="'Ver a carta de ' + spell.name"
+                        (click)="openSpellModal(spell)"
+                        (keydown.enter)="openSpellModal(spell)"
+                      />
                     }
-                  }
+                  </div>
                 }
-              </tbody>
-            </table>
+              }
+            </div>
           </fieldset>
         }
 
@@ -992,79 +979,42 @@
     </div>
   }
 
-  @if (selectedSpell) {
-    <div class="overlay modal-overlay" (click)="closeSpellModal()">
-      <div class="retro-panel item-modal" (click)="$event.stopPropagation()">
-        <button class="item-modal-close" (click)="closeSpellModal()">✕</button>
-        <h3 class="item-modal-title">{{ selectedSpell.name }}</h3>
-        <p class="spell-school">{{ selectedSpell.school }} — {{ selectedSpell.spellLevel === 0 ? 'Truque' : 'Nível ' + selectedSpell.spellLevel }}</p>
-        <div class="item-modal-info">
-          <div class="item-modal-row">
-            <span class="item-modal-label">TEMPO DE CONJURAÇÃO</span>
-            <span class="item-modal-value">{{ selectedSpell.casting_time ?? '—' }}</span>
-          </div>
-          <div class="item-modal-row">
-            <span class="item-modal-label">ALCANCE</span>
-            <span class="item-modal-value">{{ selectedSpell.range_distance != null ? selectedSpell.range_distance + ' m' : '—' }}</span>
-          </div>
-          <div class="item-modal-row">
-            <span class="item-modal-label">DURAÇÃO</span>
-            <span class="item-modal-value">{{ selectedSpell.duration ?? '—' }}</span>
-          </div>
-          <div class="item-modal-row">
-            <span class="item-modal-label">COMPONENTES</span>
-            <span class="item-modal-value spell-components">
-              @if (selectedSpell.is_verbal) { <span class="component-tag">V</span> }
-              @if (selectedSpell.is_somatic) { <span class="component-tag">S</span> }
-              @if (selectedSpell.is_material) { <span class="component-tag">M</span> }
-            </span>
-          </div>
-          @if (selectedSpell.description) {
-            <div class="spell-description">{{ selectedSpell.description }}</div>
+  <!-- Carta em tela cheia (substituiu o modal de detalhe), com PREPARAR e LANÇAR embaixo -->
+  @if (selectedSpell; as spell) {
+    <app-card-viewer
+      [card]="spellCards().get(spell.id_spell) ?? spellToCard(spell)"
+      [state]="spellCardState(spell)"
+      backLabel="VOLTAR À FICHA"
+      (closed)="closeSpellModal()"
+    >
+      @if (spell.spellLevel > 0 && data.character_sheet.spellcasting_info?.prepares_spells) {
+        <button class="retro-btn spell-slot-btn" [class.spell-prepare-on]="spell.is_prepared"
+                [disabled]="isInActiveCombat() || (!spell.is_prepared && !canPrepareMore())"
+                (click)="togglePrepared(spell)">
+          {{ spell.is_prepared ? '✓ PREPARADA' : 'PREPARAR' }} ({{ preparedCount() }}/{{ maxPrepared() }})
+        </button>
+        @if (isInActiveCombat()) {
+          <p class="spell-no-slots">Em combate não é possível preparar magias.</p>
+        }
+      }
+      @if (isOnHitSpell(spell) && isCastable(spell)) {
+        <p class="spell-no-slots">Use na sessão, ao acertar um ataque com arma.</p>
+      } @else if (isCastable(spell)) {
+        @if (spell.spellLevel === 0) {
+          <button class="retro-btn spell-slot-btn" (click)="castSpell(spell, 0); closeSpellModal()">LANÇAR TRUQUE</button>
+        } @else {
+          @for (lvl of availableSlotLevelsFor(spell); track lvl) {
+            <button class="retro-btn spell-slot-btn" [disabled]="expendingSlot()"
+                    (click)="castSpell(spell, lvl); closeSpellModal()">
+              LANÇAR NV{{ lvl }} ({{ slotsAvailable('level_' + lvl) }})
+            </button>
           }
-        </div>
-
-        @if (selectedSpell.spellLevel > 0) {
-          @if (data.character_sheet.spellcasting_info?.prepares_spells) {
-            <label class="spell-prepare-toggle">
-              <input type="checkbox" class="retro-checkbox"
-                     [checked]="selectedSpell.is_prepared"
-                     [disabled]="isInActiveCombat() || (!selectedSpell.is_prepared && !canPrepareMore())"
-                     (change)="togglePrepared(selectedSpell, $event)">
-              PREPARADA ({{ preparedCount() }}/{{ maxPrepared() }})
-            </label>
-            @if (isInActiveCombat()) {
-              <p class="spell-no-slots">Em combate não é possível preparar magias.</p>
-            }
-          }
-          @if (isOnHitSpell(selectedSpell) && isCastable(selectedSpell)) {
-            <p class="spell-no-slots">Use na sessão, ao acertar um ataque com arma.</p>
-          } @else if (isCastable(selectedSpell)) {
-            <div class="spell-cast-section">
-              @if (selectedSpell.spellLevel === 0) {
-                <button class="retro-btn spell-slot-btn"
-                        (click)="castSpell(selectedSpell, 0); closeSpellModal()">
-                  LANÇAR TRUQUE
-                </button>
-              } @else {
-              <p class="spell-cast-label">CONJURAR USANDO ESPAÇO</p>
-              <div class="spell-slot-options">
-                @for (lvl of availableSlotLevelsFor(selectedSpell); track lvl) {
-                  <button class="retro-btn spell-slot-btn" [disabled]="expendingSlot()"
-                          (click)="castSpell(selectedSpell, lvl); closeSpellModal()">
-                    NÍVEL {{ lvl }} ({{ slotsAvailable('level_' + lvl) }})
-                  </button>
-                }
-                @if (availableSlotLevelsFor(selectedSpell).length === 0) {
-                  <p class="spell-no-slots">Sem espaços disponíveis.</p>
-                }
-              </div>
-              }
-            </div>
+          @if (availableSlotLevelsFor(spell).length === 0) {
+            <p class="spell-no-slots">Sem espaços disponíveis.</p>
           }
         }
-      </div>
-    </div>
+      }
+    </app-card-viewer>
   }
 
   @if (selectedChiAbility; as ability) {

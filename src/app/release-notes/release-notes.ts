@@ -33,6 +33,25 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.4.0',
+    date: '2026-10-21',
+    title: 'Magias em cartas',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'As magias viraram cartas, com moldura no estilo do tema, ilustração da escola de magia, círculo no medalhão e os dados principais no pergaminho.',
+      },
+      {
+        kind: 'novidade',
+        text: 'Tocar numa magia abre a carta em tela cheia, com a descrição completa e, quando dá, os botões de lançar e preparar. Ela substitui a janela de detalhes no grimório da sessão, no Grimório de Magias e na ficha.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'No grimório da sessão dá para alternar entre CARTAS e LISTA. A ficha e o Grimório de Magias mostram as magias em grade de cartas.',
+      },
+    ],
+  },
+  {
     version: '1.3.19',
     date: '2026-10-21',
     title: 'Barra das gavetas sem a alça',

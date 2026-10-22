@@ -1,4 +1,4 @@
-import { Component, inject, input, effect, untracked, signal, HostListener } from '@angular/core';
+import { Component, inject, input, effect, untracked, signal, computed, HostListener } from '@angular/core';
 import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -16,6 +16,9 @@ import { AbilityRollConfig, RollConfig, RollModalComponent } from '../roll-modal
 import { LevelUpModalComponent } from '../level-up-modal/level-up-modal.component';
 import { EquipmentModalComponent, EquipmentSaved } from '../equipment-modal/equipment-modal.component';
 import { attrLabel } from '../models/level-up.interface';
+import { GameCardComponent } from '../game-card/game-card.component';
+import { CardViewerComponent } from '../game-card/card-viewer.component';
+import { spellCardState, spellToCard } from '../game-card/spell-card';
 
 type MobileTab = 'combat' | 'attrs' | 'skills' | 'traits' | 'equipment' | 'spells' | 'notes';
 type DesktopPage = 'sheet' | 'notes';
@@ -25,7 +28,7 @@ const NOTES_SEPARATOR = '\n\n[ANOTAÇÕES]\n\n';
 @Component({
   selector: 'app-character-sheet',
   standalone: true,
-  imports: [CommonModule, KeyValuePipe, AvatarDisplayComponent, AvatarCustomizerComponent, RollModalComponent, LevelUpModalComponent, EquipmentModalComponent, SkeletonRowsComponent],
+  imports: [CommonModule, KeyValuePipe, AvatarDisplayComponent, AvatarCustomizerComponent, RollModalComponent, LevelUpModalComponent, EquipmentModalComponent, SkeletonRowsComponent, GameCardComponent, CardViewerComponent],
   templateUrl: './character-sheet.component.html',
   styleUrls: ['./character-sheet.component.scss'],
 })
@@ -278,6 +281,17 @@ export class CharacterSheetComponent {
       else next.add(circle);
       return next;
     });
+  }
+
+  /** Cartas das magias da ficha, por id (recalculadas só quando a ficha muda). */
+  spellCards = computed(
+    () => new Map((this.sheetData()?.character_sheet.spells ?? []).map((s) => [s.id_spell, spellToCard(s)])),
+  );
+  readonly spellToCard = spellToCard;
+
+  spellCardState(spell: Spell): 'ready' | 'preparable' | 'locked' {
+    const prepares = !!this.sheetData()?.character_sheet.spellcasting_info?.prepares_spells;
+    return spellCardState(spell, prepares, this.canPrepareMore(), this.isInActiveCombat());
   }
 
   selectedSpell: Spell | null = null;

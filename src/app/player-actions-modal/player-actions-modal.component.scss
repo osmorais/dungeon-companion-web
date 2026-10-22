@@ -477,99 +477,6 @@
   color: var(--label-title-color);
 }
 
-/* ===== MODAL: DETALHES DA MAGIA ===== */
-
-.pa-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 200;
-  padding: 16px;
-  box-sizing: border-box;
-}
-
-.pa-item-modal {
-  position: relative;
-  width: 420px;
-  max-width: 100%;
-  border: 2px solid var(--border-color);
-  background-color: var(--panel-bg);
-  padding: 24px;
-  max-height: 85vh;
-  overflow-y: auto;
-  box-sizing: border-box;
-
-  &-close {
-    position: absolute;
-    top: 8px;
-    right: 10px;
-    background: transparent;
-    border: none;
-    color: var(--text-color);
-    font-size: 12px;
-    cursor: var(--cp);
-    font-family: inherit;
-
-    &:hover { color: var(--accent-color); }
-  }
-
-  &-title {
-    font-size: 11px;
-    color: var(--accent-color);
-    margin: 0 0 4px;
-    text-align: center;
-  }
-
-  &-info {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  &-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 12px;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 6px;
-  }
-
-  &-label {
-    font-size: 8px;
-    color: var(--label-title-color);
-    flex-shrink: 0;
-  }
-
-  &-value {
-    font-size: 9px;
-    color: var(--text-color);
-    text-align: right;
-    word-break: break-word;
-    overflow-wrap: anywhere;
-  }
-}
-
-.pa-spell-school-line {
-  font-size: 8px;
-  color: var(--label-title-color);
-  text-align: center;
-  text-transform: capitalize;
-  margin: 0 0 15px;
-}
-
-.pa-spell-description {
-  font-size: 8px;
-  color: var(--text-color);
-  line-height: 1.5;
-  border-top: 1px solid var(--border-color);
-  padding-top: 10px;
-  margin-top: 4px;
-}
-
 /* Quantidade escolhida no "USAR" (Curar pelo Toque). */
 .pa-hp-input {
   width: 72px;
@@ -794,5 +701,52 @@
   &:disabled {
     opacity: 0.5;
     cursor: var(--cx);
+  }
+}
+
+// Linha das abas + botão CARTAS | LISTA à direita (no celular, embaixo das abas).
+.pa-grimoire-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.pa-grimoire-mode {
+  display: flex;
+  flex-shrink: 0;
+
+  button {
+    padding: 9px 12px;
+    border: 2px solid var(--border-color);
+    background-color: var(--bg-color);
+    color: var(--label-title-color);
+    font-family: inherit;
+    font-size: 7px;
+    cursor: var(--cp);
+
+    & + button {
+      border-left: none;
+    }
+
+    &.active,
+    &:hover {
+      color: var(--accent-color);
+    }
+
+    &.active {
+      border-color: var(--accent-color);
+      background-color: var(--btn-color-hover);
+    }
+  }
+}
+
+// Botões embaixo de cada carta (a grade é a .card-grid global).
+.pa-card-actions {
+  justify-content: center;
+
+  .pa-prepare-btn {
+    margin-left: 0;
   }
 }

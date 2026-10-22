@@ -1,9 +1,11 @@
 import { Component, inject, OnInit, OnDestroy, signal, computed, HostListener } from '@angular/core';
-import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SpellCatalogService } from '../services/spell-catalog.service';
 import { SpellCatalogEntry } from '../models/spell-catalog.interface';
+import { GameCardComponent } from '../game-card/game-card.component';
+import { CardViewerComponent } from '../game-card/card-viewer.component';
+import { spellToCard } from '../game-card/spell-card';
 
 const PAGE_SIZE = 20;
 const SEARCH_DEBOUNCE_MS = 350;
@@ -11,7 +13,7 @@ const SEARCH_DEBOUNCE_MS = 350;
 @Component({
   selector: 'app-spell-catalog-list',
   standalone: true,
-  imports: [FormsModule, SkeletonRowsComponent],
+  imports: [FormsModule, GameCardComponent, CardViewerComponent],
   templateUrl: './spell-catalog-list.component.html',
   styleUrls: ['./spell-catalog-list.component.scss'],
 })
@@ -40,6 +42,9 @@ export class SpellCatalogListComponent implements OnInit, OnDestroy {
   hasNext = computed(() => this.page() < this.totalPages());
 
   selectedSpell = signal<SpellCatalogEntry | null>(null);
+  /** Carta de cada magia da página (recalculada só quando a página muda). */
+  cards = computed(() => this.spells().map((spell) => ({ spell, card: spellToCard(spell) })));
+  readonly spellToCard = spellToCard;
 
   ngOnInit() {
     this.loadPage();
@@ -86,10 +91,6 @@ export class SpellCatalogListComponent implements OnInit, OnDestroy {
       this.page.update(p => p + 1);
       this.loadPage();
     }
-  }
-
-  circleName(spellLevel: number): string {
-    return spellLevel === 0 ? 'TRUQUE' : `${spellLevel}º CÍRCULO`;
   }
 
   openDetail(spell: SpellCatalogEntry) {

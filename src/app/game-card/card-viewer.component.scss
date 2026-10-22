@@ -1,0 +1,77 @@
+.cv-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 190;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px;
+  box-sizing: border-box;
+  background-color: rgba(0, 0, 0, 0.88);
+}
+
+.cv-back {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 8px 12px;
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+  color: var(--accent-color);
+  font-family: inherit;
+  font-size: 8px;
+  cursor: var(--cp);
+
+  &:hover {
+    border-color: var(--accent-color);
+  }
+}
+
+// Altura da tela menos o "voltar" em cima e os botões embaixo; no celular quem limita é a largura.
+.cv-card {
+  height: min(calc(100dvh - 150px), calc(94vw * 1064 / 760));
+  aspect-ratio: 760 / 1064;
+  animation: cv-in 0.24s steps(4) both;
+
+  app-game-card {
+    height: 100%;
+  }
+}
+
+.cv-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 94vw;
+
+  &:empty {
+    display: none;
+  }
+}
+
+@keyframes cv-in {
+  from {
+    transform: scale(0.6) rotate(-4deg);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cv-card {
+    animation: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .cv-back {
+    position: static;
+    align-self: flex-start;
+  }
+}

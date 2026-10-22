@@ -76,6 +76,7 @@
             </p>
           }
 
+          <div class="pa-grimoire-bar">
           <div class="pa-grimoire-tabs" role="tablist">
             @for (tab of grimoireTabs(); track tab.key) {
               <button role="tab" [class.active]="grimoireTab() === tab.key" [attr.aria-selected]="grimoireTab() === tab.key"
@@ -84,7 +85,45 @@
               </button>
             }
           </div>
+          <!-- CARTAS (padrão) ou LISTA compacta; não é guardado — volta pra CARTAS ao reabrir -->
+          <div class="pa-grimoire-mode" role="group" aria-label="Ver como">
+            <button [class.active]="grimoireMode() === 'cards'" (click)="grimoireMode.set('cards')">CARTAS</button>
+            <button [class.active]="grimoireMode() === 'list'" (click)="grimoireMode.set('list')">LISTA</button>
+          </div>
+          </div>
 
+          @if (grimoireMode() === 'cards') {
+            <div class="card-grid">
+              @for (spell of grimoireSpells(); track spell.id_spell) {
+                <div class="card-grid-item">
+                  <app-game-card
+                    class="card-clickable"
+                    [card]="spellCards().get(spell.id_spell)!"
+                    [state]="spellCardState(spell)"
+                    role="button"
+                    tabindex="0"
+                    [attr.aria-label]="'Ver a carta de ' + spell.name"
+                    (click)="openSpellDetail(spell)"
+                    (keydown.enter)="openSpellDetail(spell)"
+                  />
+                  @if (isLongCastInCombat(spell)) {
+                    <span class="pa-long-cast"><img class="ui-icon" src="assets/icons/hourglass.png" alt="" /> {{ spell.casting_time }}</span>
+                  }
+                  <div class="pa-spell-card-actions pa-card-actions">
+                    <ng-container *ngTemplateOutlet="spellActions; context: { $implicit: spell }" />
+                  </div>
+                </div>
+              } @empty {
+                <p class="pa-modal-status">
+                  @if (grimoireTab() === 'ready') {
+                    NENHUMA MAGIA PRONTA. PREPARE ALGUMA NAS ABAS DOS CÍRCULOS.
+                  } @else {
+                    NENHUMA MAGIA NESTE CÍRCULO.
+                  }
+                </p>
+              }
+            </div>
+          } @else {
           <div class="pa-grimoire-grid">
             @for (spell of grimoireSpells(); track spell.id_spell) {
               <!-- O card inteiro abre a descrição; os botões dele param o clique (stopPropagation) -->
@@ -105,31 +144,7 @@
                   <span class="pa-long-cast"><img class="ui-icon" src="assets/icons/hourglass.png" alt="" /> {{ spell.casting_time }} — fora do ritmo do combate</span>
                 }
                 <div class="pa-spell-card-actions">
-                  @if (isOnHitSpell(spell) && isCastable(spell)) {
-                    <span class="pa-no-slots">use ao acertar um ataque com arma</span>
-                  } @else if (isCastable(spell)) {
-                    @if (spell.spellLevel === 0) {
-                      <button class="pa-cast-btn" (click)="$event.stopPropagation(); castSpell(spell, 0)">
-                        <span class="pa-cast-btn-label">LANÇAR</span>
-                      </button>
-                    }
-                    @for (lvl of availableSlotLevelsFor(spell); track lvl) {
-                      <button class="pa-cast-btn" [disabled]="expendingSlot()" (click)="$event.stopPropagation(); castSpell(spell, lvl)">
-                        <span class="pa-cast-btn-label">LANÇAR NV{{ lvl }}</span>
-                        <span class="pa-cast-btn-slots">{{ slotsAvailable('level_' + lvl) }} espaço(s)</span>
-                      </button>
-                    }
-                    @if (spell.spellLevel > 0 && availableSlotLevelsFor(spell).length === 0) {
-                      <span class="pa-no-slots">sem espaços disponíveis</span>
-                    }
-                  }
-                  @if (spell.spellLevel > 0 && spellInfo?.prepares_spells) {
-                    <button class="pa-prepare-btn" [class.pa-prepare-btn--on]="spell.is_prepared"
-                      [disabled]="isInActiveCombat() || (!spell.is_prepared && !canPrepareMore())"
-                      (click)="$event.stopPropagation(); togglePrepared(spell)">
-                      {{ spell.is_prepared ? '✓ PREPARADA' : 'PREPARAR' }}
-                    </button>
-                  }
+                  <ng-container *ngTemplateOutlet="spellActions; context: { $implicit: spell }" />
                 </div>
               </article>
             } @empty {
@@ -142,6 +157,7 @@
               </p>
             }
           </div>
+          }
         </div>
       } @else {
 
@@ -491,59 +507,47 @@
   />
 }
 
+<!-- Carta em tela cheia (substituiu o modal de detalhe): fecha e volta pra tela de trás -->
 @if (selectedSpellDetail(); as spell) {
-  <div class="pa-overlay pa-detail-overlay" (click)="closeSpellDetail()">
-    <div class="pa-item-modal" (click)="$event.stopPropagation()">
-      <button class="pa-item-modal-close" (click)="closeSpellDetail()">✕</button>
-      <h3 class="pa-item-modal-title">{{ spell.name }}</h3>
-      <p class="pa-spell-school-line">
-        {{ spell.school }} — {{ spell.spellLevel === 0 ? 'Truque' : circleName(spell.spellLevel) }}
-      </p>
-      <div class="pa-item-modal-info">
-        <div class="pa-item-modal-row">
-          <span class="pa-item-modal-label">TEMPO DE CONJURAÇÃO</span>
-          <span class="pa-item-modal-value">{{ spell.casting_time ?? '—' }}</span>
-        </div>
-        <div class="pa-item-modal-row">
-          <span class="pa-item-modal-label">ALCANCE</span>
-          <span class="pa-item-modal-value">{{
-            spell.range_distance != null ? spell.range_distance + ' m' : '—'
-          }}</span>
-        </div>
-        <div class="pa-item-modal-row">
-          <span class="pa-item-modal-label">DURAÇÃO</span>
-          <span class="pa-item-modal-value">{{ spell.duration ?? '—' }}</span>
-        </div>
-        <div class="pa-item-modal-row">
-          <span class="pa-item-modal-label">COMPONENTES</span>
-          <span class="pa-item-modal-value">{{ spellComponents(spell) }}</span>
-        </div>
-        @if (spell.description) {
-          <div class="pa-spell-description">{{ spell.description }}</div>
-        }
-      </div>
-      @if (isOnHitSpell(spell) && isCastable(spell)) {
-                      <span class="pa-no-slots">use ao acertar um ataque com arma</span>
-                    } @else if (isCastable(spell)) {
-        <div class="pa-cast-options">
-          @if (spell.spellLevel === 0) {
-            <button class="pa-cast-btn" (click)="castSpell(spell, 0)">
-              <span class="pa-cast-btn-label">Lançar truque</span>
-            </button>
-          }
-          @for (lvl of availableSlotLevelsFor(spell); track lvl) {
-            <button class="pa-cast-btn" [disabled]="expendingSlot()" (click)="castSpell(spell, lvl)">
-              <span class="pa-cast-btn-label">Lançar ({{ circleName(lvl) }})</span>
-              <span class="pa-cast-btn-slots"
-                >{{ slotsAvailable('level_' + lvl) }} espaço(s) restante(s)</span
-              >
-            </button>
-          }
-          @if (spell.spellLevel > 0 && availableSlotLevelsFor(spell).length === 0) {
-            <span class="pa-no-slots">sem espaços disponíveis</span>
-          }
-        </div>
-      }
-    </div>
-  </div>
+  <app-card-viewer
+    [card]="spellCards().get(spell.id_spell) ?? spellToCard(spell)"
+    [state]="spellCardState(spell)"
+    [backLabel]="view() === 'grimoire' ? 'VOLTAR AO GRIMÓRIO' : 'VOLTAR ÀS AÇÕES'"
+    (closed)="closeSpellDetail()"
+  >
+    @if (isLongCastInCombat(spell)) {
+      <span class="pa-long-cast"><img class="ui-icon" src="assets/icons/hourglass.png" alt="" /> {{ spell.casting_time }} — fora do ritmo do combate</span>
+    }
+    <ng-container *ngTemplateOutlet="spellActions; context: { $implicit: spell }" />
+  </app-card-viewer>
 }
+
+<!-- Botões da magia (LANÇAR / PREPARAR): no card da lista, embaixo da carta e na carta em tela
+     cheia. Param o clique pra não abrir a carta junto. -->
+<ng-template #spellActions let-spell>
+  @if (isOnHitSpell(spell) && isCastable(spell)) {
+    <span class="pa-no-slots">use ao acertar um ataque com arma</span>
+  } @else if (isCastable(spell)) {
+    @if (spell.spellLevel === 0) {
+      <button class="pa-cast-btn" (click)="$event.stopPropagation(); castSpell(spell, 0)">
+        <span class="pa-cast-btn-label">LANÇAR</span>
+      </button>
+    }
+    @for (lvl of availableSlotLevelsFor(spell); track lvl) {
+      <button class="pa-cast-btn" [disabled]="expendingSlot()" (click)="$event.stopPropagation(); castSpell(spell, lvl)">
+        <span class="pa-cast-btn-label">LANÇAR NV{{ lvl }}</span>
+        <span class="pa-cast-btn-slots">{{ slotsAvailable('level_' + lvl) }} espaço(s)</span>
+      </button>
+    }
+    @if (spell.spellLevel > 0 && availableSlotLevelsFor(spell).length === 0) {
+      <span class="pa-no-slots">sem espaços disponíveis</span>
+    }
+  }
+  @if (spell.spellLevel > 0 && sheet()?.character_sheet?.spellcasting_info?.prepares_spells) {
+    <button class="pa-prepare-btn" [class.pa-prepare-btn--on]="spell.is_prepared"
+      [disabled]="isInActiveCombat() || (!spell.is_prepared && !canPrepareMore())"
+      (click)="$event.stopPropagation(); togglePrepared(spell)">
+      {{ spell.is_prepared ? '✓ PREPARADA' : 'PREPARAR' }}
+    </button>
+  }
+</ng-template>

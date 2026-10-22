@@ -1,0 +1,38 @@
+<div
+  class="gc"
+  [class.gc--full]="size === 'full'"
+  [class.gc--ready]="state === 'ready'"
+  [class.gc--locked]="state === 'locked'"
+>
+  <div class="gc-art" [style.background-color]="card.artBackground">
+    @if (card.art) {
+      <img class="gc-art-img" [src]="card.art" alt="" loading="lazy" />
+    } @else {
+      <img class="gc-art-fallback" [src]="card.fallbackIcon" alt="" />
+    }
+    @for (tag of card.tags; track tag) {
+      <span class="gc-tag">{{ tag }}</span>
+    }
+  </div>
+  <div class="gc-frame" aria-hidden="true"></div>
+
+  <span class="gc-badge">{{ card.badge }}</span>
+  <span class="gc-title"
+    ><span class="gc-title-text">{{ card.title }}</span></span
+  >
+  <span class="gc-ribbon">{{ card.ribbon }}</span>
+
+  <div class="gc-text">
+    <dl class="gc-stats">
+      @for (stat of size === 'full' ? card.stats : card.stats.slice(0, 2); track stat.label) {
+        <div class="gc-stat">
+          <dt>{{ stat.label }}</dt>
+          <dd>{{ stat.value }}</dd>
+        </div>
+      }
+    </dl>
+    @if (size === 'full' && card.text) {
+      <p class="gc-desc">{{ card.text }}</p>
+    }
+  </div>
+</div>

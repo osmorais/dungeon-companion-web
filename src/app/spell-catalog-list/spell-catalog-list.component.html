@@ -17,25 +17,30 @@
 
     @if (loading()) {
       <div aria-busy="true" aria-label="Carregando as magias">
-        <app-skeleton-rows [rows]="6" [height]="70" />
+        <div class="card-grid">
+          @for (i of [1, 2, 3, 4]; track i) {
+            <span class="skeleton card-skeleton"></span>
+          }
+        </div>
       </div>
     } @else if (error()) {
       <p class="m-empty">ERRO AO CARREGAR AS MAGIAS.</p>
     } @else if (spells().length === 0) {
       <p class="m-empty">NENHUMA MAGIA ENCONTRADA.</p>
     } @else {
-      <ul class="m-card-list">
-        @for (spell of spells(); track spell.id_spell) {
-          <li class="m-card" (click)="openDetail(spell)">
-            <span class="m-card-icon"><img class="ui-icon" src="assets/icons/spellbook.png" alt="" /></span>
-            <span class="m-card-body">
-              <span class="m-card-title">{{ spell.name }}</span>
-              <span class="m-card-desc">{{ circleName(spell.spellLevel) }} &mdash; {{ spell.school }}</span>
-            </span>
-            <span class="m-card-arrow">&#9658;</span>
-          </li>
+      <div class="card-grid">
+        @for (item of cards(); track item.spell.id_spell) {
+          <app-game-card
+            class="card-clickable"
+            [card]="item.card"
+            role="button"
+            tabindex="0"
+            [attr.aria-label]="'Ver a carta de ' + item.spell.name"
+            (click)="openDetail(item.spell)"
+            (keydown.enter)="openDetail(item.spell)"
+          />
         }
-      </ul>
+      </div>
 
       <div class="m-pagination">
         <button class="m-page-btn" [disabled]="!hasPrev()" (click)="prevPage()">&#9664;</button>
@@ -71,9 +76,9 @@
     </div>
 
     @if (loading()) {
-      <div class="d-grid" aria-busy="true" aria-label="Carregando">
+      <div class="card-grid" aria-busy="true" aria-label="Carregando">
         @for (i of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track i) {
-          <div class="d-card"><app-skeleton-rows [rows]="3" [height]="12" /></div>
+          <span class="skeleton card-skeleton"></span>
         }
       </div>
     } @else if (error()) {
@@ -81,18 +86,17 @@
     } @else if (spells().length === 0) {
       <p class="m-empty">NENHUMA MAGIA ENCONTRADA.</p>
     } @else {
-      <div class="d-grid">
-        @for (spell of spells(); track spell.id_spell) {
-          <article class="d-card" (click)="openDetail(spell)">
-            <div class="d-card-head">
-              <span class="d-card-icon"><img class="ui-icon" src="assets/icons/spellbook.png" alt="" /></span>
-              <h2 class="d-card-title">{{ spell.name }}</h2>
-            </div>
-            <p class="d-card-desc">{{ circleName(spell.spellLevel) }} &mdash; {{ spell.school }}</p>
-            <p class="d-card-desc">
-              {{ spell.casting_time ?? '—' }}{{ spell.range_distance != null ? ' · ' + spell.range_distance + ' m' : '' }}
-            </p>
-          </article>
+      <div class="card-grid">
+        @for (item of cards(); track item.spell.id_spell) {
+          <app-game-card
+            class="card-clickable"
+            [card]="item.card"
+            role="button"
+            tabindex="0"
+            [attr.aria-label]="'Ver a carta de ' + item.spell.name"
+            (click)="openDetail(item.spell)"
+            (keydown.enter)="openDetail(item.spell)"
+          />
         }
       </div>
 
@@ -106,38 +110,7 @@
   </div>
 }
 
-<!-- ===== MODAL: DETALHES DA MAGIA ===== -->
+<!-- ===== CARTA EM TELA CHEIA (substituiu o modal de detalhe) ===== -->
 @if (selectedSpell(); as spell) {
-  <div class="overlay modal-overlay" (click)="closeDetail()">
-    <div class="retro-panel item-modal" (click)="$event.stopPropagation()">
-      <button class="item-modal-close" (click)="closeDetail()">✕</button>
-      <h3 class="item-modal-title">{{ spell.name }}</h3>
-      <p class="spell-school-line">{{ spell.school }} — {{ circleName(spell.spellLevel) }}</p>
-      <div class="item-modal-info">
-        <div class="item-modal-row">
-          <span class="item-modal-label">TEMPO DE CONJURAÇÃO</span>
-          <span class="item-modal-value">{{ spell.casting_time ?? '—' }}</span>
-        </div>
-        <div class="item-modal-row">
-          <span class="item-modal-label">ALCANCE</span>
-          <span class="item-modal-value">{{ spell.range_distance != null ? spell.range_distance + ' m' : '—' }}</span>
-        </div>
-        <div class="item-modal-row">
-          <span class="item-modal-label">DURAÇÃO</span>
-          <span class="item-modal-value">{{ spell.duration ?? '—' }}</span>
-        </div>
-        <div class="item-modal-row">
-          <span class="item-modal-label">COMPONENTES</span>
-          <span class="item-modal-value spell-components">
-            @if (spell.is_verbal) { <span class="component-tag">V</span> }
-            @if (spell.is_somatic) { <span class="component-tag">S</span> }
-            @if (spell.is_material) { <span class="component-tag">M</span> }
-          </span>
-        </div>
-        @if (spell.description) {
-          <div class="spell-description">{{ spell.description }}</div>
-        }
-      </div>
-    </div>
-  </div>
+  <app-card-viewer [card]="spellToCard(spell)" backLabel="VOLTAR AO GRIMÓRIO" (closed)="closeDetail()" />
 }

@@ -48,6 +48,8 @@
   --card-frame: url('/assets/frames/card-frame.png');
   /* Moldura dos avisos em tela cheia da sessão (rolagem, magia, monstro, nível) */
   --toast-frame: url('/assets/frames/toast-frame.png');
+  /* Moldura das cartas de magia/arma (design/spell-cards/process.py) */
+  --card-face: url('/assets/cards/card-frame-fantasia.webp');
   /* Sprite do dragão (carregamento e wizard): grade 4×4, virado pra direita */
   --dragon-sprite: url('/dragon-sprite.png');
   /* Altura do rodapé global (TEMA/SAIR), que fica no topo da página: o body reserva esse espaço
@@ -84,6 +86,7 @@
   --gold-color: #c9a35c;
   --card-frame: url('/assets/frames/card-frame-sombrio.png');
   --toast-frame: url('/assets/frames/toast-frame-sombrio.png');
+  --card-face: url('/assets/cards/card-frame-sombrio.webp');
   /* No lugar do dragão vermelho, um dracolich (dragão morto-vivo), mesma grade 4×4 */
   --dragon-sprite: url('/dragon-sprite-sombrio.png');
 }
@@ -937,5 +940,48 @@ input[type="checkbox"].retro-checkbox {
   border-image: var(--toast-frame) 72 / 34px round;
   background-clip: padding-box;
   background-origin: padding-box;
+}
+
+/* ===== Grade de cartas (magias; depois armas) — 1.4.0 =====
+   Grimório da sessão, Grimório de Magias e ficha. Carta mini de no mínimo ~190px no desktop e 2
+   por linha no celular, pra nome, círculo e escola continuarem legíveis. Botões da carta (quando
+   tem) ficam embaixo dela, em .card-grid-actions, fora da arte. */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 10px;
+  align-items: start;
+}
+
+@media (min-width: 768px) {
+  .card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 20px 16px;
+  }
+}
+
+.card-grid-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+// A carta inteira abre a tela cheia.
+.card-clickable {
+  cursor: var(--cp);
+  transition: transform 0.12s;
+
+  &:hover,
+  &:focus-visible {
+    transform: translateY(-3px);
+  }
+}
+
+// Esqueleto no formato da carta, enquanto carrega.
+.card-skeleton {
+  display: block;
+  width: 100%;
+  aspect-ratio: 760 / 1064;
 }
 

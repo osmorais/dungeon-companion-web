@@ -714,4 +714,27 @@ describe('PlayerActionsModalComponent — grimório', () => {
     create(true, 3, true); // em combate: travada
     expect(modal.spellCardState(spells()[unprepared])).toBe('locked');
   });
+
+  it('grimório abre em CARTAS e a carta em tela cheia acompanha o PREPARAR', () => {
+    create(true, 3);
+    expect(modal.grimoireMode()).toBe('cards');
+    const escudo = modal.sheet()!.character_sheet.spells![2];
+    modal.openSpellDetail(escudo);
+    expect(modal.selectedSpellDetail()?.is_prepared).toBe(false);
+    // Simula a ficha atualizada depois do PREPARAR (applyPreparedLocally).
+    const sheet = modal.sheet()!;
+    modal.sheet.set({
+      ...sheet,
+      character_sheet: {
+        ...sheet.character_sheet,
+        spells: sheet.character_sheet.spells!.map((s) =>
+          s.id_spell === escudo.id_spell ? { ...s, is_prepared: true } : s,
+        ),
+      },
+    });
+    expect(modal.selectedSpellDetail()?.is_prepared).toBe(true);
+    expect(modal.spellCards().get(escudo.id_spell)?.tags).toEqual(['PREPARADA']);
+    modal.closeSpellDetail();
+    expect(modal.selectedSpellDetail()).toBeNull();
+  });
 });

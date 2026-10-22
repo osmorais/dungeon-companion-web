@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, inject, signal } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, computed, inject, signal } from '@angular/core';
 import { CommonModule, KeyValuePipe } from '@angular/common';
 import { CharacterService, HitDieRollResult } from '../services/character.service';
 import { GameSessionService } from '../services/game-session.service';
@@ -35,6 +35,9 @@ import {
 const PALADIN_CLASS_ID = 11;
 import { attrLabel } from '../models/level-up.interface';
 import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
+import { GameCardComponent } from '../game-card/game-card.component';
+import { CardViewerComponent } from '../game-card/card-viewer.component';
+import { spellCardState, spellToCard } from '../game-card/spell-card';
 
 /** Atributo da perícia (sigla em português do banco) → chave em inglês dos traços. */
 const PT_TO_EN: Record<string, string> = {
@@ -55,7 +58,14 @@ export function isLongCastingTime(castingTime: string | null | undefined): boole
 @Component({
   selector: 'app-player-actions-modal',
   standalone: true,
-  imports: [CommonModule, KeyValuePipe, RollModalComponent, SkeletonRowsComponent],
+  imports: [
+    CommonModule,
+    KeyValuePipe,
+    RollModalComponent,
+    SkeletonRowsComponent,
+    GameCardComponent,
+    CardViewerComponent,
+  ],
   templateUrl: './player-actions-modal.component.html',
   styleUrls: ['../bottom-drawer/bottom-drawer.scss', './player-actions-modal.component.scss'],
 })
@@ -511,8 +521,8 @@ export class PlayerActionsModalComponent implements OnInit {
    * vaga e não está em combate — tocar PREPARAR libera) ou `locked` (sem vaga ou travada em combate).
    */
   spellCardState(spell: Spell): 'ready' | 'preparable' | 'locked' {
-    if (this.isCastable(spell)) return 'ready';
-    return !this.isInActiveCombat() && this.canPrepareMore() ? 'preparable' : 'locked';
+    const prepares = !!this.sheet()?.character_sheet.spellcasting_info?.prepares_spells;
+    return spellCardState(spell, prepares, this.canPrepareMore(), this.isInActiveCombat());
   }
 
   /** Magias da aba escolhida, por círculo e nome. */
@@ -528,15 +538,30 @@ export class PlayerActionsModalComponent implements OnInit {
 
   /** ========================= DETALHE DA MAGIA ========================= */
 
-  selectedSpellDetail = signal<Spell | null>(null);
+  /** Magia aberta em carta de tela cheia — guarda o id e lê a magia atual da ficha, pra o
+   *  PREPARAR feito na própria carta aparecer na hora. */
+  private selectedSpellId = signal<number | null>(null);
+  selectedSpellDetail = computed(() => {
+    const id = this.selectedSpellId();
+    return id === null ? null : (this.sheet()?.character_sheet.spells ?? []).find((s) => s.id_spell === id) ?? null;
+  });
 
   openSpellDetail(spell: Spell): void {
-    this.selectedSpellDetail.set(spell);
+    this.selectedSpellId.set(spell.id_spell);
   }
 
   closeSpellDetail(): void {
-    this.selectedSpellDetail.set(null);
+    this.selectedSpellId.set(null);
   }
+
+  /** Cartas das magias da ficha, por id (recalculadas só quando a ficha muda). */
+  spellCards = computed(
+    () => new Map((this.sheet()?.character_sheet.spells ?? []).map((s) => [s.id_spell, spellToCard(s)])),
+  );
+  readonly spellToCard = spellToCard;
+
+  /** Grimório: CARTAS (padrão) ou LISTA compacta. Não é guardado: reabre em CARTAS. */
+  grimoireMode = signal<'cards' | 'list'>('cards');
 
   spellComponents(spell: Spell): string {
     return [spell.is_verbal ? 'V' : '', spell.is_somatic ? 'S' : '', spell.is_material ? 'M' : '']
@@ -944,7 +969,7 @@ export class PlayerActionsModalComponent implements OnInit {
     }
     const openRoll = () => {
       if (!rollConfig) return;
-      this.selectedSpellDetail.set(null);
+      this.closeSpellDetail();
       this.activeRoll.set(rollConfig);
     };
     if (spell.spellLevel === 0) {
