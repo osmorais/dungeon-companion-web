@@ -907,4 +907,110 @@ describe('SessionPanelComponent', () => {
       expect(nav).toHaveBeenCalledWith(['/session', undefined], { replaceUrl: true });
     });
   });
+
+  describe('aviso do lançamento de magia (1.5.0)', () => {
+    const SPELL = {
+      id_spell: 9,
+      name: 'Raio de Fogo',
+      casting_time: '1 ação',
+      range_distance: 36,
+      duration: 'Instantânea',
+      is_verbal: true,
+      is_somatic: true,
+      is_material: false,
+      spellLevel: 0,
+      school: 'Evocação',
+    };
+    const stage = (castId: string, extra: Record<string, unknown> = {}) => ({
+      cast_id: castId,
+      user_id: 'u-outro',
+      id_character: 7,
+      actor_name: 'Elora',
+      spell: SPELL,
+      phase: 'open' as 'open' | 'done',
+      rolls: [] as {
+        id_roll: string;
+        kind: 'attack' | 'damage' | 'heal';
+        outcome: 'pending' | 'hit' | 'miss' | null;
+        critical: boolean;
+      }[],
+      save_dc: null,
+      save_ability: null,
+      ...extra,
+    });
+    const attack = {
+      ...roll('atk'),
+      roll_type: 'attack' as const,
+      rolls: [15],
+      modifier: 5,
+      total: 20,
+      cast_id: 'c1',
+    };
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+      detail.set(sessionDetail({ recent_rolls: [] }));
+      TestBed.tick();
+    });
+
+    afterEach(() => {
+      component.ngOnDestroy();
+      vi.useRealTimers();
+    });
+
+    it('rolagem do lançamento não vira aviso avulso; o aviso mostra a rolagem achada no histórico', () => {
+      detail.set(sessionDetail({ recent_rolls: [attack] }));
+      TestBed.tick();
+      expect(component.activeRollToast()).toBeNull();
+      expect(component.visibleRecentRolls().map((r) => r.id_roll)).toEqual(['atk']);
+
+      component.onSpellCastStage(
+        stage('c1', {
+          rolls: [{ id_roll: 'atk', kind: 'attack', outcome: 'pending', critical: false }],
+        }),
+      );
+      const view = component.activeCastView()!;
+      expect(view.spellName).toBe('Raio de Fogo');
+      expect(view.card.badge).toBe('T');
+      expect(view.rolls).toEqual([
+        expect.objectContaining({ id: 'atk', total: 20, outcome: 'pending' }),
+      ]);
+      expect(view.done).toBe(false);
+    });
+
+    it('terminou: some depois de 8 s; etapa atrasada desse lançamento não reabre', () => {
+      component.onSpellCastStage(stage('c1', { phase: 'done' }));
+      expect(component.activeCastId()).toBe('c1');
+      vi.advanceTimersByTime(8000);
+      expect(component.activeCastId()).toBeNull();
+      component.onSpellCastStage(stage('c1'));
+      expect(component.activeCastId()).toBeNull();
+    });
+
+    it('etapa "em andamento" que chega depois do "terminou" não volta atrás', () => {
+      component.onSpellCastStage(stage('c1', { phase: 'done' }));
+      component.onSpellCastStage(stage('c1', { phase: 'open' }));
+      expect(component.activeCastView()?.done).toBe(true);
+    });
+
+    it('vários lançamentos entram em fila', () => {
+      component.onSpellCastStage(stage('c1'));
+      component.onSpellCastStage(stage('c2', { actor_name: 'Bram' }));
+      expect(component.activeCastId()).toBe('c1');
+      component.closeCastNotice();
+      expect(component.activeCastView()?.actorName).toBe('Bram');
+    });
+
+    it('quem lançou com rolagem não vê o aviso da mesa (acompanha no modal)', () => {
+      component.markOwnCast('c1');
+      component.onSpellCastStage(stage('c1', { user_id: 'dm' }));
+      expect(component.activeCastId()).toBeNull();
+    });
+
+    it('sem notícia de quem lança, o aviso some sozinho depois do tempo máximo', () => {
+      component.onSpellCastStage(stage('c1'));
+      vi.advanceTimersByTime(component.CAST_NOTICE_SAFETY_MS);
+      expect(component.activeCastId()).toBeNull();
+    });
+  });
 });

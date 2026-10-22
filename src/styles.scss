@@ -50,6 +50,8 @@
   --toast-frame: url('/assets/frames/toast-frame.png');
   /* Moldura das cartas de magia/arma (design/spell-cards/process.py) */
   --card-face: url('/assets/cards/card-frame-fantasia.webp');
+  /* Verso das cartas (animação da carta jogada e virando no aviso de lançamento) */
+  --card-back: url('/assets/cards/card-back-fantasia.webp');
   /* Sprite do dragão (carregamento e wizard): grade 4×4, virado pra direita */
   --dragon-sprite: url('/dragon-sprite.png');
   /* Altura do rodapé global (TEMA/SAIR), que fica no topo da página: o body reserva esse espaço
@@ -87,6 +89,7 @@
   --card-frame: url('/assets/frames/card-frame-sombrio.png');
   --toast-frame: url('/assets/frames/toast-frame-sombrio.png');
   --card-face: url('/assets/cards/card-frame-sombrio.webp');
+  --card-back: url('/assets/cards/card-back-sombrio.webp');
   /* No lugar do dragão vermelho, um dracolich (dragão morto-vivo), mesma grade 4×4 */
   --dragon-sprite: url('/dragon-sprite-sombrio.png');
 }

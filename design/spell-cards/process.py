@@ -8,6 +8,8 @@ Os PNGs originais (~25 MB) ficam no repositório de docs, não aqui:
 - frame-<tema>.png -> card-frame-<tema>.webp: SEM cortar a margem transparente — as áreas da
   carta (medalhão, nome, arte, faixa, pergaminho) são posições em % da imagem inteira, iguais nos
   dois temas (ver src/app/game-card/game-card.component.scss).
+- back-<tema>.png -> card-back-<tema>.webp: verso da carta (animação da carta jogada e virando),
+  mesmo tamanho da moldura e também sem cortar a margem, pra encaixar no giro.
 - school-<escola>.png -> spell-school-<escola>.webp: ilustração da janela de arte (4:3).
 """
 import glob
@@ -25,15 +27,15 @@ ART_SIZE = (800, 600)
 
 os.makedirs(OUT, exist_ok=True)
 
-for path in sorted(glob.glob(os.path.join(SRC, 'frame-*.png'))):
-    theme = os.path.basename(path)[len('frame-'):-len('.png')]
+for path in sorted(glob.glob(os.path.join(SRC, 'frame-*.png')) + glob.glob(os.path.join(SRC, 'back-*.png'))):
+    kind, theme = os.path.basename(path)[: -len('.png')].split('-', 1)
     im = Image.open(path).convert('RGBA')
     r, g, b, a = im.split()
     a = a.point(lambda v: 0 if v < 60 else 255 if v > 200 else v)
     im = Image.merge('RGBA', (r, g, b, a))
     height = round(im.height * FRAME_WIDTH / im.width)
     im = im.resize((FRAME_WIDTH, height), Image.LANCZOS)
-    out = os.path.join(OUT, f'card-frame-{theme}.webp')
+    out = os.path.join(OUT, f'card-{kind}-{theme}.webp')
     im.save(out, 'WEBP', quality=90, method=6)
     print(f'{out}: {im.size}, {os.path.getsize(out) // 1024} KB')
 

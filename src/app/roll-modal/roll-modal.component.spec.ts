@@ -1240,3 +1240,136 @@ describe('RollModalComponent — fase 4 dos traços (d20 e defesas)', () => {
     });
   });
 });
+
+/** Lançamento de magia (1.5.0): o modal manda as etapas pra mesa (ataque → acertou → dano → fim). */
+describe('RollModalComponent — lançamento de magia', () => {
+  let postRoll: ReturnType<typeof vi.fn>;
+  let publish: ReturnType<typeof vi.fn>;
+
+  const fireBolt: AbilityRollConfig = {
+    mode: 'ability',
+    rollType: 'attack',
+    label: 'Magia: Raio de Fogo',
+    modifier: 5,
+    damage: { diceCount: 2, diceSides: 10, modifier: 0, label: 'Dano: Raio de Fogo (fogo)' },
+  };
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    let n = 0;
+    postRoll = vi.fn(
+      (
+        _gs: string,
+        p: { rolls: number[]; dice_notation: string; modifier: number; total: number },
+      ) =>
+        of({
+          id_roll: `r${++n}`,
+          rolls: p.rolls,
+          dice_notation: p.dice_notation,
+          modifier: p.modifier,
+          total: p.total,
+        }),
+    );
+    publish = vi.fn(() => of(undefined));
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: GameSessionService, useValue: { postRoll, publishSpellCastStage: publish } },
+        { provide: DamageImpactService, useValue: { trigger: vi.fn() } },
+      ],
+    });
+  });
+
+  afterEach(() => vi.useRealTimers());
+
+  const flush = async () => {
+    for (let i = 0; i < 20; i++) await Promise.resolve();
+  };
+
+  function create() {
+    const modal = TestBed.runInInjectionContext(() => new RollModalComponent());
+    modal.config = fireBolt;
+    modal.sessionId = 'gs';
+    modal.idCharacter = 7;
+    modal.actorName = 'Elora';
+    modal.cast = {
+      castId: 'cast-1234',
+      idSpell: 9,
+      spellName: 'Raio de Fogo',
+      actor: { name: 'Elora', imageUrl: null, avatarPreset: null, character: null },
+      card: {
+        title: 'Raio de Fogo',
+        badge: 'T',
+        art: null,
+        fallbackIcon: '',
+        artBackground: null,
+        ribbon: '',
+        stats: [],
+        text: null,
+        tags: [],
+      },
+      saveDc: null,
+      saveAbility: null,
+      saveNote: null,
+    };
+    modal.ngOnInit();
+    return modal;
+  }
+
+  const lastStage = () => publish.mock.calls[publish.mock.calls.length - 1][1];
+
+  it('ataque pendente → acertou → dano no mesmo lançamento → terminou ao fechar', async () => {
+    const modal = create();
+    modal.roll();
+    vi.advanceTimersByTime(1000);
+    await flush();
+    expect(postRoll.mock.calls[0][1].cast_id).toBe('cast-1234');
+    expect(lastStage()).toMatchObject({
+      cast_id: 'cast-1234',
+      id_spell: 9,
+      phase: 'open',
+      rolls: [{ id_roll: 'r1', kind: 'attack', outcome: 'pending' }],
+    });
+    expect(modal.castView()?.rolls.map((r) => r.id)).toEqual(['r1']);
+
+    modal.rollDamageNow();
+    vi.advanceTimersByTime(1000);
+    await flush();
+    expect(lastStage().rolls).toEqual([
+      expect.objectContaining({ id_roll: 'r1', outcome: 'hit' }),
+      expect.objectContaining({ id_roll: 'r2', kind: 'damage', outcome: null }),
+    ]);
+
+    modal.ngOnDestroy();
+    await flush();
+    expect(lastStage().phase).toBe('done');
+    modal.ngOnDestroy();
+    await flush();
+    expect(publish.mock.calls.filter((c) => c[1].phase === 'done')).toHaveLength(1);
+  });
+
+  it('errou: a mesa recebe ERROU e o fim, sem dano', async () => {
+    const modal = create();
+    modal.roll();
+    vi.advanceTimersByTime(1000);
+    await flush();
+    modal.confirmMiss();
+    modal.ngOnDestroy();
+    await flush();
+    expect(lastStage()).toMatchObject({
+      phase: 'done',
+      rolls: [{ id_roll: 'r1', kind: 'attack', outcome: 'miss' }],
+    });
+  });
+
+  it('rolagem comum (sem lançamento) não manda etapa nem cast_id', async () => {
+    const modal = create();
+    modal.cast = null;
+    modal.roll();
+    vi.advanceTimersByTime(1000);
+    await flush();
+    modal.ngOnDestroy();
+    await flush();
+    expect(postRoll.mock.calls[0][1].cast_id).toBeUndefined();
+    expect(publish).not.toHaveBeenCalled();
+  });
+});

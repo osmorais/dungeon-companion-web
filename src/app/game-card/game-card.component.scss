@@ -139,6 +139,9 @@
   flex-direction: column;
   gap: 2cqw;
   color: #2b1608;
+  transition:
+    top 0.25s steps(5),
+    height 0.25s steps(5);
 }
 
 .gc-stats {
@@ -191,14 +194,50 @@
     border-bottom: max(1px, 0.3cqw) solid rgba(122, 59, 20, 0.45);
   }
 
+  // Rótulo em cima e valor embaixo, quebrando linha: valores longos ("Concentração, até 1
+  // minuto") não são cortados.
   .gc-stat {
+    flex-direction: column;
+    gap: 0.6cqw;
+
     dt {
       font-size: max(6px, 1.8cqw);
     }
 
     dd {
       font-size: max(7px, 2.1cqw);
+      line-height: 1.4;
+      text-align: left;
+      white-space: normal;
+      overflow-wrap: anywhere;
     }
+  }
+}
+
+// Descrição expandida: o pergaminho cobre a arte e a faixa, e a descrição ganha o espaço todo.
+.gc--expanded .gc-text {
+  top: 15.4%;
+  height: 74%;
+  padding: 3cqw 3cqw 0;
+  border: max(1px, 0.4cqw) solid #7a3b14;
+  background-color: #e6d6b1;
+  box-shadow: 0 0 0 max(2px, 0.6cqw) rgba(0, 0, 0, 0.35);
+  z-index: 1;
+}
+
+.gc-expand {
+  align-self: flex-end;
+  flex-shrink: 0;
+  padding: 0.8cqw 1.6cqw;
+  border: max(1px, 0.3cqw) solid #7a3b14;
+  background: rgba(255, 255, 255, 0.35);
+  color: #7a3b14;
+  font-family: inherit;
+  font-size: max(7px, 1.9cqw);
+  cursor: var(--cp);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.6);
   }
 }
 

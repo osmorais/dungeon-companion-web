@@ -73,7 +73,13 @@ describe('PlayerActionsModalComponent — habilidades', () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: CharacterService, useValue: charService },
-        { provide: GameSessionService, useValue: { announceSpellCast: announce } },
+        {
+          provide: GameSessionService,
+          useValue: {
+            announceSpellCast: announce,
+            publishSpellCastStage: vi.fn(() => of(undefined)),
+          },
+        },
       ],
     });
     modal = TestBed.runInInjectionContext(() => new PlayerActionsModalComponent());
@@ -736,5 +742,98 @@ describe('PlayerActionsModalComponent — grimório', () => {
     expect(modal.spellCards().get(escudo.id_spell)?.tags).toEqual(['PREPARADA']);
     modal.closeSpellDetail();
     expect(modal.selectedSpellDetail()).toBeNull();
+  });
+});
+
+describe('PlayerActionsModalComponent — lançamento de magia (1.5.0)', () => {
+  let publish: ReturnType<typeof vi.fn>;
+  let modal: PlayerActionsModalComponent;
+
+  const light = {
+    id_spell: 3,
+    name: 'Luz',
+    description: '',
+    casting_time: '1 ação',
+    range_distance: null,
+    duration: '1 hora',
+    is_verbal: true,
+    is_somatic: false,
+    is_material: true,
+    spellLevel: 0,
+    school: 'Evocação',
+  } as unknown as Spell;
+
+  beforeEach(() => {
+    publish = vi.fn(() => of(undefined));
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: CharacterService,
+          useValue: {
+            getCharacterById: vi.fn(() =>
+              of({ character_sheet: { header: { name: 'Elora' }, spells: [light], skills: [] } }),
+            ),
+          },
+        },
+        {
+          provide: GameSessionService,
+          useValue: { publishSpellCastStage: publish, announceSpellCast: vi.fn() },
+        },
+      ],
+    });
+    modal = TestBed.runInInjectionContext(() => new PlayerActionsModalComponent());
+    modal.idCharacter = 7;
+    modal.sessionId = 'gs';
+    modal.ngOnInit();
+  });
+
+  it('magia sem dados: a mesa recebe o lançamento já terminado, sem rolagens', () => {
+    const closed = vi.fn();
+    modal.closed.subscribe(closed);
+    modal.castSpell(light, 0);
+    expect(publish).toHaveBeenCalledTimes(1);
+    expect(publish.mock.calls[0][1]).toMatchObject({
+      id_character: 7,
+      actor_name: 'Elora',
+      id_spell: 3,
+      phase: 'done',
+      rolls: [],
+    });
+    expect(closed).toHaveBeenCalled();
+  });
+
+  it('magia com rolagem: abre o modal com o palco e avisa que o lançamento é de quem lançou', () => {
+    const bolt = {
+      ...light,
+      id_spell: 9,
+      name: 'Raio de Fogo',
+      roll: {
+        kind: 'attack',
+        attack_type: 'ranged',
+        attack_bonus: 5,
+        damage_type: 'Fogo',
+        save_ability: null,
+        save_dc: null,
+        save_on_success: null,
+        heal: null,
+        maximize: false,
+        rider_trigger: null,
+        rider_attack: null,
+        instance_label: null,
+        variant: null,
+        by_slot: {
+          '0': { instances: 1, dice_count: 1, dice_sides: 10, modifier: 0, extra_dice: [] },
+        },
+      },
+    } as unknown as Spell;
+    const own = vi.fn();
+    modal.ownCast.subscribe(own);
+    modal.castSpell(bolt, 0);
+    expect(modal.activeRoll()).not.toBeNull();
+    const cast = modal.activeRollCast()!;
+    expect(cast.idSpell).toBe(9);
+    expect(own).toHaveBeenCalledWith(cast.castId);
+    expect(publish).not.toHaveBeenCalled();
   });
 });

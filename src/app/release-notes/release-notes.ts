@@ -33,6 +33,37 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.5.0',
+    date: '2026-10-22',
+    title: 'Lançamento de magia com as cartas',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'Ao lançar uma magia, a mesa vê um aviso só, com o card do personagem e a carta da magia sendo jogada e virada, como numa mesa de verdade.',
+      },
+      {
+        kind: 'novidade',
+        text: 'As rolagens entram no mesmo aviso: primeiro o ataque, que espera quem lança decidir se acertou, e depois o dano. Magias de resistência mostram a CD, e magias sem dados aparecem direto.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Quem lança vê o mesmo que a mesa e, logo abaixo, as próprias decisões: rolar o dano, escolher se acertou e aplicar no alvo.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'O aviso some alguns segundos depois que quem lança termina, e também pode ser fechado.',
+      },
+      {
+        kind: 'correcao',
+        text: 'Na carta em tela cheia, a duração e os outros dados longos da magia não aparecem mais cortados.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Na carta em tela cheia, o botão LER TUDO expande a descrição da magia por cima da ilustração, e RECOLHER volta ao normal.',
+      },
+    ],
+  },
+  {
     version: '1.4.0',
     date: '2026-10-21',
     title: 'Magias em cartas',

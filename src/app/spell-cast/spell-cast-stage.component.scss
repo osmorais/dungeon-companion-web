@@ -42,26 +42,10 @@
   backface-visibility: hidden;
 }
 
-// Verso: painel do tema com moldura dourada e o emblema do grimório.
+// Verso: imagem do tema (--card-back, design/spell-cards/process.py), mesma tela da frente.
 .cs-face--back {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  margin: 3% 3%;
-  border: 3px solid var(--gold-color);
-  outline: 3px solid var(--border-color);
-  outline-offset: -9px;
-  background:
-    repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.18) 0 6px, transparent 6px 12px),
-    var(--panel-bg);
+  background: var(--card-back) center / 100% 100% no-repeat;
   transform: rotateY(180deg);
-}
-
-.cs-back-emblem {
-  width: 45%;
-  image-rendering: pixelated;
-  filter: drop-shadow(0 0 6px var(--accent-color));
 }
 
 // Jogada: vem do alto girando, cai na mesa de costas, vira e assenta com um balanço.

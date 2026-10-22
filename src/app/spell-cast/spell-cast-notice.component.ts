@@ -18,11 +18,18 @@ export const SPELL_CAST_DONE_MS = 8000;
   template: `
     <div class="csn-overlay" (click)="closed.emit()">
       <app-modal-burst variant="roll" />
-      <div class="csn-panel framed-toast" role="status" aria-live="polite" (click)="$event.stopPropagation()">
+      <div
+        class="csn-panel framed-toast"
+        role="status"
+        aria-live="polite"
+        (click)="$event.stopPropagation()"
+      >
         <button class="csn-close" title="Fechar" (click)="closed.emit()">✕</button>
         <app-spell-cast-stage [view]="view" />
         @if (view.done) {
-          <div class="csn-timer"><div class="csn-timer-fill" [style.animation-duration.ms]="doneMs"></div></div>
+          <div class="csn-timer">
+            <div class="csn-timer-fill" [style.animation-duration.ms]="doneMs"></div>
+          </div>
         }
       </div>
     </div>

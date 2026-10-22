@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, signal } from '@angular/core';
 import { GameCardData, GameCardState } from './game-card.model';
 
 /**
@@ -16,4 +16,12 @@ export class GameCardComponent {
   @Input({ required: true }) card!: GameCardData;
   @Input() size: 'mini' | 'full' = 'mini';
   @Input() state: GameCardState = null;
+
+  /** Tela cheia: descrição expandida (o pergaminho cobre a arte pra caber o texto todo). */
+  expanded = signal(false);
+
+  toggleExpanded(event: Event): void {
+    event.stopPropagation();
+    this.expanded.update((v) => !v);
+  }
 }

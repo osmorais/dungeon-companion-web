@@ -1,6 +1,7 @@
 <div
   class="gc"
   [class.gc--full]="size === 'full'"
+  [class.gc--expanded]="size === 'full' && expanded()"
   [class.gc--ready]="state === 'ready'"
   [class.gc--locked]="state === 'locked'"
 >
@@ -33,6 +34,14 @@
     </dl>
     @if (size === 'full' && card.text) {
       <p class="gc-desc">{{ card.text }}</p>
+      <button
+        type="button"
+        class="gc-expand"
+        [attr.aria-expanded]="expanded()"
+        (click)="toggleExpanded($event)"
+      >
+        {{ expanded() ? '▼ RECOLHER' : '▲ LER TUDO' }}
+      </button>
     }
   </div>
 </div>
