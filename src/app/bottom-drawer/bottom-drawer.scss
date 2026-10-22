@@ -2,8 +2,8 @@
 // inventário (1.3.16 no celular; 1.3.17 também no desktop e nos modais). Incluído no `styleUrls`
 // de cada componente que usa — não no styles.scss, porque a regra do componente ganharia da global.
 //
-// Recolhida: barra larga presa na base da tela, com um puxador em cima (a alça com duas linhas)
-// pra dizer que ela abre. Aberta: a mesma barra fica no topo da gaveta (`--attached`) e recolhe.
+// Recolhida: barra larga presa na base da tela (seta animada + "TOQUE PARA ABRIR" dizem que ela
+// abre; a alça de puxar em cima saiu na 1.3.19). Aberta: a mesma barra fica no topo da gaveta (`--attached`) e recolhe.
 // No desktop a barra e a gaveta têm a largura dos quadros da sessão (o .container, 1440px/96vw).
 // O rodapé global fica no topo da página (1.3.18), então a base da tela é toda das gavetas.
 //
@@ -36,24 +36,6 @@ $drawer-desktop-width: min(1440px, 96vw);
   letter-spacing: 1px;
   cursor: var(--cp);
 
-  // Puxador: alça presa no meio da borda de cima, com duas linhas de pegada.
-  &::before {
-    content: '';
-    position: absolute;
-    top: -14px;
-    left: 50%;
-    width: 72px;
-    height: 14px;
-    margin-left: -36px;
-    box-sizing: border-box;
-    border: 2px solid var(--accent-color);
-    border-bottom: none;
-    background:
-      linear-gradient(var(--accent-color), var(--accent-color)) center 3px / 32px 2px no-repeat,
-      linear-gradient(var(--accent-color), var(--accent-color)) center 7px / 32px 2px no-repeat,
-      var(--panel-bg);
-  }
-
   &:hover {
     background-color: var(--btn-color-hover);
   }
@@ -70,10 +52,6 @@ $drawer-desktop-width: min(1440px, 96vw);
     border: none;
     border-bottom: 2px solid var(--border-color);
     box-shadow: none;
-
-    &::before {
-      display: none;
-    }
   }
 }
 

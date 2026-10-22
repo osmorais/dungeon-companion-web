@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.3.19',
+    date: '2026-10-21',
+    title: 'Barra das gavetas sem a alça',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'A barra das gavetas da sessão (Quadro do Mestre e Ações de personagem) perdeu a alça de puxar que ficava em cima dela, no celular e no computador.',
+      },
+    ],
+  },
+  {
     version: '1.3.18',
     date: '2026-10-21',
     title: 'Ações reorganizadas, grimório próprio e tema/sair no topo',

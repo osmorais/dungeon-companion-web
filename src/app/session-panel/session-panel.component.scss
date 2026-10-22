@@ -19,9 +19,9 @@
   display: flex;
   flex-direction: column;
 
-  // Com gaveta (mestre ou jogador): a barra de baixo + o puxador (~72px) ficam no padding.
+  // Com gaveta (mestre ou jogador): a barra de baixo (~58px) fica no padding.
   &--drawer {
-    padding-bottom: 84px;
+    padding-bottom: 70px;
   }
 }
 
@@ -928,7 +928,7 @@
   width: 100vw;
   max-width: 100vw;
   min-height: 100vh;
-  padding: 0 12px 88px; // embaixo: a barra da gaveta (58px + puxador)
+  padding: 0 12px 74px; // embaixo: a barra da gaveta (58px)
   box-sizing: border-box;
   overflow-x: hidden;
 }
