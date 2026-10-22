@@ -33,6 +33,12 @@ import { RACE_FREE_CANTRIP, SUBRACE_FREE_CANTRIP, RacialCantripGrant } from '../
 import { PixelDieComponent } from '../pixel-die/pixel-die.component';
 import { PixelNumericDieComponent } from '../pixel-numeric-die/pixel-numeric-die.component';
 import { TomAssistantComponent } from '../tom-assistant/tom-assistant.component';
+import { WizardProgressComponent, WizardStep } from '../wizard-progress/wizard-progress.component';
+import { GameCardComponent } from '../game-card/game-card.component';
+import { CardViewerComponent } from '../game-card/card-viewer.component';
+import { GameCardData, GameCardState } from '../game-card/game-card.model';
+import { spellToCard } from '../game-card/spell-card';
+import { weaponToCard } from '../game-card/weapon-card';
 
 type AttributeKey = 'FOR' | 'DES' | 'CON' | 'INT' | 'SAB' | 'CAR';
 
@@ -46,7 +52,7 @@ interface DiceBreakdown {
 @Component({
   selector: 'app-character-wizard',
   standalone: true,
-  imports: [CommonModule, FormsModule, DragonAnimationComponent, LoadingOverlayComponent, AvatarPickerModalComponent, AvatarCustomizerComponent, PixelDieComponent, PixelNumericDieComponent, TomAssistantComponent],
+  imports: [CommonModule, FormsModule, DragonAnimationComponent, LoadingOverlayComponent, AvatarPickerModalComponent, AvatarCustomizerComponent, PixelDieComponent, PixelNumericDieComponent, TomAssistantComponent, WizardProgressComponent, GameCardComponent, CardViewerComponent],
   templateUrl: './character-wizard.component.html',
   styleUrls: ['./character-wizard.component.scss']
 })
@@ -383,6 +389,43 @@ export class CharacterWizardComponent implements OnInit {
 
   goHome() {
     this.router.navigate(['/']);
+  }
+
+  /** Sair da criação pelo ← do topo: pergunta antes, porque o que foi preenchido se perde. */
+  exitWizard(): void {
+    if (confirm('Sair da criação? O que você preencheu até aqui será perdido.')) this.goHome();
+  }
+
+  /** ========================= BARRA DE PROGRESSO ========================= */
+
+  /** Etapas na ordem do `currentStep` (1–8); magias riscada pra classe sem magia. */
+  get progressSteps(): WizardStep[] {
+    return [
+      { label: 'PERSONAGEM' },
+      { label: 'ATRIBUTOS' },
+      { label: 'MAGIAS', skipped: !this.hasMagic() },
+      { label: 'PERÍCIAS' },
+      { label: 'EQUIPAMENTO' },
+      { label: 'ARMAS' },
+      { label: 'DINHEIRO' },
+      { label: 'AVATAR' },
+    ];
+  }
+
+  /** Nas magias: o círculo da vez (ex.: "1º CÍRCULO · 2/3"). */
+  get progressDetail(): string | null {
+    if (this.currentStep !== 3) return null;
+    const total = this.accessibleCircles.length;
+    return total > 1
+      ? `${this.circleName(this.currentSpellCircle)} · ${this.spellCircleStep + 1}/${total}`
+      : this.circleName(this.currentSpellCircle);
+  }
+
+  /** Dentro das magias, a barra anda um pouco a cada círculo. */
+  get progressPartial(): number {
+    if (this.currentStep !== 3) return 0;
+    const total = this.accessibleCircles.length;
+    return total > 0 ? this.spellCircleStep / total : 0;
   }
 
   prevStep() {
@@ -932,6 +975,61 @@ export class CharacterWizardComponent implements OnInit {
 
   circleName(circle: number): string {
     return circle === 0 ? 'TRUQUES' : `${circle}º CÍRCULO`;
+  }
+
+  /** ========================= CARTAS (magias e armas) ========================= */
+
+  private spellCardCache = new Map<number, GameCardData>();
+  private weaponCardCache = new Map<string, GameCardData>();
+
+  spellCardFor(spell: Spell): GameCardData {
+    let card = this.spellCardCache.get(spell.id_spell);
+    if (!card) {
+      card = { ...spellToCard(spell), tags: [] };
+      this.spellCardCache.set(spell.id_spell, card);
+    }
+    return card;
+  }
+
+  /** Escolhida: brilho; sem vaga (limite do círculo cheio) ou fora da lista da classe: apagada. */
+  spellCardStateFor(spell: Spell): GameCardState {
+    if (this.isSpellSelected(spell)) return 'ready';
+    return this.isSpellCheckboxDisabled(spell) ? 'locked' : null;
+  }
+
+  /** ESCOLHER / ✓ ESCOLHIDA na carta da magia (mesmas regras do checkbox de antes). */
+  toggleSpellSelection(spell: Spell): void {
+    if (this.isSpellSelected(spell)) {
+      const idx = this.characterData.choices.spells.findIndex((s) => s.id_spell === spell.id_spell);
+      if (idx > -1) this.characterData.choices.spells.splice(idx, 1);
+      return;
+    }
+    if (this.isSpellCheckboxDisabled(spell)) return;
+    this.characterData.choices.spells.push(spell);
+  }
+
+  /** Carta da arma na criação: sem bônus de ataque ainda (medalhão vazio); KIT quando vem no kit. */
+  weaponCardFor(weapon: WeaponRow): GameCardData {
+    const kit = this.isKitWeapon(weapon);
+    const key = `${weapon.id_weapon}:${kit}`;
+    let card = this.weaponCardCache.get(key);
+    if (!card) {
+      card = { ...weaponToCard(weapon), badge: '', tags: kit ? ['KIT'] : [] };
+      this.weaponCardCache.set(key, card);
+    }
+    return card;
+  }
+
+  weaponCardStateFor(weapon: WeaponRow): GameCardState {
+    return this.isWeaponSelected(weapon) ? 'ready' : null;
+  }
+
+  /** ESCOLHER / ✓ ESCOLHIDA na carta da arma; as do kit vêm escolhidas e não saem. */
+  toggleWeaponSelection(weapon: WeaponRow): void {
+    if (this.isKitWeapon(weapon)) return;
+    const idx = this.characterData.equipment.weapons.findIndex((w) => w.id_weapon === weapon.id_weapon);
+    if (idx > -1) this.characterData.equipment.weapons.splice(idx, 1);
+    else this.characterData.equipment.weapons.push(weapon);
   }
 
   /** ========================= WEAPON PAGINATION ========================= */

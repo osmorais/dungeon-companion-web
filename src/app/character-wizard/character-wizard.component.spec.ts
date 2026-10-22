@@ -245,3 +245,93 @@ describe('CharacterWizardComponent — armas do equipamento inicial', () => {
     expect(wizard.characterData.equipment.weapons).toEqual([]);
   });
 });
+
+/** Cartas de armas e barra de progresso (1.6.7). */
+describe('CharacterWizardComponent — cartas e progresso', () => {
+  function create(extra: Partial<CharacterOptions> = {}) {
+    const kitOptions = {
+      ...options,
+      classes: [{ id_class: 1, name: 'Bárbaro', starting_weapons: ['Machado Grande'] }],
+      ...extra,
+    } as unknown as CharacterOptions;
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([]),
+        { provide: CharacterService, useValue: { cachedOptions: () => kitOptions } },
+        {
+          provide: LoadingOverlayService,
+          useValue: { show: vi.fn(), hide: vi.fn(), visible: () => false },
+        },
+      ],
+    });
+    const wizard = TestBed.createComponent(CharacterWizardComponent).componentInstance;
+    wizard.ngOnInit();
+    wizard.characterData.core_build.id_class = 1;
+    return wizard;
+  }
+
+  const weapon = (id: number, name: string) =>
+    ({
+      id_weapon: id,
+      name,
+      attack_bonus: 0,
+      damage_modifier: 0,
+      damage_die: '1d8',
+      damage_type: 'cortante',
+      properties: null,
+      weight: 2,
+      price_value: 10,
+      isRanged: false,
+    }) as never;
+
+  it('ESCOLHER na carta da arma escolhe e tira; a do kit não sai', () => {
+    const wizard = create();
+    const sword = weapon(20, 'Espada Longa');
+    const axe = weapon(25, 'Machado Grande');
+    wizard.toggleWeaponSelection(sword);
+    expect(wizard.isWeaponSelected(sword)).toBe(true);
+    wizard.toggleWeaponSelection(sword);
+    expect(wizard.isWeaponSelected(sword)).toBe(false);
+    wizard.toggleWeaponSelection(axe);
+    expect(wizard.characterData.equipment.weapons).toEqual([]);
+    expect(wizard.isWeaponSelected(axe)).toBe(true);
+  });
+
+  it('carta da arma na criação: medalhão vazio (sem bônus ainda) e selo KIT na do kit', () => {
+    const wizard = create();
+    expect(wizard.weaponCardFor(weapon(25, 'Machado Grande'))).toMatchObject({
+      badge: '',
+      tags: ['KIT'],
+    });
+    expect(wizard.weaponCardFor(weapon(20, 'Espada Longa'))).toMatchObject({ badge: '', tags: [] });
+  });
+
+  it('barra de progresso: magias riscadas pra classe sem magia', () => {
+    const wizard = create();
+    const steps = wizard.progressSteps;
+    expect(steps.map((s) => s.label)).toEqual([
+      'PERSONAGEM',
+      'ATRIBUTOS',
+      'MAGIAS',
+      'PERÍCIAS',
+      'EQUIPAMENTO',
+      'ARMAS',
+      'DINHEIRO',
+      'AVATAR',
+    ]);
+    expect(steps[2].skipped).toBe(!wizard.hasMagic());
+    expect(wizard.progressDetail).toBeNull();
+  });
+
+  it('sair pergunta antes; cancelar fica no wizard', () => {
+    const wizard = create();
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    const home = vi.spyOn(wizard, 'goHome').mockImplementation(() => undefined);
+    wizard.exitWizard();
+    expect(home).not.toHaveBeenCalled();
+    confirmSpy.mockReturnValue(true);
+    wizard.exitWizard();
+    expect(home).toHaveBeenCalled();
+    confirmSpy.mockRestore();
+  });
+});

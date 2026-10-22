@@ -12,8 +12,8 @@
 }
 
 .wizard-container {
-  width: 600px;
-  max-width: 90vw;
+  width: 900px;
+  max-width: 94vw;
   /* Reserva espaço embaixo pro Tom (fixo, sobreposto na parte de baixo da tela) não cobrir os
      botões de ação quando a página rola até o final. */
   padding-bottom: 220px;
@@ -185,9 +185,6 @@
   &:first-child { margin-top: 0; }
 }
 
-.spell-circle-list {
-  margin-bottom: 4px;
-}
 
 .pagination {
   display: flex;
@@ -510,136 +507,17 @@
   p { margin: 0; font-size: 10px; }
 }
 
-.details-link {
-  cursor: var(--cp);
+
+.item-modal-title {
+  font-size: 11px;
   color: var(--accent-color);
-  text-decoration: underline;
-
-  &:hover { opacity: 0.75; }
-}
-
-.item-modal {
-  /* "fieldset.retro-panel" (styles.scss) só vale pra <fieldset> — como este painel é uma
-     <div>, precisa repetir fundo/borda aqui. */
-  border: 2px solid var(--border-color);
-  background-color: var(--panel-bg);
-
-  position: relative;
-  width: 480px;
-  max-width: 92vw;
-  padding: 24px;
-  max-height: 85vh;
-  overflow-y: auto;
-  overflow-x: hidden;
-
-  &-close {
-    position: absolute;
-    top: 8px;
-    right: 10px;
-    background: transparent;
-    border: none;
-    color: var(--text-color);
-    font-size: 12px;
-    cursor: var(--cp);
-    font-family: inherit;
-
-    &:hover { color: var(--accent-color); }
-  }
-
-  &-title {
-    font-size: 11px;
-    color: var(--accent-color);
-    margin: 0 0 15px;
-    text-align: center;
-  }
-
-  &-image {
-    width: 100%;
-    height: 120px;
-    border: 1px solid var(--border-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 48px;
-    margin-bottom: 15px;
-  }
-
-  &-info {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  &-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 12px;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 6px;
-  }
-
-  &-label {
-    font-size: 8px;
-    color: var(--label-title-color);
-    flex-shrink: 0;
-  }
-
-  &-value {
-    font-size: 9px;
-    color: var(--text-color);
-    text-align: right;
-    word-break: break-word;
-    overflow-wrap: anywhere;
-  }
-
-  &-properties {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-
-    ul {
-      list-style: none;
-      padding: 0;
-      margin: 6px 0 0;
-    }
-
-    li {
-      font-size: 8px;
-      margin-bottom: 4px;
-      color: var(--text-color);
-      word-break: break-word;
-    }
-  }
-}
-
-.spell-school {
-  font-size: 8px;
-  color: var(--label-title-color);
+  margin: 0 0 15px;
   text-align: center;
-  margin: -10px 0 15px;
 }
 
-.spell-components {
-  display: flex;
-  gap: 6px;
-}
 
-.component-tag {
-  font-size: 8px;
-  border: 1px solid var(--accent-color);
-  color: var(--accent-color);
-  padding: 1px 5px;
-}
 
-.spell-description {
-  font-size: 8px;
-  color: var(--text-color);
-  line-height: 1.5;
-  border-top: 1px solid var(--border-color);
-  padding-top: 10px;
-  margin-top: 4px;
-}
+
 
 .step-error-msg {
   font-size: 8px;
@@ -665,20 +543,7 @@
   padding: 12px 14px 150px;
 }
 
-.mobile-step-bar {
-  font-size: 8px;
-  color: var(--label-title-color);
-  text-align: center;
-  margin-bottom: 14px;
-  letter-spacing: 2px;
-}
 
-.mobile-wizard-panel {
-  width: 100%;
-  box-sizing: border-box;
-  margin-bottom: 14px;
-  padding: 14px 12px;
-}
 
 .mobile-form-stack {
   display: flex;
@@ -884,11 +749,6 @@
   cursor: var(--cp);
 }
 
-.mobile-item-info {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
 
 .mobile-wizard-actions {
   display: flex;
@@ -1037,10 +897,51 @@
   opacity: 0.85;
 }
 
-.kit-tag {
-  margin-left: 6px;
-  padding: 0 4px;
-  font-size: 0.75em;
-  border: 1px solid #ffd700;
-  color: #ffd700;
+/* ===== Padrão do site (1.6.7) ===== */
+
+// Desktop: topo das páginas (← SAIR + título) e a barra de progresso em cima das etapas.
+.wizard-topbar {
+  margin-top: 12px;
 }
+
+.wizard-progress {
+  margin-bottom: 18px;
+}
+
+// Celular: seções do padrão dos formulários (.m-section/.m-section-title) no lugar dos quadros.
+.wizard-section {
+  width: 100%;
+}
+
+// Cartas de magias e armas: ESCOLHER / ✓ ESCOLHIDA embaixo de cada carta.
+.wizard-card-grid {
+  margin: 10px 0 6px;
+}
+
+.wizard-pick-btn {
+  float: none;
+  width: 100%;
+  margin: 0;
+  padding: 8px 6px;
+  font-size: 8px;
+
+  &--on {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    box-shadow: 0 0 8px rgba(255, 170, 0, 0.35);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: var(--cx);
+  }
+
+  // Na carta em tela cheia.
+  &--big {
+    width: auto;
+    min-width: 220px;
+    padding: 12px 20px;
+    font-size: 10px;
+  }
+}
+

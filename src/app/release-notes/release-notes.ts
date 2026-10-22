@@ -33,6 +33,25 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.6.7',
+    date: '2026-10-22',
+    title: 'Criação de personagem com barra de progresso e cartas',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'A criação de personagem ganhou uma barra de progresso, que mostra em que passo você está, quantos faltam e quais já foram. Para quem não usa magia, essa etapa aparece riscada.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'As etapas de magias e de armas mostram as cartas, com o botão ESCOLHER embaixo. Tocar numa carta abre a carta em tela cheia. As armas do equipamento inicial aparecem marcadas como KIT.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A criação de personagem seguiu o visual do resto do site: no celular, cabeçalho com voltar e seções sem quadros; no computador, o mesmo topo das outras páginas. Sair no meio pede confirmação.',
+      },
+    ],
+  },
+  {
     version: '1.6.6',
     date: '2026-10-22',
     title: 'Quadro do Mestre reorganizado e grimório completo',
