@@ -1,0 +1,63 @@
+<div class="cs-stage">
+  <div class="cs-cards">
+    <app-character-card class="cs-actor" [card]="view.actor" />
+    <!-- Carta jogada na mesa: entra de costas, gira e mostra a frente (uma vez por lançamento) -->
+    <div class="cs-spell">
+      <div class="cs-flip">
+        <div class="cs-face cs-face--back" aria-hidden="true">
+          <img class="cs-back-emblem" src="assets/icons/spellbook.png" alt="" />
+        </div>
+        <app-game-card class="cs-face cs-face--front" [card]="view.card" size="mini" />
+      </div>
+    </div>
+  </div>
+
+  <p class="cs-title">
+    <span class="cs-actor-name">{{ view.actorName }}</span> LANÇOU
+    <span class="cs-spell-name">{{ view.spellName }}</span>
+  </p>
+  @if (view.saveNote) {
+    <p class="cs-save">{{ view.saveNote }}</p>
+  }
+
+  @if (view.rolls.length > 0) {
+    <div class="cs-rolls">
+      @for (r of view.rolls; track r.id) {
+        <div
+          class="cs-roll"
+          [class.cs-roll--miss]="r.outcome === 'miss'"
+          [class.cs-roll--crit]="r.critical"
+          [class.cs-roll--heal]="r.kind === 'heal'"
+        >
+          <span class="cs-roll-label">{{ rollLabel(r.kind) }}</span>
+          <span class="cs-roll-dice">
+            @for (v of r.rolls; track $index) {
+              @if (r.sides[$index] === 6) {
+                <app-pixel-die [face]="v" [mini]="true" />
+              } @else {
+                <app-pixel-numeric-die [sides]="r.sides[$index]" [value]="v" [mini]="true" />
+              }
+            }
+          </span>
+          @if (r.modifier !== 0) {
+            <span class="cs-roll-mod">{{ formatMod(r.modifier) }}</span>
+          }
+          <span class="cs-roll-total">{{ r.total }}</span>
+          @if (r.kind === 'attack') {
+            <span class="cs-roll-outcome">
+              @if (r.critical) {
+                CRÍTICO!
+              } @else if (r.outcome === 'hit') {
+                ACERTOU
+              } @else if (r.outcome === 'miss') {
+                ERROU
+              } @else {
+                <span class="cs-waiting">AGUARDANDO...</span>
+              }
+            </span>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

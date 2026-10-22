@@ -178,6 +178,9 @@ export interface RollLogEntry {
   created_at: string;
   /** Rolagem oculta do mestre — não aparece pros jogadores. */
   is_hidden: boolean;
+  /** Só no evento do socket: rolagem de um lançamento de magia (aparece no aviso do lançamento,
+   *  não num aviso de rolagem avulso). Não vem no GET da sessão. */
+  cast_id?: string;
 }
 
 export interface RollLogPayload {
@@ -194,6 +197,43 @@ export interface RollLogPayload {
   is_hidden?: boolean;
   /** Resposta a um teste secreto pedido pelo mestre — o backend grava oculta (só o mestre recebe). */
   secret_request_id?: string;
+  /** Rolagem de um lançamento de magia — o backend repassa no evento, sem gravar. */
+  cast_id?: string;
+}
+
+/** Magia mostrada como carta no aviso de lançamento (a API manda sem a descrição). */
+export interface SpellCardInfo {
+  id_spell: number;
+  name: string;
+  casting_time: string | null;
+  range_distance: number | null;
+  duration: string | null;
+  is_verbal: boolean;
+  is_somatic: boolean;
+  is_material: boolean;
+  spellLevel: number;
+  school: string | null;
+}
+
+/** Rolagem que faz parte de um lançamento (o id é o da rolagem já registrada). */
+export interface CastStageRoll {
+  id_roll: string;
+  kind: 'attack' | 'damage' | 'heal';
+  /** Só ataque: aguardando a decisão, acertou ou errou. */
+  outcome: 'pending' | 'hit' | 'miss' | null;
+  critical: boolean;
+}
+
+/** Etapa de um lançamento de magia (POST /spell-cast-stage). */
+export interface SpellCastStagePayload {
+  cast_id: string;
+  id_character: number;
+  actor_name: string;
+  id_spell: number;
+  phase: 'open' | 'done';
+  rolls: CastStageRoll[];
+  save_dc?: number | null;
+  save_ability?: 'STR' | 'DEX' | 'CON' | 'INT' | 'WIS' | 'CHA' | null;
 }
 
 /** O que o mestre pede no teste secreto — o jogador rola com o bônus da própria ficha. */

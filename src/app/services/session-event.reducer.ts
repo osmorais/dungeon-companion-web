@@ -169,7 +169,8 @@ export function applySessionEvent(
       return detail;
 
     case 'spell_cast':
-      // Não persiste nada no estado — só dispara o toast (efeito colateral tratado em
+    case 'spell_cast_stage':
+      // Não persiste nada no estado — só dispara o aviso (efeito colateral tratado em
       // session-panel.component.ts, no connectRealtime).
       return detail;
 

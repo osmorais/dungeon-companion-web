@@ -884,6 +884,8 @@
     [endingTurn]="endingTurn()"
     [delayingTurn]="delayingTurn()"
     [showLinks]="myPlayer()?.id_character === actionsChar.id"
+    [actorCard]="characterCardFor(actionsChar.id, actionsChar.name)"
+    (ownCast)="markOwnCast($event)"
     (endTurn)="closePlayerActions(); endTurn()"
     (delayTurn)="closePlayerActions(); delayTurn()"
     (openSheet)="viewCharacterSheet(actionsChar.id, true)"
@@ -1212,6 +1214,14 @@
       </div>
     }
   </div>
+}
+
+<!-- ===== AVISO: LANÇAMENTO DE MAGIA (um por lançamento, cresce a cada etapa) ===== -->
+@if (activeCastView(); as castView) {
+  <!-- track pelo id do lançamento: a carta é jogada uma vez; as etapas só atualizam o aviso -->
+  @for (v of [castView]; track v.key) {
+    <app-spell-cast-notice [view]="v" (closed)="closeCastNotice()" />
+  }
 }
 
 <!-- ===== TOAST: MAGIA LANÇADA (broadcast pra todos na sessão) ===== -->

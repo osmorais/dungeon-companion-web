@@ -55,6 +55,11 @@ import {
 import { DamageImpactService } from '../services/damage-impact.service';
 import { attrLabel } from '../models/level-up.interface';
 import { saveNote } from '../roll-modal/spell-roll-config';
+import { CharacterCardData } from '../character-card/character-card.component';
+import { spellToCard } from '../game-card/spell-card';
+import { SPELL_CAST_DONE_MS, SpellCastNoticeComponent } from '../spell-cast/spell-cast-notice.component';
+import { CastStageView, castRollView } from '../spell-cast/spell-cast-stage.model';
+import { SessionEventPayloadMap } from '../models/session-event.interface';
 import { ApplyRequest, ApplyTarget } from '../roll-modal/apply-target';
 import { AreaApplyRequest, DmBoardComponent } from '../dm-board/dm-board.component';
 import { CharacterDrawerComponent } from '../character-drawer/character-drawer.component';
@@ -70,6 +75,7 @@ import { hpColor, hpPercent } from './hp-display';
   imports: [
     FormsModule,
     CharacterDrawerComponent,
+    SpellCastNoticeComponent,
     AvatarDisplayComponent,
     PixelDieComponent,
     PixelNumericDieComponent,
@@ -264,6 +270,9 @@ export class SessionPanelComponent implements OnDestroy {
       }
       if (event.type === 'amount_applied') {
         this.showAmountAppliedToast(event.id_character, event.actor_name, event.amount, event.kind, event.target_label);
+      }
+      if (event.type === 'spell_cast_stage') {
+        this.onSpellCastStage(event);
       }
       if (event.type === 'spell_cast') {
         this.showSpellCastToast(
@@ -1477,7 +1486,14 @@ export class SessionPanelComponent implements OnDestroy {
       return;
     }
 
-    this.rollToastQueue.push(...newRolls);
+    // Rolagens de um lançamento de magia aparecem no aviso do lançamento (onSpellCastStage), não
+    // num aviso avulso — entram direto no histórico.
+    const castRolls = newRolls.filter((r) => r.cast_id);
+    if (castRolls.length) this.revealRolls(castRolls.map((r) => r.id_roll));
+    const loose = newRolls.filter((r) => !r.cast_id);
+    if (loose.length === 0) return;
+
+    this.rollToastQueue.push(...loose);
     if (!this.activeRollToast()) this.playNextRollToast();
   }
 
@@ -1531,6 +1547,131 @@ export class SessionPanelComponent implements OnDestroy {
   closeMonsterDefeatedToast(): void {
     if (this.monsterDefeatedToastTimer) clearTimeout(this.monsterDefeatedToastTimer);
     this.activeMonsterDefeatedToast.set(null);
+  }
+
+  /** ========================= AVISO: LANÇAMENTO DE MAGIA (1.5.0) =========================
+   *  Um aviso só por lançamento, que vai crescendo: card do personagem + carta da magia + as
+   *  rolagens (ataque → acertou/errou → dano). Quem lança manda as etapas (`spell_cast_stage`);
+   *  as rolagens vêm pelo `roll_added` (com `cast_id`) e são achadas no histórico pelo id. Some
+   *  SPELL_CAST_DONE_MS depois de "terminou", ou depois de CAST_NOTICE_SAFETY_MS sem notícia
+   *  (quem lança fechou a aba no meio). Vários lançamentos seguidos entram em fila. */
+
+  readonly CAST_NOTICE_SAFETY_MS = 120_000;
+
+  private castStages = new Map<string, SessionEventPayloadMap['spell_cast_stage']>();
+  private castStagesVersion = signal(0);
+  private castNoticeQueue: string[] = [];
+  activeCastId = signal<string | null>(null);
+  private castNoticeTimer: ReturnType<typeof setTimeout> | null = null;
+  /** Lançamentos com rolagem de quem está olhando: ele acompanha no modal de rolagem. */
+  private ownCastIds = new Set<string>();
+  /** Fechados (ou terminados) — etapas atrasadas desses não reabrem o aviso. */
+  private closedCastIds = new Set<string>();
+  /** Dano/cura que já tocaram o impacto e o Tom (uma vez por rolagem). */
+  private castReactedRollIds = new Set<string>();
+
+  activeCastView = computed<CastStageView | null>(() => {
+    this.castStagesVersion();
+    const id = this.activeCastId();
+    const stage = id ? this.castStages.get(id) : undefined;
+    if (!id || !stage) return null;
+    const byId = new Map((this.sessionDetail()?.recent_rolls ?? []).map((r) => [r.id_roll, r]));
+    return {
+      key: id,
+      actorName: stage.actor_name,
+      spellName: stage.spell.name,
+      actor: this.characterCardFor(stage.id_character, stage.actor_name),
+      card: spellToCard({ ...stage.spell, description: null }),
+      rolls: stage.rolls.flatMap((ref) => {
+        const entry = byId.get(ref.id_roll);
+        return entry ? [castRollView(ref, entry)] : [];
+      }),
+      saveNote: stage.save_dc && stage.save_ability ? saveNote(stage.save_dc, stage.save_ability) : null,
+      done: stage.phase === 'done',
+    };
+  });
+
+  /** A gaveta de ações avisou que este lançamento é de quem está olhando (acompanha no modal). */
+  markOwnCast(castId: string): void {
+    this.ownCastIds.add(castId);
+  }
+
+  onSpellCastStage(stage: SessionEventPayloadMap['spell_cast_stage']): void {
+    const me = this.authService.currentUser()?.id;
+    if ((stage.user_id === me && this.ownCastIds.has(stage.cast_id)) || this.closedCastIds.has(stage.cast_id)) {
+      return;
+    }
+    // Etapa fora de ordem: "terminou" já chegou, uma "em andamento" atrasada não volta atrás.
+    if (this.castStages.get(stage.cast_id)?.phase === 'done' && stage.phase === 'open') return;
+    this.castStages.set(stage.cast_id, stage);
+    this.castStagesVersion.update((v) => v + 1);
+
+    const active = this.activeCastId();
+    if (!active) {
+      this.activeCastId.set(stage.cast_id);
+    } else if (active !== stage.cast_id) {
+      if (!this.castNoticeQueue.includes(stage.cast_id)) this.castNoticeQueue.push(stage.cast_id);
+      return;
+    }
+    this.onActiveCastUpdated(stage);
+  }
+
+  /** Dano/cura novo no aviso: impacto em tela cheia e comentário do Tom; e o tempo pra sumir. */
+  private onActiveCastUpdated(stage: SessionEventPayloadMap['spell_cast_stage']): void {
+    const rolls = this.sessionDetail()?.recent_rolls ?? [];
+    for (const ref of stage.rolls) {
+      if (this.castReactedRollIds.has(ref.id_roll)) continue;
+      const entry = rolls.find((r) => r.id_roll === ref.id_roll);
+      if (!entry) continue;
+      this.castReactedRollIds.add(ref.id_roll);
+      if (ref.kind !== 'attack') this.damageImpact.trigger(entry);
+      this.reactTomToRoll(entry);
+    }
+    if (this.castNoticeTimer) clearTimeout(this.castNoticeTimer);
+    this.castNoticeTimer = setTimeout(
+      () => this.closeCastNotice(),
+      stage.phase === 'done' ? SPELL_CAST_DONE_MS : this.CAST_NOTICE_SAFETY_MS,
+    );
+  }
+
+  closeCastNotice(): void {
+    if (this.castNoticeTimer) clearTimeout(this.castNoticeTimer);
+    this.castNoticeTimer = null;
+    const id = this.activeCastId();
+    if (id) {
+      this.closedCastIds.add(id);
+      this.castStages.delete(id);
+    }
+    const next = this.castNoticeQueue.shift() ?? null;
+    this.activeCastId.set(next);
+    const stage = next ? this.castStages.get(next) : undefined;
+    if (stage) this.onActiveCastUpdated(stage);
+  }
+
+  /** Card do personagem (jogador ou NPC), como na sessão — aviso de lançamento e gaveta de ações. */
+  characterCardFor(idCharacter: number, fallbackName: string): CharacterCardData {
+    const detail = this.sessionDetail();
+    const player = detail?.players.find((p) => p.id_character === idCharacter && p.character);
+    const npc = player ? undefined : detail?.npcs.find((n) => n.id_character === idCharacter);
+    const summary = player?.character ?? npc?.character ?? null;
+    return {
+      name: summary?.name ?? fallbackName,
+      imageUrl: this.imageUrlForCharacter(idCharacter),
+      avatarPreset: this.avatarPresetForCharacter(idCharacter),
+      character: summary
+        ? {
+            playerName: player ? player.player_name : null,
+            className: summary.class,
+            race: summary.race,
+            level: summary.level,
+            hp: {
+              current: player ? this.editedHp(player) : summary.current_hit_points,
+              max: summary.max_hit_points,
+              temp: player ? this.editedTempHp(player) : (summary.temporary_hit_points ?? 0),
+            },
+          }
+        : null,
+    };
   }
 
   /** ========================= TOAST: MAGIA LANÇADA (broadcast) =========================
@@ -1899,26 +2040,9 @@ export class SessionPanelComponent implements OnDestroy {
     const npc =
       p.participant_type === 'npc' ? detail?.npcs.find((n) => n.id_npc_session === p.id_npc_session) : undefined;
     const idCharacter = player?.id_character ?? npc?.id_character ?? null;
-    const summary = player?.character ?? npc?.character ?? null;
-    return {
-      name,
-      imageUrl: this.imageUrlForCharacter(idCharacter),
-      avatarPreset: this.avatarPresetForCharacter(idCharacter),
-      // Card inteiro (como na sessão): jogador, classe, raça, nível e PV.
-      character: summary
-        ? {
-            playerName: player ? player.player_name : null,
-            className: summary.class,
-            race: summary.race,
-            level: summary.level,
-            hp: {
-              current: summary.current_hit_points,
-              max: summary.max_hit_points,
-              temp: summary.temporary_hit_points ?? 0,
-            },
-          }
-        : null,
-    };
+    // Card inteiro (como na sessão): jogador, classe, raça, nível e PV.
+    if (idCharacter === null) return { name, imageUrl: null, avatarPreset: null, character: null };
+    return { ...this.characterCardFor(idCharacter, name), name };
   }
 
 

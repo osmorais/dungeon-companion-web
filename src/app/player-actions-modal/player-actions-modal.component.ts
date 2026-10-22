@@ -14,6 +14,7 @@ import {
   abilityAsSpell,
   fixedHealConfig,
   spellRollConfig,
+  saveNote,
   spellSaveInfo,
 } from '../roll-modal/spell-roll-config';
 import { ApplyRequest, ApplyTarget } from '../roll-modal/apply-target';
@@ -38,6 +39,8 @@ import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { GameCardComponent } from '../game-card/game-card.component';
 import { CardViewerComponent } from '../game-card/card-viewer.component';
 import { spellCardState, spellToCard } from '../game-card/spell-card';
+import { CharacterCardData } from '../character-card/character-card.component';
+import { SpellCastContext, castStagePayload, newCastId } from '../spell-cast/spell-cast-context';
 
 /** Atributo da perícia (sigla em português do banco) → chave em inglês dos traços. */
 const PT_TO_EN: Record<string, string> = {
@@ -95,6 +98,11 @@ export class PlayerActionsModalComponent implements OnInit {
   @Input() delayingTurn = false;
   /** Jogador abrindo o próprio personagem: FICHA e ITENS no destaque (o mestre tem nos cards). */
   @Input() showLinks = false;
+  /** Card do personagem (como na sessão) pro palco do lançamento de magia. Sem ele, monta da ficha. */
+  @Input() actorCard: CharacterCardData | null = null;
+  /** Lançamento com rolagem começou: quem lança acompanha no modal de rolagem, então a sessão não
+   *  mostra pra ele o aviso da mesa desse lançamento. */
+  @Output() ownCast = new EventEmitter<string>();
   @Output() endTurn = new EventEmitter<void>();
   @Output() delayTurn = new EventEmitter<void>();
   @Output() openSheet = new EventEmitter<void>();
@@ -109,6 +117,8 @@ export class PlayerActionsModalComponent implements OnInit {
   error = signal(false);
   sheet = signal<CharacterSheetResponse | null>(null);
   activeRoll = signal<RollConfig | null>(null);
+  /** Lançamento de magia da rolagem aberta (palco da mesa no modal); `null` nas outras rolagens. */
+  activeRollCast = signal<SpellCastContext | null>(null);
 
   expendingSlot = signal(false);
   restingLong = signal(false);
@@ -438,11 +448,13 @@ export class PlayerActionsModalComponent implements OnInit {
 
   closeRoll(): void {
     this.activeRoll.set(null);
+    this.activeRollCast.set(null);
   }
 
   /** Ao executar a rolagem (ação concluída), fecha a rolagem e a própria tela de ações. */
   onRolled(): void {
     this.activeRoll.set(null);
+    this.activeRollCast.set(null);
     this.closed.emit();
   }
 
@@ -967,28 +979,67 @@ export class PlayerActionsModalComponent implements OnInit {
     if (rollConfig?.damage && spell.roll?.kind === 'attack') {
       rollConfig.damage.riders = this.riderChoices('spell');
     }
+    // Lançamento (1.5.0): a mesa vê um aviso só, com a carta e as rolagens. Com rolagem, quem
+    // lança acompanha no modal (que manda as etapas); sem rolagem, já vai pronto pra mesa.
+    const cast = this.castContextFor(spell);
     const openRoll = () => {
       if (!rollConfig) return;
       this.closeSpellDetail();
+      this.activeRollCast.set(cast);
       this.activeRoll.set(rollConfig);
+      this.ownCast.emit(cast.castId);
     };
+    if (!rollConfig) this.publishCastWithoutRolls(cast);
     if (spell.spellLevel === 0) {
       if (rollConfig) openRoll();
       else this.closed.emit();
     } else {
       this.expendSlot(slotLevel, 1, !rollConfig, openRoll);
     }
-    // Anúncio best-effort — só dispara o toast informativo de todo mundo na sessão, não trava
-    // o fluxo de gasto de espaço se falhar.
-    if (this.sessionId) {
-      this.gameSessionService
-        .announceSpellCast(this.sessionId, {
-          id_character: this.idCharacter,
-          actor_name: this.actorName,
-          spell_name: spell.name,
-          ...spellSaveInfo(spell),
-        })
-        .subscribe({ error: () => undefined });
-    }
+  }
+
+  private castContextFor(spell: Spell): SpellCastContext {
+    const save = spellSaveInfo(spell);
+    return {
+      castId: newCastId(),
+      idSpell: spell.id_spell,
+      spellName: spell.name,
+      actor: this.actorCard ?? this.actorCardFromSheet(),
+      card: spellToCard(spell),
+      saveDc: save?.save_dc ?? null,
+      saveAbility: save?.save_ability ?? null,
+      saveNote: save ? saveNote(save.save_dc, save.save_ability) : null,
+    };
+  }
+
+  /** Magia sem dados: a mesa já recebe o lançamento pronto (só as cartas e a CD, se tiver). */
+  private publishCastWithoutRolls(cast: SpellCastContext): void {
+    if (!this.sessionId) return;
+    this.gameSessionService
+      .publishSpellCastStage(this.sessionId, castStagePayload(cast, this.idCharacter, this.actorName, 'done', []))
+      .subscribe({ error: () => undefined });
+  }
+
+  /** Card do personagem montado da ficha (quando a sessão não passou `actorCard`). */
+  private actorCardFromSheet(): CharacterCardData {
+    const cs = this.sheet()?.character_sheet;
+    return {
+      name: this.actorName,
+      imageUrl: cs?.image_url ?? null,
+      avatarPreset: cs?.avatar_preset ?? null,
+      character: cs?.combat_stats?.hit_points
+        ? {
+            playerName: null,
+            className: cs.header?.class_and_level ?? '',
+            race: cs.header?.race ?? '',
+            level: cs.combat_stats.hit_dice_total,
+            hp: {
+              current: cs.combat_stats.hit_points.current,
+              max: cs.combat_stats.hit_points.max,
+              temp: 0,
+            },
+          }
+        : null,
+    };
   }
 }

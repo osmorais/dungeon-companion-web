@@ -1,27 +1,9 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { NgTemplateOutlet } from '@angular/common';
-import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
+import { CharacterCardComponent, CharacterCardData } from '../character-card/character-card.component';
 import { ModalBurstComponent } from '../modal-burst/modal-burst.component';
-import { AvatarPreset } from '../models/avatar-preset.interface';
-import { hpColor, hpPercent } from '../session-panel/hp-display';
 
-/** Quem aparece no aviso de troca de vez (jogador, NPC ou monstro, já com o nome que a mesa vê). */
-export interface TurnCard {
-  name: string;
-  /** Foto do personagem (fundo do card) ou imagem do monstro. */
-  imageUrl: string | null;
-  avatarPreset: AvatarPreset | null;
-  /** Jogador/NPC: dados do card inteiro, como na sessão. Ausente/`null` = monstro (só imagem e
-   *  nome — o jogador não vê o PV do monstro). */
-  character?: {
-    /** `null` pra NPC. */
-    playerName: string | null;
-    className: string;
-    race: string;
-    level: number;
-    hp: { current: number; max: number; temp: number };
-  } | null;
-}
+/** Quem aparece no aviso de troca de vez (o card é o `app-character-card`). */
+export type TurnCard = CharacterCardData;
 
 export const TURN_CHANGE_TOAST_MS = 2600;
 
@@ -34,7 +16,7 @@ export const TURN_CHANGE_TOAST_MS = 2600;
 @Component({
   selector: 'app-turn-change-toast',
   standalone: true,
-  imports: [AvatarDisplayComponent, ModalBurstComponent, NgTemplateOutlet],
+  imports: [CharacterCardComponent, ModalBurstComponent],
   templateUrl: './turn-change-toast.component.html',
   styleUrls: ['./turn-change-toast.component.scss'],
 })
@@ -47,6 +29,4 @@ export class TurnChangeToastComponent {
   @Output() closed = new EventEmitter<void>();
 
   readonly durationMs = TURN_CHANGE_TOAST_MS;
-  readonly hpPercent = hpPercent;
-  readonly hpColor = hpColor;
 }

@@ -1,4 +1,10 @@
-<div class="roll-modal-backdrop" (click)="close()">
+<div class="roll-modal-backdrop" [class.roll-modal-backdrop--cast]="!!castView()" (click)="close()">
+  <!-- Lançamento de magia: em cima, o mesmo que a mesa vê; embaixo, as decisões de quem lança -->
+  @if (castView(); as stage) {
+    <div class="roll-cast-stage framed-toast" (click)="$event.stopPropagation()">
+      <app-spell-cast-stage [view]="stage" />
+    </div>
+  }
   <div class="roll-modal" (click)="$event.stopPropagation()">
     <button class="roll-modal-close" (click)="close()">✕</button>
     @if (backLabel) {

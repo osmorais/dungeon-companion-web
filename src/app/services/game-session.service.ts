@@ -21,6 +21,7 @@ import {
   RollLogPayload,
   SecretRollRequestPayload,
   SpellCastPayload,
+  SpellCastStagePayload,
   StartEncounterParticipantInput,
   SubmitInitiativePayload,
   ReferenceImage,
@@ -309,6 +310,11 @@ export class GameSessionService {
   /** Só anuncia (broadcast via socket) pro toast de todo mundo na sessão — não persiste nada. */
   announceSpellCast(sessionId: string, payload: SpellCastPayload): Observable<void> {
     return this.http.post<void>(`${this.baseUrl}/api/game-session/${sessionId}/spell-cast`, payload);
+  }
+
+  /** Etapa de um lançamento de magia — a mesa mostra um aviso só (carta + rolagens). */
+  publishSpellCastStage(sessionId: string, payload: SpellCastStagePayload): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/api/game-session/${sessionId}/spell-cast-stage`, payload);
   }
 
   /** ========================= COMBATE / TURNOS ========================= */

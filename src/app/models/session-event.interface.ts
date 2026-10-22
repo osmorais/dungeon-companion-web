@@ -1,4 +1,5 @@
 import {
+  CastStageRoll,
   CombatEncounterDetail,
   MonsterAbilityKey,
   MonsterSession,
@@ -7,6 +8,7 @@ import {
   RollLogEntry,
   SecretRollCheck,
   ShownReferenceImage,
+  SpellCardInfo,
 } from './game-session.interface';
 
 /**
@@ -76,6 +78,19 @@ export interface SessionEventPayloadMap {
     save_ability?: 'STR' | 'DEX' | 'CON' | 'INT' | 'WIS' | 'CHA' | null;
     /** Habilidade de classe: o toast diz "USOU" em vez de "LANÇOU". */
     is_ability?: boolean;
+  };
+  /** Etapa de um lançamento de magia: aviso único da mesa (card do personagem + carta da magia +
+   *  rolagens). `user_id` = quem lançou. */
+  spell_cast_stage: {
+    cast_id: string;
+    user_id: string;
+    id_character: number;
+    actor_name: string;
+    spell: SpellCardInfo;
+    phase: 'open' | 'done';
+    rolls: CastStageRoll[];
+    save_dc: number | null;
+    save_ability: 'STR' | 'DEX' | 'CON' | 'INT' | 'WIS' | 'CHA' | null;
   };
   /** Alguém aplicou dano/cura de uma rolagem num alvo — só o aviso pra mesa. */
   amount_applied: {

@@ -1,11 +1,21 @@
-import { Component, EventEmitter, Input, OnInit, Output, inject, signal } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, computed, inject, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { GameSessionService } from '../services/game-session.service';
 import { DamageImpactService } from '../services/damage-impact.service';
-import { AdvantageState, RollLogPayload, RollType } from '../models/game-session.interface';
+import {
+  AdvantageState,
+  CastStageRoll,
+  RollLogEntry,
+  RollLogPayload,
+  RollType,
+} from '../models/game-session.interface';
 import { PixelDieComponent } from '../pixel-die/pixel-die.component';
 import { PixelNumericDieComponent } from '../pixel-numeric-die/pixel-numeric-die.component';
 import { hasRiderChoices, RiderChoices, RiderOption } from './spell-riders';
 import { ApplyKind, ApplyRequest, ApplyTarget, resistsDamage } from './apply-target';
+import { SpellCastStageComponent } from '../spell-cast/spell-cast-stage.component';
+import { SpellCastContext, castStagePayload } from '../spell-cast/spell-cast-context';
+import { CastStageView, castRollView } from '../spell-cast/spell-cast-stage.model';
 
 /** Uma opção de espaço de magia pra gastar em Destruição Divina — ver `AbilityRollConfig.damage.smite`. */
 export interface SmiteOption {
@@ -103,11 +113,11 @@ const ROLL_TICK_MS = 80;
 @Component({
   selector: 'app-roll-modal',
   standalone: true,
-  imports: [PixelDieComponent, PixelNumericDieComponent],
+  imports: [PixelDieComponent, PixelNumericDieComponent, SpellCastStageComponent],
   templateUrl: './roll-modal.component.html',
   styleUrls: ['./roll-modal.component.scss'],
 })
-export class RollModalComponent implements OnInit {
+export class RollModalComponent implements OnInit, OnDestroy {
   private gameSessionService = inject(GameSessionService);
   private damageImpact = inject(DamageImpactService);
 
@@ -125,6 +135,12 @@ export class RollModalComponent implements OnInit {
   /** Aberto de dentro de outra tela (gaveta de ações/grimório): botão "◀ VOLTAR..." no topo, que
    *  fecha só a rolagem e deixa a tela de trás aberta. */
   @Input() backLabel: string | null = null;
+  /**
+   * Lançamento de magia (1.5.0): em cima das decisões aparece o mesmo palco que a mesa vê (card do
+   * personagem + carta + rolagens), e cada passo (ataque registrado, acertou/errou, dano, fim) é
+   * mandado pra mesa. `null` = rolagem comum.
+   */
+  @Input() cast: SpellCastContext | null = null;
   @Output() closed = new EventEmitter<void>();
   /** O jogador/mestre pediu pra aplicar o resultado num alvo — o pai aplica no PV. */
   @Output() applyToTarget = new EventEmitter<ApplyRequest>();
@@ -321,6 +337,86 @@ export class RollModalComponent implements OnInit {
   instanceIndex = signal(1);
   /** 20 natural no d20 do ataque: acerta sempre e os dados de dano dobram (o modificador não). */
   isCritical = signal(false);
+
+  /** ========================= LANÇAMENTO DE MAGIA (palco da mesa) ========================= */
+
+  /** Rolagens do lançamento (referência mandada pra mesa + o registro, pra desenhar os dados). */
+  private castRolls = signal<{ ref: CastStageRoll; entry: RollLogEntry }[]>([]);
+  private castDone = false;
+  /** Etapas vão em fila: a mesa precisa receber na ordem (a última é sempre o "terminou"). */
+  private castQueue: Promise<unknown> = Promise.resolve();
+
+  castView = computed<CastStageView | null>(() => {
+    const cast = this.cast;
+    if (!cast) return null;
+    return {
+      key: cast.castId,
+      actorName: this.actorName,
+      spellName: cast.spellName,
+      actor: cast.actor,
+      card: cast.card,
+      rolls: this.castRolls().map(({ ref, entry }) => castRollView(ref, entry)),
+      saveNote: cast.saveNote,
+      done: false,
+    };
+  });
+
+  /** Rolagem registrada (resposta da API): entra no palco e vai pra mesa. Uma nova rolagem de
+   *  ataque ainda sem decisão (Sortudo, Inspiração) substitui a anterior. */
+  private addCastRoll(entry: RollLogEntry, rollType: RollType): void {
+    if (!this.cast) return;
+    const kind = rollType === 'attack' ? 'attack' : rollType === 'damage' ? 'damage' : rollType === 'heal' ? 'heal' : null;
+    if (!kind) return;
+    const ref: CastStageRoll = {
+      id_roll: entry.id_roll,
+      kind,
+      outcome: kind === 'attack' ? 'pending' : null,
+      critical: kind === 'attack' && this.isCritical(),
+    };
+    this.castRolls.update((list) => {
+      const last = list[list.length - 1];
+      const replace = kind === 'attack' && last?.ref.kind === 'attack' && last.ref.outcome === 'pending';
+      return [...(replace ? list.slice(0, -1) : list), { ref, entry }];
+    });
+    this.sendCastStage('open');
+  }
+
+  /** Acertou/errou o ataque mais recente (decisão de quem lança). */
+  private resolveCastAttack(hit: boolean): void {
+    if (!this.cast) return;
+    this.castRolls.update((list) => {
+      const index = list.map((r) => r.ref.kind).lastIndexOf('attack');
+      if (index < 0) return list;
+      const next = [...list];
+      next[index] = { ...next[index], ref: { ...next[index].ref, outcome: hit ? 'hit' : 'miss' } };
+      return next;
+    });
+    this.sendCastStage('open');
+  }
+
+  private sendCastStage(phase: 'open' | 'done'): void {
+    const cast = this.cast;
+    if (!cast || !this.sessionId || this.idCharacter === null || this.castDone) return;
+    if (phase === 'done') this.castDone = true;
+    const payload = castStagePayload(
+      cast,
+      this.idCharacter,
+      this.actorName,
+      phase,
+      this.castRolls().map((r) => r.ref),
+    );
+    const sessionId = this.sessionId;
+    this.castQueue = this.castQueue.then(() =>
+      firstValueFrom(this.gameSessionService.publishSpellCastStage(sessionId, payload)).catch(
+        () => undefined,
+      ),
+    );
+  }
+
+  /** Fechou (terminou, errou ou desistiu): a mesa recebe o "terminou" e o aviso some sozinho. */
+  ngOnDestroy(): void {
+    this.sendCastStage('done');
+  }
 
   ngOnInit(): void {
     if (this.pendingDamage && this.config.mode === 'ability' && this.config.autoHit) {
@@ -807,6 +903,7 @@ export class RollModalComponent implements OnInit {
   rollDamageNow(): void {
     if (!this.pendingDamage) return;
     this.attackResolved.emit(true);
+    this.resolveCastAttack(true);
     if (this.pendingDamage.smite?.length || hasRiderChoices(this.pendingDamage.riders)) {
       this.attackPhase.set('smite-choice');
       return;
@@ -851,6 +948,7 @@ export class RollModalComponent implements OnInit {
   /** O mestre disse que não passou da CA — encerra sem rolar dano (ou oferece o próximo raio). */
   confirmMiss(): void {
     this.attackResolved.emit(false);
+    this.resolveCastAttack(false);
     if (this.hasMoreInstances) {
       this.attackPhase.set('next-instance');
       return;
@@ -1054,11 +1152,15 @@ export class RollModalComponent implements OnInit {
       total,
       is_hidden: this.canHideRoll && this.config.mode === 'freeform' && this.freeformHidden(),
       ...(this.secretRequestId ? { secret_request_id: this.secretRequestId } : {}),
+      ...(this.cast ? { cast_id: this.cast.castId } : {}),
     };
 
     this.posting.set(true);
     this.gameSessionService.postRoll(this.sessionId, payload).subscribe({
-      next: () => this.posting.set(false),
+      next: (entry) => {
+        this.posting.set(false);
+        this.addCastRoll(entry, rollType);
+      },
       error: () => {
         this.posting.set(false);
         this.postFailed.set(true);

@@ -237,6 +237,35 @@ describe('applySessionEvent', () => {
         apply(detail, { type: 'spell_cast', id_character: 1, actor_name: 'A', spell_name: 'Luz' }),
       ).toBe(detail);
     });
+
+    it('etapa de lançamento de magia não altera o estado (o aviso é do session-panel)', () => {
+      const detail = sessionDetail();
+      expect(
+        apply(detail, {
+          type: 'spell_cast_stage',
+          cast_id: 'cast-1234',
+          user_id: 'u1',
+          id_character: 1,
+          actor_name: 'A',
+          spell: {
+            id_spell: 9,
+            name: 'Luz',
+            casting_time: null,
+            range_distance: null,
+            duration: null,
+            is_verbal: true,
+            is_somatic: false,
+            is_material: false,
+            spellLevel: 0,
+            school: 'Evocação',
+          },
+          phase: 'done',
+          rolls: [],
+          save_dc: null,
+          save_ability: null,
+        }),
+      ).toBe(detail);
+    });
   });
 
   describe('imagens de referência', () => {

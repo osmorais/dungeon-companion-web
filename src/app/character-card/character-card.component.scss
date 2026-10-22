@@ -1,0 +1,78 @@
+:host {
+  display: block;
+}
+
+/* ===== Card inteiro (como o card da sessão, com a moldura .framed-card do styles.scss) ===== */
+.turn-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-sizing: border-box;
+  width: clamp(130px, 36vw, 220px);
+  min-height: 280px;
+  padding: 10px 8px;
+  background-color: var(--bg-color);
+  background-size: cover;
+  background-position: center;
+  text-align: center;
+}
+
+.turn-card-avatar {
+  width: 88px;
+  height: 88px;
+  overflow: hidden;
+  border: 3px solid var(--border-color);
+  border-radius: 50%;
+  background-color: var(--bg-color);
+}
+
+.turn-card-player {
+  font-size: 6px;
+  color: var(--label-title-color);
+}
+
+.turn-card-name {
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--accent-color);
+  overflow-wrap: anywhere;
+}
+
+.turn-card-meta {
+  font-size: 7px;
+  color: var(--text-color);
+}
+
+.turn-card-hp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+}
+
+.turn-card-hp-bar {
+  width: 100%;
+  height: 6px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-color);
+}
+
+.turn-card-hp-fill {
+  height: 100%;
+}
+
+.turn-card-hp-text {
+  font-size: 8px;
+  color: var(--text-color);
+}
+
+// Monstro: a imagem dele ocupa o card (sem PV — o jogador não vê).
+.turn-card-image {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  image-rendering: pixelated;
+}

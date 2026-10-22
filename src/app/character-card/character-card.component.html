@@ -1,0 +1,33 @@
+<div
+  class="turn-card framed-card"
+  [class.turn-card--monster]="!card.character"
+  [style.background-image]="
+    card.character && card.imageUrl
+      ? 'linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(' + card.imageUrl + ')'
+      : null
+  "
+>
+  @if (card.character; as ch) {
+    <div class="turn-card-avatar"><app-avatar-display [preset]="card.avatarPreset" /></div>
+    <span class="turn-card-player">{{ ch.playerName ?? 'NPC' }}</span>
+    <span class="turn-card-name">{{ card.name }}</span>
+    <span class="turn-card-meta">{{ ch.className }} — {{ ch.race }}</span>
+    <span class="turn-card-meta">NÍVEL {{ ch.level }}</span>
+    <div class="turn-card-hp">
+      <div class="turn-card-hp-bar">
+        <div
+          class="turn-card-hp-fill"
+          [style.width.%]="hpPercent(ch.hp.current, ch.hp.max)"
+          [style.background-color]="hpColor(ch.hp.current, ch.hp.max)"
+        ></div>
+      </div>
+      <span class="turn-card-hp-text">
+        <img class="ui-icon" src="assets/icons/heart.png" alt="" />
+        {{ ch.hp.current }}/{{ ch.hp.max }}{{ ch.hp.temp > 0 ? ' +' + ch.hp.temp : '' }}
+      </span>
+    </div>
+  } @else {
+    <img class="turn-card-image" [src]="card.imageUrl || 'assets/monster.png'" [alt]="card.name" />
+    <span class="turn-card-name">{{ card.name }}</span>
+  }
+</div>
