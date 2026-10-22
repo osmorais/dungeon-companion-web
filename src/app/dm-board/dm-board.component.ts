@@ -60,7 +60,7 @@ export interface AreaApplyRequest {
   selector: 'app-dm-board',
   standalone: true,
   templateUrl: './dm-board.component.html',
-  styleUrls: ['./dm-board.component.scss', './dm-board-tab.scss'],
+  styleUrls: ['./dm-board.component.scss', './dm-board-tab.scss', './bottom-drawer.scss'],
 })
 export class DmBoardComponent implements OnInit, OnDestroy {
   private charService = inject(CharacterService);
@@ -72,6 +72,8 @@ export class DmBoardComponent implements OnInit, OnDestroy {
   @Input() endingCombat = false;
   /** Monstro com revelar/esconder em andamento — desabilita o botão dele. */
   @Input() revealingMonsterId: string | null = null;
+  /** Celular: abre como gaveta de baixo em vez da lateral esquerda. */
+  @Input() mobile = false;
 
   @Output() closed = new EventEmitter<void>();
   @Output() rollDice = new EventEmitter<void>();

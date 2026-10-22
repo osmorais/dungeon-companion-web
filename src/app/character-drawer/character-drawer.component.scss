@@ -1,0 +1,18 @@
+.character-drawer-body {
+  overflow-y: auto;
+  padding: 16px 16px 24px;
+}
+
+.character-drawer-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+
+  .m-card {
+    padding: 16px 14px;
+  }
+
+  .m-card-icon {
+    font-size: 18px;
+  }
+}

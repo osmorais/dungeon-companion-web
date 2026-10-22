@@ -959,6 +959,20 @@
     padding: 4px 8px;
     font-size: 8px;
   }
+
+  // Recolhido (ROLAGENS): sobra só a legenda.
+  &--collapsed {
+    padding: 6px 14px 0;
+  }
+}
+
+.mobile-panel-toggle {
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: var(--cp);
 }
 
 /* Grid 2 colunas no mobile */

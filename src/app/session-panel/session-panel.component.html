@@ -45,18 +45,11 @@
         <span>JOGADORES <strong>{{ sessionDetail()!.players.length }}/{{ sessionDetail()!.game_session.max_player_quantity }}</strong></span>
       </div>
 
-      <!-- Combate -->
+      <!-- Combate: no celular só aparece com luta em andamento (o mestre inicia pelo Quadro do Mestre) -->
+      @if (combat(); as c) {
       <fieldset class="mobile-panel combat-panel" [class.combat-panel--split]="revealedMonsters().length > 0">
         <legend>COMBATE</legend>
         <div class="combat-top">
-        @if (!combat()) {
-          @if (isOwner()) {
-            <button class="retro-btn combat-start-btn" (click)="openStartFightModal()"><img class="ui-icon" src="assets/icons/swords.png" alt="" /> INICIAR LUTA</button>
-          } @else {
-            <p class="mobile-empty-msg mobile-empty-msg--inner">NENHUM COMBATE EM ANDAMENTO.</p>
-          }
-        } @else {
-          @let c = combat()!;
 
           @if (c.encounter.status === 'rolling_initiative') {
             <p class="combat-status-label">AGUARDANDO ROLAGENS DE INICIATIVA...</p>
@@ -104,7 +97,6 @@
               </button>
             }
           </div>
-        }
         </div>
         @if (spotlightMonster(); as monster) {
           <div class="combat-bottom">
@@ -115,13 +107,17 @@
           </div>
         }
       </fieldset>
+      }
 
-      <!-- Rolagens recentes -->
-      <fieldset class="mobile-panel">
-        <legend>ROLAGENS</legend>
-        @if (visibleRecentRolls().length === 0) {
-          <p class="mobile-empty-msg mobile-empty-msg--inner">NENHUMA ROLAGEM AINDA.</p>
-        } @else {
+      <!-- Rolagens recentes: só com rolagem, recolhidas por padrão (abre pela legenda) -->
+      @if (visibleRecentRolls().length > 0) {
+      <fieldset class="mobile-panel" [class.mobile-panel--collapsed]="!mobileRollsOpen()">
+        <legend>
+          <button class="mobile-panel-toggle" [attr.aria-expanded]="mobileRollsOpen()" (click)="mobileRollsOpen.set(!mobileRollsOpen())">
+            {{ mobileRollsOpen() ? '▼' : '▶' }} ROLAGENS ({{ visibleRecentRolls().length }})
+          </button>
+        </legend>
+        @if (mobileRollsOpen()) {
           <div class="roll-log-list">
             @for (roll of visibleRecentRolls(); track roll.id_roll) {
               <div class="roll-log-row">
@@ -144,6 +140,7 @@
           </div>
         }
       </fieldset>
+      }
 
       <!-- Cards dos players -->
       <fieldset id="players-section" class="mobile-panel">
@@ -203,7 +200,8 @@
                     }
                   </div>
 
-                  @if (canViewSheet(player)) {
+                  <!-- Jogador usa a gaveta AÇÕES DE PERSONAGEM; no card, só os botões do mestre -->
+                  @if (isOwner()) {
                     <div class="mobile-player-card-actions">
                       <button class="mobile-player-action-btn"
                         (click)="openPlayerActions(player.id_character, player.character.name)">
@@ -247,12 +245,10 @@
       </fieldset>
 
       <!-- Lista de NPCs -->
-      @if (sessionDetail()!.npcs.length > 0 || isOwner()) {
+      @if (sessionDetail()!.npcs.length > 0) {
         <fieldset class="mobile-panel">
           <legend>NPCS</legend>
-          @if (sessionDetail()!.npcs.length === 0) {
-            <p class="mobile-empty-msg mobile-empty-msg--inner">NENHUM NPC ADICIONADO À SESSÃO.</p>
-          } @else {
+          @if (sessionDetail()!.npcs.length > 0) {
           <div class="mobile-npc-list">
             @for (npc of sessionDetail()!.npcs; track npc.id_npc_session) {
               <div class="mobile-npc-row" [class.mobile-npc-row--current-turn]="isNpcCurrentTurn(npc)">
@@ -313,12 +309,10 @@
       }
 
       <!-- Lista de Monstros -->
-      @if (sessionDetail()!.monsters.length > 0 || isOwner()) {
+      @if (sessionDetail()!.monsters.length > 0) {
         <fieldset class="mobile-panel">
           <legend>MONSTROS</legend>
-          @if (sessionDetail()!.monsters.length === 0) {
-            <p class="mobile-empty-msg mobile-empty-msg--inner">NENHUM MONSTRO ADICIONADO À SESSÃO.</p>
-          } @else {
+          @if (sessionDetail()!.monsters.length > 0) {
           <div class="mobile-monster-list">
             @for (monster of sessionDetail()!.monsters; track monster.id_monster_session) {
               <div class="mobile-monster-row" (click)="openMonsterDetail(monster)" [class.mobile-monster-row--current-turn]="isMonsterCurrentTurn(monster)">
@@ -1390,7 +1384,22 @@
 }
 <!-- ===== QUADRO DO MESTRE (gaveta lateral, só o dono da sessão) ===== -->
 @if (isOwner() && !dmBoardOpen() && sessionDetail()) {
-  <app-dm-board-tab (expand)="openDmBoard()" />
+  <app-dm-board-tab [mobile]="isMobile()" (expand)="openDmBoard()" />
+}
+<!-- ===== AÇÕES DE PERSONAGEM (gaveta de baixo, celular, jogador com personagem) ===== -->
+@if (isMobile() && myPlayer(); as me) {
+  <app-character-drawer
+    [characterName]="me.character!.name"
+    [canEndTurn]="isPlayerCurrentTurn(me) && canEndCurrentTurn()"
+    [canDelay]="canDelayCurrentTurn()"
+    [endingTurn]="endingTurn()"
+    [delayingTurn]="delayingTurn()"
+    (actions)="openPlayerActions(me.id_character, me.character!.name)"
+    (endTurn)="endTurn()"
+    (delayTurn)="delayTurn()"
+    (sheet)="viewCharacterSheet(me.id_character)"
+    (inventory)="openPlayerInventory(me.id_player_session, me.id_character, me.character!.name)"
+  />
 }
 @if (dmBoardOpen() && isOwner() && sessionDetail(); as detail) {
   <app-dm-board
@@ -1399,6 +1408,7 @@
     [screenEffectsEnabled]="screenEffectsEnabled()"
     [endingCombat]="endingCombat()"
     [revealingMonsterId]="revealingMonsterId()"
+    [mobile]="isMobile()"
     (closed)="closeDmBoard()"
     (rollDice)="closeDmBoard(); openDmRoll()"
     (secretRoll)="closeDmBoard(); openSecretRequest()"

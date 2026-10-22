@@ -1,4 +1,5 @@
-import { Component, inject } from '@angular/core';
+import { Component, HostListener, computed, inject, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { RouterOutlet, Router, NavigationStart, NavigationEnd, NavigationCancel, NavigationError } from '@angular/router';
 import { LoadingOverlayComponent } from './loading-overlay/loading-overlay.component';
 import { LoadingOverlayService } from './loading-overlay/loading-overlay.service';
@@ -9,15 +10,23 @@ import { ThemeService } from './services/theme.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, LoadingOverlayComponent, ServerWakeupComponent],
+  imports: [RouterOutlet, NgTemplateOutlet, LoadingOverlayComponent, ServerWakeupComponent],
   template: `
     <div class="app-bg"
       [style.background-image]="'url(' + bg.currentImage() + ')'"
       [class.app-bg--fading]="bg.transitioning()">
     </div>
+    <!-- Sessão no celular: a base da tela é da gaveta (Quadro do Mestre / Ações de personagem),
+         então TEMA/SAIR vão pro topo e rolam com a página. -->
+    @if (authService.isLoggedIn() && footerOnTop()) {
+      <ng-container *ngTemplateOutlet="footer; context: { top: true }" />
+    }
     <router-outlet /><app-loading-overlay /><app-server-wakeup />
-    @if (authService.isLoggedIn()) {
-      <footer class="global-footer">
+    @if (authService.isLoggedIn() && !footerOnTop()) {
+      <ng-container *ngTemplateOutlet="footer; context: { top: false }" />
+    }
+    <ng-template #footer let-top="top">
+      <footer class="global-footer" [class.global-footer--top]="top">
         <span class="global-footer__email">{{ authService.currentUser()!.email }}</span>
         <button
           class="retro-btn global-footer__logout"
@@ -28,7 +37,7 @@ import { ThemeService } from './services/theme.service';
         </button>
         <button class="retro-btn global-footer__logout" (click)="logout()">SAIR</button>
       </footer>
-    }
+    </ng-template>
   `,
   styles: [`
     .global-footer {
@@ -55,6 +64,13 @@ import { ThemeService } from './services/theme.service';
       font-size: 7px;
       padding: 6px 12px;
     }
+    .global-footer--top {
+      position: static;
+      width: 100vw;
+      box-sizing: border-box;
+      border-top: none;
+      border-bottom: 1px solid var(--border-color);
+    }
     @media (max-width: 767px) {
       .global-footer {
         padding: 6px 16px;
@@ -72,11 +88,22 @@ export class App {
   /** Injetado aqui pra aplicar o tema salvo desde a primeira tela. */
   readonly theme = inject(ThemeService);
 
+  private readonly url = signal('');
+  private readonly isMobile = signal(typeof window !== 'undefined' && window.innerWidth < 768);
+  /** Tela da sessão (`/session/:id`) no celular: rodapé vai pro topo. */
+  readonly footerOnTop = computed(() => this.isMobile() && /^\/session\//.test(this.url()));
+
+  @HostListener('window:resize')
+  onResize() {
+    this.isMobile.set(window.innerWidth < 768);
+  }
+
   constructor() {
     inject(Router).events.subscribe(event => {
       if (event instanceof NavigationStart) {
         this.overlay.show();
       } else if (event instanceof NavigationEnd) {
+        this.url.set(event.urlAfterRedirects);
         this.overlay.hideImmediate();
         this.bg.next();
       } else if (event instanceof NavigationCancel || event instanceof NavigationError) {

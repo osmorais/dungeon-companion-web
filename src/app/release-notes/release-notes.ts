@@ -33,6 +33,29 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.3.16',
+    date: '2026-10-21',
+    title: 'Sessão no celular com gavetas na base da tela',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'No celular, o Quadro do Mestre abre por um botão largo na base da tela, que fica sempre à vista enquanto a página rola.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'No celular, o jogador tem a gaveta AÇÕES DE PERSONAGEM na base da tela, com ações, finalizar ou atrasar o turno, ficha e itens do seu personagem.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Na sessão pelo celular, os botões de tema e de sair ficam no topo da página e rolam junto com ela, liberando espaço na tela.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Na sessão pelo celular, os quadros vazios (combate, NPCs, monstros, rolagens) não aparecem mais, e as rolagens começam recolhidas: toque no título para abrir.',
+      },
+    ],
+  },
+  {
     version: '1.3.15',
     date: '2026-10-21',
     title: 'Dinheiro em destaque na ficha',

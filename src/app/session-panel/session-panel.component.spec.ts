@@ -806,4 +806,37 @@ describe('SessionPanelComponent', () => {
       expect(component.activeLevelUpEligibleToast()!.key).toBe(key + 1);
     });
   });
+
+  describe('celular: gaveta AÇÕES DE PERSONAGEM e rolagens', () => {
+    const loginAs = (id: string) =>
+      (
+        TestBed.inject(AuthService).currentUser as ReturnType<
+          typeof signal<{ id: string; email: string }>
+        >
+      ).set({
+        id,
+        email: `${id}@x`,
+      });
+
+    it('mestre não tem gaveta de personagem (os botões ficam nos cards)', () => {
+      detail.set(sessionDetail({ players: [player('p1')] }));
+      expect(component.myPlayer()).toBeNull();
+    });
+
+    it('jogador: a gaveta é do próprio personagem', () => {
+      detail.set(sessionDetail({ players: [player('p1'), player('p2')] }));
+      loginAs('user-p2');
+      expect(component.myPlayer()?.id_player_session).toBe('p2');
+    });
+
+    it('jogador sem personagem na sessão fica sem gaveta', () => {
+      detail.set(sessionDetail({ players: [player('p1', { character: null })] }));
+      loginAs('user-p1');
+      expect(component.myPlayer()).toBeNull();
+    });
+
+    it('rolagens começam recolhidas', () => {
+      expect(component.mobileRollsOpen()).toBe(false);
+    });
+  });
 });

@@ -57,6 +57,7 @@ import { attrLabel } from '../models/level-up.interface';
 import { saveNote } from '../roll-modal/spell-roll-config';
 import { ApplyRequest, ApplyTarget } from '../roll-modal/apply-target';
 import { AreaApplyRequest, DmBoardComponent } from '../dm-board/dm-board.component';
+import { CharacterDrawerComponent } from '../character-drawer/character-drawer.component';
 import { DmBoardTabComponent } from '../dm-board/dm-board-tab.component';
 import { LoadingOverlayService } from '../loading-overlay/loading-overlay.service';
 import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
@@ -68,6 +69,7 @@ import { hpColor, hpPercent } from './hp-display';
   standalone: true,
   imports: [
     FormsModule,
+    CharacterDrawerComponent,
     AvatarDisplayComponent,
     PixelDieComponent,
     PixelNumericDieComponent,
@@ -2114,8 +2116,21 @@ export class SessionPanelComponent implements OnDestroy {
     this.router.navigate(['/my-sessions']);
   }
 
-  /** Mestre: quadro do mestre (gaveta lateral). Ações que abrem modal fecham a gaveta antes. */
+  /** Mestre: quadro do mestre (gaveta lateral; no celular, de baixo). Ações que abrem modal fecham a gaveta antes. */
   dmBoardOpen = signal(false);
+
+  /** Celular: quadro ROLAGENS começa recolhido (só a legenda, com a contagem). */
+  mobileRollsOpen = signal(false);
+
+  /**
+   * Celular, jogador: o próprio jogador (com personagem) — dono da gaveta AÇÕES DE PERSONAGEM.
+   * O mestre não tem: os botões dele continuam nos cards de cada aventureiro.
+   */
+  myPlayer = computed(() => {
+    if (this.isOwner()) return null;
+    const userId = this.authService.currentUser()?.id;
+    return this.sessionDetail()?.players.find((p) => p.user_id === userId && p.character) ?? null;
+  });
 
   openDmBoard(): void {
     this.dmBoardOpen.set(true);
