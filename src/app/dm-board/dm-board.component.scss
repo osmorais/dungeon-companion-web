@@ -286,3 +286,8 @@
   height: 10px;
   margin: 0 auto;
 }
+
+// Botão que ocupa a linha toda da grade (ex.: GRIMÓRIO).
+.dm-board-btn--wide {
+  grid-column: 1 / -1;
+}

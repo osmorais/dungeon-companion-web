@@ -76,6 +76,8 @@ export class DmBoardComponent implements OnInit, OnDestroy {
   @Output() closed = new EventEmitter<void>();
   @Output() rollDice = new EventEmitter<void>();
   @Output() secretRoll = new EventEmitter<void>();
+  /** Grimório com todas as magias (busca + cartas), em tela cheia. */
+  @Output() grimoire = new EventEmitter<void>();
   @Output() referenceImages = new EventEmitter<void>();
   @Output() toggleReveal = new EventEmitter<{ monster: MonsterSession; event: Event }>();
   @Output() startFight = new EventEmitter<void>();

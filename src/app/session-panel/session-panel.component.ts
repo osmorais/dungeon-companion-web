@@ -56,6 +56,7 @@ import { DamageImpactService } from '../services/damage-impact.service';
 import { attrLabel } from '../models/level-up.interface';
 import { saveNote } from '../roll-modal/spell-roll-config';
 import { CharacterCardData } from '../character-card/character-card.component';
+import { SpellGrimoireComponent } from '../spell-catalog-list/spell-grimoire.component';
 import { spellToCard } from '../game-card/spell-card';
 import { weaponInfoToCard } from '../game-card/weapon-card';
 import { castVerb } from '../spell-cast/spell-cast-context';
@@ -78,6 +79,7 @@ import { hpColor, hpPercent } from './hp-display';
     FormsModule,
     CharacterDrawerComponent,
     SpellCastNoticeComponent,
+    SpellGrimoireComponent,
     AvatarDisplayComponent,
     PixelDieComponent,
     PixelNumericDieComponent,
@@ -2302,6 +2304,9 @@ export class SessionPanelComponent implements OnDestroy {
 
   /** Mestre: quadro do mestre (gaveta de baixo). Ações que abrem modal fecham a gaveta antes. */
   dmBoardOpen = signal(false);
+
+  /** Mestre: grimório com todas as magias, aberto pelo Quadro do Mestre (fechar volta pro quadro). */
+  dmGrimoireOpen = signal(false);
 
   /** Celular: quadro ROLAGENS começa recolhido (só a legenda, com a contagem). */
   mobileRollsOpen = signal(false);

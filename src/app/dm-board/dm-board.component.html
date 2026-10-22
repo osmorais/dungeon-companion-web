@@ -14,8 +14,31 @@
     <span class="bottom-drawer-hint">TOQUE PARA FECHAR</span>
   </button>
   <div class="bottom-drawer-body dm-board-body">
+    <!-- Ordem pelo uso durante o jogo (1.6.6): combate, dados/magias, grupo, área, cena, rolagens
+         ocultas; depois o que é de preparação e organização. -->
     <section class="dm-board-section">
-      <h4 class="dm-board-section-title">DADOS</h4>
+      <h4 class="dm-board-section-title">COMBATE</h4>
+      <p class="dm-board-hint">{{ combatLabel }}</p>
+      @if (!detail.combat) {
+        <button class="retro-btn dm-board-btn dm-board-btn--wide" (click)="startFight.emit()">
+          <img class="ui-icon" src="assets/icons/swords.png" alt="" /> INICIAR LUTA
+        </button>
+      } @else {
+        <div class="dm-board-grid">
+          <button class="retro-btn dm-board-btn" (click)="addToCombat.emit()">+ ADICIONAR</button>
+          <button
+            class="retro-btn dm-board-btn dm-board-btn--danger"
+            [disabled]="endingCombat"
+            (click)="endCombat.emit()"
+          >
+            {{ endingCombat ? '...' : 'ENCERRAR' }}
+          </button>
+        </div>
+      }
+    </section>
+
+    <section class="dm-board-section">
+      <h4 class="dm-board-section-title">DADOS E MAGIAS</h4>
       <div class="dm-board-grid">
         <button class="retro-btn dm-board-btn" (click)="rollDice.emit()">
           <img class="ui-icon" src="assets/icons/d20.png" alt="" /> ROLAR DADOS
@@ -23,31 +46,10 @@
         <button class="retro-btn dm-board-btn" (click)="secretRoll.emit()">
           <img class="ui-icon" src="assets/icons/padlock.png" alt="" /> TESTE SECRETO
         </button>
+        <button class="retro-btn dm-board-btn dm-board-btn--wide" (click)="grimoire.emit()">
+          <img class="ui-icon" src="assets/icons/spellbook.png" alt="" /> GRIMÓRIO (TODAS AS MAGIAS)
+        </button>
       </div>
-    </section>
-
-    <section class="dm-board-section">
-      <h4 class="dm-board-section-title">ROLAGENS OCULTAS</h4>
-      @if (hiddenRolls.length === 0) {
-        <p class="dm-board-hint">NENHUMA ROLAGEM OCULTA OU TESTE SECRETO AINDA.</p>
-      } @else {
-        <ul class="dm-board-list">
-          @for (roll of hiddenRolls; track roll.id_roll) {
-            <li class="dm-board-roll">
-              <span class="dm-board-roll-info">
-                <span class="dm-board-roll-actor">
-                  {{ roll.actor_name }}
-                  <span class="dm-board-tag">{{
-                    isSecretAnswer(roll) ? 'SECRETO' : 'OCULTA'
-                  }}</span>
-                </span>
-                <span class="dm-board-roll-label">{{ roll.label }}</span>
-              </span>
-              <span class="dm-board-roll-total">{{ roll.total }}</span>
-            </li>
-          }
-        </ul>
-      }
     </section>
 
     <section class="dm-board-section">
@@ -92,6 +94,113 @@
             }
           }
         </div>
+      }
+    </section>
+
+    <section class="dm-board-section">
+      <h4 class="dm-board-section-title">DANO / CURA EM ÁREA</h4>
+      @if (areaTargets.length === 0) {
+        <p class="dm-board-hint">NINGUÉM NA SESSÃO.</p>
+      } @else {
+        <input
+          type="number"
+          min="1"
+          class="dm-board-amount"
+          placeholder="VALOR"
+          [value]="areaAmount() || ''"
+          (input)="setAreaAmount($event)"
+        />
+        <ul class="dm-board-list">
+          @for (target of areaTargets; track target.key) {
+            <li class="dm-board-row">
+              <label class="dm-board-check">
+                <input
+                  type="checkbox"
+                  class="retro-checkbox"
+                  [checked]="areaSelected().has(target.key)"
+                  (change)="toggleAreaTarget(target.key)"
+                />
+                <span class="dm-board-row-name">{{ target.name }}</span>
+              </label>
+              <button
+                class="retro-btn dm-board-toggle dm-board-half"
+                [class.dm-board-toggle--on]="areaHalf().has(target.key)"
+                title="Leva metade (passou na resistência ou tem resistência ao tipo)"
+                [disabled]="!areaSelected().has(target.key)"
+                (click)="toggleAreaHalf(target.key)"
+              >
+                ½
+              </button>
+            </li>
+          }
+        </ul>
+        <div class="dm-board-grid">
+          <button
+            class="retro-btn dm-board-btn dm-board-btn--danger"
+            [disabled]="!areaAmount() || areaSelected().size === 0"
+            (click)="applyAreaAmount('damage')"
+          >
+            DANO
+          </button>
+          <button
+            class="retro-btn dm-board-btn dm-board-btn--heal"
+            [disabled]="!areaAmount() || areaSelected().size === 0"
+            (click)="applyAreaAmount('heal')"
+          >
+            CURA
+          </button>
+        </div>
+      }
+    </section>
+
+    <section class="dm-board-section">
+      <h4 class="dm-board-section-title">CENA</h4>
+      <button class="retro-btn dm-board-btn dm-board-btn--wide" (click)="referenceImages.emit()">
+        <img class="ui-icon" src="assets/icons/picture.png" alt="" /> IMAGENS DE REFERÊNCIA
+      </button>
+      @if (detail.monsters.length > 0) {
+        <p class="dm-board-hint">
+          MONSTROS VISÍVEIS AOS JOGADORES: {{ revealedCount }}/{{ detail.monsters.length }}
+        </p>
+        <ul class="dm-board-list">
+          @for (monster of detail.monsters; track monster.id_monster_session) {
+            <li class="dm-board-row">
+              <span class="dm-board-row-name">{{ monsterName(monster) }}</span>
+              <button
+                class="retro-btn dm-board-toggle"
+                [class.dm-board-toggle--on]="monster.is_revealed"
+                [disabled]="revealingMonsterId === monster.id_monster_session"
+                (click)="toggleReveal.emit({ monster, event: $event })"
+              >
+                {{ monster.is_revealed ? 'VISÍVEL' : 'OCULTO' }}
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section class="dm-board-section">
+      <h4 class="dm-board-section-title">ROLAGENS OCULTAS</h4>
+      @if (hiddenRolls.length === 0) {
+        <p class="dm-board-hint">NENHUMA ROLAGEM OCULTA OU TESTE SECRETO AINDA.</p>
+      } @else {
+        <ul class="dm-board-list">
+          @for (roll of hiddenRolls; track roll.id_roll) {
+            <li class="dm-board-roll">
+              <span class="dm-board-roll-info">
+                <span class="dm-board-roll-actor">
+                  {{ roll.actor_name }}
+                  <span class="dm-board-tag">{{
+                    isSecretAnswer(roll) ? 'SECRETO' : 'OCULTA'
+                  }}</span>
+                </span>
+                <span class="dm-board-roll-label">{{ roll.label }}</span>
+              </span>
+              <span class="dm-board-roll-total">{{ roll.total }}</span>
+            </li>
+          }
+        </ul>
       }
     </section>
 
@@ -187,110 +296,6 @@
         @if (restMessage()) {
           <p class="dm-board-hint">{{ restMessage() }}</p>
         }
-      }
-    </section>
-
-    <section class="dm-board-section">
-      <h4 class="dm-board-section-title">DANO / CURA EM ÁREA</h4>
-      @if (areaTargets.length === 0) {
-        <p class="dm-board-hint">NINGUÉM NA SESSÃO.</p>
-      } @else {
-        <input
-          type="number"
-          min="1"
-          class="dm-board-amount"
-          placeholder="VALOR"
-          [value]="areaAmount() || ''"
-          (input)="setAreaAmount($event)"
-        />
-        <ul class="dm-board-list">
-          @for (target of areaTargets; track target.key) {
-            <li class="dm-board-row">
-              <label class="dm-board-check">
-                <input
-                  type="checkbox"
-                  class="retro-checkbox"
-                  [checked]="areaSelected().has(target.key)"
-                  (change)="toggleAreaTarget(target.key)"
-                />
-                <span class="dm-board-row-name">{{ target.name }}</span>
-              </label>
-              <button
-                class="retro-btn dm-board-toggle dm-board-half"
-                [class.dm-board-toggle--on]="areaHalf().has(target.key)"
-                title="Leva metade (passou na resistência ou tem resistência ao tipo)"
-                [disabled]="!areaSelected().has(target.key)"
-                (click)="toggleAreaHalf(target.key)"
-              >
-                ½
-              </button>
-            </li>
-          }
-        </ul>
-        <div class="dm-board-grid">
-          <button
-            class="retro-btn dm-board-btn dm-board-btn--danger"
-            [disabled]="!areaAmount() || areaSelected().size === 0"
-            (click)="applyAreaAmount('damage')"
-          >
-            DANO
-          </button>
-          <button
-            class="retro-btn dm-board-btn dm-board-btn--heal"
-            [disabled]="!areaAmount() || areaSelected().size === 0"
-            (click)="applyAreaAmount('heal')"
-          >
-            CURA
-          </button>
-        </div>
-      }
-    </section>
-
-    <section class="dm-board-section">
-      <h4 class="dm-board-section-title">CENA</h4>
-      <button class="retro-btn dm-board-btn dm-board-btn--wide" (click)="referenceImages.emit()">
-        <img class="ui-icon" src="assets/icons/picture.png" alt="" /> IMAGENS DE REFERÊNCIA
-      </button>
-      @if (detail.monsters.length > 0) {
-        <p class="dm-board-hint">
-          MONSTROS VISÍVEIS AOS JOGADORES: {{ revealedCount }}/{{ detail.monsters.length }}
-        </p>
-        <ul class="dm-board-list">
-          @for (monster of detail.monsters; track monster.id_monster_session) {
-            <li class="dm-board-row">
-              <span class="dm-board-row-name">{{ monsterName(monster) }}</span>
-              <button
-                class="retro-btn dm-board-toggle"
-                [class.dm-board-toggle--on]="monster.is_revealed"
-                [disabled]="revealingMonsterId === monster.id_monster_session"
-                (click)="toggleReveal.emit({ monster, event: $event })"
-              >
-                {{ monster.is_revealed ? 'VISÍVEL' : 'OCULTO' }}
-              </button>
-            </li>
-          }
-        </ul>
-      }
-    </section>
-
-    <section class="dm-board-section">
-      <h4 class="dm-board-section-title">COMBATE</h4>
-      <p class="dm-board-hint">{{ combatLabel }}</p>
-      @if (!detail.combat) {
-        <button class="retro-btn dm-board-btn dm-board-btn--wide" (click)="startFight.emit()">
-          <img class="ui-icon" src="assets/icons/swords.png" alt="" /> INICIAR LUTA
-        </button>
-      } @else {
-        <div class="dm-board-grid">
-          <button class="retro-btn dm-board-btn" (click)="addToCombat.emit()">+ ADICIONAR</button>
-          <button
-            class="retro-btn dm-board-btn dm-board-btn--danger"
-            [disabled]="endingCombat"
-            (click)="endCombat.emit()"
-          >
-            {{ endingCombat ? '...' : 'ENCERRAR' }}
-          </button>
-        </div>
       }
     </section>
 

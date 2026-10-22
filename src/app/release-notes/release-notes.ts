@@ -33,6 +33,21 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.6.6',
+    date: '2026-10-22',
+    title: 'Quadro do Mestre reorganizado e grimório completo',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'O Quadro do Mestre mostra primeiro o que mais se usa durante o jogo: combate, dados e magias, grupo, dano ou cura em área, cena e rolagens ocultas. Anotações, descanso, mesa, recompensas e sessão ficam depois.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'O mestre tem um GRIMÓRIO no quadro com todas as magias, em cartas, com busca pelo nome. Tocar numa carta mostra a magia em tela cheia, e fechar volta para o quadro.',
+      },
+    ],
+  },
+  {
     version: '1.6.5',
     date: '2026-10-22',
     title: 'Armas e magias como baralho e mão',

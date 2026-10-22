@@ -1408,6 +1408,14 @@
 @if (isOwner() && !dmBoardOpen() && sessionDetail()) {
   <app-dm-board-tab (expand)="openDmBoard()" />
 }
+<!-- ===== GRIMÓRIO DO MESTRE (todas as magias; fechar volta pro Quadro do Mestre) ===== -->
+@if (dmGrimoireOpen() && isOwner()) {
+  <app-spell-grimoire
+    title="GRIMÓRIO — TODAS AS MAGIAS"
+    backLabel="VOLTAR AO QUADRO"
+    (closed)="dmGrimoireOpen.set(false); openDmBoard()"
+  />
+}
 <!-- ===== AÇÕES DE PERSONAGEM (barra de baixo, jogador com personagem): abre direto as ações ===== -->
 @if (myPlayer(); as me) {
   @if (!activeActionsCharacter() && !activeInventoryPlayer()) {
@@ -1424,6 +1432,7 @@
     (closed)="closeDmBoard()"
     (rollDice)="closeDmBoard(); openDmRoll()"
     (secretRoll)="closeDmBoard(); openSecretRequest()"
+    (grimoire)="closeDmBoard(); dmGrimoireOpen.set(true)"
     (referenceImages)="closeDmBoard(); openReferenceImages()"
     (toggleReveal)="toggleMonsterReveal($event.monster, $event.event)"
     (startFight)="closeDmBoard(); openStartFightModal()"
