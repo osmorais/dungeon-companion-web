@@ -69,4 +69,18 @@
       }
     </div>
   }
+
+  @if (appliedLines().length > 0) {
+    <ul class="cs-applied" aria-live="polite">
+      @for (line of appliedLines(); track $index) {
+        <li
+          class="cs-applied-line"
+          [class.cs-applied-line--damage]="line.kind === 'damage'"
+          [class.cs-applied-line--heal]="line.kind !== 'damage'"
+        >
+          <span class="cs-applied-verb">APLICOU</span> {{ line.text }}
+        </li>
+      }
+    </ul>
+  }
 </div>

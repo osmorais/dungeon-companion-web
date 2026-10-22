@@ -21,6 +21,8 @@ import { AvatarPreset } from '../models/avatar-preset.interface';
 import { CharacterSheetResponse } from '../models/character-response.interface';
 import { Spell } from '../models/character-options.interface';
 import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
+import { XpBarComponent } from '../xp-bar/xp-bar.component';
+import { HpBarComponent } from '../hp-bar/hp-bar.component';
 import { PixelDieComponent } from '../pixel-die/pixel-die.component';
 import { PixelNumericDieComponent } from '../pixel-numeric-die/pixel-numeric-die.component';
 import { PlayerActionsModalComponent } from '../player-actions-modal/player-actions-modal.component';
@@ -81,6 +83,8 @@ import { hpColor, hpPercent } from './hp-display';
     SpellCastNoticeComponent,
     SpellGrimoireComponent,
     AvatarDisplayComponent,
+    XpBarComponent,
+    HpBarComponent,
     PixelDieComponent,
     PixelNumericDieComponent,
     PlayerActionsModalComponent,
@@ -273,7 +277,7 @@ export class SessionPanelComponent implements OnDestroy {
         );
       }
       if (event.type === 'amount_applied') {
-        this.showAmountAppliedToast(event.id_character, event.actor_name, event.amount, event.kind, event.target_label);
+        this.onAmountApplied(event);
       }
       if (event.type === 'spell_cast_stage') {
         this.onSpellCastStage(event);
@@ -536,12 +540,12 @@ export class SessionPanelComponent implements OnDestroy {
   }
 
   /** Aplica o resultado de uma rolagem no alvo, com as mesmas regras do dano/cura em lote. */
-  applyRollToTarget({ targetKey, amount, kind }: ApplyRequest): void {
+  applyRollToTarget({ targetKey, amount, kind, castId }: ApplyRequest): void {
     const detail = this.sessionDetail();
     if (!detail || amount <= 0) return;
     const [type, id] = targetKey.split(':');
     if (!this.isOwner()) {
-      this.applyViaServer(type as 'player' | 'npc' | 'monster', id, amount, kind);
+      this.applyViaServer(type as 'player' | 'npc' | 'monster', id, amount, kind, castId);
       return;
     }
     if (type === 'player') {
@@ -578,6 +582,7 @@ export class SessionPanelComponent implements OnDestroy {
     id: string,
     amount: number,
     kind: ApplyRequest['kind'],
+    castId?: string,
   ): void {
     const sessionId = this.sessionDetail()?.game_session.id_game_session;
     const actor = this.activeActionsCharacter();
@@ -589,6 +594,7 @@ export class SessionPanelComponent implements OnDestroy {
         target_id: id,
         amount,
         kind,
+        ...(castId ? { cast_id: castId } : {}),
       })
       .subscribe({
         next: (result) => {
@@ -659,6 +665,28 @@ export class SessionPanelComponent implements OnDestroy {
     this.router.navigate(['/session', this.id()], { replaceUrl: true });
   }
 
+  private playerOf(idCharacter: number): PlayerSession | undefined {
+    return this.sessionDetail()?.players.find((p) => p.id_character === idCharacter && p.character);
+  }
+
+  /** DANO/CURA na gaveta de ações: o dono do personagem (ou o mestre) mexe no PV dele ali. */
+  canAdjustHpFor(idCharacter: number): boolean {
+    const player = this.playerOf(idCharacter);
+    return !!player && this.canEditHp(player);
+  }
+
+  isSavingHpFor(idCharacter: number): boolean {
+    const player = this.playerOf(idCharacter);
+    return !!player && this.savingHp().has(player.id_player_session);
+  }
+
+  adjustHpFor(idCharacter: number, { kind, amount }: { kind: 'damage' | 'heal'; amount: number }): void {
+    const player = this.playerOf(idCharacter);
+    if (!player || !this.canEditHp(player)) return;
+    if (kind === 'damage') this.applyPlayerDamage(player, amount);
+    else this.applyPlayerHeal(player, amount);
+  }
+
   canEditHp(player: PlayerSession): boolean {
     if (!player.character) return false;
     if (this.isOwner()) return true;
@@ -720,14 +748,13 @@ export class SessionPanelComponent implements OnDestroy {
    * máximo de PV, o excedente vira um pedido de vida temporária nova — como ela não acumula com
    * uma já existente, abre confirmação em vez de aplicar direto.
    */
-  applyPlayerHeal(player: PlayerSession) {
+  applyPlayerHeal(player: PlayerSession, amount = this.playerDamageInput(player)) {
     const id = player.id_player_session;
-    const amount = this.playerDamageInput(player);
     if (!amount || this.savingHp().has(id)) return;
 
     const max = player.character!.max_hit_points;
     const wouldBe = this.editedHp(player) + amount;
-    this.clearPlayerDamageInput(player);
+    if (amount === this.playerDamageInput(player)) this.clearPlayerDamageInput(player);
 
     if (wouldBe <= max) {
       this.commitPlayerHp(player, wouldBe, this.editedTempHp(player));
@@ -1600,6 +1627,7 @@ export class SessionPanelComponent implements OnDestroy {
         return entry ? [castRollView(ref, entry)] : [];
       }),
       saveNote: stage.save_dc && stage.save_ability ? saveNote(stage.save_dc, stage.save_ability) : null,
+      applied: stage.applied ?? [],
       done: stage.phase === 'done',
     };
   });
@@ -1686,6 +1714,8 @@ export class SessionPanelComponent implements OnDestroy {
               max: summary.max_hit_points,
               temp: player ? this.editedTempHp(player) : (summary.temporary_hit_points ?? 0),
             },
+            xp: summary.experience_points,
+            nextLevelXp: summary.next_level_xp,
           }
         : null,
     };
@@ -1713,6 +1743,19 @@ export class SessionPanelComponent implements OnDestroy {
   } | null>(null);
   private spellCastToastTimer: ReturnType<typeof setTimeout> | null = null;
   private spellCastToastCounter = 0;
+
+  /** Aplicação dentro de um lançamento aparece no aviso dele (etapa com `applied`), sem aviso
+   *  avulso por cima; fora de lançamento continua o aviso "APLICOU". */
+  onAmountApplied(event: SessionEventPayloadMap['amount_applied']): void {
+    if (event.cast_id) return;
+    this.showAmountAppliedToast(
+      event.id_character,
+      event.actor_name,
+      event.amount,
+      event.kind,
+      event.target_label,
+    );
+  }
 
   /** "Ana APLICOU 8 de dano em Goblin" — o mesmo valor em vários alvos seguidos junta os nomes. */
   showAmountAppliedToast(

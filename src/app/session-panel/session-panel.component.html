@@ -160,8 +160,11 @@
                   <button class="delete-btn" title="Remover jogador" (click)="deletePlayer(player.id_player_session)">✕</button>
                 }
 
-                <div class="mobile-avatar-circle">
-                  <app-avatar-display [preset]="player.character?.avatar_preset ?? null" />
+                <div class="avatar-ring-wrap mobile-avatar-ring">
+                  <div class="mobile-avatar-circle">
+                    <app-avatar-display [preset]="player.character?.avatar_preset ?? null" />
+                  </div>
+                  <span class="avatar-ring" aria-hidden="true"></span>
                 </div>
 
                 @if (player.character) {
@@ -169,24 +172,14 @@
                   <span class="mobile-char-name">{{ player.character.name }}</span>
                   <span class="mobile-char-meta">{{ player.character.class }}</span>
                   <span class="mobile-char-meta">{{ player.character.race }}</span>
-                  <span class="mobile-char-level">NV {{ player.character.level }} &mdash; {{ player.character.experience_points }} XP</span>
+                  <app-xp-bar class="mobile-xp-bar" [level]="player.character.level"
+                    [xp]="player.character.experience_points" [nextLevelXp]="player.character.next_level_xp" />
 
                   <div class="mobile-hp">
-                    <div class="mobile-hp-bar">
-                      <div class="mobile-hp-fill"
-                        [style.width.%]="hpGreenPercent(editedHp(player), player.character.max_hit_points, editedTempHp(player))"
-                        [style.background-color]="hpColor(editedHp(player), player.character.max_hit_points)">
-                      </div>
-                      @if (editedTempHp(player) > 0) {
-                        <div class="mobile-hp-fill-temp"
-                          [style.width.%]="hpTempPercent(editedHp(player), player.character.max_hit_points, editedTempHp(player))">
-                        </div>
-                      }
-                    </div>
-                    <span class="mobile-hp-value">
-                      <img class="ui-icon" src="assets/icons/heart.png" alt="" /> {{ editedHp(player) }}/{{ player.character.max_hit_points }}{{ editedTempHp(player) > 0 ? ' +' + editedTempHp(player) : '' }}
-                    </span>
-                    @if (canEditHp(player)) {
+                    <app-hp-bar class="session-hp-bar" [current]="editedHp(player)"
+                      [max]="player.character.max_hit_points" [temp]="editedTempHp(player)" />
+                    <!-- Mestre aplica em todos pelos cards; o jogador aplica no próprio pela gaveta AÇÕES -->
+                    @if (isOwner()) {
                       <div class="hp-delta-controls">
                         <input type="number" min="0" class="hp-delta-input" placeholder="0"
                           [value]="playerDamageInput(player) || ''"
@@ -549,8 +542,11 @@
                 <div class="avatar-hover-wrap"
                   (mouseenter)="onAvatarHoverStart(player.id_character)"
                   (mouseleave)="onAvatarHoverEnd()">
-                  <div class="avatar-circle">
-                    <app-avatar-display [preset]="player.character?.avatar_preset ?? null" />
+                  <div class="avatar-ring-wrap card-avatar-ring">
+                    <div class="avatar-circle">
+                      <app-avatar-display [preset]="player.character?.avatar_preset ?? null" />
+                    </div>
+                    <span class="avatar-ring" aria-hidden="true"></span>
                   </div>
                   @if (avatarTooltipVisibleFor(player.id_character)) {
                     <div class="avatar-tooltip">
@@ -582,24 +578,14 @@
                   <span class="player-label">{{ player.player_name }}</span>
                   <span class="char-name">{{ player.character.name }}</span>
                   <span class="char-meta">{{ player.character.class }} — {{ player.character.race }}</span>
-                  <span class="char-level">NÍVEL {{ player.character.level }} &mdash; {{ player.character.experience_points }} XP</span>
+                  <app-xp-bar class="card-xp-bar" [level]="player.character.level"
+                    [xp]="player.character.experience_points" [nextLevelXp]="player.character.next_level_xp" />
 
                   <div class="hp-section">
-                    <div class="hp-bar">
-                      <div class="hp-fill"
-                        [style.width.%]="hpGreenPercent(editedHp(player), player.character.max_hit_points, editedTempHp(player))"
-                        [style.background-color]="hpColor(editedHp(player), player.character.max_hit_points)">
-                      </div>
-                      @if (editedTempHp(player) > 0) {
-                        <div class="hp-fill-temp"
-                          [style.width.%]="hpTempPercent(editedHp(player), player.character.max_hit_points, editedTempHp(player))">
-                        </div>
-                      }
-                    </div>
-                    <span class="hp-text">
-                      <img class="ui-icon" src="assets/icons/heart.png" alt="" /> {{ editedHp(player) }}/{{ player.character.max_hit_points }}{{ editedTempHp(player) > 0 ? ' +' + editedTempHp(player) : '' }}
-                    </span>
-                    @if (canEditHp(player)) {
+                    <app-hp-bar class="session-hp-bar" [current]="editedHp(player)"
+                      [max]="player.character.max_hit_points" [temp]="editedTempHp(player)" />
+                    <!-- Mestre aplica em todos pelos cards; o jogador aplica no próprio pela gaveta AÇÕES -->
+                    @if (isOwner()) {
                       <div class="hp-delta-controls">
                         <input type="number" min="0" class="hp-delta-input" placeholder="0"
                           [value]="playerDamageInput(player) || ''"
@@ -885,6 +871,9 @@
     [endingTurn]="endingTurn()"
     [delayingTurn]="delayingTurn()"
     [showLinks]="myPlayer()?.id_character === actionsChar.id"
+    [canAdjustHp]="canAdjustHpFor(actionsChar.id)"
+    [savingHp]="isSavingHpFor(actionsChar.id)"
+    (adjustHp)="adjustHpFor(actionsChar.id, $event)"
     [actorCard]="characterCardFor(actionsChar.id, actionsChar.name)"
     (ownCast)="markOwnCast($event)"
     (endTurn)="closePlayerActions(); endTurn()"
@@ -1166,12 +1155,15 @@
         (click)="$event.stopPropagation()">
         <button class="modal-close-btn" (click)="closeRollToast()">✕</button>
         <span class="roll-toast-label">@if (toast.is_hidden) { <img class="ui-icon" src="assets/icons/padlock.png" alt="" /> }{{ toast.label }}{{ advantageSuffix(toast) }}</span>
-        <div class="roll-toast-avatar-circle">
-          @if (toast.id_character === null) {
-            <img class="roll-toast-dm-icon" src="assets/dm.png" alt="Mestre" />
-          } @else {
-            <app-avatar-display [preset]="rollToastAvatarPreset(toast)" />
-          }
+        <div class="avatar-ring-wrap roll-toast-ring">
+          <div class="roll-toast-avatar-circle">
+            @if (toast.id_character === null) {
+              <img class="roll-toast-dm-icon" src="assets/dm.png" alt="Mestre" />
+            } @else {
+              <app-avatar-display [preset]="rollToastAvatarPreset(toast)" />
+            }
+          </div>
+          <span class="avatar-ring" aria-hidden="true"></span>
         </div>
         <span class="roll-toast-actor">{{ toast.actor_name }}</span>
         <div class="roll-toast-dice">
@@ -1236,8 +1228,11 @@
         [style.background-image]="imageUrlForCharacter(c.idCharacter) ? ('linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(' + imageUrlForCharacter(c.idCharacter) + ')') : null"
         (click)="$event.stopPropagation()">
         <button class="modal-close-btn" (click)="closeSpellCastToast()">✕</button>
-        <div class="spell-cast-avatar-circle">
-          <app-avatar-display [preset]="avatarPresetForCharacter(c.idCharacter)" />
+        <div class="avatar-ring-wrap spell-cast-ring">
+          <div class="spell-cast-avatar-circle">
+            <app-avatar-display [preset]="avatarPresetForCharacter(c.idCharacter)" />
+          </div>
+          <span class="avatar-ring" aria-hidden="true"></span>
         </div>
         <span class="spell-cast-actor">{{ c.actorName }}</span>
         <span class="spell-cast-label">{{ c.verb ?? (c.isAbility ? 'USOU' : 'LANÇOU') }}</span>

@@ -31,43 +31,25 @@
       @if (cat.entries.length === 0) {
         <p class="m-empty">NINGUÉM AINDA.<br />JOGUE NUMA MESA PARA APARECER AQUI.</p>
       } @else {
-        <div class="rk-podium">
-          @for (e of podium(); track e.position) {
-            <div class="rk-place" [attr.data-place]="e.position">
-              <span class="rk-medal">{{ e.position }}º</span>
-              <div class="rk-avatar rk-avatar--big">
+        <ol class="rk-list">
+          @for (e of cat.entries; track e.position) {
+            <li class="rk-row" [attr.data-place]="e.position">
+              <span class="rk-pos">{{ e.position }}º</span>
+              <div class="rk-avatar">
                 <app-avatar-display [preset]="e.avatar_preset" />
               </div>
-              <span class="rk-value">{{ formatValue(e.value) }}</span>
-              <span class="rk-unit">{{ cat.unit }}</span>
-              <span class="rk-char">{{ e.character_name }}</span>
-              <span class="rk-meta">{{ e.player_name }}</span>
-              <span class="rk-meta rk-meta--session">{{ e.session_name }}</span>
-              <span class="rk-step"></span>
-            </div>
+              <span class="rk-row-text">
+                <span class="rk-char">{{ e.character_name }}</span>
+                <span class="rk-meta">{{ e.player_name }}</span>
+                <span class="rk-meta rk-meta--session">{{ e.session_name }}</span>
+              </span>
+              <span class="rk-row-value">
+                {{ formatValue(e.value) }}
+                <small>{{ cat.unit }}</small>
+              </span>
+            </li>
           }
-        </div>
-
-        @if (rest().length) {
-          <ol class="rk-list">
-            @for (e of rest(); track e.position) {
-              <li class="rk-row">
-                <span class="rk-pos">{{ e.position }}º</span>
-                <div class="rk-avatar">
-                  <app-avatar-display [preset]="e.avatar_preset" />
-                </div>
-                <span class="rk-row-text">
-                  <span class="rk-char">{{ e.character_name }}</span>
-                  <span class="rk-meta">{{ e.player_name }} · {{ e.session_name }}</span>
-                </span>
-                <span class="rk-row-value">
-                  {{ formatValue(e.value) }}
-                  <small>{{ cat.unit }}</small>
-                </span>
-              </li>
-            }
-          </ol>
-        }
+        </ol>
       }
     </section>
 

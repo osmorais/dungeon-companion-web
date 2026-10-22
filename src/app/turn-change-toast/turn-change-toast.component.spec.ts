@@ -79,7 +79,9 @@ describe('TurnChangeToastComponent', () => {
     expect(incoming.classList).toContain('framed-card');
     expect(incoming.textContent).toContain('Ana');
     expect(incoming.textContent).toContain('Maga — Elfa');
-    expect(incoming.textContent).toContain('NÍVEL 5');
+    expect(incoming.querySelector('[role="progressbar"]')?.getAttribute('aria-label')).toContain(
+      'Nível 5',
+    );
     expect(incoming.textContent).toContain('20/27 +3');
     expect(incoming.style.backgroundImage).toContain('lyra.png');
     const outgoing = el.querySelector('.turn-toast-card--out .turn-card') as HTMLElement;

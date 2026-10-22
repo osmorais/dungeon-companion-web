@@ -12,7 +12,7 @@ import { CharacterCardComponent } from '../character-card/character-card.compone
 import { GameCardComponent } from '../game-card/game-card.component';
 import { PixelDieComponent } from '../pixel-die/pixel-die.component';
 import { PixelNumericDieComponent } from '../pixel-numeric-die/pixel-numeric-die.component';
-import { CastStageView } from './spell-cast-stage.model';
+import { appliedLines, CastStageView } from './spell-cast-stage.model';
 
 /** Carta jogada: cai de costas, fica um instante mostrando o verso e vira (ver `cs-throw`). */
 export const CAST_INTRO_MS = 2400;
@@ -115,6 +115,11 @@ export class SpellCastStageComponent implements OnInit, OnChanges, OnDestroy {
   /** Rolagens que já podem aparecer (depois da carta virar), na ordem. */
   visibleRolls() {
     return this.introDone() ? this.view.rolls.filter((r) => this.known.has(r.id)) : [];
+  }
+
+  /** "APLICOU 8 de dano em Goblin" — só depois que as cartas assentaram. */
+  appliedLines() {
+    return this.introDone() ? appliedLines(this.view.applied ?? []) : [];
   }
 
   rollLabel(kind: 'attack' | 'damage' | 'heal'): string {

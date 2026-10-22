@@ -346,3 +346,37 @@
     display: none;
   }
 }
+
+// O que já foi aplicado nos alvos (no lugar do aviso avulso "APLICOU", 1.7.2).
+.cs-applied {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cs-applied-line {
+  padding: 6px 10px;
+  border: 2px solid var(--border-color);
+  background-color: rgba(0, 0, 0, 0.35);
+  font-size: 8px;
+  line-height: 1.6;
+  color: var(--text-color);
+  overflow-wrap: anywhere;
+  animation: cs-appear 0.3s ease-out;
+
+  &--damage {
+    border-color: #a8322a;
+  }
+
+  &--heal {
+    border-color: #3e8a3e;
+  }
+}
+
+.cs-applied-verb {
+  color: var(--accent-color);
+}

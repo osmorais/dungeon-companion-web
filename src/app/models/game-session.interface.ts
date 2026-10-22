@@ -48,6 +48,8 @@ export interface PlayerCharacterSummary {
   /** Amortecedor de dano à parte do PV normal — pode deixar o total acima do máximo. */
   temporary_hit_points: number;
   experience_points: number;
+  /** XP total do próximo nível (`null` no 20; ausente na API antiga). */
+  next_level_xp?: number | null;
   avatar_preset?: import('./avatar-preset.interface').AvatarPreset | null;
   /** Foto de verdade, à parte do avatar_preset — usada como fundo do toast de rolagem. */
   image_url: string | null;
@@ -239,6 +241,13 @@ export interface WeaponCardInfo {
 }
 
 /** Etapa de um lançamento de magia ou ataque com arma (POST /spell-cast-stage). */
+/** Dano/cura do lançamento já aplicado num alvo (aparece no aviso, sem aviso avulso). */
+export interface CastStageApplied {
+  label: string;
+  amount: number;
+  kind: 'damage' | 'heal' | 'temp_hp';
+}
+
 export interface SpellCastStagePayload {
   cast_id: string;
   id_character: number;
@@ -248,6 +257,7 @@ export interface SpellCastStagePayload {
   weapon?: WeaponCardInfo | null;
   phase: 'open' | 'done';
   rolls: CastStageRoll[];
+  applied?: CastStageApplied[];
   save_dc?: number | null;
   save_ability?: 'STR' | 'DEX' | 'CON' | 'INT' | 'WIS' | 'CHA' | null;
 }

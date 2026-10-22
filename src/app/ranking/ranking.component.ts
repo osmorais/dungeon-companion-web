@@ -3,7 +3,7 @@ import { NgTemplateOutlet } from '@angular/common';
 import { Router } from '@angular/router';
 import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
 import { RankingService } from '../services/ranking.service';
-import { RankingCategory, RankingEntry } from '../models/ranking.interface';
+import { RankingCategory } from '../models/ranking.interface';
 
 /** Ranking global (1.7.0): os maiores feitos de cada categoria, de todas as mesas. */
 @Component({
@@ -33,14 +33,6 @@ export class RankingComponent implements OnInit {
     const list = this.categories();
     return list.find((c) => c.key === this.activeKey()) ?? list[0] ?? null;
   });
-
-  /** Pódio na ordem de exibição: 2º, 1º, 3º (o primeiro no meio, mais alto). */
-  podium = computed(() => {
-    const top = this.active()?.entries.slice(0, 3) ?? [];
-    return [top[1], top[0], top[2]].filter((e): e is RankingEntry => !!e);
-  });
-
-  rest = computed(() => this.active()?.entries.slice(3) ?? []);
 
   ngOnInit() {
     this.load();

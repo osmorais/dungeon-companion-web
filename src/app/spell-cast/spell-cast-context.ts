@@ -1,6 +1,7 @@
 import { CharacterCardData } from '../character-card/character-card.component';
 import { GameCardData } from '../game-card/game-card.model';
 import {
+  CastStageApplied,
   CastStageRoll,
   SpellCastStagePayload,
   WeaponCardInfo,
@@ -36,6 +37,7 @@ export function castStagePayload(
   actorName: string,
   phase: 'open' | 'done',
   rolls: CastStageRoll[],
+  applied: CastStageApplied[] = [],
 ): SpellCastStagePayload {
   return {
     cast_id: ctx.castId,
@@ -44,6 +46,7 @@ export function castStagePayload(
     ...(ctx.weapon ? { weapon: ctx.weapon } : { id_spell: ctx.idSpell }),
     phase,
     rolls,
+    applied,
     save_dc: ctx.saveDc,
     save_ability: ctx.saveAbility,
   };

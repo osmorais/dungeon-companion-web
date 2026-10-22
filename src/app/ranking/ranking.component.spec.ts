@@ -41,20 +41,18 @@ describe('RankingComponent', () => {
     });
   });
 
-  it('abre na primeira categoria, com o 1º no meio do pódio e o resto na lista', () => {
+  it('abre na primeira categoria, com a lista em ordem de posição', () => {
     const c = create();
     expect(c.loading()).toBe(false);
     expect(c.active()?.key).toBe('damage_dealt');
-    expect(c.podium().map((e) => e.position)).toEqual([2, 1, 3]);
-    expect(c.rest().map((e) => e.position)).toEqual([4, 5]);
+    expect(c.active()?.entries.map((e) => e.position)).toEqual([1, 2, 3, 4, 5]);
   });
 
-  it('trocar de categoria; pódio incompleto não deixa buraco', () => {
+  it('trocar de categoria', () => {
     const c = create();
     c.selectCategory('nat20');
     expect(c.active()?.key).toBe('nat20');
-    expect(c.podium().map((e) => e.position)).toEqual([2, 1]);
-    expect(c.rest()).toEqual([]);
+    expect(c.active()?.entries).toHaveLength(2);
   });
 
   it('formata números no padrão brasileiro (média com uma casa)', () => {

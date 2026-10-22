@@ -1,6 +1,6 @@
 import { CharacterCardData } from '../character-card/character-card.component';
 import { GameCardData } from '../game-card/game-card.model';
-import { CastStageRoll, RollLogEntry } from '../models/game-session.interface';
+import { CastStageApplied, CastStageRoll, RollLogEntry } from '../models/game-session.interface';
 
 /** Rolagem do lançamento já com os dados pra desenhar (dados em pixel art + total). */
 export interface CastStageRollView {
@@ -31,8 +31,35 @@ export interface CastStageView {
   rolls: CastStageRollView[];
   /** Magia de resistência: "CD 14 de Destreza". */
   saveNote: string | null;
+  /** Dano/cura já aplicado nos alvos (no lugar do aviso avulso "APLICOU"). */
+  applied: CastStageApplied[];
   /** Quem lança terminou: o aviso da mesa some sozinho depois de alguns segundos. */
   done: boolean;
+}
+
+/** "8 de dano em Goblin" — mesmo valor e tipo em vários alvos seguidos juntam os nomes. */
+export function appliedLines(
+  applied: CastStageApplied[],
+): { text: string; kind: CastStageApplied['kind'] }[] {
+  const groups: { amount: number; kind: CastStageApplied['kind']; labels: string[] }[] = [];
+  for (const a of applied) {
+    const last = groups[groups.length - 1];
+    if (last && last.amount === a.amount && last.kind === a.kind) last.labels.push(a.label);
+    else groups.push({ amount: a.amount, kind: a.kind, labels: [a.label] });
+  }
+  return groups.map(({ amount, kind, labels }) => {
+    const what =
+      amount === 0
+        ? kind === 'damage'
+          ? 'nenhum dano'
+          : 'nenhuma cura'
+        : kind === 'damage'
+          ? `${amount} de dano`
+          : kind === 'heal'
+            ? `${amount} de cura`
+            : `${amount} PV temporários`;
+    return { text: `${what} em ${labels.join(', ')}`, kind };
+  });
 }
 
 /** "2d6 + 1d8" com 3 dados → [6, 6, 8]; d20 com vantagem (2 dados, "1d20") repete o último. */

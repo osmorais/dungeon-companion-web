@@ -688,6 +688,44 @@ describe('SessionPanelComponent', () => {
     });
   });
 
+  describe('DANO/CURA na gaveta de ações (1.7.2)', () => {
+    it('dano no próprio personagem consome os temporários primeiro e grava o PV', () => {
+      detail.set(
+        sessionDetail({
+          players: [
+            player('p1', {
+              id_character: 5,
+              character: {
+                ...player('p1').character!,
+                current_hit_points: 15,
+                temporary_hit_points: 3,
+              },
+            }),
+          ],
+        }),
+      );
+      expect(component.canAdjustHpFor(5)).toBe(true); // mestre (dono da sessão)
+      component.adjustHpFor(5, { kind: 'damage', amount: 5 });
+      expect(gameSessionService.updatePlayerHp).toHaveBeenCalledWith('p1', 13, 0);
+    });
+
+    it('cura vai até o máximo; personagem fora da mesa não pode', () => {
+      detail.set(
+        sessionDetail({
+          players: [
+            player('p1', {
+              id_character: 5,
+              character: { ...player('p1').character!, current_hit_points: 10 },
+            }),
+          ],
+        }),
+      );
+      component.adjustHpFor(5, { kind: 'heal', amount: 4 });
+      expect(gameSessionService.updatePlayerHp).toHaveBeenCalledWith('p1', 14, 0);
+      expect(component.canAdjustHpFor(99)).toBe(false);
+    });
+  });
+
   describe('aviso "aplicou"', () => {
     it('junta vários alvos do mesmo valor num aviso só', () => {
       component.showAmountAppliedToast(20, 'Ana', 8, 'damage', 'Goblin');
@@ -753,6 +791,8 @@ describe('SessionPanelComponent', () => {
         race: 'Humano',
         level: 1,
         hp: { current: 20, max: 20, temp: 0 },
+        xp: 0,
+        nextLevelXp: undefined,
       });
     });
 
@@ -976,6 +1016,26 @@ describe('SessionPanelComponent', () => {
         expect.objectContaining({ id: 'atk', total: 20, outcome: 'pending' }),
       ]);
       expect(view.done).toBe(false);
+    });
+
+    it('o que foi aplicado vai no aviso do lançamento, sem o aviso "aplicou" por cima', () => {
+      component.onSpellCastStage(
+        stage('c1', { applied: [{ label: 'Goblin', amount: 8, kind: 'damage' }] }),
+      );
+      expect(component.activeCastView()?.applied).toEqual([
+        { label: 'Goblin', amount: 8, kind: 'damage' },
+      ]);
+      const applied = {
+        id_character: 20,
+        actor_name: 'Ana',
+        target_label: 'Goblin',
+        amount: 8,
+        kind: 'damage' as const,
+      };
+      component.onAmountApplied({ ...applied, cast_id: 'c1' });
+      expect(component.activeSpellCastToast()).toBeNull();
+      component.onAmountApplied(applied);
+      expect(component.activeSpellCastToast()).toMatchObject({ verb: 'APLICOU' });
     });
 
     it('terminou: some depois de 8 s; etapa atrasada desse lançamento não reabre', () => {

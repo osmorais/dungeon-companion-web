@@ -1,0 +1,19 @@
+<div
+  class="fb xp-bar"
+  [class.xp-bar--ready]="canLevelUp"
+  role="progressbar"
+  aria-valuemin="0"
+  aria-valuemax="100"
+  [attr.aria-valuenow]="percent"
+  [attr.aria-label]="'Nível ' + level + ': ' + label"
+>
+  <span class="fb-track"><span class="fb-fill xp-fill" [style.width.%]="fillPercent"></span></span>
+  <span class="fb-frame" aria-hidden="true"></span>
+  <span
+    class="fb-medal xp-level"
+    [class.xp-level--filled]="medalState === 'xp'"
+    aria-hidden="true"
+    >{{ level }}</span
+  >
+  <span class="fb-text" aria-hidden="true">{{ label }}</span>
+</div>

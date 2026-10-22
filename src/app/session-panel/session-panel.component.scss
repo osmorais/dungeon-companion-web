@@ -224,18 +224,28 @@
 
 .avatar-hover-wrap {
   position: relative;
+  display: flow-root;
   flex-shrink: 0;
 }
 
 .avatar-circle {
-  /* Acompanha a altura da tela: 2 linhas de 3 cards cabem sem rolar em 1080p (e em telas mais
-     baixas o avatar encolhe antes de aparecer rolagem). */
-  width: clamp(60px, 9vh, 120px);
-  height: clamp(60px, 9vh, 120px);
   border-radius: 50%;
   overflow: hidden;
-  border: 3px solid var(--border-color);
   flex-shrink: 0;
+}
+
+/* Acompanha a altura da tela: 2 linhas de 3 cards cabem sem rolar em 1080p (e em telas mais
+   baixas o avatar encolhe antes de aparecer rolagem). Menor que antes por causa do anel. */
+.card-avatar-ring {
+  --avatar-size: clamp(48px, 7vh, 92px);
+}
+
+.mobile-avatar-ring {
+  --avatar-size: 56px;
+}
+
+.session-hp-bar {
+  margin-top: 2px;
 }
 
 .avatar-tooltip {
@@ -315,9 +325,8 @@
   }
 }
 
-.char-level {
-  font-size: 7px;
-  color: var(--label-title-color);
+.card-xp-bar {
+  margin: 4px 0 2px;
 }
 
 .hp-section {
@@ -327,30 +336,9 @@
   width: 100%;
 }
 
-.hp-bar {
-  width: 100%;
-  height: 6px;
-  background-color: var(--panel-bg);
-  border: 1px solid var(--border-color);
-  display: flex;
-}
 
-.hp-fill {
-  height: 100%;
-  background-color: #4caf50; /* fallback; sobrescrito pelo binding hpColor() */
-  transition: width 0.3s;
-}
 
-.hp-fill-temp {
-  height: 100%;
-  background-color: #2196f3;
-  transition: width 0.3s;
-}
 
-.hp-text {
-  font-size: 7px;
-  color: var(--text-color);
-}
 
 /* Grade de 3 colunas pros botões do card do jogador (ícone em cima, texto embaixo) — em vez de
    empilhar um botão largura-total por linha, o que fazia o card crescer muito na vertical
@@ -1005,11 +993,8 @@
 }
 
 .mobile-avatar-circle {
-  width: 70px;
-  height: 70px;
   border-radius: 50%;
   overflow: hidden;
-  border: 2px solid var(--border-color);
   flex-shrink: 0;
 }
 
@@ -1036,9 +1021,8 @@
   }
 }
 
-.mobile-char-level {
-  font-size: 6px;
-  color: var(--label-title-color);
+.mobile-xp-bar {
+  margin: 4px 0 2px;
 }
 
 .mobile-hp {
@@ -1049,30 +1033,9 @@
   width: 100%;
 }
 
-.mobile-hp-bar {
-  width: 100%;
-  height: 5px;
-  background-color: var(--panel-bg);
-  border: 1px solid var(--border-color);
-  display: flex;
-}
 
-.mobile-hp-fill {
-  height: 100%;
-  background-color: #4caf50; /* fallback; sobrescrito pelo binding hpColor() */
-  transition: width 0.3s;
-}
 
-.mobile-hp-fill-temp {
-  height: 100%;
-  background-color: #2196f3;
-  transition: width 0.3s;
-}
 
-.mobile-hp-value {
-  font-size: 6px;
-  color: var(--text-color);
-}
 
 .mobile-player-action-btn {
   font-size: 5px;
@@ -1585,13 +1548,13 @@
   background-position: center;
 }
 
+.roll-toast-ring {
+  --avatar-size: 100px;
+}
+
 .roll-toast-avatar-circle {
-  width: 120px;
-  height: 120px;
   border-radius: 50%;
   overflow: hidden;
-  border: 3px solid var(--border-color);
-  flex-shrink: 0;
 }
 
 .roll-toast-dm-icon {
@@ -1688,13 +1651,13 @@
   background-position: center;
 }
 
+.spell-cast-ring {
+  --avatar-size: 84px;
+}
+
 .spell-cast-avatar-circle {
-  width: 100px;
-  height: 100px;
   border-radius: 50%;
   overflow: hidden;
-  border: 3px solid var(--border-color);
-  flex-shrink: 0;
 }
 
 .spell-cast-actor {

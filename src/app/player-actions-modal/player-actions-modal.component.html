@@ -192,6 +192,19 @@
             <span class="pa-stat-value">{{ hitDiceAvailable() }}/{{ hitDiceTotal() }}</span>
           </div>
         </div>
+        @if (canAdjustHp) {
+          <!-- DANO/CURA no próprio PV (saiu do card da sessão; o mestre continua com os dos cards) -->
+          <div class="pa-hp-adjust" role="group" aria-label="Dano ou cura no próprio personagem">
+            <span class="pa-stat-label">PV</span>
+            <input type="number" min="0" class="pa-hp-input" placeholder="0" aria-label="Quantidade"
+              [value]="hpAmount() || ''" (input)="setHpAmount($event)"
+              (keydown.enter)="submitHp('damage')" />
+            <button class="pa-hp-btn pa-hp-btn--damage" [disabled]="!hpAmount() || savingHp"
+              (click)="submitHp('damage')">DANO</button>
+            <button class="pa-hp-btn pa-hp-btn--heal" [disabled]="!hpAmount() || savingHp"
+              (click)="submitHp('heal')">CURA</button>
+          </div>
+        }
         <div class="pa-hero-actions">
           @if (canEndTurn) {
             <button class="pa-freeform-btn pa-hero-btn pa-hero-btn--main" [disabled]="endingTurn" (click)="endTurn.emit()">

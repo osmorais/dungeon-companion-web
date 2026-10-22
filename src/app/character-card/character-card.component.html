@@ -8,23 +8,16 @@
   "
 >
   @if (card.character; as ch) {
-    <div class="turn-card-avatar"><app-avatar-display [preset]="card.avatarPreset" /></div>
+    <div class="avatar-ring-wrap turn-card-ring">
+      <div class="turn-card-avatar"><app-avatar-display [preset]="card.avatarPreset" /></div>
+      <span class="avatar-ring" aria-hidden="true"></span>
+    </div>
     <span class="turn-card-player">{{ ch.playerName ?? 'NPC' }}</span>
     <span class="turn-card-name">{{ card.name }}</span>
     <span class="turn-card-meta">{{ ch.className }} — {{ ch.race }}</span>
-    <span class="turn-card-meta">NÍVEL {{ ch.level }}</span>
-    <div class="turn-card-hp">
-      <div class="turn-card-hp-bar">
-        <div
-          class="turn-card-hp-fill"
-          [style.width.%]="hpPercent(ch.hp.current, ch.hp.max)"
-          [style.background-color]="hpColor(ch.hp.current, ch.hp.max)"
-        ></div>
-      </div>
-      <span class="turn-card-hp-text">
-        <img class="ui-icon" src="assets/icons/heart.png" alt="" />
-        {{ ch.hp.current }}/{{ ch.hp.max }}{{ ch.hp.temp > 0 ? ' +' + ch.hp.temp : '' }}
-      </span>
+    <div class="turn-card-bars">
+      <app-xp-bar [level]="ch.level" [xp]="ch.xp ?? 0" [nextLevelXp]="ch.nextLevelXp" />
+      <app-hp-bar [current]="ch.hp.current" [max]="ch.hp.max" [temp]="ch.hp.temp" />
     </div>
   } @else {
     <img class="turn-card-image" [src]="card.imageUrl || 'assets/monster.png'" [alt]="card.name" />

@@ -36,6 +36,7 @@ const view = (rolls: CastStageRollView[]): CastStageView => ({
   },
   rolls,
   saveNote: null,
+  applied: [],
   done: false,
 });
 
@@ -72,6 +73,18 @@ describe('SpellCastStageComponent — carta virada e rolagens com impacto', () =
     expect(stage.isRevealed('atk')).toBe(true);
     expect(revealed).toEqual(['atk']);
     expect(stage.shaking()).toBe(false); // ataque não treme
+  });
+
+  it('o que foi aplicado aparece no aviso, só depois que a carta assenta', () => {
+    stage.view = {
+      ...view([roll('dmg', 'damage')]),
+      applied: [{ label: 'Goblin', amount: 8, kind: 'damage' }],
+    };
+    stage.ngOnInit();
+    stage.ngOnChanges();
+    expect(stage.appliedLines()).toEqual([]);
+    vi.advanceTimersByTime(CAST_INTRO_MS);
+    expect(stage.appliedLines()).toEqual([{ text: '8 de dano em Goblin', kind: 'damage' }]);
   });
 
   it('dano chega depois: rola, bate na tela e o aviso treme', () => {

@@ -158,6 +158,7 @@ export class GameSessionService {
       target_id: string;
       amount: number;
       kind: 'damage' | 'heal' | 'temp_hp';
+      cast_id?: string;
     },
   ): Observable<{ current_hit_points?: number; temporary_hit_points?: number }> {
     return this.http.post<{ current_hit_points?: number; temporary_hit_points?: number }>(

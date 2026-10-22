@@ -1,0 +1,14 @@
+@use 'frame-bar';
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+.hp-frame-bar {
+  @include frame-bar.geometry('hpf', var(--hp-frame));
+}
+
+.hp-temp {
+  background-color: #2196f3;
+}

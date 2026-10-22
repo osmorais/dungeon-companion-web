@@ -90,6 +90,22 @@ describe('PlayerActionsModalComponent — habilidades', () => {
     modal.closed.subscribe(closed);
   }
 
+  it('DANO/CURA no destaque: manda o valor digitado e limpa; sem valor não manda', () => {
+    create([]);
+    const adjust = vi.fn();
+    modal.adjustHp.subscribe(adjust);
+    modal.submitHp('damage');
+    expect(adjust).not.toHaveBeenCalled();
+    modal.setHpAmount({ target: { value: '7' } } as unknown as Event);
+    modal.submitHp('heal');
+    expect(adjust).toHaveBeenCalledWith({ kind: 'heal', amount: 7 });
+    expect(modal.hpAmount()).toBe(0);
+    modal.setHpAmount({ target: { value: '4' } } as unknown as Event);
+    modal.savingHp = true;
+    modal.submitHp('damage');
+    expect(adjust).toHaveBeenCalledTimes(1);
+  });
+
   it('habilidade com rolagem: gasta, anuncia "USOU" e abre a cura', () => {
     const second = ability('Retomar o Fôlego', {
       roll: roll({

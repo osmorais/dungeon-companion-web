@@ -1,0 +1,18 @@
+<div
+  class="fb hp-frame-bar"
+  role="meter"
+  aria-valuemin="0"
+  [attr.aria-valuemax]="max"
+  [attr.aria-valuenow]="current"
+  [attr.aria-label]="'Pontos de vida: ' + label"
+>
+  <span class="fb-track">
+    <span class="fb-fill" [style.width.%]="greenPercent" [style.background-color]="color"></span>
+    @if (tempPercent > 0) {
+      <span class="fb-fill hp-temp" [style.width.%]="tempPercent"></span>
+    }
+  </span>
+  <span class="fb-frame" aria-hidden="true"></span>
+  <span class="fb-medal hp-medal" aria-hidden="true" [style.background]="medalBackground"></span>
+  <span class="fb-text" aria-hidden="true">{{ label }}</span>
+</div>

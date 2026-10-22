@@ -110,6 +110,10 @@ export class PlayerActionsModalComponent implements OnInit {
   @Input() delayingTurn = false;
   /** Jogador abrindo o próprio personagem: FICHA e ITENS no destaque (o mestre tem nos cards). */
   @Input() showLinks = false;
+  /** Quem abriu pode mudar o PV deste personagem (dono ou mestre): DANO/CURA no destaque. */
+  @Input() canAdjustHp = false;
+  /** Gravando o PV deste personagem agora (trava os botões). */
+  @Input() savingHp = false;
   /** Card do personagem (como na sessão) pro palco do lançamento de magia. Sem ele, monta da ficha. */
   @Input() actorCard: CharacterCardData | null = null;
   /** Lançamento com rolagem começou: quem lança acompanha no modal de rolagem, então a sessão não
@@ -120,6 +124,8 @@ export class PlayerActionsModalComponent implements OnInit {
   @Output() openSheet = new EventEmitter<void>();
   @Output() openInventory = new EventEmitter<void>();
   @Output() applyToTarget = new EventEmitter<ApplyRequest>();
+  /** DANO/CURA no próprio personagem (a sessão aplica: temporários, confirmação de vida extra). */
+  @Output() adjustHp = new EventEmitter<{ kind: 'damage' | 'heal'; amount: number }>();
   @Output() closed = new EventEmitter<void>();
   /** Repassa a confirmação de acerto/erro do roll-modal (só dispara no fluxo de ataque com dano) —
    *  a sessão usa isso pra reagir (ex: Tom). */
@@ -127,6 +133,20 @@ export class PlayerActionsModalComponent implements OnInit {
 
   loading = signal(true);
   error = signal(false);
+  /** Valor digitado no DANO/CURA do destaque. */
+  hpAmount = signal(0);
+
+  setHpAmount(event: Event): void {
+    const raw = Number((event.target as HTMLInputElement).value);
+    this.hpAmount.set(Number.isFinite(raw) ? Math.max(0, Math.trunc(raw)) : 0);
+  }
+
+  submitHp(kind: 'damage' | 'heal'): void {
+    const amount = this.hpAmount();
+    if (!amount || this.savingHp) return;
+    this.adjustHp.emit({ kind, amount });
+    this.hpAmount.set(0);
+  }
   sheet = signal<CharacterSheetResponse | null>(null);
   activeRoll = signal<RollConfig | null>(null);
   /** Lançamento de magia da rolagem aberta (palco da mesa no modal); `null` nas outras rolagens. */
@@ -1130,6 +1150,8 @@ export class PlayerActionsModalComponent implements OnInit {
               max: cs.combat_stats.hit_points.max,
               temp: 0,
             },
+            xp: cs.header?.experience_points,
+            nextLevelXp: cs.header?.next_level_xp,
           }
         : null,
     };

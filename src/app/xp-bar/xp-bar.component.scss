@@ -1,0 +1,64 @@
+@use '../hp-bar/frame-bar';
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+.xp-bar {
+  @include frame-bar.geometry('xpf', var(--xp-frame));
+}
+
+.xp-fill {
+  background: linear-gradient(180deg, #7ec8ff 0%, #2f7fd0 55%, #1d4f8c 100%);
+}
+
+// Dentro de .xp-bar: o fundo escuro do medalhão vem do mixin (.xp-bar .fb-medal) e ganharia.
+.xp-bar .xp-level {
+  color: var(--accent-color);
+
+  &--filled {
+    background: radial-gradient(circle at 40% 35%, #b8e2ff 0%, #2f7fd0 50%, #10284a 100%);
+    color: #fff;
+  }
+}
+
+/* Pode subir de nível: barra dourada pulsando. */
+.xp-bar--ready {
+  .xp-fill {
+    background: linear-gradient(180deg, #fff2a8 0%, #f0c040 50%, #b8860b 100%);
+  }
+
+  .fb-track,
+  .xp-level {
+    animation: xp-glow 1.4s ease-in-out infinite;
+  }
+
+  .xp-level {
+    background: radial-gradient(circle at 40% 35%, #fff6c0 0%, #f0c040 50%, #6b4a00 100%);
+    color: #3a2400;
+    text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.5);
+  }
+
+  .fb-text {
+    color: #fff2a8;
+  }
+}
+
+@keyframes xp-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 2px 1px rgba(240, 192, 64, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 10px 4px rgba(240, 192, 64, 0.95);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xp-bar--ready .fb-track,
+  .xp-bar--ready .xp-level {
+    animation: none;
+    box-shadow: 0 0 8px 3px rgba(240, 192, 64, 0.8);
+  }
+}

@@ -33,6 +33,29 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.7.1',
+    date: '2026-10-22',
+    title: 'Barra de XP, dano e cura na gaveta de ações e ranking em lista',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'Os cards dos personagens na sessão ganharam molduras novas nos dois temas: anel em volta do avatar, barra de vida e uma barra de XP até o próximo nível (no lugar da linha de nível), com o nível no medalhão. Quando dá para subir de nível, a barra brilha em dourado.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'DANO e CURA no próprio personagem agora ficam na gaveta AÇÕES DE PERSONAGEM, ao lado dos PV. O mestre continua aplicando pelos cards.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'O ranking agora é uma lista do 1º ao 10º, com os três primeiros destacados em ouro, prata e bronze.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Ao aplicar o dano ou a cura de uma magia ou ataque, o resultado ("APLICOU 8 de dano em Goblin") aparece no próprio aviso do lançamento, em vez de um aviso separado por cima.',
+      },
+    ],
+  },
+  {
     version: '1.7.0',
     date: '2026-10-22',
     title: 'Ranking dos maiores feitos das mesas',

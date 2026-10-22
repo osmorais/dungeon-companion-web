@@ -37,4 +37,6 @@ export interface ApplyRequest {
   targetKey: string;
   amount: number;
   kind: ApplyKind;
+  /** Aplicação dentro de um lançamento: a mesa mostra no aviso dele, sem aviso avulso. */
+  castId?: string;
 }

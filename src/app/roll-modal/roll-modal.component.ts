@@ -358,6 +358,7 @@ export class RollModalComponent implements OnInit, OnDestroy {
       card: cast.card,
       rolls: this.castRolls().map(({ ref, entry }) => castRollView(ref, entry)),
       saveNote: cast.saveNote,
+      applied: this.applied(),
       done: false,
     };
   });
@@ -405,6 +406,7 @@ export class RollModalComponent implements OnInit, OnDestroy {
       this.actorName,
       phase,
       this.castRolls().map((r) => r.ref),
+      this.applied(),
     );
     const sessionId = this.sessionId;
     this.castQueue = this.castQueue.then(() =>
@@ -724,11 +726,13 @@ export class RollModalComponent implements OnInit, OnDestroy {
     for (const target of targets) {
       const amount = this.pendingAmount(target);
       // Evasão (passou): nada a aplicar — só registra pra mesa ver.
-      if (amount > 0) this.applyToTarget.emit({ targetKey: target.key, amount, kind });
+      if (amount > 0)
+        this.applyToTarget.emit({ targetKey: target.key, amount, kind, castId: this.cast?.castId });
       this.applied.update((list) => [...list, { label: target.label, amount, kind }]);
     }
     this.appliedKeys.update((done) => new Set([...done, ...targets.map((t) => t.key)]));
     this.selectedKeys.set(new Set());
+    if (targets.length) this.sendCastStage('open');
   }
 
   private resetBatch(): void {
@@ -752,13 +756,15 @@ export class RollModalComponent implements OnInit, OnDestroy {
           ...list,
           { label: target.label, amount: 0, kind: this.applyKind },
         ]);
+        this.sendCastStage('open');
       }
       return;
     }
     this.distributeAmount.set(null);
     const kind = this.applyKind;
-    this.applyToTarget.emit({ targetKey: target.key, amount, kind });
+    this.applyToTarget.emit({ targetKey: target.key, amount, kind, castId: this.cast?.castId });
     this.applied.update((list) => [...list, { label: target.label, amount, kind }]);
+    this.sendCastStage('open');
   }
 
   /** Encerra a rolagem depois de aplicar (ou desistir de aplicar). */

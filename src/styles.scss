@@ -48,6 +48,34 @@
   --card-frame: url('/assets/frames/card-frame.png');
   /* Moldura dos avisos em tela cheia da sessão (rolagem, magia, monstro, nível) */
   --toast-frame: url('/assets/frames/toast-frame.png');
+  /* Molduras do card na sessão (1.7.1): barra de XP, barra de vida e anel do avatar. Recortes de
+     docs/dungeon-companion/artes/molduras-card-*.png (scripts/molduras/frames.py nos docs); as
+     medidas (fração da imagem) dizem onde ficam o miolo do medalhão, o trilho e o círculo. */
+  --xp-frame: url('/assets/frames/xp-bar-fantasia.webp');
+  --hp-frame: url('/assets/frames/hp-bar-fantasia.webp');
+  --avatar-ring: url('/assets/frames/avatar-ring-fantasia.webp');
+  --xpf-ratio: 5.2752;
+  --xpf-mcx: 0.1205;
+  --xpf-mcy: 0.5078;
+  --xpf-mr: 0.05;
+  --xpf-mry: 0.2674;
+  --xpf-tx0: 0.1705;
+  --xpf-tx1: 0.906;
+  --xpf-ty0: 0.4457;
+  --xpf-ty1: 0.6008;
+  --hpf-ratio: 5.3035;
+  --hpf-mcx: 0.1222;
+  --hpf-mcy: 0.4961;
+  --hpf-mr: 0.051;
+  --hpf-mry: 0.2665;
+  --hpf-tx0: 0.1731;
+  --hpf-tx1: 0.9061;
+  --hpf-ty0: 0.4241;
+  --hpf-ty1: 0.5759;
+  --ring-scale: 1.6912;
+  --ring-cx: 0.4969;
+  --ring-cy: 0.4566;
+  --ring-ratio: 1.0702;
   /* Moldura das cartas de magia/arma (design/spell-cards/process.py) */
   --card-face: url('/assets/cards/card-frame-fantasia.webp');
   /* Verso das cartas (animação da carta jogada e virando no aviso de lançamento) */
@@ -88,6 +116,31 @@
   --gold-color: #c9a35c;
   --card-frame: url('/assets/frames/card-frame-sombrio.png');
   --toast-frame: url('/assets/frames/toast-frame-sombrio.png');
+  --xp-frame: url('/assets/frames/xp-bar-sombrio.webp');
+  --hp-frame: url('/assets/frames/hp-bar-sombrio.webp');
+  --avatar-ring: url('/assets/frames/avatar-ring-sombrio.webp');
+  --xpf-ratio: 4.804;
+  --xpf-mcx: 0.1003;
+  --xpf-mcy: 0.5;
+  --xpf-mr: 0.0512;
+  --xpf-mry: 0.26;
+  --xpf-tx0: 0.1515;
+  --xpf-tx1: 0.9109;
+  --xpf-ty0: 0.456;
+  --xpf-ty1: 0.576;
+  --hpf-ratio: 4.8866;
+  --hpf-mcx: 0.1098;
+  --hpf-mcy: 0.496;
+  --hpf-mr: 0.046;
+  --hpf-mry: 0.2611;
+  --hpf-tx0: 0.1558;
+  --hpf-tx1: 0.9105;
+  --hpf-ty0: 0.4494;
+  --hpf-ty1: 0.5709;
+  --ring-scale: 1.649;
+  --ring-cx: 0.4968;
+  --ring-cy: 0.4596;
+  --ring-ratio: 1.06;
   --card-face: url('/assets/cards/card-frame-sombrio.webp');
   --card-back: url('/assets/cards/card-back-sombrio.webp');
   /* No lugar do dragão vermelho, um dracolich (dragão morto-vivo), mesma grade 4×4 */
@@ -988,3 +1041,36 @@ input[type="checkbox"].retro-checkbox {
   aspect-ratio: 760 / 1064;
 }
 
+
+
+/* ===== Anel do avatar (1.7.1) =====
+   O wrapper tem o tamanho do avatar (--avatar-size, definido por quem usa); o anel fica por cima,
+   maior, com o miolo redondo da imagem casado com o círculo (escala e centro por tema em
+   --ring-*). As margens abrem espaço pros enfeites que passam do círculo. */
+.avatar-ring-wrap {
+  --avatar-size: 70px;
+  position: relative;
+  flex-shrink: 0;
+  width: var(--avatar-size);
+  height: var(--avatar-size);
+  margin: calc(var(--avatar-size) * (var(--ring-scale) * var(--ring-cy) * var(--ring-ratio) - 0.5))
+    0
+    calc(var(--avatar-size) * (var(--ring-scale) * (1 - var(--ring-cy)) * var(--ring-ratio) - 0.5));
+
+  > :not(.avatar-ring) {
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+}
+
+.avatar-ring {
+  position: absolute;
+  z-index: 1;
+  left: calc(var(--avatar-size) * (0.5 - var(--ring-scale) * var(--ring-cx)));
+  top: calc(var(--avatar-size) * (0.5 - var(--ring-scale) * var(--ring-cy) * var(--ring-ratio)));
+  width: calc(var(--avatar-size) * var(--ring-scale));
+  height: calc(var(--avatar-size) * var(--ring-scale) * var(--ring-ratio));
+  background: var(--avatar-ring) center / 100% 100% no-repeat;
+  pointer-events: none;
+}
