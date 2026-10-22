@@ -23,6 +23,8 @@ export interface CastStageView {
   /** Id do lançamento (a animação de jogar a carta toca uma vez por lançamento). */
   key: string;
   actorName: string;
+  /** "LANÇOU" (magia) ou "ATACOU COM" (arma). */
+  verb: string;
   spellName: string;
   actor: CharacterCardData;
   card: GameCardData;

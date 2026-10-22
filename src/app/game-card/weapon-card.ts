@@ -1,5 +1,6 @@
 import { WeaponRow } from '../models/character-options.interface';
 import { CombatFeatures } from '../models/character-response.interface';
+import { WeaponCardInfo } from '../models/game-session.interface';
 import { GameCardData } from './game-card.model';
 
 /**
@@ -105,3 +106,59 @@ export function unarmedToCard(unarmed: NonNullable<CombatFeatures['unarmed']>): 
     tags: [],
   };
 }
+
+/** Arma (da ficha) → dados da carta pro aviso de ataque da mesa. */
+export function weaponCardInfo(weapon: WeaponRow): WeaponCardInfo {
+  return {
+    id_weapon: weapon.id_weapon,
+    name: weapon.name,
+    attack_bonus: weapon.attack_bonus,
+    damage_modifier: weapon.damage_modifier,
+    damage_die: weapon.damage_die,
+    damage_type: weapon.damage_type,
+    properties: weapon.properties,
+    weight: weapon.weight ?? null,
+    is_ranged: weapon.isRanged,
+  };
+}
+
+/** Ataque desarmado → dados da carta pro aviso (`id_weapon` null). */
+export function unarmedCardInfo(unarmed: NonNullable<CombatFeatures['unarmed']>): WeaponCardInfo {
+  return {
+    id_weapon: null,
+    name: unarmed.name,
+    attack_bonus: unarmed.attack_bonus,
+    damage_modifier: unarmed.damage_modifier,
+    damage_die: `${unarmed.dice.count}d${unarmed.dice.sides}`,
+    damage_type: 'concussão',
+    properties: null,
+    weight: null,
+    is_ranged: false,
+  };
+}
+
+/** Carta da arma do aviso (mesa), a partir do que veio no evento. */
+export function weaponInfoToCard(info: WeaponCardInfo): GameCardData {
+  if (info.id_weapon === null) {
+    const match = info.damage_die?.match(/^(\d+)d(\d+)$/i);
+    return unarmedToCard({
+      name: info.name,
+      attack_bonus: info.attack_bonus,
+      damage_modifier: info.damage_modifier,
+      dice: match ? { count: Number(match[1]), sides: Number(match[2]) } : { count: 1, sides: 1 },
+    });
+  }
+  return weaponToCard({
+    id_weapon: info.id_weapon,
+    name: info.name,
+    attack_bonus: info.attack_bonus,
+    damage_modifier: info.damage_modifier,
+    damage_die: info.damage_die,
+    damage_type: info.damage_type,
+    properties: info.properties,
+    weight: info.weight ?? 0,
+    price_value: 0,
+    isRanged: info.is_ranged,
+  });
+}
+

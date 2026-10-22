@@ -1,5 +1,13 @@
 import { WeaponRow } from '../models/character-options.interface';
-import { damageBackground, isSimpleWeapon, unarmedToCard, weaponToCard } from './weapon-card';
+import {
+  damageBackground,
+  isSimpleWeapon,
+  unarmedCardInfo,
+  unarmedToCard,
+  weaponCardInfo,
+  weaponInfoToCard,
+  weaponToCard,
+} from './weapon-card';
 
 const weapon = (extra: Partial<WeaponRow> = {}): WeaponRow => ({
   id_weapon: 20,
@@ -76,5 +84,24 @@ describe('unarmedToCard', () => {
     expect(card.badge).toBe('+6');
     expect(card.art).toBe('assets/cards/weapon-unarmed.webp');
     expect(card.stats[0].value).toBe('1d6+4');
+  });
+});
+
+describe('carta da arma no aviso de ataque', () => {
+  it('ida e volta: arma da ficha → dados do evento → mesma carta na mesa', () => {
+    const sword = weapon();
+    expect(weaponInfoToCard(weaponCardInfo(sword))).toEqual(weaponToCard(sword));
+  });
+
+  it('desarmado vai com id null e volta como a carta do punho', () => {
+    const unarmed = {
+      name: 'Ataque Desarmado',
+      attack_bonus: 6,
+      dice: { count: 1, sides: 6 },
+      damage_modifier: 4,
+    };
+    const info = unarmedCardInfo(unarmed);
+    expect(info.id_weapon).toBeNull();
+    expect(weaponInfoToCard(info)).toEqual(unarmedToCard(unarmed));
   });
 });

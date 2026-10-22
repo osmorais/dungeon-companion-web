@@ -855,4 +855,31 @@ describe('PlayerActionsModalComponent — lançamento de magia (1.5.0)', () => {
     expect(modal.selectedWeaponCard()).toBeNull();
     expect(modal.activeRoll()).toMatchObject({ mode: 'ability', rollType: 'attack' });
   });
+
+  it('ataque com arma na sessão também vira aviso da mesa (carta da arma no modal)', () => {
+    const own = vi.fn();
+    modal.ownCast.subscribe(own);
+    const axe = {
+      id_weapon: 26,
+      attack_bonus: 5,
+      damage_modifier: 3,
+      name: 'Machado de Batalha',
+      damage_die: '1d8',
+      damage_type: 'cortante',
+      properties: 'Versátil (1d10)',
+      weight: 2,
+      price_value: 10,
+      isRanged: false,
+    } as WeaponRow;
+    modal.rollAttack(axe);
+    const cast = modal.activeRollCast()!;
+    expect(cast.idSpell).toBeNull();
+    expect(cast.weapon).toMatchObject({
+      id_weapon: 26,
+      name: 'Machado de Batalha',
+      attack_bonus: 5,
+    });
+    expect(cast.card.ribbon).toBe('MARCIAL · CORPO A CORPO');
+    expect(own).toHaveBeenCalledWith(cast.castId);
+  });
 });

@@ -1294,6 +1294,7 @@ describe('RollModalComponent — lançamento de magia', () => {
     modal.cast = {
       castId: 'cast-1234',
       idSpell: 9,
+      weapon: null,
       spellName: 'Raio de Fogo',
       actor: { name: 'Elora', imageUrl: null, avatarPreset: null, character: null },
       card: {

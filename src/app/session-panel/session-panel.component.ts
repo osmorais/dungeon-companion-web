@@ -57,6 +57,8 @@ import { attrLabel } from '../models/level-up.interface';
 import { saveNote } from '../roll-modal/spell-roll-config';
 import { CharacterCardData } from '../character-card/character-card.component';
 import { spellToCard } from '../game-card/spell-card';
+import { weaponInfoToCard } from '../game-card/weapon-card';
+import { castVerb } from '../spell-cast/spell-cast-context';
 import { SPELL_CAST_DONE_MS, SpellCastNoticeComponent } from '../spell-cast/spell-cast-notice.component';
 import { CastStageView, castRollView } from '../spell-cast/spell-cast-stage.model';
 import { SessionEventPayloadMap } from '../models/session-event.interface';
@@ -1549,7 +1551,7 @@ export class SessionPanelComponent implements OnDestroy {
     this.activeMonsterDefeatedToast.set(null);
   }
 
-  /** ========================= AVISO: LANÇAMENTO DE MAGIA (1.5.0) =========================
+  /** ============ AVISO: LANÇAMENTO DE MAGIA (1.5.0) E ATAQUE COM ARMA (1.6.1) ============
    *  Um aviso só por lançamento, que vai crescendo: card do personagem + carta da magia + as
    *  rolagens (ataque → acertou/errou → dano). Quem lança manda as etapas (`spell_cast_stage`);
    *  as rolagens vêm pelo `roll_added` (com `cast_id`) e são achadas no histórico pelo id. Some
@@ -1575,13 +1577,22 @@ export class SessionPanelComponent implements OnDestroy {
     const id = this.activeCastId();
     const stage = id ? this.castStages.get(id) : undefined;
     if (!id || !stage) return null;
+    // Magia (carta buscada pela API) ou ataque com arma (carta vinda de quem atacou, 1.6.1).
+    const weapon = stage.weapon ?? null;
+    const card = weapon
+      ? weaponInfoToCard(weapon)
+      : stage.spell
+        ? spellToCard({ ...stage.spell, description: null })
+        : null;
+    if (!card) return null;
     const byId = new Map((this.sessionDetail()?.recent_rolls ?? []).map((r) => [r.id_roll, r]));
     return {
       key: id,
       actorName: stage.actor_name,
-      spellName: stage.spell.name,
+      verb: castVerb(!!weapon),
+      spellName: weapon?.name ?? stage.spell?.name ?? '',
       actor: this.characterCardFor(stage.id_character, stage.actor_name),
-      card: spellToCard({ ...stage.spell, description: null }),
+      card,
       rolls: stage.rolls.flatMap((ref) => {
         const entry = byId.get(ref.id_roll);
         return entry ? [castRollView(ref, entry)] : [];

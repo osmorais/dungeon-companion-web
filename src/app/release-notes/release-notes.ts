@@ -33,6 +33,21 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.6.1',
+    date: '2026-10-22',
+    title: 'Ataque com arma no aviso da mesa',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'O ataque com arma agora aparece para a mesa como o lançamento de magia: um aviso só, com o card do personagem, a carta da arma jogada na mesa, o ataque e depois o dano.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Quem ataca vê o mesmo aviso em cima das próprias decisões: acertou ou errou, rolar o dano e aplicar no alvo.',
+      },
+    ],
+  },
+  {
     version: '1.6.0',
     date: '2026-10-22',
     title: 'Armas em cartas',

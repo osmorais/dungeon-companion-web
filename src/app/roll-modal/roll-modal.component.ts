@@ -14,7 +14,7 @@ import { PixelNumericDieComponent } from '../pixel-numeric-die/pixel-numeric-die
 import { hasRiderChoices, RiderChoices, RiderOption } from './spell-riders';
 import { ApplyKind, ApplyRequest, ApplyTarget, resistsDamage } from './apply-target';
 import { SpellCastStageComponent } from '../spell-cast/spell-cast-stage.component';
-import { SpellCastContext, castStagePayload } from '../spell-cast/spell-cast-context';
+import { SpellCastContext, castStagePayload, castVerb } from '../spell-cast/spell-cast-context';
 import { CastStageView, castRollView } from '../spell-cast/spell-cast-stage.model';
 
 /** Uma opção de espaço de magia pra gastar em Destruição Divina — ver `AbilityRollConfig.damage.smite`. */
@@ -352,6 +352,7 @@ export class RollModalComponent implements OnInit, OnDestroy {
     return {
       key: cast.castId,
       actorName: this.actorName,
+      verb: castVerb(!!cast.weapon),
       spellName: cast.spellName,
       actor: cast.actor,
       card: cast.card,

@@ -1013,4 +1013,37 @@ describe('SessionPanelComponent', () => {
       expect(component.activeCastId()).toBeNull();
     });
   });
+
+  describe('aviso de ataque com arma (1.6.1)', () => {
+    it('monta a carta da arma do evento e diz ATACOU COM', () => {
+      component.onSpellCastStage({
+        cast_id: 'w1',
+        user_id: 'u-outro',
+        id_character: 7,
+        actor_name: 'Thorin',
+        spell: null,
+        weapon: {
+          id_weapon: 20,
+          name: 'Espada Longa',
+          attack_bonus: 5,
+          damage_modifier: 3,
+          damage_die: '1d8',
+          damage_type: 'cortante',
+          properties: null,
+          weight: 1.5,
+          is_ranged: false,
+        },
+        phase: 'open',
+        rolls: [],
+        save_dc: null,
+        save_ability: null,
+      });
+      const view = component.activeCastView()!;
+      expect(view.verb).toBe('ATACOU COM');
+      expect(view.spellName).toBe('Espada Longa');
+      expect(view.card.badge).toBe('+5');
+      expect(view.card.art).toBe('assets/cards/weapon-20.webp');
+      component.ngOnDestroy();
+    });
+  });
 });

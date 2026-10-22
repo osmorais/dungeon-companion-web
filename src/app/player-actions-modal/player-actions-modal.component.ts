@@ -39,7 +39,14 @@ import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { GameCardComponent } from '../game-card/game-card.component';
 import { CardViewerComponent } from '../game-card/card-viewer.component';
 import { spellCardState, spellToCard } from '../game-card/spell-card';
-import { unarmedToCard, weaponToCard } from '../game-card/weapon-card';
+import {
+  unarmedCardInfo,
+  unarmedToCard,
+  weaponCardInfo,
+  weaponToCard,
+} from '../game-card/weapon-card';
+import { GameCardData } from '../game-card/game-card.model';
+import { WeaponCardInfo } from '../models/game-session.interface';
 import { CharacterCardData } from '../character-card/character-card.component';
 import { SpellCastContext, castStagePayload, newCastId } from '../spell-cast/spell-cast-context';
 
@@ -233,6 +240,7 @@ export class PlayerActionsModalComponent implements OnInit {
   /** Se a arma tiver dado de dano cadastrado, o roll-modal pergunta "passou da CA?" e já rola o dano ali mesmo. */
   rollAttack(weapon: WeaponRow): void {
     const match = weapon.damage_die?.match(/^(\d+)d(\d+)$/i);
+    this.startWeaponCast(weaponCardInfo(weapon), weaponToCard(weapon));
     this.activeRoll.set(
       this.attackConfig({
         name: weapon.name,
@@ -261,7 +269,29 @@ export class PlayerActionsModalComponent implements OnInit {
       damageType: 'contundente',
     });
     if (attacks > 1) config.instances = { count: attacks, label: 'golpe' };
+    this.startWeaponCast(unarmedCardInfo(unarmed), unarmedToCard(unarmed));
     this.activeRoll.set(config);
+  }
+
+  /**
+   * Ataque com arma também vira aviso único da mesa (1.6.1): card do personagem + carta da arma +
+   * ataque → acertou/errou → dano, como o lançamento de magia. Só dentro da sessão.
+   */
+  private startWeaponCast(info: WeaponCardInfo, card: GameCardData): void {
+    if (!this.sessionId) return;
+    const cast: SpellCastContext = {
+      castId: newCastId(),
+      idSpell: null,
+      weapon: info,
+      spellName: info.name,
+      actor: this.actorCard ?? this.actorCardFromSheet(),
+      card,
+      saveDc: null,
+      saveAbility: null,
+      saveNote: null,
+    };
+    this.activeRollCast.set(cast);
+    this.ownCast.emit(cast.castId);
   }
 
   combatFeatures(): CombatFeatures | null {
@@ -1022,6 +1052,7 @@ export class PlayerActionsModalComponent implements OnInit {
     return {
       castId: newCastId(),
       idSpell: spell.id_spell,
+      weapon: null,
       spellName: spell.name,
       actor: this.actorCard ?? this.actorCardFromSheet(),
       card: spellToCard(spell),

@@ -224,12 +224,28 @@ export interface CastStageRoll {
   critical: boolean;
 }
 
-/** Etapa de um lançamento de magia (POST /spell-cast-stage). */
+/** Arma do ataque como carta no aviso (1.6.1): já calculada pro personagem; `id_weapon` null =
+ *  ataque desarmado. */
+export interface WeaponCardInfo {
+  id_weapon: number | null;
+  name: string;
+  attack_bonus: number;
+  damage_modifier: number;
+  damage_die: string | null;
+  damage_type: string | null;
+  properties: string | null;
+  weight: number | null;
+  is_ranged: boolean;
+}
+
+/** Etapa de um lançamento de magia ou ataque com arma (POST /spell-cast-stage). */
 export interface SpellCastStagePayload {
   cast_id: string;
   id_character: number;
   actor_name: string;
-  id_spell: number;
+  /** Magia — ou `weapon` (ataque com arma), um dos dois. */
+  id_spell?: number | null;
+  weapon?: WeaponCardInfo | null;
   phase: 'open' | 'done';
   rolls: CastStageRoll[];
   save_dc?: number | null;

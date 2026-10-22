@@ -9,6 +9,7 @@ import {
   SecretRollCheck,
   ShownReferenceImage,
   SpellCardInfo,
+  WeaponCardInfo,
 } from './game-session.interface';
 
 /**
@@ -86,7 +87,9 @@ export interface SessionEventPayloadMap {
     user_id: string;
     id_character: number;
     actor_name: string;
-    spell: SpellCardInfo;
+    /** Magia (`weapon` null) ou ataque com arma (`spell` null). A API antiga não manda `weapon`. */
+    spell: SpellCardInfo | null;
+    weapon?: WeaponCardInfo | null;
     phase: 'open' | 'done';
     rolls: CastStageRoll[];
     save_dc: number | null;
