@@ -1,6 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { AvatarCustomizerComponent } from './avatar-customizer.component';
-import { AvatarPreset } from '../models/avatar-preset.interface';
+import {
+  AvatarPreset,
+  AVATAR_SKIN_BY_RACE,
+  AVATAR_SKIN_COLORS,
+  avatarBasePath,
+  resolveSkinColor,
+  skinTonesFor,
+} from '../models/avatar-preset.interface';
 
 describe('AvatarCustomizerComponent', () => {
   const base: AvatarPreset = {
@@ -81,5 +88,42 @@ describe('AvatarCustomizerComponent', () => {
     const { c } = create({ beardStyle: 'beard_01', beardColor: 'red' });
     const female = c.genderTiles.find((t) => t.key === 'female')!;
     expect(female.preset.beardStyle).toBeNull();
+  });
+
+  it('tons de pele seguem a raça: draconato só cores de dragão, meio-orc só tons de orc', () => {
+    expect(create({ race: 'dragonborn' }).c.skinTiles.map((t) => t.key)).toEqual(
+      AVATAR_SKIN_BY_RACE.dragonborn,
+    );
+    expect(skinTonesFor('half_orc').map((t) => t.key)).toEqual([
+      'orc_green',
+      'orc_grey',
+      'orc_dark',
+    ]);
+    expect(skinTonesFor('elf').map((t) => t.key)).toContain('drow');
+    expect(skinTonesFor('tiefling').map((t) => t.key)).toContain('very_dark');
+  });
+
+  it('todo tom usado por alguma raça tem nome e cor', () => {
+    for (const keys of Object.values(AVATAR_SKIN_BY_RACE)) {
+      for (const k of keys) expect(AVATAR_SKIN_COLORS.some((s) => s.key === k)).toBe(true);
+    }
+  });
+
+  it('tom salvo que não existe pra raça cai no tom original do desenho', () => {
+    expect(resolveSkinColor('half_orc', 'medium')).toBe('orc_green');
+    expect(resolveSkinColor('dragonborn', 'dark')).toBe('dragon_gold');
+    expect(resolveSkinColor('tiefling', 'dark')).toBe('dark');
+    expect(resolveSkinColor('elf', 'orc_green')).toBe('medium');
+    const { c } = create({ race: 'half_orc', skinColor: 'medium' });
+    expect(c.skinTiles.find((t) => t.active)!.key).toBe('orc_green');
+  });
+
+  it('o corpo vem da imagem já recolorida, por gênero e tom', () => {
+    expect(avatarBasePath({ race: 'human', gender: 'male', skinColor: 'very_dark' })).toBe(
+      'assets/avatar/race_skin/base_human_very_dark.png',
+    );
+    expect(avatarBasePath({ race: 'half_orc', gender: 'female', skinColor: 'medium' })).toBe(
+      'assets/avatar/race_skin/base_fem_half_orc_orc_green.png',
+    );
   });
 });

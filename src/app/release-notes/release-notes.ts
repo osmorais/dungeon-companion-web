@@ -33,6 +33,21 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.6.10',
+    date: '2026-10-22',
+    title: 'Tons de pele de verdade e cores de cada raça',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'A cor de pele do avatar agora muda só a pele: antes ela escurecia o desenho inteiro, inclusive o branco dos olhos. Os tons escuros ficaram com aparência natural.',
+      },
+      {
+        kind: 'novidade',
+        text: 'Cada raça ganhou tons de pele da sua lore: elfos lunares e drow, anões e gnomos cinza-pedra, meio-orcs verde e cinza, tieflings vermelho, carmesim, roxo e azul, e draconatos com as cores das dez linhagens de dragão.',
+      },
+    ],
+  },
+  {
     version: '1.6.9',
     date: '2026-10-22',
     title: 'Avatar em abas com miniaturas e 8 penteados novos',

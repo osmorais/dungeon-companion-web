@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AvatarPreset, AVATAR_SKIN_COLORS } from '../models/avatar-preset.interface';
+import { AvatarPreset, avatarBasePath } from '../models/avatar-preset.interface';
 
 @Component({
   selector: 'app-avatar-display',
@@ -13,14 +13,7 @@ export class AvatarDisplayComponent {
   @Input() preset?: AvatarPreset | null;
 
   get racePath(): string {
-    if ((this.preset!.gender ?? 'male') === 'female') {
-      return `assets/avatar/race_fem/base_fem_${this.preset!.race}.png`;
-    }
-    return `assets/avatar/race/base_${this.preset!.race}.png`;
-  }
-
-  get skinFilter(): string {
-    return AVATAR_SKIN_COLORS.find(s => s.key === this.preset?.skinColor)?.filter ?? 'none';
+    return avatarBasePath(this.preset!);
   }
 
   get clothesPath(): string {

@@ -13,7 +13,8 @@ import {
   AVATAR_HAIR_STYLES,
   AVATAR_BEARD_STYLES,
   AVATAR_HAIR_COLORS,
-  AVATAR_SKIN_COLORS,
+  resolveSkinColor,
+  skinTonesFor,
 } from '../models/avatar-preset.interface';
 
 export type AvatarTab = 'body' | 'hair' | 'beard' | 'clothes' | 'face';
@@ -107,8 +108,8 @@ export class AvatarCustomizerComponent implements OnInit {
         p.gender === 'female',
       ),
     ];
-    this.skinTiles = AVATAR_SKIN_COLORS.map((s) =>
-      tile(s.key, s.label, { skinColor: s.key }, p.skinColor === s.key),
+    this.skinTiles = skinTonesFor(p.race).map((s) =>
+      tile(s.key, s.label, { skinColor: s.key }, resolveSkinColor(p.race, p.skinColor) === s.key),
     );
     this.hairTiles = [
       tile('none', 'Nenhum', { hairStyle: null }, !p.hairStyle),

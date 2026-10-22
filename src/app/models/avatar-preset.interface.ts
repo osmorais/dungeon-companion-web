@@ -1,5 +1,26 @@
-export type AvatarRace = 'human' | 'elf' | 'dwarf' | 'dragonborn' | 'gnome' | 'half_elf' | 'half_orc' | 'halfling' | 'tiefling';
-export type AvatarClass = 'barbarian' | 'bard' | 'warlock' | 'cleric' | 'druid' | 'sorcerer' | 'fighter' | 'rogue' | 'wizard' | 'monk' | 'paladin' | 'ranger';
+export type AvatarRace =
+  | 'human'
+  | 'elf'
+  | 'dwarf'
+  | 'dragonborn'
+  | 'gnome'
+  | 'half_elf'
+  | 'half_orc'
+  | 'halfling'
+  | 'tiefling';
+export type AvatarClass =
+  | 'barbarian'
+  | 'bard'
+  | 'warlock'
+  | 'cleric'
+  | 'druid'
+  | 'sorcerer'
+  | 'fighter'
+  | 'rogue'
+  | 'wizard'
+  | 'monk'
+  | 'paladin'
+  | 'ranger';
 export type HairStyle =
   | 'hair_long_01'
   | 'hair_long_02'
@@ -16,7 +37,33 @@ export type HairStyle =
   | 'hair_bald_tufts';
 export type BeardStyle = 'beard_01' | 'beard_02' | 'beard_03';
 export type HairColor = 'blond' | 'grey' | 'lbrown' | 'red';
-export type SkinColor = 'pale' | 'light' | 'medium' | 'tan' | 'dark' | 'very_dark';
+export type SkinColor =
+  | 'pale'
+  | 'light'
+  | 'medium'
+  | 'tan'
+  | 'dark'
+  | 'very_dark'
+  | 'elf_moon'
+  | 'drow'
+  | 'stone'
+  | 'orc_green'
+  | 'orc_grey'
+  | 'orc_dark'
+  | 'infernal_red'
+  | 'infernal_crimson'
+  | 'infernal_purple'
+  | 'infernal_blue'
+  | 'dragon_gold'
+  | 'dragon_brass'
+  | 'dragon_bronze'
+  | 'dragon_copper'
+  | 'dragon_silver'
+  | 'dragon_red'
+  | 'dragon_blue'
+  | 'dragon_green'
+  | 'dragon_black'
+  | 'dragon_white';
 export type AvatarGender = 'male' | 'female';
 
 export interface AvatarPreset {
@@ -87,40 +134,121 @@ export const AVATAR_HAIR_COLORS: { key: HairColor; label: string; hex: string }[
   { key: 'red', label: 'Ruivo', hex: '#C03010' },
 ];
 
-export const AVATAR_SKIN_COLORS: { key: SkinColor; label: string; hex: string; filter: string }[] = [
-  { key: 'pale',      label: 'Muito Claro', hex: '#F8D5B5', filter: 'brightness(1.3) saturate(0.4)' },
-  { key: 'light',     label: 'Claro',       hex: '#E8B89A', filter: 'brightness(1.1) saturate(0.75)' },
-  { key: 'medium',    label: 'Médio',       hex: '#C68642', filter: 'none' },
-  { key: 'tan',       label: 'Bronzeado',   hex: '#8D5524', filter: 'brightness(0.85) saturate(1.3) sepia(0.15)' },
-  { key: 'dark',      label: 'Escuro',      hex: '#5C3A1E', filter: 'brightness(0.65) saturate(1.2) sepia(0.25)' },
-  { key: 'very_dark', label: 'Muito Escuro',hex: '#2C1A10', filter: 'brightness(0.42) saturate(1.1) sepia(0.35)' },
+/** Tons de pele. Cada raça usa uma lista própria (`AVATAR_SKIN_BY_RACE`), conforme a lore. A
+ * imagem do corpo já vem recolorida (`assets/avatar/race_skin/`): só a pele muda, olhos, boca e
+ * chifres ficam como no desenho original. */
+export const AVATAR_SKIN_COLORS: { key: SkinColor; label: string; hex: string }[] = [
+  { key: 'pale', label: 'Muito Claro', hex: '#EBC3A5' },
+  { key: 'light', label: 'Claro', hex: '#D69F78' },
+  { key: 'medium', label: 'Médio', hex: '#C08453' },
+  { key: 'tan', label: 'Moreno', hex: '#9C6640' },
+  { key: 'dark', label: 'Escuro', hex: '#6B4129' },
+  { key: 'very_dark', label: 'Retinto', hex: '#43281A' },
+  { key: 'elf_moon', label: 'Lunar', hex: '#D3D2E0' },
+  { key: 'drow', label: 'Drow', hex: '#45404F' },
+  { key: 'stone', label: 'Cinza Pedra', hex: '#8C8A86' },
+  { key: 'orc_green', label: 'Verde', hex: '#7C8A46' },
+  { key: 'orc_grey', label: 'Cinza', hex: '#848A80' },
+  { key: 'orc_dark', label: 'Verde Escuro', hex: '#4F5C2E' },
+  { key: 'infernal_red', label: 'Vermelho', hex: '#B03A2C' },
+  { key: 'infernal_crimson', label: 'Carmesim', hex: '#781E22' },
+  { key: 'infernal_purple', label: 'Roxo', hex: '#6C3A7C' },
+  { key: 'infernal_blue', label: 'Azul', hex: '#3E5A8E' },
+  { key: 'dragon_gold', label: 'Ouro', hex: '#D2A43A' },
+  { key: 'dragon_brass', label: 'Latão', hex: '#B8924E' },
+  { key: 'dragon_bronze', label: 'Bronze', hex: '#8E6A36' },
+  { key: 'dragon_copper', label: 'Cobre', hex: '#B4683A' },
+  { key: 'dragon_silver', label: 'Prata', hex: '#A6AEB8' },
+  { key: 'dragon_red', label: 'Vermelho', hex: '#A8322A' },
+  { key: 'dragon_blue', label: 'Azul', hex: '#3A64A8' },
+  { key: 'dragon_green', label: 'Verde', hex: '#3E7A3E' },
+  { key: 'dragon_black', label: 'Negro', hex: '#34323A' },
+  { key: 'dragon_white', label: 'Branco', hex: '#D8DCE2' },
 ];
 
+const HUMAN_SKINS: SkinColor[] = ['pale', 'light', 'medium', 'tan', 'dark', 'very_dark'];
+
+export const AVATAR_SKIN_BY_RACE: Record<AvatarRace, SkinColor[]> = {
+  human: HUMAN_SKINS,
+  half_elf: HUMAN_SKINS,
+  halfling: HUMAN_SKINS,
+  elf: [...HUMAN_SKINS, 'elf_moon', 'drow'],
+  dwarf: [...HUMAN_SKINS, 'stone'],
+  gnome: [...HUMAN_SKINS, 'stone'],
+  tiefling: [
+    ...HUMAN_SKINS,
+    'infernal_red',
+    'infernal_crimson',
+    'infernal_purple',
+    'infernal_blue',
+  ],
+  half_orc: ['orc_green', 'orc_grey', 'orc_dark'],
+  dragonborn: [
+    'dragon_gold',
+    'dragon_brass',
+    'dragon_bronze',
+    'dragon_copper',
+    'dragon_silver',
+    'dragon_red',
+    'dragon_blue',
+    'dragon_green',
+    'dragon_black',
+    'dragon_white',
+  ],
+};
+
+/** Tom usado quando o salvo não existe pra raça (ex.: 'medium' num meio-orc): o do desenho original. */
+const DEFAULT_SKIN: Partial<Record<AvatarRace, SkinColor>> = {
+  tiefling: 'infernal_red',
+  half_orc: 'orc_green',
+  dragonborn: 'dragon_gold',
+};
+
+export function skinTonesFor(race: AvatarRace): { key: SkinColor; label: string; hex: string }[] {
+  const keys = AVATAR_SKIN_BY_RACE[race] ?? HUMAN_SKINS;
+  return keys.map((k) => AVATAR_SKIN_COLORS.find((s) => s.key === k)!);
+}
+
+export function resolveSkinColor(race: AvatarRace, skin: SkinColor | null | undefined): SkinColor {
+  const keys = AVATAR_SKIN_BY_RACE[race] ?? HUMAN_SKINS;
+  if (skin && keys.includes(skin)) return skin;
+  return DEFAULT_SKIN[race] ?? 'medium';
+}
+
+/** Imagem do corpo já na cor de pele escolhida. */
+export function avatarBasePath(
+  preset: Pick<AvatarPreset, 'race' | 'gender' | 'skinColor'>,
+): string {
+  const skin = resolveSkinColor(preset.race, preset.skinColor);
+  const prefix = (preset.gender ?? 'male') === 'female' ? 'base_fem' : 'base';
+  return `assets/avatar/race_skin/${prefix}_${preset.race}_${skin}.png`;
+}
+
 export const RACE_NAME_TO_AVATAR: Record<string, AvatarRace> = {
-  'Humano': 'human',
-  'Elfo': 'elf',
-  'Anão': 'dwarf',
-  'Draconato': 'dragonborn',
-  'Gnomo': 'gnome',
+  Humano: 'human',
+  Elfo: 'elf',
+  Anão: 'dwarf',
+  Draconato: 'dragonborn',
+  Gnomo: 'gnome',
   'Meio-Elfo': 'half_elf',
   'Meio-elfo': 'half_elf',
   'Meio-Orc': 'half_orc',
   'Meio-orc': 'half_orc',
-  'Halfling': 'halfling',
-  'Tiefling': 'tiefling',
+  Halfling: 'halfling',
+  Tiefling: 'tiefling',
 };
 
 export const CLASS_NAME_TO_AVATAR: Record<string, AvatarClass> = {
-  'Bárbaro': 'barbarian',
-  'Bardo': 'bard',
-  'Bruxo': 'warlock',
-  'Clérigo': 'cleric',
-  'Druida': 'druid',
-  'Feiticeiro': 'sorcerer',
-  'Guerreiro': 'fighter',
-  'Ladino': 'rogue',
-  'Mago': 'wizard',
-  'Monge': 'monk',
-  'Paladino': 'paladin',
-  'Ranger': 'ranger',
+  Bárbaro: 'barbarian',
+  Bardo: 'bard',
+  Bruxo: 'warlock',
+  Clérigo: 'cleric',
+  Druida: 'druid',
+  Feiticeiro: 'sorcerer',
+  Guerreiro: 'fighter',
+  Ladino: 'rogue',
+  Mago: 'wizard',
+  Monge: 'monk',
+  Paladino: 'paladin',
+  Ranger: 'ranger',
 };

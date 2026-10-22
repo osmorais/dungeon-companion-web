@@ -1,7 +1,6 @@
 @if (preset) {
   <div class="avatar-canvas">
     <img class="avatar-layer" [src]="racePath" alt=""
-         [style.filter]="skinFilter"
          (load)="showOnLoad($event)" (error)="hideOnError($event)">
     <img class="avatar-layer" [src]="clothesPath" alt=""
          (load)="showOnLoad($event)" (error)="hideOnError($event)">
