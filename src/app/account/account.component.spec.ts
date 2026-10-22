@@ -14,6 +14,7 @@ function profile(overrides: Partial<AccountProfile> = {}): AccountProfile {
     created_at: null,
     has_password: true,
     google_linked: false,
+    show_in_ranking: true,
     ...overrides,
   };
 }
@@ -24,6 +25,7 @@ describe('AccountComponent', () => {
   let accountService: {
     getProfile: ReturnType<typeof vi.fn>;
     updateFullName: ReturnType<typeof vi.fn>;
+    updateShowInRanking: ReturnType<typeof vi.fn>;
     exportData: ReturnType<typeof vi.fn>;
     deleteAccount: ReturnType<typeof vi.fn>;
   };
@@ -39,6 +41,7 @@ describe('AccountComponent', () => {
     accountService = {
       getProfile: vi.fn(),
       updateFullName: vi.fn(),
+      updateShowInRanking: vi.fn(),
       exportData: vi.fn(),
       deleteAccount: vi.fn().mockReturnValue(of({ message: 'ok' })),
     };
@@ -50,6 +53,24 @@ describe('AccountComponent', () => {
         { provide: AuthService, useValue: authService },
       ],
     });
+  });
+
+  it('sair do ranking grava a preferência e avisa', () => {
+    create();
+    accountService.updateShowInRanking.mockReturnValue(of(profile({ show_in_ranking: false })));
+    component.toggleRanking(false);
+    expect(accountService.updateShowInRanking).toHaveBeenCalledWith(false);
+    expect(component.profile()?.show_in_ranking).toBe(false);
+    expect(component.rankingMessage()).toContain('não aparecem');
+    expect(component.savingRanking()).toBe(false);
+  });
+
+  it('erro ao salvar a preferência do ranking mostra a mensagem', () => {
+    create();
+    accountService.updateShowInRanking.mockReturnValue(throwError(() => ({ status: 500 })));
+    component.toggleRanking(false);
+    expect(component.rankingMessage()).toBeTruthy();
+    expect(component.profile()?.show_in_ranking).toBe(true);
   });
 
   it('carrega o perfil e preenche o nome', () => {

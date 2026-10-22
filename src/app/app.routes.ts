@@ -98,6 +98,11 @@ export const routes: Routes = [
       import('./my-sessions/my-sessions.component').then(m => m.MySessionsComponent),
   },
   {
+    path: 'ranking',
+    canActivate: [authGuard],
+    loadComponent: () => import('./ranking/ranking.component').then(m => m.RankingComponent),
+  },
+  {
     path: 'conta',
     canActivate: [authGuard],
     loadComponent: () => import('./account/account.component').then(m => m.AccountComponent),

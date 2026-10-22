@@ -52,6 +52,11 @@ describe('HomeComponent (tudo numa tela só)', () => {
     expect(navigate.mock.calls).toContainEqual([['/spell-catalog']]);
   });
 
+  it('RANKING fica para todos e leva para /ranking', () => {
+    home.openRanking();
+    expect(navigate.mock.calls).toContainEqual([['/ranking']]);
+  });
+
   it('cada opção leva para a tela certa; CRIAR PERSONAGEM trava enquanto busca', () => {
     home.toggleRole('master');
     home.roleOptions()[1].action();

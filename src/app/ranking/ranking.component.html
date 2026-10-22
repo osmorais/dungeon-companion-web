@@ -1,0 +1,100 @@
+<ng-template #content>
+  @if (loading()) {
+    <div class="rk-skeleton" aria-busy="true" aria-label="Carregando o ranking">
+      @for (i of [1, 2, 3, 4]; track i) {
+        <span class="skeleton rk-skeleton-row"></span>
+      }
+    </div>
+  } @else if (error()) {
+    <p class="m-empty">ERRO AO CARREGAR O RANKING.</p>
+    <div class="rk-retry"><button class="retro-btn" (click)="load()">TENTAR DE NOVO</button></div>
+  } @else if (active(); as cat) {
+    <div class="rk-tabs" role="tablist" aria-label="Categorias do ranking">
+      @for (c of categories(); track c.key) {
+        <button
+          type="button"
+          role="tab"
+          class="rk-tab"
+          [class.active]="c.key === cat.key"
+          [attr.aria-selected]="c.key === cat.key"
+          (click)="selectCategory(c.key)"
+        >
+          {{ c.title }}
+        </button>
+      }
+    </div>
+
+    <section class="rk-board" role="tabpanel">
+      <h2 class="rk-title">{{ cat.title }}</h2>
+      <p class="rk-desc">{{ cat.description }}</p>
+
+      @if (cat.entries.length === 0) {
+        <p class="m-empty">NINGUÉM AINDA.<br />JOGUE NUMA MESA PARA APARECER AQUI.</p>
+      } @else {
+        <div class="rk-podium">
+          @for (e of podium(); track e.position) {
+            <div class="rk-place" [attr.data-place]="e.position">
+              <span class="rk-medal">{{ e.position }}º</span>
+              <div class="rk-avatar rk-avatar--big">
+                <app-avatar-display [preset]="e.avatar_preset" />
+              </div>
+              <span class="rk-value">{{ formatValue(e.value) }}</span>
+              <span class="rk-unit">{{ cat.unit }}</span>
+              <span class="rk-char">{{ e.character_name }}</span>
+              <span class="rk-meta">{{ e.player_name }}</span>
+              <span class="rk-meta rk-meta--session">{{ e.session_name }}</span>
+              <span class="rk-step"></span>
+            </div>
+          }
+        </div>
+
+        @if (rest().length) {
+          <ol class="rk-list">
+            @for (e of rest(); track e.position) {
+              <li class="rk-row">
+                <span class="rk-pos">{{ e.position }}º</span>
+                <div class="rk-avatar">
+                  <app-avatar-display [preset]="e.avatar_preset" />
+                </div>
+                <span class="rk-row-text">
+                  <span class="rk-char">{{ e.character_name }}</span>
+                  <span class="rk-meta">{{ e.player_name }} · {{ e.session_name }}</span>
+                </span>
+                <span class="rk-row-value">
+                  {{ formatValue(e.value) }}
+                  <small>{{ cat.unit }}</small>
+                </span>
+              </li>
+            }
+          </ol>
+        }
+      }
+    </section>
+
+    <p class="rk-note">
+      Contagem feita nas mesas a partir da versão 1.7.0. Quem prefere não aparecer pode sair do
+      ranking em MINHA CONTA.
+    </p>
+  }
+</ng-template>
+
+@if (isMobile()) {
+  <div class="mobile-ranking-container">
+    <div class="m-header">
+      <button class="m-back" (click)="goBack()">&#8592;</button>
+      <span class="m-title">RANKING</span>
+    </div>
+    <ng-container *ngTemplateOutlet="content" />
+  </div>
+} @else {
+  <div class="page">
+    <header class="page-topbar">
+      <button class="retro-btn page-topbar-back" (click)="goBack()">← VOLTAR</button>
+      <h1 class="page-topbar-name">RANKING</h1>
+      <div class="page-topbar-meta"><span>OS MAIORES FEITOS DE TODAS AS MESAS</span></div>
+    </header>
+    <div class="rk-desktop">
+      <ng-container *ngTemplateOutlet="content" />
+    </div>
+  </div>
+}

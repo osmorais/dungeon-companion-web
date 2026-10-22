@@ -20,6 +20,12 @@ export class AccountService {
     });
   }
 
+  updateShowInRanking(show: boolean): Observable<AccountProfile> {
+    return this.http.patch<AccountProfile>(`${this.baseUrl}/api/account`, {
+      show_in_ranking: show,
+    });
+  }
+
   /** JSON com tudo da conta (perfil, fichas, sessões, catálogo, rolagens). */
   exportData(): Observable<object> {
     return this.http.get<object>(`${this.baseUrl}/api/account/export`);

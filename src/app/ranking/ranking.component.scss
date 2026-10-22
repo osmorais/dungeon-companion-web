@@ -1,0 +1,281 @@
+/* ===== CONTÊINERES ===== */
+
+.mobile-ranking-container {
+  width: 100vw;
+  max-width: 100vw;
+  min-height: 100vh;
+  padding: 0 12px 24px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.rk-desktop {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* ===== ABAS DE CATEGORIA ===== */
+
+.rk-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.rk-tab {
+  padding: 8px 10px;
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+  color: var(--text-color);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  letter-spacing: 0.05em;
+  cursor: var(--cp);
+  transition:
+    border-color 0.1s,
+    color 0.1s;
+
+  &:hover:not(.active) {
+    border-color: #cc8800;
+  }
+
+  &.active {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+  }
+}
+
+/* No celular as abas rolam de lado em vez de quebrar em várias linhas. */
+.mobile-ranking-container .rk-tabs {
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  .rk-tab {
+    flex-shrink: 0;
+  }
+}
+
+/* ===== QUADRO DA CATEGORIA ===== */
+
+.rk-board {
+  padding: 18px 16px 20px;
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+}
+
+.rk-title {
+  margin: 0 0 8px;
+  font-size: 12px;
+  text-align: center;
+  color: var(--accent-color);
+}
+
+.rk-desc {
+  margin: 0 0 18px;
+  font-size: 7px;
+  line-height: 1.6;
+  text-align: center;
+  color: var(--label-title-color);
+}
+
+/* ===== PÓDIO (2º, 1º, 3º) ===== */
+
+.rk-podium {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.rk-place {
+  flex: 0 1 180px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+
+  .rk-step {
+    align-self: stretch;
+    margin-top: 6px;
+    border: 2px solid var(--border-color);
+    border-bottom: none;
+    background-color: rgba(0, 0, 0, 0.35);
+  }
+
+  &[data-place='1'] {
+    .rk-step {
+      height: 46px;
+      border-color: var(--accent-color);
+    }
+    .rk-medal,
+    .rk-value {
+      color: var(--gold-color);
+    }
+    .rk-avatar--big {
+      width: 104px;
+      height: 104px;
+      border-color: var(--accent-color);
+    }
+  }
+
+  &[data-place='2'] .rk-step {
+    height: 30px;
+  }
+
+  &[data-place='3'] .rk-step {
+    height: 18px;
+  }
+}
+
+.rk-medal {
+  font-size: 10px;
+  color: var(--label-title-color);
+}
+
+.rk-avatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--border-color);
+  background-color: rgba(0, 0, 0, 0.6);
+
+  &--big {
+    width: 84px;
+    height: 84px;
+  }
+}
+
+.rk-value {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--accent-color);
+}
+
+.rk-unit {
+  font-size: 6px;
+  color: var(--label-title-color);
+}
+
+.rk-char {
+  max-width: 100%;
+  font-size: 8px;
+  line-height: 1.5;
+  color: var(--text-color);
+  overflow-wrap: anywhere;
+}
+
+.rk-meta {
+  max-width: 100%;
+  font-size: 6px;
+  line-height: 1.5;
+  color: var(--text-soft);
+  overflow-wrap: anywhere;
+
+  &--session {
+    color: var(--label-title-color);
+  }
+}
+
+/* ===== 4º EM DIANTE ===== */
+
+.rk-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rk-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border: 1px solid var(--border-color);
+  background-color: rgba(0, 0, 0, 0.25);
+}
+
+.rk-pos {
+  width: 28px;
+  flex-shrink: 0;
+  font-size: 8px;
+  color: var(--label-title-color);
+}
+
+.rk-row-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rk-row-value {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  font-size: 10px;
+  color: var(--accent-color);
+
+  small {
+    font-size: 6px;
+    color: var(--label-title-color);
+  }
+}
+
+/* ===== ESTADOS ===== */
+
+.rk-note {
+  margin: 14px 0 0;
+  font-size: 6px;
+  line-height: 1.7;
+  text-align: center;
+  color: var(--label-title-color);
+}
+
+.rk-retry {
+  display: flex;
+  justify-content: center;
+}
+
+.rk-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rk-skeleton-row {
+  display: block;
+  height: 56px;
+}
+
+@media (max-width: 420px) {
+  .rk-podium {
+    gap: 6px;
+  }
+
+  .rk-avatar--big {
+    width: 64px;
+    height: 64px;
+  }
+
+  .rk-place[data-place='1'] .rk-avatar--big {
+    width: 80px;
+    height: 80px;
+  }
+}

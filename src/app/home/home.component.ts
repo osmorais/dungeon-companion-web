@@ -149,4 +149,8 @@ export class HomeComponent {
   openSpellCatalog() {
     this.router.navigate(['/spell-catalog']);
   }
+
+  openRanking() {
+    this.router.navigate(['/ranking']);
+  }
 }

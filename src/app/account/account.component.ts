@@ -41,6 +41,9 @@ export class AccountComponent implements OnInit {
   nameMessage = signal('');
   savingName = signal(false);
 
+  savingRanking = signal(false);
+  rankingMessage = signal('');
+
   exporting = signal(false);
   exportError = signal('');
 
@@ -84,6 +87,26 @@ export class AccountComponent implements OnInit {
       error: (err) => {
         this.nameMessage.set(apiErrorMessage(err, 'Não foi possível salvar o nome.'));
         this.savingName.set(false);
+      },
+    });
+  }
+
+  toggleRanking(show: boolean): void {
+    this.rankingMessage.set('');
+    this.savingRanking.set(true);
+    this.accountService.updateShowInRanking(show).subscribe({
+      next: (profile) => {
+        this.profile.set(profile);
+        this.rankingMessage.set(
+          profile.show_in_ranking
+            ? 'Seus personagens aparecem no ranking.'
+            : 'Seus personagens não aparecem mais no ranking.',
+        );
+        this.savingRanking.set(false);
+      },
+      error: (err) => {
+        this.rankingMessage.set(apiErrorMessage(err, 'Não foi possível salvar a preferência.'));
+        this.savingRanking.set(false);
       },
     });
   }

@@ -36,8 +36,9 @@
           </li>
           <li>
             <strong>Conteúdo que você cria:</strong> personagens e fichas, anotações, inventário,
-            sessões de jogo, nomes de jogador e de mestre, NPCs, monstros, rolagens de dados e
-            demais informações de jogo.
+            sessões de jogo, nomes de jogador e de mestre, NPCs, monstros, rolagens de dados,
+            estatísticas de jogo dos seus personagens (como dano causado, cura e rolagens, usadas
+            no ranking) e demais informações de jogo.
           </li>
           <li>
             <strong>Imagens que você envia:</strong> imagens de personagens, de monstros e imagens
@@ -60,6 +61,10 @@
           <li>
             <strong>Criar e manter sua conta e oferecer as funcionalidades</strong> (fichas,
             sessões, rolagens, imagens) — execução do contrato com você (art. 7º, V, da LGPD).
+          </li>
+          <li>
+            <strong>Montar o ranking</strong> dos maiores feitos das mesas — legítimo interesse
+            (art. 7º, IX). Você pode sair do ranking a qualquer momento em Minha Conta.
           </li>
           <li>
             <strong>Enviar e-mails de serviço</strong>, como o de redefinição de senha — execução do
@@ -86,6 +91,13 @@
           seu personagem (incluindo a imagem), seus pontos de vida e suas rolagens. Por isso,
           recomendamos usar um apelido em vez do seu nome real. Se você é o mestre, as imagens de
           referência que você mostrar (e as legendas) aparecem para todos os jogadores da sessão.
+        </p>
+        <p>
+          <strong>Todos os usuários (ranking).</strong> A página de ranking mostra a todos os
+          usuários logados os maiores feitos das mesas: o avatar e o nome do personagem, o nome de
+          jogador usado naquela sessão, o nome da sessão e o número do feito (por exemplo, dano
+          causado ou 20 naturais). Por padrão seus personagens aparecem; para sair, desmarque a
+          opção na página <a routerLink="/conta">Minha Conta</a>.
         </p>
         <p>
           <strong>Imagens enviadas</strong> ficam armazenadas num endereço público: qualquer pessoa
@@ -138,8 +150,8 @@
         <p>
           Seus dados ficam guardados enquanto sua conta existir. Ao excluir sua conta (na página
           <a routerLink="/conta">Minha Conta</a>), apagamos na hora os dados de conta, personagens,
-          sessões que você criou, participações em sessões, rolagens, monstros catalogados e imagens
-          enviadas. Cópias de segurança mantidas pelos provedores podem levar algum tempo para serem
+          sessões que você criou, participações em sessões, rolagens, estatísticas do ranking,
+          monstros catalogados e imagens enviadas. Cópias de segurança mantidas pelos provedores podem levar algum tempo para serem
           sobrescritas, e alguns dados podem ser mantidos pelo período necessário para cumprir
           obrigação legal.
         </p>
@@ -161,7 +173,8 @@
         </ul>
         <p>
           Na página <a routerLink="/conta">Minha Conta</a> você pode, a qualquer momento, corrigir
-          seu nome, baixar uma cópia dos seus dados (arquivo JSON) e excluir sua conta. Para os
+          seu nome, sair do ranking, baixar uma cópia dos seus dados (arquivo JSON) e excluir sua
+          conta. Para os
           demais direitos, ou para trocar o e-mail da conta, envie um e-mail para
           <a [href]="'mailto:' + contactEmail">{{ contactEmail }}</a> a partir do e-mail cadastrado
           na sua conta. Responderemos em até 15 dias. Você também pode apresentar reclamação à

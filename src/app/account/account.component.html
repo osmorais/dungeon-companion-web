@@ -42,12 +42,34 @@
         </p>
       </section>
 
+      <!-- ===== RANKING ===== -->
+      <section class="account-section">
+        <h2>RANKING</h2>
+        <p class="hint">
+          O ranking mostra para todos os usuários os maiores feitos das mesas, com o avatar e o nome
+          do personagem, o nome de jogador usado na mesa e o nome da sessão.
+        </p>
+        <label class="ack-check">
+          <input
+            type="checkbox"
+            class="retro-checkbox"
+            [ngModel]="p.show_in_ranking"
+            (ngModelChange)="toggleRanking($event)"
+            [disabled]="savingRanking()"
+          />
+          <span>Mostrar meus personagens no ranking</span>
+        </label>
+        @if (rankingMessage()) {
+          <p class="info-msg">{{ rankingMessage() }}</p>
+        }
+      </section>
+
       <!-- ===== EXPORTAR ===== -->
       <section class="account-section">
         <h2>BAIXAR MEUS DADOS</h2>
         <p class="hint">
           Gera um arquivo JSON com sua conta, fichas de personagem, sessões, inventários, monstros
-          catalogados e rolagens.
+          catalogados, rolagens e estatísticas do ranking.
         </p>
         <div class="row-actions">
           <button type="button" class="retro-btn" (click)="exportData()" [disabled]="exporting()">

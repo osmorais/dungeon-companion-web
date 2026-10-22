@@ -33,6 +33,25 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.7.0',
+    date: '2026-10-22',
+    title: 'Ranking dos maiores feitos das mesas',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'Novo botão RANKING na tela inicial: os maiores feitos de todas as mesas, com avatar e nome do personagem, nome de jogador e nome da sessão. Categorias: dano causado, maior golpe, monstros derrubados, dano sofrido, cura, 20 naturais, 1 naturais, maior média no d20, quedas a 0 PV, magias lançadas, rolagens e XP ganho.',
+      },
+      {
+        kind: 'novidade',
+        text: 'A contagem começa nesta versão: dano, cura, rolagens, magias e XP passam a ser somados enquanto você joga.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Em Minha Conta dá para sair do ranking. A Política de Privacidade foi atualizada para explicar o que aparece no ranking.',
+      },
+    ],
+  },
+  {
     version: '1.6.10',
     date: '2026-10-22',
     title: 'Tons de pele de verdade e cores de cada raça',
