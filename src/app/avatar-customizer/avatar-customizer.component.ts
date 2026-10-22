@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
 import {
   AvatarPreset,
   AvatarClass,
@@ -16,10 +16,21 @@ import {
   AVATAR_SKIN_COLORS,
 } from '../models/avatar-preset.interface';
 
+export type AvatarTab = 'body' | 'hair' | 'beard' | 'clothes' | 'face';
+export type AvatarTileGroup = 'gender' | 'skin' | 'hair' | 'beard' | 'clothes' | 'smile';
+
+/** Uma miniatura: o avatar atual com só aquela opção trocada. */
+export interface AvatarTile {
+  key: string;
+  label: string;
+  preset: AvatarPreset;
+  active: boolean;
+}
+
 @Component({
   selector: 'app-avatar-customizer',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, AvatarDisplayComponent],
   templateUrl: './avatar-customizer.component.html',
   styleUrls: ['./avatar-customizer.component.scss'],
 })
@@ -29,62 +40,105 @@ export class AvatarCustomizerComponent implements OnInit {
 
   localPreset!: AvatarPreset;
 
-  readonly classes = AVATAR_CLASSES;
-  readonly hairStyles = AVATAR_HAIR_STYLES;
-  readonly beardStyles = AVATAR_BEARD_STYLES;
   readonly hairColors = AVATAR_HAIR_COLORS;
-  readonly skinColors = AVATAR_SKIN_COLORS;
+
+  activeTab: AvatarTab = 'body';
+
+  genderTiles: AvatarTile[] = [];
+  skinTiles: AvatarTile[] = [];
+  hairTiles: AvatarTile[] = [];
+  beardTiles: AvatarTile[] = [];
+  clothesTiles: AvatarTile[] = [];
+  smileTiles: AvatarTile[] = [];
 
   ngOnInit(): void {
     this.localPreset = { ...this.preset, gender: this.preset?.gender ?? 'male' };
+    this.buildTiles();
   }
 
-  get racePath(): string {
-    if ((this.localPreset.gender ?? 'male') === 'female') {
-      return `assets/avatar/race_fem/base_fem_${this.localPreset.race}.png`;
+  get tabs(): { key: AvatarTab; label: string }[] {
+    const tabs: { key: AvatarTab; label: string }[] = [
+      { key: 'body', label: 'CORPO' },
+      { key: 'hair', label: 'CABELO' },
+    ];
+    if (this.localPreset.gender === 'male') tabs.push({ key: 'beard', label: 'BARBA' });
+    tabs.push({ key: 'clothes', label: 'ROUPA' });
+    if (this.canShowSmile) tabs.push({ key: 'face', label: 'ROSTO' });
+    return tabs;
+  }
+
+  selectTab(tab: AvatarTab): void {
+    this.activeTab = tab;
+  }
+
+  selectTile(group: AvatarTileGroup, key: string): void {
+    switch (group) {
+      case 'gender':
+        return this.selectGender(key as AvatarGender);
+      case 'skin':
+        return this.selectSkinColor(key as SkinColor);
+      case 'hair':
+        return this.selectHairStyle(key === 'none' ? null : (key as HairStyle));
+      case 'beard':
+        return this.selectBeardStyle(key === 'none' ? null : (key as BeardStyle));
+      case 'clothes':
+        return this.selectClassKey(key as AvatarClass);
+      case 'smile':
+        return this.selectSmile(key === 'smile');
     }
-    return `assets/avatar/race/base_${this.localPreset.race}.png`;
   }
 
-  get skinFilter(): string {
-    return AVATAR_SKIN_COLORS.find(s => s.key === this.localPreset.skinColor)?.filter ?? 'none';
-  }
+  /** As miniaturas são recalculadas só quando o preset muda, não a cada ciclo de detecção. */
+  private buildTiles(): void {
+    const p = this.localPreset;
+    const tile = (key: string, label: string, patch: Partial<AvatarPreset>, active: boolean) => ({
+      key,
+      label,
+      preset: { ...p, ...patch },
+      active,
+    });
 
-  get clothesPath(): string {
-    if (this.localPreset.gender === 'female') {
-      return `assets/avatar/clothes_fem/class_${this.localPreset.classKey}_fem.png`;
-    }
-    return `assets/avatar/clothes/class_${this.localPreset.classKey}.png`;
-  }
-
-  get hairPath(): string | null {
-    if (!this.localPreset.hairStyle) return null;
-    return `assets/avatar/hair/${this.localPreset.hairStyle}_${this.localPreset.hairColor}.png`;
-  }
-
-  get beardPath(): string | null {
-    if (!this.localPreset.beardStyle || !this.localPreset.beardColor) return null;
-    return `assets/avatar/beard/${this.localPreset.beardStyle}_${this.localPreset.beardColor}.png`;
-  }
-
-  get smilePath(): string | null {
-    if (!this.localPreset.showSmile) return null;
-    return `assets/avatar/mouth/smile.png`;
+    this.genderTiles = [
+      tile('male', 'Masculino', { gender: 'male' }, p.gender === 'male'),
+      tile(
+        'female',
+        'Feminino',
+        { gender: 'female', beardStyle: null, beardColor: null },
+        p.gender === 'female',
+      ),
+    ];
+    this.skinTiles = AVATAR_SKIN_COLORS.map((s) =>
+      tile(s.key, s.label, { skinColor: s.key }, p.skinColor === s.key),
+    );
+    this.hairTiles = [
+      tile('none', 'Nenhum', { hairStyle: null }, !p.hairStyle),
+      ...AVATAR_HAIR_STYLES.map((h) =>
+        tile(h.key, h.label, { hairStyle: h.key }, p.hairStyle === h.key),
+      ),
+    ];
+    const beardColor = p.beardColor ?? p.hairColor;
+    this.beardTiles = [
+      tile('none', 'Nenhuma', { beardStyle: null, beardColor: null }, !p.beardStyle),
+      ...AVATAR_BEARD_STYLES.map((b) =>
+        tile(b.key, b.label, { beardStyle: b.key, beardColor }, p.beardStyle === b.key),
+      ),
+    ];
+    this.clothesTiles = AVATAR_CLASSES.map((c) =>
+      tile(c.key, c.label, { classKey: c.key }, p.classKey === c.key),
+    );
+    this.smileTiles = [
+      tile('none', 'Neutro', { showSmile: false }, !p.showSmile),
+      tile('smile', 'Sorriso', { showSmile: true }, p.showSmile),
+    ];
   }
 
   get canShowSmile(): boolean {
     return this.localPreset.race !== 'dragonborn';
   }
 
-  showOnLoad(event: Event): void {
-    (event.target as HTMLImageElement).style.display = '';
-  }
-
-  hideOnError(event: Event): void {
-    (event.target as HTMLImageElement).style.display = 'none';
-  }
-
   private emit(): void {
+    this.buildTiles();
+    if (!this.tabs.some((t) => t.key === this.activeTab)) this.activeTab = 'body';
     this.presetChange.emit({ ...this.localPreset });
   }
 

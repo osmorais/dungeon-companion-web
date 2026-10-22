@@ -33,6 +33,21 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.6.9',
+    date: '2026-10-22',
+    title: 'Avatar em abas com miniaturas e 8 penteados novos',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'A personalização do avatar agora é separada em abas (corpo, cabelo, barba, roupa e rosto), cada uma com miniaturas do seu personagem mostrando como fica cada opção. A escolhida ganha um ✓, e a roupa deixou de ser uma lista de seleção.',
+      },
+      {
+        kind: 'novidade',
+        text: '8 penteados novos para o avatar, nas quatro cores de cabelo: topete, moicano, calvo, cacheado, longo, rabo de cavalo, trança e coque.',
+      },
+    ],
+  },
+  {
     version: '1.6.8',
     date: '2026-10-22',
     title: 'Criação no celular em painéis e controle do Tom',

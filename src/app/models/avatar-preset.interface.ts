@@ -1,6 +1,19 @@
 export type AvatarRace = 'human' | 'elf' | 'dwarf' | 'dragonborn' | 'gnome' | 'half_elf' | 'half_orc' | 'halfling' | 'tiefling';
 export type AvatarClass = 'barbarian' | 'bard' | 'warlock' | 'cleric' | 'druid' | 'sorcerer' | 'fighter' | 'rogue' | 'wizard' | 'monk' | 'paladin' | 'ranger';
-export type HairStyle = 'hair_long_01' | 'hair_long_02' | 'hair_short_01' | 'hair_short_02' | 'hair_short_03';
+export type HairStyle =
+  | 'hair_long_01'
+  | 'hair_long_02'
+  | 'hair_long_03'
+  | 'hair_short_01'
+  | 'hair_short_02'
+  | 'hair_short_03'
+  | 'hair_short_04'
+  | 'hair_mohawk'
+  | 'hair_ponytail'
+  | 'hair_braid'
+  | 'hair_bun'
+  | 'hair_curly'
+  | 'hair_bald_tufts';
 export type BeardStyle = 'beard_01' | 'beard_02' | 'beard_03';
 export type HairColor = 'blond' | 'grey' | 'lbrown' | 'red';
 export type SkinColor = 'pale' | 'light' | 'medium' | 'tan' | 'dark' | 'very_dark';
@@ -49,8 +62,16 @@ export const AVATAR_HAIR_STYLES: { key: HairStyle; label: string }[] = [
   { key: 'hair_short_01', label: 'Curto 1' },
   { key: 'hair_short_02', label: 'Curto 2' },
   { key: 'hair_short_03', label: 'Curto 3' },
+  { key: 'hair_short_04', label: 'Topete' },
+  { key: 'hair_mohawk', label: 'Moicano' },
+  { key: 'hair_bald_tufts', label: 'Calvo' },
+  { key: 'hair_curly', label: 'Cacheado' },
   { key: 'hair_long_01', label: 'Longo 1' },
   { key: 'hair_long_02', label: 'Longo 2' },
+  { key: 'hair_long_03', label: 'Longo 3' },
+  { key: 'hair_ponytail', label: 'Rabo de cavalo' },
+  { key: 'hair_braid', label: 'Trança' },
+  { key: 'hair_bun', label: 'Coque' },
 ];
 
 export const AVATAR_BEARD_STYLES: { key: BeardStyle; label: string }[] = [
