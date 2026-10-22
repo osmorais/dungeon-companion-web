@@ -1,40 +1,24 @@
-import { Component, EventEmitter, HostListener, Input, Output, signal } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 
 /**
- * Jogador: as ações do próprio personagem numa gaveta de baixo (como o Quadro do Mestre),
- * em vez de botões dentro do card. Não guarda estado da sessão — cada botão fecha a gaveta e
- * emite; o session-panel faz o que já fazia pelos botões do card.
+ * Jogador: barra AÇÕES DE PERSONAGEM presa na base da tela (como a do Quadro do Mestre). Tocar
+ * abre direto a gaveta de ações do próprio personagem (PlayerActionsModalComponent), que tem no
+ * destaque finalizar/atrasar turno, ficha e itens — sem tela intermediária.
  */
 @Component({
   selector: 'app-character-drawer',
   standalone: true,
-  templateUrl: './character-drawer.component.html',
-  styleUrls: ['../bottom-drawer/bottom-drawer.scss', './character-drawer.component.scss'],
+  template: `
+    <button class="bottom-drawer-bar" aria-expanded="false" (click)="open.emit()">
+      <span class="bottom-drawer-bar-label">
+        <span class="bottom-drawer-arrow">▲</span>
+        <img class="ui-icon" src="assets/icons/actions.png" alt="" /> AÇÕES DE PERSONAGEM
+      </span>
+      <span class="bottom-drawer-hint">TOQUE PARA ABRIR</span>
+    </button>
+  `,
+  styleUrls: ['../bottom-drawer/bottom-drawer.scss'],
 })
 export class CharacterDrawerComponent {
-  @Input({ required: true }) characterName!: string;
-  /** Vez do personagem e ele pode encerrar — mostra FINALIZAR (e ATRASAR, se `canDelay`). */
-  @Input() canEndTurn = false;
-  @Input() canDelay = false;
-  @Input() endingTurn = false;
-  @Input() delayingTurn = false;
-
-  @Output() actions = new EventEmitter<void>();
-  @Output() endTurn = new EventEmitter<void>();
-  @Output() delayTurn = new EventEmitter<void>();
-  @Output() sheet = new EventEmitter<void>();
-  @Output() inventory = new EventEmitter<void>();
-
-  open = signal(false);
-
-  @HostListener('document:keydown.escape')
-  close(): void {
-    this.open.set(false);
-  }
-
-  /** Botão que abre modal ou troca de tela fecha a gaveta antes. */
-  run(output: EventEmitter<void>): void {
-    this.open.set(false);
-    output.emit();
-  }
+  @Output() open = new EventEmitter<void>();
 }

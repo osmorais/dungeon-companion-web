@@ -122,6 +122,9 @@ export class RollModalComponent implements OnInit {
   /** Alvos em que o dano/cura rolado pode ser aplicado direto (opcional). Vazio = sem a opção,
    *  e o modal se comporta como antes (encerra sozinho ao terminar a rolagem de dano). */
   @Input() applyTargets: ApplyTarget[] = [];
+  /** Aberto de dentro de outra tela (gaveta de ações/grimório): botão "◀ VOLTAR..." no topo, que
+   *  fecha só a rolagem e deixa a tela de trás aberta. */
+  @Input() backLabel: string | null = null;
   @Output() closed = new EventEmitter<void>();
   /** O jogador/mestre pediu pra aplicar o resultado num alvo — o pai aplica no PV. */
   @Output() applyToTarget = new EventEmitter<ApplyRequest>();

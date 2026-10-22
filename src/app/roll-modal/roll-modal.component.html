@@ -1,6 +1,9 @@
 <div class="roll-modal-backdrop" (click)="close()">
   <div class="roll-modal" (click)="$event.stopPropagation()">
     <button class="roll-modal-close" (click)="close()">✕</button>
+    @if (backLabel) {
+      <button class="roll-modal-back" (click)="close()">◀ {{ backLabel }}</button>
+    }
     <h3 class="roll-modal-title">{{ title }}</h3>
     @for (reminder of reminders; track reminder) {
       <p class="roll-modifier-line">

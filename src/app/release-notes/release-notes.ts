@@ -33,6 +33,33 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.3.18',
+    date: '2026-10-21',
+    title: 'Ações reorganizadas, grimório próprio e tema/sair no topo',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'Os botões de tema e de sair saíram do rodapé e foram para o topo de todas as telas, no celular e no computador, rolando junto com a página. Assim a base da tela fica livre para as gavetas da sessão.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A barra AÇÕES DE PERSONAGEM agora abre direto as ações, sem o passo intermediário. No topo ficam em destaque PV, CA, CD e ataque de magia, dados de vida e os botões principais: finalizar ou atrasar o turno, rolar dado, ficha e itens.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'As ações ficam organizadas em combate, magias e testes e descanso. No computador cada grupo tem a sua coluna fixa, então abrir um círculo de magia ou uma habilidade não tira mais as outras informações do lugar.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'As magias ganharam um GRIMÓRIO próprio, aberto pelas ações: abas por círculo (e as prontas para lançar), cards maiores com os dados de cada magia, botão para lançar e botão para preparar.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Dá para voltar às ações a partir do grimório, da rolagem de dados e da ficha aberta pelas ações.',
+      },
+    ],
+  },
+  {
     version: '1.3.17',
     date: '2026-10-21',
     title: 'Gavetas na sessão também no computador',

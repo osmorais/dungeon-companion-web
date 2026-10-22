@@ -1,5 +1,4 @@
-import { Component, HostListener, computed, inject, signal } from '@angular/core';
-import { NgTemplateOutlet } from '@angular/common';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet, Router, NavigationStart, NavigationEnd, NavigationCancel, NavigationError } from '@angular/router';
 import { LoadingOverlayComponent } from './loading-overlay/loading-overlay.component';
 import { LoadingOverlayService } from './loading-overlay/loading-overlay.service';
@@ -10,23 +9,16 @@ import { ThemeService } from './services/theme.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, NgTemplateOutlet, LoadingOverlayComponent, ServerWakeupComponent],
+  imports: [RouterOutlet, LoadingOverlayComponent, ServerWakeupComponent],
   template: `
     <div class="app-bg"
       [style.background-image]="'url(' + bg.currentImage() + ')'"
       [class.app-bg--fading]="bg.transitioning()">
     </div>
-    <!-- Sessão no celular: a base da tela é da gaveta (Quadro do Mestre / Ações de personagem),
-         então TEMA/SAIR vão pro topo e rolam com a página. -->
-    @if (authService.isLoggedIn() && footerOnTop()) {
-      <ng-container *ngTemplateOutlet="footer; context: { top: true }" />
-    }
-    <router-outlet /><app-loading-overlay /><app-server-wakeup />
-    @if (authService.isLoggedIn() && !footerOnTop()) {
-      <ng-container *ngTemplateOutlet="footer; context: { top: false }" />
-    }
-    <ng-template #footer let-top="top">
-      <footer class="global-footer" [class.global-footer--top]="top">
+    <!-- TEMA/SAIR no topo da página (absolute, rola junto): a base da tela fica livre pras gavetas
+         da sessão. A altura vem de --footer-height, que o body reserva em cima. -->
+    @if (authService.isLoggedIn()) {
+      <footer class="global-footer">
         <span class="global-footer__email">{{ authService.currentUser()!.email }}</span>
         <button
           class="retro-btn global-footer__logout"
@@ -37,21 +29,24 @@ import { ThemeService } from './services/theme.service';
         </button>
         <button class="retro-btn global-footer__logout" (click)="logout()">SAIR</button>
       </footer>
-    </ng-template>
+    }
+    <router-outlet /><app-loading-overlay /><app-server-wakeup />
   `,
   styles: [`
     .global-footer {
-      position: fixed;
-      bottom: 0;
+      position: absolute;
+      top: 0;
       left: 0;
       right: 0;
+      height: var(--footer-height);
+      box-sizing: border-box;
       display: flex;
       justify-content: flex-end;
       align-items: center;
       gap: 16px;
-      padding: 8px 24px;
+      padding: 0 24px;
       background-color: var(--bg-color);
-      border-top: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
       z-index: 100;
     }
     .global-footer__email {
@@ -64,16 +59,9 @@ import { ThemeService } from './services/theme.service';
       font-size: 7px;
       padding: 6px 12px;
     }
-    .global-footer--top {
-      position: static;
-      width: 100vw;
-      box-sizing: border-box;
-      border-top: none;
-      border-bottom: 1px solid var(--border-color);
-    }
     @media (max-width: 767px) {
       .global-footer {
-        padding: 6px 16px;
+        padding: 0 16px;
       }
       .global-footer__email {
         font-size: 6px;
@@ -88,22 +76,11 @@ export class App {
   /** Injetado aqui pra aplicar o tema salvo desde a primeira tela. */
   readonly theme = inject(ThemeService);
 
-  private readonly url = signal('');
-  private readonly isMobile = signal(typeof window !== 'undefined' && window.innerWidth < 768);
-  /** Tela da sessão (`/session/:id`) no celular: rodapé vai pro topo. */
-  readonly footerOnTop = computed(() => this.isMobile() && /^\/session\//.test(this.url()));
-
-  @HostListener('window:resize')
-  onResize() {
-    this.isMobile.set(window.innerWidth < 768);
-  }
-
   constructor() {
     inject(Router).events.subscribe(event => {
       if (event instanceof NavigationStart) {
         this.overlay.show();
       } else if (event instanceof NavigationEnd) {
-        this.url.set(event.urlAfterRedirects);
         this.overlay.hideImmediate();
         this.bg.next();
       } else if (event instanceof NavigationCancel || event instanceof NavigationError) {

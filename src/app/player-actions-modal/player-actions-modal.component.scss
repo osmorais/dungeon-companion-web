@@ -5,17 +5,116 @@
   gap: 16px;
 }
 
-// Desktop: gaveta na largura dos quadros — as seções se distribuem em colunas.
-@media (min-width: 768px) {
-  .pa-modal {
-    display: block;
-    column-width: 360px;
-    column-gap: 32px;
+// Destaque: números grandes à esquerda, ações principais à direita (no celular, uma embaixo da
+// outra).
+.pa-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+  padding: 12px;
+  border: 2px solid var(--accent-color);
+  background-color: rgba(0, 0, 0, 0.3);
+}
 
-    > * {
-      break-inside: avoid;
-      margin-bottom: 16px;
+.pa-hero-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pa-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 56px;
+  padding: 8px 10px;
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+
+  &--hp .pa-stat-value {
+    color: #00ff00;
+  }
+}
+
+.pa-stat-label {
+  font-size: 6px;
+  color: var(--label-title-color);
+}
+
+.pa-stat-value {
+  font-size: 13px;
+  color: var(--accent-color);
+
+  small {
+    font-size: 8px;
+    color: #66ccff;
+  }
+}
+
+.pa-hero-actions {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.pa-hero-btn {
+  padding: 10px 14px;
+  font-size: 8px;
+
+  &--main {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+  }
+}
+
+// Colunas fixas (desktop): COMBATE | MAGIAS | TESTES E DESCANSO. Cada coluna cresce sozinha.
+.pa-columns {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+.pa-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.pa-col-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--border-color);
+  font-size: 9px;
+  color: var(--accent-color);
+}
+
+@media (max-width: 767px) {
+  .pa-hero-actions {
+    justify-content: stretch;
+
+    .pa-hero-btn {
+      flex: 1 1 40%;
     }
+  }
+}
+
+@media (min-width: 768px) {
+  .pa-columns {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    align-items: start;
+  }
+
+  // Coluna própria no desktop: a lista de perícias pode ser mais alta.
+  .pa-row-list--scroll {
+    max-height: 320px;
   }
 }
 
@@ -122,6 +221,12 @@
   &--scroll {
     max-height: 160px;
     overflow-y: auto;
+  }
+
+  // Resistências: 6 linhas curtas, duas por linha.
+  &--grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -290,61 +395,12 @@
   padding: 6px 10px;
 }
 
-.pa-spell-entry {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
 
-.pa-spell-row-main {
-  display: flex;
-  align-items: stretch;
-  gap: 6px;
-}
 
-.pa-spell-name-btn {
-  flex: 1;
-  min-width: 0;
-}
 
-.pa-spell-circle-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  background: transparent;
-  border: 1px solid var(--border-color);
-  color: var(--label-title-color);
-  font-family: inherit;
-  font-size: 8px;
-  padding: 6px 10px;
-  cursor: var(--cp);
 
-  &:hover {
-    color: var(--accent-color);
-  }
-}
 
-.pa-spell-circle-chevron {
-  font-size: 8px;
-  flex-shrink: 0;
-  transition: transform 0.15s ease;
 
-  &--open {
-    transform: rotate(90deg);
-  }
-}
-
-.pa-spell-circle-name {
-  flex: 1;
-  text-align: left;
-  letter-spacing: 0.05em;
-}
-
-.pa-spell-circle-count {
-  font-size: 7px;
-  color: var(--label-title-color);
-}
 
 .pa-spell-head {
   display: flex;
@@ -535,4 +591,208 @@
   margin: 4px 0;
   font-size: 7px;
   color: #ffb347;
+}
+
+/* ===== Grimório (segunda tela da gaveta de ações) ===== */
+
+// Botão grande na coluna MAGIAS das ações.
+.pa-grimoire-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 16px 12px;
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  font-size: 10px;
+}
+
+.pa-grimoire-btn-hint {
+  font-size: 6px;
+  color: var(--label-title-color);
+}
+
+.pa-grimoire {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pa-grimoire-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 12px 24px;
+}
+
+.pa-grimoire-slots {
+  flex: 1 1 280px;
+  min-width: 0;
+
+  .pa-slots-bar {
+    margin: 0;
+  }
+}
+
+.pa-grimoire-hint {
+  margin: 0;
+  font-size: 7px;
+  line-height: 1.8;
+  color: var(--label-title-color);
+}
+
+// Abas por círculo: botões no formato dos cards, quebram em linhas (sem rolar pro lado).
+.pa-grimoire-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 12px;
+    border: 2px solid var(--border-color);
+    background-color: var(--panel-bg);
+    color: var(--label-title-color);
+    font-family: inherit;
+    font-size: 7px;
+    cursor: var(--cp);
+
+    &.active,
+    &:hover {
+      border-color: var(--accent-color);
+      color: var(--accent-color);
+    }
+
+    &.active {
+      background-color: var(--btn-color-hover);
+    }
+  }
+}
+
+.pa-grimoire-tab-count {
+  font-size: 6px;
+  color: var(--text-soft);
+}
+
+.pa-grimoire-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+@media (min-width: 768px) {
+  .pa-grimoire-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+}
+
+// Card de magia: nome/círculo (abre a descrição), linha de dados e as ações dela.
+// Mesma cara das linhas de resistência/perícia/arma (.pa-action-row): fundo sólido, borda fina,
+// dourado no hover. Pronta pra lançar: faixa dourada à esquerda. Sem vaga ou travada em combate:
+// um pouco apagada. O card inteiro é clicável (abre a descrição).
+.pa-spell-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-left-width: 4px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  cursor: var(--cp);
+  transition: border-color 0.15s, background-color 0.15s;
+
+  &:hover {
+    border-color: var(--accent-color);
+    background: rgba(255, 170, 0, 0.08);
+  }
+
+  &:hover .pa-spell-card-name {
+    color: var(--accent-color);
+  }
+
+  &--ready {
+    border-left-color: var(--accent-color);
+  }
+
+  &--locked {
+    opacity: 0.7;
+  }
+}
+
+.pa-spell-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-color);
+}
+
+.pa-spell-card-level {
+  flex-shrink: 0;
+  min-width: 22px;
+  padding: 3px 5px;
+  border: 1px solid var(--gold-color);
+  font-size: 8px;
+  text-align: center;
+  color: var(--gold-color);
+}
+
+.pa-spell-card-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 8px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.pa-spell-card-badge {
+  flex-shrink: 0;
+  font-size: 6px;
+  color: var(--accent-color);
+}
+
+.pa-spell-card-meta {
+  margin: 0;
+  font-size: 6px;
+  line-height: 1.7;
+  color: var(--text-soft);
+}
+
+.pa-spell-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.pa-prepare-btn {
+  margin-left: auto;
+  padding: 5px 8px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--label-title-color);
+  font-family: inherit;
+  font-size: 7px;
+  cursor: var(--cp);
+
+  &--on {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+  }
+
+  // Só reage quando dá pra preparar/despreparar (desabilitado = sem vaga ou em combate).
+  &:hover:not(:disabled) {
+    border-color: var(--accent-color);
+    background-color: var(--btn-color-hover);
+    color: var(--accent-color);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: var(--cx);
+  }
 }

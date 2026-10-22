@@ -8,10 +8,10 @@
 .container {
   width: 1440px;
   max-width: 96vw;
-  /* Página única: ocupa a altura da tela menos os 48px que o body reserva pro rodapé global
-     (styles.scss). Topo + quadros dividem esse espaço; o que não couber rola dentro de cada
-     quadro, nunca a página. */
-  height: calc(100vh - 48px);
+  /* Página única: ocupa a altura da tela menos o rodapé global (no topo, --footer-height).
+     Topo + quadros dividem esse espaço; o que não couber rola dentro de cada quadro, nunca a
+     página. */
+  height: calc(100vh - var(--footer-height));
   box-sizing: border-box;
   /* Espaço embaixo aqui, não no .layout: os quadros laterais (absolute, bottom: 0) iriam até o
      fim do padding e passariam da base do quadro do meio. */
@@ -928,7 +928,7 @@
   width: 100vw;
   max-width: 100vw;
   min-height: 100vh;
-  padding: 0 12px 32px;
+  padding: 0 12px 88px; // embaixo: a barra da gaveta (58px + puxador)
   box-sizing: border-box;
   overflow-x: hidden;
 }

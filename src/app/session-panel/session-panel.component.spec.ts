@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { signal } from '@angular/core';
 import { of, throwError } from 'rxjs';
 import { SessionPanelComponent } from './session-panel.component';
@@ -837,6 +837,74 @@ describe('SessionPanelComponent', () => {
 
     it('rolagens começam recolhidas', () => {
       expect(component.mobileRollsOpen()).toBe(false);
+    });
+  });
+
+  describe('gaveta de ações: destaque', () => {
+    it('PV ao vivo do jogador dono do personagem (com o PV temporário)', () => {
+      const p = player('p1', { id_character: 7 });
+      p.character!.current_hit_points = 12;
+      p.character!.temporary_hit_points = 3;
+      detail.set(sessionDetail({ players: [p] }));
+      expect(component.liveHpFor(7)).toEqual({ current: 12, max: 20, temp: 3 });
+    });
+
+    it('personagem sem jogador (NPC) usa o PV da ficha', () => {
+      detail.set(sessionDetail({ players: [player('p1', { id_character: 7 })] }));
+      expect(component.liveHpFor(99)).toBeNull();
+    });
+
+    it('sabe se o personagem é o da vez', () => {
+      detail.set(
+        sessionDetail({
+          players: [player('p1', { id_character: 7 }), player('p2', { id_character: 8 })],
+          combat: combat([
+            participant('a', { id_player_session: 'p1', is_current_turn: true }),
+            participant('b', { id_player_session: 'p2' }),
+          ]),
+        }),
+      );
+      expect(component.isCharacterCurrentTurn(7)).toBe(true);
+      expect(component.isCharacterCurrentTurn(8)).toBe(false);
+    });
+
+    it('ITENS abre o inventário do próprio personagem', () => {
+      detail.set(sessionDetail({ players: [player('p1', { id_character: 7 })] }));
+      (
+        TestBed.inject(AuthService).currentUser as ReturnType<
+          typeof signal<{ id: string; email: string }>
+        >
+      ).set({ id: 'user-p1', email: 'p1@x' });
+      component.openMyInventory();
+      expect(component.activeInventoryPlayer()).toEqual({
+        idPlayerSession: 'p1',
+        idCharacter: 7,
+        playerName: 'Personagem p1',
+      });
+    });
+  });
+
+  describe('volta da ficha aberta pelas ações', () => {
+    it('ficha aberta pela gaveta leva o personagem em fromActions', () => {
+      const router = TestBed.inject(Router);
+      const nav = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+      component.viewCharacterSheet(7, true);
+      expect(nav).toHaveBeenCalledWith(['/character-sheet', 7], {
+        queryParams: { sessionId: undefined, fromActions: 7 },
+      });
+    });
+
+    it('reabre as ações do personagem quando a sessão carrega e limpa a URL', () => {
+      const router = TestBed.inject(Router);
+      const nav = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+      TestBed.runInInjectionContext(() => {
+        component = new SessionPanelComponent();
+      });
+      (component as unknown as { reopenActions: () => string }).reopenActions = () => '7';
+      detail.set(sessionDetail({ players: [player('p1', { id_character: 7 })] }));
+      TestBed.tick();
+      expect(component.activeActionsCharacter()).toEqual({ id: 7, name: 'Personagem p1' });
+      expect(nav).toHaveBeenCalledWith(['/session', undefined], { replaceUrl: true });
     });
   });
 });

@@ -76,6 +76,19 @@ export class PlayerActionsModalComponent implements OnInit {
   @Input() inCombat = false;
   /** Outros jogadores da mesa (Inspiração Bárdica escolhe um deles). */
   @Input() allies: { id_player_session: string; name: string }[] = [];
+  /** PV ao vivo da sessão (a ficha carregada ao abrir fica velha se alguém aplicar dano depois). */
+  @Input() liveHp: { current: number; max: number; temp: number } | null = null;
+  /** Vez deste personagem e quem abriu pode encerrar — FINALIZAR (e ATRASAR) no destaque. */
+  @Input() canEndTurn = false;
+  @Input() canDelay = false;
+  @Input() endingTurn = false;
+  @Input() delayingTurn = false;
+  /** Jogador abrindo o próprio personagem: FICHA e ITENS no destaque (o mestre tem nos cards). */
+  @Input() showLinks = false;
+  @Output() endTurn = new EventEmitter<void>();
+  @Output() delayTurn = new EventEmitter<void>();
+  @Output() openSheet = new EventEmitter<void>();
+  @Output() openInventory = new EventEmitter<void>();
   @Output() applyToTarget = new EventEmitter<ApplyRequest>();
   @Output() closed = new EventEmitter<void>();
   /** Repassa a confirmação de acerto/erro do roll-modal (só dispara no fluxo de ataque com dano) —
@@ -463,20 +476,54 @@ export class PlayerActionsModalComponent implements OnInit {
       .sort((a, b) => a.spellLevel - b.spellLevel || a.name.localeCompare(b.name, 'pt-BR'));
   }
 
-  /** Vazio por padrão = todos os círculos vêm colapsados ao abrir a ficha. */
-  private expandedCircles = signal<Set<number>>(new Set());
+  /** ========================= GRIMÓRIO (segunda tela da gaveta) ========================= */
 
-  isCircleCollapsed(circle: number): boolean {
-    return !this.expandedCircles().has(circle);
+  /** Tela da gaveta: ações (padrão) ou grimório. A barra do topo do grimório volta pras ações. */
+  view = signal<'actions' | 'grimoire'>('actions');
+  /** Aba do grimório: 'ready' (prontas pra lançar) ou o círculo (0 = truques). */
+  grimoireTab = signal<'ready' | number>('ready');
+
+  openGrimoire(): void {
+    this.grimoireTab.set('ready');
+    this.view.set('grimoire');
   }
 
-  toggleCircle(circle: number): void {
-    this.expandedCircles.update((current) => {
-      const next = new Set(current);
-      if (next.has(circle)) next.delete(circle);
-      else next.add(circle);
-      return next;
-    });
+  backToActions(): void {
+    this.view.set('actions');
+  }
+
+  /** Abas: PRONTAS (truques + preparadas; quem não prepara vê TODAS) e um por círculo conhecido. */
+  grimoireTabs(): { key: 'ready' | number; label: string; count: number }[] {
+    const prepares = !!this.sheet()?.character_sheet.spellcasting_info?.prepares_spells;
+    const ready = (this.sheet()?.character_sheet.spells ?? []).filter((s) => this.isCastable(s));
+    return [
+      { key: 'ready' as const, label: prepares ? 'PRONTAS' : 'TODAS', count: ready.length },
+      ...this.spellsByCircle().map((g) => ({
+        key: g.circle,
+        label: g.circle === 0 ? 'TRUQUES' : `${g.circle}º`,
+        count: g.spells.length,
+      })),
+    ];
+  }
+
+  /**
+   * Cor do card no grimório: `ready` (dá pra lançar agora), `preparable` (não preparada, mas há
+   * vaga e não está em combate — tocar PREPARAR libera) ou `locked` (sem vaga ou travada em combate).
+   */
+  spellCardState(spell: Spell): 'ready' | 'preparable' | 'locked' {
+    if (this.isCastable(spell)) return 'ready';
+    return !this.isInActiveCombat() && this.canPrepareMore() ? 'preparable' : 'locked';
+  }
+
+  /** Magias da aba escolhida, por círculo e nome. */
+  grimoireSpells(): Spell[] {
+    const tab = this.grimoireTab();
+    if (tab === 'ready') {
+      return this.spellsByCircle()
+        .flatMap((g) => g.spells)
+        .filter((s) => this.isCastable(s));
+    }
+    return this.spellsByCircle().find((g) => g.circle === tab)?.spells ?? [];
   }
 
   /** ========================= DETALHE DA MAGIA ========================= */

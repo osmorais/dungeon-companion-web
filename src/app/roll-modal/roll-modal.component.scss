@@ -25,6 +25,22 @@
   gap: 16px;
 }
 
+.roll-modal-back {
+  align-self: flex-start;
+  margin: -8px 0 4px;
+  padding: 6px 10px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--accent-color);
+  font-family: inherit;
+  font-size: 7px;
+  cursor: var(--cp);
+
+  &:hover {
+    border-color: var(--accent-color);
+  }
+}
+
 .roll-modal-close {
   position: absolute;
   top: 8px;

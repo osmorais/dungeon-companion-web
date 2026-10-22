@@ -878,6 +878,16 @@
     [turnKey]="combatTurnKey()"
     [inCombat]="!!sessionDetail()?.combat"
     [allies]="alliesFor(actionsChar.id)"
+    [liveHp]="liveHpFor(actionsChar.id)"
+    [canEndTurn]="isCharacterCurrentTurn(actionsChar.id) && canEndCurrentTurn()"
+    [canDelay]="canDelayCurrentTurn()"
+    [endingTurn]="endingTurn()"
+    [delayingTurn]="delayingTurn()"
+    [showLinks]="myPlayer()?.id_character === actionsChar.id"
+    (endTurn)="closePlayerActions(); endTurn()"
+    (delayTurn)="closePlayerActions(); delayTurn()"
+    (openSheet)="viewCharacterSheet(actionsChar.id, true)"
+    (openInventory)="closePlayerActions(); openMyInventory()"
     (applyToTarget)="applyRollToTarget($event)"
     (closed)="closePlayerActions()"
     (attackResolved)="onAttackResolved(actionsChar.name, $event)" />
@@ -1387,20 +1397,11 @@
 @if (isOwner() && !dmBoardOpen() && sessionDetail()) {
   <app-dm-board-tab (expand)="openDmBoard()" />
 }
-<!-- ===== AÇÕES DE PERSONAGEM (gaveta de baixo, jogador com personagem) ===== -->
+<!-- ===== AÇÕES DE PERSONAGEM (barra de baixo, jogador com personagem): abre direto as ações ===== -->
 @if (myPlayer(); as me) {
-  <app-character-drawer
-    [characterName]="me.character!.name"
-    [canEndTurn]="isPlayerCurrentTurn(me) && canEndCurrentTurn()"
-    [canDelay]="canDelayCurrentTurn()"
-    [endingTurn]="endingTurn()"
-    [delayingTurn]="delayingTurn()"
-    (actions)="openPlayerActions(me.id_character, me.character!.name)"
-    (endTurn)="endTurn()"
-    (delayTurn)="delayTurn()"
-    (sheet)="viewCharacterSheet(me.id_character)"
-    (inventory)="openPlayerInventory(me.id_player_session, me.id_character, me.character!.name)"
-  />
+  @if (!activeActionsCharacter() && !activeInventoryPlayer()) {
+    <app-character-drawer (open)="openPlayerActions(me.id_character, me.character!.name)" />
+  }
 }
 @if (dmBoardOpen() && isOwner() && sessionDetail(); as detail) {
   <app-dm-board

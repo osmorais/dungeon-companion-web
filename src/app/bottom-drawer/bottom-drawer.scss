@@ -4,14 +4,13 @@
 //
 // Recolhida: barra larga presa na base da tela, com um puxador em cima (a alça com duas linhas)
 // pra dizer que ela abre. Aberta: a mesma barra fica no topo da gaveta (`--attached`) e recolhe.
-// No desktop a barra e a gaveta têm a largura dos quadros da sessão (o .container, 1440px/96vw) e
-// ficam acima do rodapé global (48px).
+// No desktop a barra e a gaveta têm a largura dos quadros da sessão (o .container, 1440px/96vw).
+// O rodapé global fica no topo da página (1.3.18), então a base da tela é toda das gavetas.
 //
 // Camadas: barra 140, fundo 145, gaveta 146 — acima do rodapé (100) e abaixo dos modais da sessão
 // (rolagem 200, .overlay 999+), que abrem por cima das gavetas.
 
 $drawer-desktop-width: min(1440px, 96vw);
-$footer-height: 48px;
 
 .bottom-drawer-bar {
   position: fixed;
@@ -154,17 +153,12 @@ $footer-height: 48px;
 @media (min-width: 768px) {
   .bottom-drawer-bar,
   .bottom-drawer {
-    bottom: $footer-height;
     width: $drawer-desktop-width;
     margin: 0 auto;
   }
 
   .bottom-drawer-bar--attached {
     width: auto;
-  }
-
-  .bottom-drawer {
-    max-height: calc(85vh - #{$footer-height});
   }
 
   .bottom-drawer-body {

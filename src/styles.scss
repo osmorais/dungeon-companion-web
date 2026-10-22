@@ -50,6 +50,9 @@
   --toast-frame: url('/assets/frames/toast-frame.png');
   /* Sprite do dragão (carregamento e wizard): grade 4×4, virado pra direita */
   --dragon-sprite: url('/dragon-sprite.png');
+  /* Altura do rodapé global (TEMA/SAIR), que fica no topo da página: o body reserva esse espaço
+     em cima e as telas de altura fixa (Home, sessão) descontam dele. */
+  --footer-height: 40px;
 
   /* Cursores do tema (pixel art em assets/cursors/, origem em design/cursors/). Nomes curtos de
      propósito: são usados ~200 vezes nos SCSS dos componentes e o session-panel está no limite
@@ -103,7 +106,7 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  padding-bottom: 48px;
+  padding-top: var(--footer-height);
   box-sizing: border-box;
   touch-action: manipulation;
 }

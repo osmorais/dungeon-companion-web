@@ -466,7 +466,7 @@
     <div class="page sheet-page">
 
       <header class="page-topbar">
-        <button class="retro-btn page-topbar-back" (click)="goBack()">← VOLTAR</button>
+        <button class="retro-btn page-topbar-back" (click)="goBack()">← {{ fromActions() ? 'VOLTAR ÀS AÇÕES' : 'VOLTAR' }}</button>
         <h1 class="page-topbar-name">{{ data.character_sheet.header.name }}</h1>
         <div class="page-topbar-meta">
           <span>{{ data.character_sheet.header.class_and_level }}</span>
@@ -1198,7 +1198,7 @@
   } @else {
     <div class="page sheet-page" aria-busy="true" aria-label="Carregando a ficha">
       <header class="page-topbar">
-        <button class="retro-btn page-topbar-back" (click)="goBack()">← VOLTAR</button>
+        <button class="retro-btn page-topbar-back" (click)="goBack()">← {{ fromActions() ? 'VOLTAR ÀS AÇÕES' : 'VOLTAR' }}</button>
         <span class="skeleton" style="display: block; width: 280px; height: 22px; margin: 0 auto 12px"></span>
         <span class="skeleton" style="display: block; width: 420px; height: 10px; margin: 0 auto"></span>
       </header>

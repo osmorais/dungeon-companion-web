@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { CharacterSheetComponent } from './character-sheet.component';
 import { CharacterService } from '../services/character.service';
 
@@ -31,6 +31,24 @@ describe('CharacterSheetComponent', () => {
 
       component.toggleCircle(0);
       expect(component.isCircleCollapsed(0)).toBe(true);
+    });
+  });
+
+  describe('voltar', () => {
+    it('aberta pela gaveta de ações: volta pra sessão reabrindo as ações', () => {
+      const nav = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      const c = component as unknown as { sessionId: () => string; fromActions: () => string };
+      c.sessionId = () => 'gs';
+      c.fromActions = () => '7';
+      component.goBack();
+      expect(nav).toHaveBeenCalledWith(['/session', 'gs'], { queryParams: { reopenActions: '7' } });
+    });
+
+    it('aberta pela sessão sem ser pelas ações: volta pra sessão sem reabrir nada', () => {
+      const nav = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      (component as unknown as { sessionId: () => string }).sessionId = () => 'gs';
+      component.goBack();
+      expect(nav).toHaveBeenCalledWith(['/session', 'gs'], { queryParams: {} });
     });
   });
 });

@@ -1,13 +1,23 @@
 <!-- Gaveta de baixo (bottom-drawer.scss), como o Quadro do Mestre e as Ações de personagem -->
 <div class="bottom-drawer-backdrop" (click)="close()"></div>
 <aside class="bottom-drawer" role="dialog" [attr.aria-label]="'Ações de ' + actorName">
-  <button class="bottom-drawer-bar bottom-drawer-bar--attached" (click)="close()">
-    <span class="bottom-drawer-bar-label">
-      <span class="bottom-drawer-arrow">▼</span>
-      <img class="ui-icon" src="assets/icons/actions.png" alt="" /> {{ actorName }}
-    </span>
-    <span class="bottom-drawer-hint">TOQUE PARA FECHAR</span>
-  </button>
+  @if (view() === 'grimoire') {
+    <!-- Segunda tela: a barra volta pras ações (fechar tudo: tocar no fundo) -->
+    <button class="bottom-drawer-bar bottom-drawer-bar--attached" (click)="backToActions()">
+      <span class="bottom-drawer-bar-label">
+        <span class="bottom-drawer-arrow">◀</span> VOLTAR ÀS AÇÕES
+      </span>
+      <span class="bottom-drawer-hint">GRIMÓRIO DE {{ actorName.toUpperCase() }}</span>
+    </button>
+  } @else {
+    <button class="bottom-drawer-bar bottom-drawer-bar--attached" (click)="close()">
+      <span class="bottom-drawer-bar-label">
+        <span class="bottom-drawer-arrow">▼</span>
+        <img class="ui-icon" src="assets/icons/actions.png" alt="" /> {{ actorName }}
+      </span>
+      <span class="bottom-drawer-hint">TOQUE PARA FECHAR</span>
+    </button>
+  }
   <div class="bottom-drawer-body pa-modal">
 
     @if (loading()) {
@@ -25,61 +35,162 @@
     } @else {
       @let data = sheet()!;
 
+      @if (view() === 'grimoire') {
+        @let spellInfo = data.character_sheet.spellcasting_info;
+        <div class="pa-grimoire">
+          <div class="pa-grimoire-head">
+            @if (spellInfo) {
+              <div class="pa-hero-stats">
+                <div class="pa-stat">
+                  <span class="pa-stat-label">ATRIBUTO</span>
+                  <span class="pa-stat-value">{{ attrLabel(spellInfo.spellcasting_ability) }}</span>
+                </div>
+                <div class="pa-stat">
+                  <span class="pa-stat-label">CD MAGIA</span>
+                  <span class="pa-stat-value">{{ spellInfo.spell_save_dc }}</span>
+                </div>
+                <div class="pa-stat">
+                  <span class="pa-stat-label">ATQ MAGIA</span>
+                  <span class="pa-stat-value">{{ formatMod(spellInfo.spell_attack_bonus) }}</span>
+                </div>
+                @if (spellInfo.prepares_spells) {
+                  <div class="pa-stat">
+                    <span class="pa-stat-label">PREPARADAS</span>
+                    <span class="pa-stat-value">{{ preparedCount() }}/{{ maxPrepared() }}</span>
+                  </div>
+                }
+              </div>
+            }
+            <div class="pa-grimoire-slots">
+              <ng-container *ngTemplateOutlet="slotsBar" />
+            </div>
+          </div>
+
+          @if (spellInfo?.prepares_spells) {
+            <p class="pa-grimoire-hint">
+              @if (isInActiveCombat()) {
+                Em combate as magias preparadas ficam travadas.
+              } @else {
+                Toque em PREPARAR nas magias que o personagem preparou hoje (até {{ maxPrepared() }}). Truques estão sempre prontos.
+              }
+            </p>
+          }
+
+          <div class="pa-grimoire-tabs" role="tablist">
+            @for (tab of grimoireTabs(); track tab.key) {
+              <button role="tab" [class.active]="grimoireTab() === tab.key" [attr.aria-selected]="grimoireTab() === tab.key"
+                (click)="grimoireTab.set(tab.key)">
+                {{ tab.label }} <span class="pa-grimoire-tab-count">{{ tab.count }}</span>
+              </button>
+            }
+          </div>
+
+          <div class="pa-grimoire-grid">
+            @for (spell of grimoireSpells(); track spell.id_spell) {
+              <!-- O card inteiro abre a descrição; os botões dele param o clique (stopPropagation) -->
+              <article class="pa-spell-card" [class]="'pa-spell-card--' + spellCardState(spell)"
+                role="button" tabindex="0" title="Ver descrição"
+                (click)="openSpellDetail(spell)" (keydown.enter)="openSpellDetail(spell)">
+                <div class="pa-spell-card-head">
+                  <span class="pa-spell-card-level">{{ spell.spellLevel === 0 ? 'T' : spell.spellLevel }}</span>
+                  <span class="pa-spell-card-name">{{ spell.name }}</span>
+                  @if (spell.spellLevel > 0 && spellInfo?.prepares_spells && spell.is_prepared) {
+                    <span class="pa-spell-card-badge">PREPARADA</span>
+                  }
+                </div>
+                <p class="pa-spell-card-meta">
+                  {{ spell.school ?? '' }}{{ spell.casting_time ? ' · ' + spell.casting_time : '' }}{{ spell.range_distance != null ? ' · ' + spell.range_distance + ' m' : '' }}
+                </p>
+                @if (isLongCastInCombat(spell)) {
+                  <span class="pa-long-cast"><img class="ui-icon" src="assets/icons/hourglass.png" alt="" /> {{ spell.casting_time }} — fora do ritmo do combate</span>
+                }
+                <div class="pa-spell-card-actions">
+                  @if (isOnHitSpell(spell) && isCastable(spell)) {
+                    <span class="pa-no-slots">use ao acertar um ataque com arma</span>
+                  } @else if (isCastable(spell)) {
+                    @if (spell.spellLevel === 0) {
+                      <button class="pa-cast-btn" (click)="$event.stopPropagation(); castSpell(spell, 0)">
+                        <span class="pa-cast-btn-label">LANÇAR</span>
+                      </button>
+                    }
+                    @for (lvl of availableSlotLevelsFor(spell); track lvl) {
+                      <button class="pa-cast-btn" [disabled]="expendingSlot()" (click)="$event.stopPropagation(); castSpell(spell, lvl)">
+                        <span class="pa-cast-btn-label">LANÇAR NV{{ lvl }}</span>
+                        <span class="pa-cast-btn-slots">{{ slotsAvailable('level_' + lvl) }} espaço(s)</span>
+                      </button>
+                    }
+                    @if (spell.spellLevel > 0 && availableSlotLevelsFor(spell).length === 0) {
+                      <span class="pa-no-slots">sem espaços disponíveis</span>
+                    }
+                  }
+                  @if (spell.spellLevel > 0 && spellInfo?.prepares_spells) {
+                    <button class="pa-prepare-btn" [class.pa-prepare-btn--on]="spell.is_prepared"
+                      [disabled]="isInActiveCombat() || (!spell.is_prepared && !canPrepareMore())"
+                      (click)="$event.stopPropagation(); togglePrepared(spell)">
+                      {{ spell.is_prepared ? '✓ PREPARADA' : 'PREPARAR' }}
+                    </button>
+                  }
+                </div>
+              </article>
+            } @empty {
+              <p class="pa-modal-status">
+                @if (grimoireTab() === 'ready') {
+                  NENHUMA MAGIA PRONTA. PREPARE ALGUMA NAS ABAS DOS CÍRCULOS.
+                } @else {
+                  NENHUMA MAGIA NESTE CÍRCULO.
+                }
+              </p>
+            }
+          </div>
+        </div>
+      } @else {
+
       @if (actionError(); as err) {
         <p class="pa-action-error">{{ err }}</p>
       }
 
-      <button class="pa-freeform-btn" (click)="openFreeformRoll()"><img class="ui-icon" src="assets/icons/d20.png" alt="" /> ROLAR DADO</button>
-
-      <div class="pa-section">
-        <h4 class="pa-section-title">
-          DESCANSOS
-          <span class="pa-hit-dice-count">DV {{ hitDiceAvailable() }}/{{ hitDiceTotal() }}</span>
-        </h4>
-        <div class="pa-hit-dice-pips">
-          @for (i of hitDicePips(); track i) {
-            <span class="pa-hit-dice-pip" [class.spent]="i >= hitDiceAvailable()"></span>
+      <!-- Destaque: números e ações que se usam toda hora -->
+      <div class="pa-hero">
+        <div class="pa-hero-stats">
+          @let hp = liveHp ?? data.character_sheet.combat_stats.hit_points;
+          <div class="pa-stat pa-stat--hp">
+            <span class="pa-stat-label">PV</span>
+            <span class="pa-stat-value">{{ hp.current }}/{{ hp.max }}@if (liveHp?.temp) { <small>+{{ liveHp!.temp }}</small> }</span>
+          </div>
+          <div class="pa-stat">
+            <span class="pa-stat-label">CA</span>
+            <span class="pa-stat-value">{{ data.character_sheet.combat_stats.armor_class }}</span>
+          </div>
+          @if (data.character_sheet.spellcasting_info; as spellInfo) {
+            <div class="pa-stat">
+              <span class="pa-stat-label">CD MAGIA</span>
+              <span class="pa-stat-value">{{ spellInfo.spell_save_dc }}</span>
+            </div>
+            <div class="pa-stat">
+              <span class="pa-stat-label">ATQ MAGIA</span>
+              <span class="pa-stat-value">{{ formatMod(spellInfo.spell_attack_bonus) }}</span>
+            </div>
           }
+          <div class="pa-stat">
+            <span class="pa-stat-label">DADOS DE VIDA</span>
+            <span class="pa-stat-value">{{ hitDiceAvailable() }}/{{ hitDiceTotal() }}</span>
+          </div>
         </div>
-        <div class="pa-rest-buttons-row">
-          <button
-            class="pa-freeform-btn"
-            [disabled]="rollingHitDie() || hitDiceAvailable() === 0 || isAtMaxHp()"
-            (click)="rollHitDieNow()"
-          >
-            @if (!rollingHitDie()) { <img class="ui-icon" src="assets/icons/d20.png" alt="" /> }{{ rollingHitDie() ? '...' : 'DESCANSO CURTO' }}
-          </button>
-          <button class="pa-freeform-btn" [disabled]="restingLong()" (click)="longRestNow()">
-            @if (!restingLong()) { <img class="ui-icon" src="assets/icons/moon.png" alt="" /> }{{ restingLong() ? '...' : 'DESCANSO LONGO' }}
-          </button>
-        </div>
-        @if (lastHitDieResult(); as hd) {
-          <p class="pa-hit-die-result">
-            {{ hd.roll }} {{ formatMod(hd.con_mod) }} = curou {{ hd.healed }} PV
-          </p>
-        }
-      </div>
-
-      <div class="pa-section">
-        <h4 class="pa-section-title">RESISTÊNCIAS</h4>
-        <div class="pa-row-list">
-          @for (attr of data.character_sheet.attributes_and_saves | keyvalue; track attr.key) {
-            <button class="pa-action-row" (click)="rollSave(attr.key, attr.value.save)">
-              <span>{{ attrLabel(attr.key) }}</span>
-              <span class="pa-action-value">{{ formatMod(attr.value.save) }}</span>
+        <div class="pa-hero-actions">
+          @if (canEndTurn) {
+            <button class="pa-freeform-btn pa-hero-btn pa-hero-btn--main" [disabled]="endingTurn" (click)="endTurn.emit()">
+              <img class="ui-icon" src="assets/icons/skip-turn.png" alt="" /> {{ endingTurn ? '...' : 'FINALIZAR TURNO' }}
             </button>
+            @if (canDelay) {
+              <button class="pa-freeform-btn pa-hero-btn" [disabled]="delayingTurn" (click)="delayTurn.emit()">
+                <img class="ui-icon" src="assets/icons/hourglass.png" alt="" /> {{ delayingTurn ? '...' : 'ATRASAR' }}
+              </button>
+            }
           }
-        </div>
-      </div>
-
-      <div class="pa-section">
-        <h4 class="pa-section-title">PERÍCIAS</h4>
-        <div class="pa-row-list pa-row-list--scroll">
-          @for (skill of sortedSkills(); track skill.id_skill) {
-            <button class="pa-action-row" (click)="rollSkill(skill)">
-              <span>{{ skill.name }}</span>
-              <span class="pa-action-value">{{ formatMod(skill.total_skill_value) }}</span>
-            </button>
+          <button class="pa-freeform-btn pa-hero-btn" (click)="openFreeformRoll()"><img class="ui-icon" src="assets/icons/d20.png" alt="" /> ROLAR DADO</button>
+          @if (showLinks) {
+            <button class="pa-freeform-btn pa-hero-btn" (click)="openSheet.emit()"><img class="ui-icon" src="assets/icons/sheet.png" alt="" /> FICHA</button>
+            <button class="pa-freeform-btn pa-hero-btn" (click)="openInventory.emit()"><img class="ui-icon" src="assets/icons/inventory.png" alt="" /> ITENS</button>
           }
         </div>
       </div>
@@ -100,263 +211,264 @@
         </div>
       }
 
-      @if (data.character_sheet.weapons.length || combatFeatures()?.unarmed) {
-        <div class="pa-section">
-          <h4 class="pa-section-title">ARMAS</h4>
-          <div class="pa-row-list">
-            @for (weapon of data.character_sheet.weapons; track weapon.id_weapon) {
-              <button class="pa-action-row" (click)="rollAttack(weapon)">
-                <span>{{ weapon.name }}</span>
-                <span class="pa-action-value">{{ formatMod(weapon.attack_bonus) }}</span>
-              </button>
-            }
-            @if (combatFeatures()?.unarmed; as unarmed) {
-              <button class="pa-action-row" (click)="rollUnarmed()">
-                <span>{{ unarmed.name }} ({{ unarmed.dice.count }}d{{ unarmed.dice.sides }})</span>
-                <span class="pa-action-value">{{ formatMod(unarmed.attack_bonus) }}</span>
-              </button>
-            }
-          </div>
-        </div>
-      }
-
-      @if (data.character_sheet.class_resources; as classResources) {
-        <div class="pa-section">
-          <h4 class="pa-section-title">RECURSOS DE CLASSE</h4>
-          <div class="pa-row-list">
-            @for (r of classResources | keyvalue; track r.key) {
-              <div class="pa-action-row pa-action-row--static">
-                <span>{{ r.key }}</span>
-                <span class="pa-action-value">{{ r.value }}</span>
-              </div>
-            }
-          </div>
-        </div>
-      }
-
-      @if (data.character_sheet.spellcasting_info; as spellInfo) {
-        <div class="pa-section">
-          <h4 class="pa-section-title">
-            MAGIAS
-            @if (spellInfo.prepares_spells) {
-              <span class="pa-prepared-count"
-                >{{ preparedCount() }}/{{ maxPrepared() }} PREPARADAS</span
-              >
-            }
-          </h4>
-
-          @if (slotLevels().length > 0) {
-            <div class="pa-slots-bar">
-              @for (key of slotLevels(); track key) {
-                <div class="pa-slot-row">
-                  <span class="pa-slot-label">NV{{ slotLevelNumber(key) }}</span>
-                  <div class="pa-slot-pips">
-                    @for (i of pipsFor(key); track i) {
-                      <span class="pa-slot-pip" [class.spent]="i >= slotsAvailable(key)"></span>
-                    }
-                  </div>
-                  <span class="pa-slot-count">{{ slotsAvailable(key) }}/{{ slotsTotal(key) }}</span>
-                  <div class="pa-slot-adjust">
-                    <button class="pa-slot-adjust-btn" title="Gastar um espaço"
-                      [disabled]="expendingSlot() || slotsAvailable(key) === 0"
-                      (click)="expendSlot(slotLevelNumber(key), 1, false)">−</button>
-                    <button class="pa-slot-adjust-btn" title="Recuperar um espaço"
-                      [disabled]="expendingSlot() || slotsAvailable(key) >= slotsTotal(key)"
-                      (click)="expendSlot(slotLevelNumber(key), -1, false)">+</button>
-                  </div>
-                </div>
-              }
-            </div>
-          }
-
-          @if (spellInfo.prepares_spells && preparedSpells().length > 0) {
-            <div class="pa-prepared-quickview">
-              <p class="pa-prepared-quickview-title">MAGIAS PREPARADAS</p>
-              <div class="pa-prepared-quickview-list">
-                @for (spell of preparedSpells(); track spell.id_spell) {
-                  <button type="button" class="pa-prepared-chip" (click)="openSpellDetail(spell)">
-                    <span class="pa-prepared-chip-level">{{ spell.spellLevel === 0 ? 'T' : spell.spellLevel }}</span>
-                    {{ spell.name }}
+      <!-- Colunas fixas: cada seção fica sempre na mesma coluna (abrir um círculo ou uma
+           habilidade só cresce a própria coluna, nada troca de lugar). -->
+      <div class="pa-columns">
+        <div class="pa-col">
+          <h3 class="pa-col-title"><img class="ui-icon" src="assets/icons/swords.png" alt="" /> COMBATE</h3>
+          @if (data.character_sheet.weapons.length || combatFeatures()?.unarmed) {
+            <div class="pa-section">
+              <h4 class="pa-section-title">ARMAS</h4>
+              <div class="pa-row-list">
+                @for (weapon of data.character_sheet.weapons; track weapon.id_weapon) {
+                  <button class="pa-action-row" (click)="rollAttack(weapon)">
+                    <span>{{ weapon.name }}</span>
+                    <span class="pa-action-value">{{ formatMod(weapon.attack_bonus) }}</span>
+                  </button>
+                }
+                @if (combatFeatures()?.unarmed; as unarmed) {
+                  <button class="pa-action-row" (click)="rollUnarmed()">
+                    <span>{{ unarmed.name }} ({{ unarmed.dice.count }}d{{ unarmed.dice.sides }})</span>
+                    <span class="pa-action-value">{{ formatMod(unarmed.attack_bonus) }}</span>
                   </button>
                 }
               </div>
             </div>
           }
-
-          <div class="pa-spell-list">
-            @for (group of spellsByCircle(); track group.circle) {
-              <button
-                type="button"
-                class="pa-spell-circle-header"
-                [attr.aria-expanded]="!isCircleCollapsed(group.circle)"
-                (click)="toggleCircle(group.circle)"
-              >
-                <span
-                  class="pa-spell-circle-chevron"
-                  [class.pa-spell-circle-chevron--open]="!isCircleCollapsed(group.circle)"
-                  aria-hidden="true"
-                  >▸</span
-                >
-                <span class="pa-spell-circle-name">{{ circleName(group.circle) }}</span>
-                <span class="pa-spell-circle-count">{{ group.spells.length }}</span>
-              </button>
-              @if (!isCircleCollapsed(group.circle)) {
-                @for (spell of group.spells; track spell.id_spell) {
-                  <div class="pa-spell-entry">
-                    <div class="pa-spell-row-main">
-                      <button
-                        type="button"
-                        class="pa-action-row pa-spell-name-btn"
-                        (click)="openSpellDetail(spell)"
-                      >
-                        <span>{{ spell.name }}</span>
-                        <span class="pa-action-value">{{
-                          spell.spellLevel === 0 ? 'TRUQUE' : circleName(spell.spellLevel)
-                        }}</span>
-                      </button>
-                      @if (spell.spellLevel > 0 && spellInfo.prepares_spells) {
-                        <label class="pa-prepare-toggle">
-                          <input
-                            type="checkbox"
-                            class="retro-checkbox"
-                            [checked]="spell.is_prepared"
-                            [disabled]="isInActiveCombat() || (!spell.is_prepared && !canPrepareMore())"
-                            (change)="togglePrepared(spell, $event)"
-                          />
-                          <span class="pa-prepare-toggle-label">Preparar</span>
-                        </label>
+          @for (res of resourceTrackers(); track res.name) {
+            <div class="pa-section">
+              <h4 class="pa-section-title">
+                {{ res.name.toUpperCase() }}
+                <span class="pa-hit-dice-count">
+                  {{ res.max === 'unlimited' ? 'ILIMITADO' : resourceAvailable(res) + '/' + res.max }}
+                </span>
+              </h4>
+              @if (res.max !== 'unlimited') {
+                <div class="pa-hit-dice-pips">
+                  @for (i of resourcePips(res); track i) {
+                    <span class="pa-hit-dice-pip" [class.spent]="i >= resourceAvailable(res)"></span>
+                  }
+                </div>
+              }
+              @if (abilitiesForResource(res.name).length > 0) {
+                <div class="pa-spell-list">
+                  @for (ability of abilitiesForResource(res.name); track ability.name) {
+                    <div class="pa-spell-row">
+                      <div class="pa-spell-head">
+                        <span class="pa-spell-name">
+                          {{ ability.name }}
+                          <span class="pa-spell-level">custo: {{ ability.cost }}</span>
+                        </span>
+                        <button type="button" class="pa-prepare-toggle" (click)="toggleAbilityDetails(ability.name)">
+                          {{ isAbilityExpanded(ability.name) ? '▾' : '▸' }}
+                        </button>
+                      </div>
+                      @if (isAbilityExpanded(ability.name)) {
+                        <p class="pa-no-slots">{{ ability.description }}</p>
                       }
-                    </div>
-                    @if (isLongCastInCombat(spell)) {
-                      <span class="pa-long-cast"><img class="ui-icon" src="assets/icons/hourglass.png" alt="" /> {{ spell.casting_time }} — fora do ritmo do combate</span>
-                    }
-                    @if (isOnHitSpell(spell) && isCastable(spell)) {
-                      <span class="pa-no-slots">use ao acertar um ataque com arma</span>
-                    } @else if (isCastable(spell)) {
-                      <div class="pa-cast-options">
-                        @if (spell.spellLevel === 0) {
-                          <button class="pa-cast-btn" (click)="castSpell(spell, 0)">
-                            <span class="pa-cast-btn-label">Lançar truque</span>
-                          </button>
-                        }
-                        @for (lvl of availableSlotLevelsFor(spell); track lvl) {
+                      @if (allyAbility() === ability) {
+                        <div class="pa-cast-options">
+                          @if (allies.length === 0) {
+                            <span class="pa-no-slots">Nenhum outro jogador com personagem na mesa.</span>
+                          } @else {
+                            <select class="pa-hp-input pa-ally-select" (change)="setAllyTarget($event)">
+                              <option value="" [selected]="allyTarget() === ''">Escolha o aliado…</option>
+                              @for (ally of allies; track ally.id_player_session) {
+                                <option [value]="ally.id_player_session">{{ ally.name }}</option>
+                              }
+                            </select>
+                            <button
+                              class="pa-cast-btn"
+                              [disabled]="!allyTarget() || expendingResource()"
+                              (click)="useClassAbility(ability, undefined, allyTarget())"
+                            >
+                              <span class="pa-cast-btn-label">Inspirar</span>
+                            </button>
+                          }
+                        </div>
+                      } @else if (variableAbility() === ability) {
+                        <div class="pa-cast-options">
+                          <input
+                            class="pa-hp-input"
+                            type="number"
+                            min="1"
+                            [max]="resourceAvailableForAbility(ability)"
+                            [value]="variableAmount()"
+                            (input)="setVariableAmount($event)"
+                          />
                           <button
                             class="pa-cast-btn"
-                            [disabled]="expendingSlot()"
-                            (click)="castSpell(spell, lvl)"
+                            [disabled]="expendingResource()"
+                            (click)="useClassAbility(ability, variableAmount())"
                           >
-                            <span class="pa-cast-btn-label">Lançar ({{ circleName(lvl) }})</span>
+                            <span class="pa-cast-btn-label">Curar {{ variableAmount() }} PV</span>
                             <span class="pa-cast-btn-slots"
-                              >{{ slotsAvailable('level_' + lvl) }} espaço(s) restante(s)</span
+                              >{{ resourceAvailableForAbility(ability) }} no total</span
                             >
                           </button>
-                        }
-                        @if (spell.spellLevel > 0 && availableSlotLevelsFor(spell).length === 0) {
-                          <span class="pa-no-slots">sem espaços disponíveis</span>
-                        }
-                      </div>
-                    }
-                  </div>
-                }
-              }
-            }
-          </div>
-        </div>
-      }
-
-      @for (res of resourceTrackers(); track res.name) {
-        <div class="pa-section">
-          <h4 class="pa-section-title">
-            {{ res.name.toUpperCase() }}
-            <span class="pa-hit-dice-count">
-              {{ res.max === 'unlimited' ? 'ILIMITADO' : resourceAvailable(res) + '/' + res.max }}
-            </span>
-          </h4>
-          @if (res.max !== 'unlimited') {
-            <div class="pa-hit-dice-pips">
-              @for (i of resourcePips(res); track i) {
-                <span class="pa-hit-dice-pip" [class.spent]="i >= resourceAvailable(res)"></span>
-              }
-            </div>
-          }
-          @if (abilitiesForResource(res.name).length > 0) {
-            <div class="pa-spell-list">
-              @for (ability of abilitiesForResource(res.name); track ability.name) {
-                <div class="pa-spell-row">
-                  <div class="pa-spell-head">
-                    <span class="pa-spell-name">
-                      {{ ability.name }}
-                      <span class="pa-spell-level">custo: {{ ability.cost }}</span>
-                    </span>
-                    <button type="button" class="pa-prepare-toggle" (click)="toggleAbilityDetails(ability.name)">
-                      {{ isAbilityExpanded(ability.name) ? '▾' : '▸' }}
-                    </button>
-                  </div>
-                  @if (isAbilityExpanded(ability.name)) {
-                    <p class="pa-no-slots">{{ ability.description }}</p>
-                  }
-                  @if (allyAbility() === ability) {
-                    <div class="pa-cast-options">
-                      @if (allies.length === 0) {
-                        <span class="pa-no-slots">Nenhum outro jogador com personagem na mesa.</span>
+                        </div>
                       } @else {
-                        <select class="pa-hp-input pa-ally-select" (change)="setAllyTarget($event)">
-                          <option value="" [selected]="allyTarget() === ''">Escolha o aliado…</option>
-                          @for (ally of allies; track ally.id_player_session) {
-                            <option [value]="ally.id_player_session">{{ ally.name }}</option>
-                          }
-                        </select>
-                        <button
-                          class="pa-cast-btn"
-                          [disabled]="!allyTarget() || expendingResource()"
-                          (click)="useClassAbility(ability, undefined, allyTarget())"
-                        >
-                          <span class="pa-cast-btn-label">Inspirar</span>
-                        </button>
+                        <div class="pa-cast-options">
+                          <button
+                            class="pa-cast-btn"
+                            [disabled]="!canUseClassAbility(ability)"
+                            (click)="useClassAbility(ability)"
+                          >
+                            <span class="pa-cast-btn-label">Usar</span>
+                            <span class="pa-cast-btn-slots">custo: {{ ability.cost }} de {{ res.name }}</span>
+                          </button>
+                        </div>
                       }
-                    </div>
-                  } @else if (variableAbility() === ability) {
-                    <div class="pa-cast-options">
-                      <input
-                        class="pa-hp-input"
-                        type="number"
-                        min="1"
-                        [max]="resourceAvailableForAbility(ability)"
-                        [value]="variableAmount()"
-                        (input)="setVariableAmount($event)"
-                      />
-                      <button
-                        class="pa-cast-btn"
-                        [disabled]="expendingResource()"
-                        (click)="useClassAbility(ability, variableAmount())"
-                      >
-                        <span class="pa-cast-btn-label">Curar {{ variableAmount() }} PV</span>
-                        <span class="pa-cast-btn-slots"
-                          >{{ resourceAvailableForAbility(ability) }} no total</span
-                        >
-                      </button>
-                    </div>
-                  } @else {
-                    <div class="pa-cast-options">
-                      <button
-                        class="pa-cast-btn"
-                        [disabled]="!canUseClassAbility(ability)"
-                        (click)="useClassAbility(ability)"
-                      >
-                        <span class="pa-cast-btn-label">Usar</span>
-                        <span class="pa-cast-btn-slots">custo: {{ ability.cost }} de {{ res.name }}</span>
-                      </button>
                     </div>
                   }
                 </div>
               }
             </div>
           }
+          @if (data.character_sheet.class_resources; as classResources) {
+            <div class="pa-section">
+              <h4 class="pa-section-title">RECURSOS DE CLASSE</h4>
+              <div class="pa-row-list">
+                @for (r of classResources | keyvalue; track r.key) {
+                  <div class="pa-action-row pa-action-row--static">
+                    <span>{{ r.key }}</span>
+                    <span class="pa-action-value">{{ r.value }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+          @if (!data.character_sheet.weapons.length && !combatFeatures()?.unarmed && resourceTrackers().length === 0) {
+            <p class="pa-no-slots">Sem ataques ou habilidades de classe.</p>
+          }
         </div>
+
+        @if (data.character_sheet.spellcasting_info) {
+          <div class="pa-col">
+            <h3 class="pa-col-title"><img class="ui-icon" src="assets/icons/scroll.png" alt="" /> MAGIAS</h3>
+            @if (data.character_sheet.spellcasting_info; as spellInfo) {
+              <div class="pa-section">
+                <h4 class="pa-section-title">
+                  GRIMÓRIO
+                  @if (spellInfo.prepares_spells) {
+                    <span class="pa-prepared-count"
+                      >{{ preparedCount() }}/{{ maxPrepared() }} PREPARADAS</span
+                    >
+                  }
+                </h4>
+
+                <ng-container *ngTemplateOutlet="slotsBar" />
+
+                @if (spellInfo.prepares_spells && preparedSpells().length > 0) {
+                  <div class="pa-prepared-quickview">
+                    <p class="pa-prepared-quickview-title">MAGIAS PREPARADAS</p>
+                    <div class="pa-prepared-quickview-list">
+                      @for (spell of preparedSpells(); track spell.id_spell) {
+                        <button type="button" class="pa-prepared-chip" (click)="openSpellDetail(spell)">
+                          <span class="pa-prepared-chip-level">{{ spell.spellLevel === 0 ? 'T' : spell.spellLevel }}</span>
+                          {{ spell.name }}
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+
+                <button class="pa-freeform-btn pa-grimoire-btn" (click)="openGrimoire()">
+                  <span><img class="ui-icon" src="assets/icons/scroll.png" alt="" /> ABRIR GRIMÓRIO</span>
+                  <span class="pa-grimoire-btn-hint">
+                    {{ data.character_sheet.spells?.length ?? 0 }} magia(s) — ver, lançar{{ spellInfo.prepares_spells ? ' e preparar' : '' }}
+                  </span>
+                </button>
+              </div>
+            }
+          </div>
+        }
+
+        <div class="pa-col">
+          <h3 class="pa-col-title"><img class="ui-icon" src="assets/icons/d20.png" alt="" /> TESTES E DESCANSO</h3>
+          <div class="pa-section">
+            <h4 class="pa-section-title">RESISTÊNCIAS</h4>
+            <div class="pa-row-list pa-row-list--grid">
+              @for (attr of data.character_sheet.attributes_and_saves | keyvalue; track attr.key) {
+                <button class="pa-action-row" (click)="rollSave(attr.key, attr.value.save)">
+                  <span>{{ attrLabel(attr.key) }}</span>
+                  <span class="pa-action-value">{{ formatMod(attr.value.save) }}</span>
+                </button>
+              }
+            </div>
+          </div>
+          <div class="pa-section">
+            <h4 class="pa-section-title">PERÍCIAS</h4>
+            <div class="pa-row-list pa-row-list--scroll">
+              @for (skill of sortedSkills(); track skill.id_skill) {
+                <button class="pa-action-row" (click)="rollSkill(skill)">
+                  <span>{{ skill.name }}</span>
+                  <span class="pa-action-value">{{ formatMod(skill.total_skill_value) }}</span>
+                </button>
+              }
+            </div>
+          </div>
+          <div class="pa-section">
+            <h4 class="pa-section-title">
+              DESCANSOS
+              <span class="pa-hit-dice-count">DV {{ hitDiceAvailable() }}/{{ hitDiceTotal() }}</span>
+            </h4>
+            <div class="pa-hit-dice-pips">
+              @for (i of hitDicePips(); track i) {
+                <span class="pa-hit-dice-pip" [class.spent]="i >= hitDiceAvailable()"></span>
+              }
+            </div>
+            <div class="pa-rest-buttons-row">
+              <button
+                class="pa-freeform-btn"
+                [disabled]="rollingHitDie() || hitDiceAvailable() === 0 || isAtMaxHp()"
+                (click)="rollHitDieNow()"
+              >
+                @if (!rollingHitDie()) { <img class="ui-icon" src="assets/icons/d20.png" alt="" /> }{{ rollingHitDie() ? '...' : 'DESCANSO CURTO' }}
+              </button>
+              <button class="pa-freeform-btn" [disabled]="restingLong()" (click)="longRestNow()">
+                @if (!restingLong()) { <img class="ui-icon" src="assets/icons/moon.png" alt="" /> }{{ restingLong() ? '...' : 'DESCANSO LONGO' }}
+              </button>
+            </div>
+            @if (lastHitDieResult(); as hd) {
+              <p class="pa-hit-die-result">
+                {{ hd.roll }} {{ formatMod(hd.con_mod) }} = curou {{ hd.healed }} PV
+              </p>
+            }
+          </div>
+        </div>
+      </div>
       }
     }
   </div>
 </aside>
+
+<!-- Espaços de magia: no MAGIAS das ações e no topo do grimório -->
+<ng-template #slotsBar>
+  @if (slotLevels().length > 0) {
+    <div class="pa-slots-bar">
+      @for (key of slotLevels(); track key) {
+        <div class="pa-slot-row">
+          <span class="pa-slot-label">NV{{ slotLevelNumber(key) }}</span>
+          <div class="pa-slot-pips">
+            @for (i of pipsFor(key); track i) {
+              <span class="pa-slot-pip" [class.spent]="i >= slotsAvailable(key)"></span>
+            }
+          </div>
+          <span class="pa-slot-count">{{ slotsAvailable(key) }}/{{ slotsTotal(key) }}</span>
+          <div class="pa-slot-adjust">
+            <button class="pa-slot-adjust-btn" title="Gastar um espaço"
+              [disabled]="expendingSlot() || slotsAvailable(key) === 0"
+              (click)="expendSlot(slotLevelNumber(key), 1, false)">−</button>
+            <button class="pa-slot-adjust-btn" title="Recuperar um espaço"
+              [disabled]="expendingSlot() || slotsAvailable(key) >= slotsTotal(key)"
+              (click)="expendSlot(slotLevelNumber(key), -1, false)">+</button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</ng-template>
 
 @if (activeRoll(); as roll) {
   <app-roll-modal
@@ -364,6 +476,7 @@
     [idCharacter]="idCharacter"
     [actorName]="actorName"
     [sessionId]="sessionId"
+    [backLabel]="view() === 'grimoire' ? 'VOLTAR AO GRIMÓRIO' : 'VOLTAR ÀS AÇÕES'"
     (rolled)="onRolled()"
     (closed)="closeRoll()"
     (attackResolved)="attackResolved.emit($event)"

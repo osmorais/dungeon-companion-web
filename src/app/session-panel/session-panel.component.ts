@@ -105,6 +105,8 @@ export class SessionPanelComponent implements OnDestroy {
   private releaseLoadingOverlay = inject(LoadingOverlayService).suppressHttp();
 
   id = input<string>();
+  /** Volta da ficha aberta pela gaveta de ações (id do personagem): reabre as ações dele. */
+  reopenActions = input<string>();
 
   isMobile = signal(typeof window !== 'undefined' && window.innerWidth < 768);
   sessionDetail = this.sessionState.detail;
@@ -153,6 +155,11 @@ export class SessionPanelComponent implements OnDestroy {
   }
 
   constructor() {
+    effect(() => {
+      const detail = this.sessionDetail();
+      if (detail && this.reopenActions()) untracked(() => this.reopenActionsFromSheet(detail));
+    });
+
     effect(() => {
       const sessionId = this.id();
       untracked(() => {
@@ -435,6 +442,29 @@ export class SessionPanelComponent implements OnDestroy {
     this.activeActionsCharacter.set(null);
   }
 
+  /** PV ao vivo (com o editado na mesa) do jogador dono do personagem; NPC/sem jogador → null (a gaveta usa a ficha). */
+  liveHpFor(idCharacter: number): { current: number; max: number; temp: number } | null {
+    const player = this.sessionDetail()?.players.find((p) => p.id_character === idCharacter && p.character);
+    if (!player?.character) return null;
+    return { current: this.editedHp(player), max: player.character.max_hit_points, temp: this.editedTempHp(player) };
+  }
+
+  /** O personagem (jogador ou NPC) é o da vez no combate. */
+  isCharacterCurrentTurn(idCharacter: number): boolean {
+    const detail = this.sessionDetail();
+    if (!detail) return false;
+    const player = detail.players.find((p) => p.id_character === idCharacter);
+    if (player) return this.isPlayerCurrentTurn(player);
+    const npc = detail.npcs.find((n) => n.id_character === idCharacter);
+    return !!npc && this.isNpcCurrentTurn(npc);
+  }
+
+  /** ITENS do destaque da gaveta de ações (jogador): inventário do próprio personagem. */
+  openMyInventory(): void {
+    const me = this.myPlayer();
+    if (me?.character) this.openPlayerInventory(me.id_player_session, me.id_character, me.character.name);
+  }
+
   /**
    * Alvos em que o dano/cura de uma rolagem pode ser aplicado direto (opcional), seguindo as
    * permissões de PV que já existem: o mestre aplica em qualquer jogador, NPC ou monstro; o
@@ -595,10 +625,25 @@ export class SessionPanelComponent implements OnDestroy {
 
   /** Passa a sessão atual via query param pra ficha saber voltar pra cá (goBack), em vez de
    *  sempre voltar pra lista de personagens. */
-  viewCharacterSheet(idCharacter: number) {
+  /** `fromActions`: aberta pela gaveta de ações — o voltar da ficha reabre as ações. */
+  viewCharacterSheet(idCharacter: number, fromActions = false) {
     this.router.navigate(['/character-sheet', idCharacter], {
-      queryParams: { sessionId: this.id() },
+      queryParams: { sessionId: this.id(), ...(fromActions ? { fromActions: idCharacter } : {}) },
     });
+  }
+
+  /**
+   * Volta da ficha (`?reopenActions=<id_character>`): quando a sessão carrega, reabre a gaveta de
+   * ações daquele personagem (se quem está vendo pode abrir) e tira o parâmetro da URL.
+   */
+  private reopenActionsFromSheet(detail: GameSessionDetail): void {
+    const id = Number(this.reopenActions());
+    if (!id) return;
+    const player = detail.players.find((p) => p.id_character === id && p.character);
+    const npc = this.isOwner() ? detail.npcs.find((n) => n.id_character === id) : undefined;
+    if (player && this.canViewSheet(player)) this.openPlayerActions(id, player.character!.name);
+    else if (npc) this.openPlayerActions(id, npc.character?.name ?? `NPC #${id}`);
+    this.router.navigate(['/session', this.id()], { replaceUrl: true });
   }
 
   canEditHp(player: PlayerSession): boolean {

@@ -632,3 +632,86 @@ describe('PlayerActionsModalComponent — fase 4 dos traços', () => {
     expect(modal.activeRoll()).toMatchObject({ damage: { damageType: 'Cortante' } });
   });
 });
+
+describe('PlayerActionsModalComponent — grimório', () => {
+  let modal: PlayerActionsModalComponent;
+
+  const spell = (id: number, name: string, level: number, prepared = false) =>
+    ({ id_spell: id, name, spellLevel: level, is_prepared: prepared }) as unknown as Spell;
+
+  function create(prepares: boolean, maxPrepared = 3, inCombat = false) {
+    const data = {
+      character_sheet: {
+        header: { name: 'Elora' },
+        in_active_combat: inCombat,
+        spellcasting_info: {
+          max_prepared_spells: maxPrepared,
+          prepares_spells: prepares,
+          slots_total: { level_1: 2 },
+          slots_expended: {},
+        },
+        spells: [
+          spell(1, 'Raio de Fogo', 0),
+          spell(2, 'Mísseis Mágicos', 1, true),
+          spell(3, 'Escudo', 1),
+          spell(4, 'Teia', 2),
+        ],
+        skills: [],
+      },
+    } as unknown as CharacterSheetResponse;
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: CharacterService, useValue: { getCharacterById: vi.fn(() => of(data)) } },
+        { provide: GameSessionService, useValue: {} },
+      ],
+    });
+    modal = TestBed.runInInjectionContext(() => new PlayerActionsModalComponent());
+    modal.idCharacter = 7;
+    modal.ngOnInit();
+  }
+
+  it('abre na aba PRONTAS e volta pras ações', () => {
+    create(true);
+    expect(modal.view()).toBe('actions');
+    modal.grimoireTab.set(2);
+    modal.openGrimoire();
+    expect(modal.view()).toBe('grimoire');
+    expect(modal.grimoireTab()).toBe('ready');
+    modal.backToActions();
+    expect(modal.view()).toBe('actions');
+  });
+
+  it('quem prepara: PRONTAS = truques + preparadas; abas por círculo com a contagem', () => {
+    create(true);
+    expect(modal.grimoireTabs()).toEqual([
+      { key: 'ready', label: 'PRONTAS', count: 2 },
+      { key: 0, label: 'TRUQUES', count: 1 },
+      { key: 1, label: '1º', count: 2 },
+      { key: 2, label: '2º', count: 1 },
+    ]);
+    expect(modal.grimoireSpells().map((s) => s.name)).toEqual(['Raio de Fogo', 'Mísseis Mágicos']);
+    modal.grimoireTab.set(1);
+    expect(modal.grimoireSpells().map((s) => s.name)).toEqual(['Escudo', 'Mísseis Mágicos']);
+  });
+
+  it('quem não prepara: a primeira aba é TODAS', () => {
+    create(false);
+    expect(modal.grimoireTabs()[0]).toEqual({ key: 'ready', label: 'TODAS', count: 4 });
+  });
+
+  it('cor do card: pronta, dá pra preparar ou bloqueada', () => {
+    const [cantrip, prepared, unprepared] = [0, 1, 2];
+    create(true, 3);
+    const spells = () => modal.sheet()!.character_sheet.spells!;
+    expect(modal.spellCardState(spells()[cantrip])).toBe('ready');
+    expect(modal.spellCardState(spells()[prepared])).toBe('ready');
+    expect(modal.spellCardState(spells()[unprepared])).toBe('preparable');
+
+    create(true, 1); // já tem 1 preparada: sem vaga
+    expect(modal.spellCardState(spells()[unprepared])).toBe('locked');
+
+    create(true, 3, true); // em combate: travada
+    expect(modal.spellCardState(spells()[unprepared])).toBe('locked');
+  });
+});
