@@ -25,7 +25,7 @@ export const SPELL_CAST_DONE_MS = 8000;
         (click)="$event.stopPropagation()"
       >
         <button class="csn-close" title="Fechar" (click)="closed.emit()">✕</button>
-        <app-spell-cast-stage [view]="view" />
+        <app-spell-cast-stage [view]="view" (rollRevealed)="rollRevealed.emit($event)" />
         @if (view.done) {
           <div class="csn-timer">
             <div class="csn-timer-fill" [style.animation-duration.ms]="doneMs"></div>
@@ -107,6 +107,8 @@ export const SPELL_CAST_DONE_MS = 8000;
 export class SpellCastNoticeComponent {
   @Input({ required: true }) view!: CastStageView;
   @Output() closed = new EventEmitter<void>();
+  /** Total de uma rolagem apareceu no palco (impacto de dano e Tom tocam junto). */
+  @Output() rollRevealed = new EventEmitter<string>();
 
   readonly doneMs = SPELL_CAST_DONE_MS;
 }

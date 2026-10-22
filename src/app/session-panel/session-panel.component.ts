@@ -1627,17 +1627,21 @@ export class SessionPanelComponent implements OnDestroy {
     this.onActiveCastUpdated(stage);
   }
 
-  /** Dano/cura novo no aviso: impacto em tela cheia e comentário do Tom; e o tempo pra sumir. */
+  /**
+   * O palco revelou o total de uma rolagem (depois da carta virar e dos dados pararem): só agora o
+   * impacto de dano em tela cheia e o comentário do Tom tocam — juntos com o número na tela.
+   */
+  onCastRollRevealed(idRoll: string): void {
+    if (this.castReactedRollIds.has(idRoll)) return;
+    const entry = this.sessionDetail()?.recent_rolls.find((r) => r.id_roll === idRoll);
+    if (!entry) return;
+    this.castReactedRollIds.add(idRoll);
+    if (entry.roll_type === 'damage' || entry.roll_type === 'heal') this.damageImpact.trigger(entry);
+    this.reactTomToRoll(entry);
+  }
+
+  /** Tempo pra sumir: alguns segundos depois de "terminou", ou o máximo sem notícia. */
   private onActiveCastUpdated(stage: SessionEventPayloadMap['spell_cast_stage']): void {
-    const rolls = this.sessionDetail()?.recent_rolls ?? [];
-    for (const ref of stage.rolls) {
-      if (this.castReactedRollIds.has(ref.id_roll)) continue;
-      const entry = rolls.find((r) => r.id_roll === ref.id_roll);
-      if (!entry) continue;
-      this.castReactedRollIds.add(ref.id_roll);
-      if (ref.kind !== 'attack') this.damageImpact.trigger(entry);
-      this.reactTomToRoll(entry);
-    }
     if (this.castNoticeTimer) clearTimeout(this.castNoticeTimer);
     this.castNoticeTimer = setTimeout(
       () => this.closeCastNotice(),

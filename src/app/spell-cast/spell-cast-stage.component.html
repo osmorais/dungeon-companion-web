@@ -1,7 +1,7 @@
-<div class="cs-stage">
+<div class="cs-stage" [class.cs-stage--shake]="shaking()">
   <div class="cs-cards">
     <app-character-card class="cs-actor" [card]="view.actor" />
-    <!-- Carta jogada na mesa: entra de costas, gira e mostra a frente (uma vez por lançamento) -->
+    <!-- Carta jogada na mesa: cai virada pra baixo, mostra o verso um instante e vira -->
     <div class="cs-spell">
       <div class="cs-flip">
         <div class="cs-face cs-face--back" aria-hidden="true"></div>
@@ -18,41 +18,52 @@
     <p class="cs-save">{{ view.saveNote }}</p>
   }
 
-  @if (view.rolls.length > 0) {
+  @if (visibleRolls().length > 0) {
     <div class="cs-rolls">
-      @for (r of view.rolls; track r.id) {
+      @for (r of visibleRolls(); track r.id) {
+        @let shown = isRevealed(r.id);
         <div
           class="cs-roll"
-          [class.cs-roll--miss]="r.outcome === 'miss'"
-          [class.cs-roll--crit]="r.critical"
+          [class.cs-roll--attack]="r.kind === 'attack'"
+          [class.cs-roll--damage]="r.kind === 'damage'"
           [class.cs-roll--heal]="r.kind === 'heal'"
+          [class.cs-roll--shown]="shown"
+          [class.cs-roll--miss]="shown && r.outcome === 'miss'"
+          [class.cs-roll--crit]="shown && r.critical"
         >
           <span class="cs-roll-label">{{ rollLabel(r.kind) }}</span>
           <span class="cs-roll-dice">
             @for (v of r.rolls; track $index) {
               @if (r.sides[$index] === 6) {
-                <app-pixel-die [face]="v" [mini]="true" />
+                <app-pixel-die [face]="v" [rolling]="!shown" />
               } @else {
-                <app-pixel-numeric-die [sides]="r.sides[$index]" [value]="v" [mini]="true" />
+                <app-pixel-numeric-die
+                  [sides]="r.sides[$index]"
+                  [value]="v"
+                  [rolling]="!shown"
+                  [critical]="r.critical && v === r.sides[$index] ? 'high' : null"
+                />
               }
             }
+            @if (r.modifier !== 0) {
+              <span class="cs-roll-mod">{{ formatMod(r.modifier) }}</span>
+            }
           </span>
-          @if (r.modifier !== 0) {
-            <span class="cs-roll-mod">{{ formatMod(r.modifier) }}</span>
-          }
-          <span class="cs-roll-total">{{ r.total }}</span>
-          @if (r.kind === 'attack') {
-            <span class="cs-roll-outcome">
+          @if (shown) {
+            <span class="cs-roll-total" aria-live="polite">{{ r.total }}</span>
+            @if (r.kind === 'attack') {
               @if (r.critical) {
-                CRÍTICO!
+                <span class="cs-stamp cs-stamp--crit">CRÍTICO!</span>
               } @else if (r.outcome === 'hit') {
-                ACERTOU
+                <span class="cs-stamp cs-stamp--hit">ACERTOU</span>
               } @else if (r.outcome === 'miss') {
-                ERROU
+                <span class="cs-stamp cs-stamp--miss">ERROU</span>
               } @else {
                 <span class="cs-waiting">AGUARDANDO...</span>
               }
-            </span>
+            }
+          } @else {
+            <span class="cs-roll-total cs-roll-total--pending">?</span>
           }
         </div>
       }

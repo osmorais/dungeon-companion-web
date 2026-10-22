@@ -33,6 +33,21 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.6.2',
+    date: '2026-10-22',
+    title: 'Cartas viradas e rolagens com mais impacto',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'No aviso de magia ou de ataque, a carta cai na mesa virada para baixo, mostra o verso por um instante e só então vira.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Os resultados aparecem depois que a carta vira: os dados rolam, o total grande bate na tela com um clarão, o dano faz o aviso tremer e ACERTOU, ERROU ou CRÍTICO! aparecem como um carimbo. O impacto de dano em tela cheia toca junto com o número.',
+      },
+    ],
+  },
+  {
     version: '1.6.1',
     date: '2026-10-22',
     title: 'Ataque com arma no aviso da mesa',

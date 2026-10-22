@@ -1046,4 +1046,19 @@ describe('SessionPanelComponent', () => {
       component.ngOnDestroy();
     });
   });
+
+  describe('impacto junto com o número na tela (aviso de lançamento)', () => {
+    it('dano revelado no palco toca o impacto uma vez; ataque só o Tom', () => {
+      const trigger = vi.spyOn(TestBed.inject(DamageImpactService), 'trigger');
+      const dmg = { ...roll('dmg'), roll_type: 'damage' as const, cast_id: 'c1' };
+      const atk = { ...roll('atk'), roll_type: 'attack' as const, cast_id: 'c1' };
+      detail.set(sessionDetail({ recent_rolls: [atk, dmg] }));
+      component.onCastRollRevealed('atk');
+      expect(trigger).not.toHaveBeenCalled();
+      component.onCastRollRevealed('dmg');
+      component.onCastRollRevealed('dmg');
+      expect(trigger).toHaveBeenCalledTimes(1);
+      component.ngOnDestroy();
+    });
+  });
 });

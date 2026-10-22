@@ -33,7 +33,7 @@
   width: 100%;
   height: 100%;
   transform-style: preserve-3d;
-  animation: cs-throw 1.1s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  animation: cs-throw 2.4s cubic-bezier(0.2, 0.7, 0.3, 1) both;
 }
 
 .cs-face {
@@ -48,21 +48,29 @@
   transform: rotateY(180deg);
 }
 
-// Jogada: vem do alto girando, cai na mesa de costas, vira e assenta com um balanço.
+// Jogada: vem do alto girando e cai VIRADA PRA BAIXO; fica um instante mostrando o verso; levanta
+// e vira, assentando com um balanço (CAST_INTRO_MS = duração, no .ts).
 @keyframes cs-throw {
   0% {
     transform: translate(40%, -120%) rotateZ(-25deg) rotateY(180deg) scale(0.6);
     opacity: 0;
   }
-  35% {
-    transform: translate(0, 0) rotateZ(6deg) rotateY(180deg) scale(1);
+  20% {
+    transform: translate(0, 0) rotateZ(5deg) rotateY(180deg) scale(1);
     opacity: 1;
   }
-  55% {
-    transform: rotateZ(0) rotateY(180deg) scale(1.04);
+  26% {
+    transform: rotateZ(-2deg) rotateY(180deg) scale(1);
   }
-  80% {
-    transform: rotateZ(-2deg) rotateY(0) scale(1.06);
+  32%,
+  58% {
+    transform: rotateZ(0) rotateY(180deg) scale(1);
+  }
+  74% {
+    transform: translateY(-6%) rotateY(90deg) scale(1.12);
+  }
+  88% {
+    transform: translateY(-3%) rotateY(0) scale(1.08);
   }
   100% {
     transform: none;
@@ -93,43 +101,139 @@
 .cs-rolls {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
 }
 
-// Cada rolagem entra deslizando quando chega (o dano entra embaixo do ataque, no mesmo aviso).
+// Cada rolagem: rótulo, dados rolando ("?") e, quando param, o total grande batendo na tela.
 .cs-roll {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 10px 14px;
+  border: 2px solid var(--border-color);
+  background-color: rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  animation: cs-roll-in 0.3s steps(4) both;
+
+  &--attack {
+    --cs-roll-color: var(--accent-color);
+  }
+
+  &--damage {
+    --cs-roll-color: #ff5a3c;
+  }
+
+  &--heal {
+    --cs-roll-color: #4caf50;
+  }
+
+  // Clarão quando o total aparece.
+  &--shown::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--cs-roll-color, var(--accent-color));
+    opacity: 0;
+    pointer-events: none;
+    animation: cs-flash 0.5s steps(4) both;
+  }
+
+  &--crit {
+    border-color: var(--accent-color);
+    box-shadow:
+      0 0 14px var(--accent-color),
+      inset 0 0 14px rgba(255, 170, 0, 0.35);
+  }
+
+  &--miss {
+    opacity: 0.75;
+  }
+}
+
+.cs-roll-label {
+  font-size: 8px;
+  color: var(--label-title-color);
+  letter-spacing: 1px;
+}
+
+.cs-roll-dice {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 8px 10px;
-  padding: 8px 12px;
-  border: 2px solid var(--border-color);
-  background-color: rgba(0, 0, 0, 0.35);
-  animation: cs-roll-in 0.35s steps(5) both;
+  gap: 6px;
+}
 
-  &--crit {
-    border-color: var(--accent-color);
-    box-shadow: 0 0 10px var(--accent-color);
+.cs-roll-mod {
+  font-size: 11px;
+  color: var(--text-soft);
+}
+
+// Total: grande, na cor da rolagem, "bate" na tela (escala 3 → 1 em degraus).
+.cs-roll-total {
+  min-width: 56px;
+  font-size: 30px;
+  line-height: 1;
+  text-align: center;
+  color: var(--cs-roll-color, var(--accent-color));
+  text-shadow:
+    3px 3px 0 #000,
+    0 0 12px var(--cs-roll-color, var(--accent-color));
+  animation: cs-slam 0.45s steps(5) both;
+
+  &--pending {
+    color: var(--label-title-color);
+    text-shadow: none;
+    animation: cs-blink 0.6s steps(2) infinite;
+  }
+}
+
+// Selo carimbado embaixo: ACERTOU / ERROU / CRÍTICO!
+.cs-stamp {
+  grid-column: 1 / -1;
+  justify-self: center;
+  padding: 6px 14px;
+  border: 3px solid currentColor;
+  font-size: 14px;
+  letter-spacing: 2px;
+  transform: rotate(-4deg);
+  animation: cs-stamp 0.4s steps(5) both;
+
+  &--hit {
+    color: var(--accent-color);
   }
 
   &--miss {
-    opacity: 0.7;
-
-    .cs-roll-outcome {
-      color: #ff6b6b;
-    }
+    color: #ff6b6b;
   }
 
-  &--heal .cs-roll-total {
-    color: #4caf50;
+  &--crit {
+    color: #ffd84a;
+    font-size: 18px;
+    text-shadow: 0 0 10px #ffaa00;
+    box-shadow: 0 0 16px #ffaa00;
   }
+}
+
+.cs-waiting {
+  grid-column: 1 / -1;
+  justify-self: center;
+  font-size: 8px;
+  color: var(--label-title-color);
+  animation: cs-blink 1s steps(2) infinite;
+}
+
+// Dano batendo: o aviso inteiro treme.
+.cs-stage--shake {
+  animation: cs-shake 0.45s steps(6);
 }
 
 @keyframes cs-roll-in {
   from {
-    transform: translateY(8px);
+    transform: translateY(10px);
     opacity: 0;
   }
   to {
@@ -138,35 +242,60 @@
   }
 }
 
-.cs-roll-label {
-  font-size: 7px;
-  color: var(--label-title-color);
+@keyframes cs-slam {
+  0% {
+    transform: scale(3);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(0.85);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
-.cs-roll-dice {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
+@keyframes cs-flash {
+  0% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
-.cs-roll-mod {
-  font-size: 9px;
-  color: var(--text-soft);
+@keyframes cs-stamp {
+  0% {
+    transform: rotate(-12deg) scale(2.6);
+    opacity: 0;
+  }
+  70% {
+    transform: rotate(-4deg) scale(0.92);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(-4deg) scale(1);
+  }
 }
 
-.cs-roll-total {
-  font-size: 18px;
-  color: var(--accent-color);
-}
-
-.cs-roll-outcome {
-  font-size: 8px;
-  color: var(--accent-color);
-}
-
-.cs-waiting {
-  color: var(--label-title-color);
-  animation: cs-blink 1s steps(2) infinite;
+@keyframes cs-shake {
+  0%,
+  100% {
+    transform: none;
+  }
+  20% {
+    transform: translate(-6px, 2px);
+  }
+  40% {
+    transform: translate(5px, -3px);
+  }
+  60% {
+    transform: translate(-4px, 3px);
+  }
+  80% {
+    transform: translate(3px, -1px);
+  }
 }
 
 @keyframes cs-blink {
@@ -175,10 +304,28 @@
   }
 }
 
+@media (max-width: 767px) {
+  .cs-roll {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .cs-roll-total {
+    font-size: 26px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cs-flip,
   .cs-roll,
-  .cs-waiting {
+  .cs-roll-total,
+  .cs-stamp,
+  .cs-waiting,
+  .cs-stage--shake {
     animation: none;
+  }
+
+  .cs-roll--shown::after {
+    display: none;
   }
 }
