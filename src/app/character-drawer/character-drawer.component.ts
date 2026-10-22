@@ -1,7 +1,7 @@
 import { Component, EventEmitter, HostListener, Input, Output, signal } from '@angular/core';
 
 /**
- * Celular, jogador: as ações do próprio personagem numa gaveta de baixo (como o Quadro do Mestre),
+ * Jogador: as ações do próprio personagem numa gaveta de baixo (como o Quadro do Mestre),
  * em vez de botões dentro do card. Não guarda estado da sessão — cada botão fecha a gaveta e
  * emite; o session-panel faz o que já fazia pelos botões do card.
  */
@@ -9,7 +9,7 @@ import { Component, EventEmitter, HostListener, Input, Output, signal } from '@a
   selector: 'app-character-drawer',
   standalone: true,
   templateUrl: './character-drawer.component.html',
-  styleUrls: ['../dm-board/bottom-drawer.scss', './character-drawer.component.scss'],
+  styleUrls: ['../bottom-drawer/bottom-drawer.scss', './character-drawer.component.scss'],
 })
 export class CharacterDrawerComponent {
   @Input({ required: true }) characterName!: string;

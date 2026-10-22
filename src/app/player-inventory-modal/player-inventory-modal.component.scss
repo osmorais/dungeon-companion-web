@@ -1,61 +1,23 @@
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
+// A gaveta em si vem de bottom-drawer.scss; aqui só o conteúdo dela.
 .inventory-modal {
-  /* A regra global "fieldset.retro-panel" (styles.scss) só vale pra elementos <fieldset> —
-     como este painel é uma <div>, ela nunca se aplica; repetimos fundo/borda aqui. */
-  border: 2px solid var(--border-color);
-  background-color: var(--panel-bg);
-
-  position: relative;
-  width: 480px;
-  max-width: 92vw;
-  max-height: 80vh;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 24px 20px 20px;
-  overflow-y: auto;
 }
 
-.modal-close-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: none;
-  border: 1px solid var(--border-color);
-  color: var(--text-color);
-  font-family: 'Press Start 2P', monospace;
-  font-size: 9px;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: var(--cp);
-  padding: 0;
-
-  &:hover {
-    background-color: var(--panel-bg);
+// Desktop: a gaveta tem a largura dos quadros; a lista fica numa coluna central legível.
+@media (min-width: 768px) {
+  .inventory-modal > * {
+    width: 100%;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
   }
 }
 
-.modal-title {
-  margin: 0;
-  font-size: 11px;
-  color: var(--accent-color);
-  padding-right: 20px;
-}
-
 .inventory-gold {
-  margin: -6px 0 0;
+  margin: 0;
   font-size: 8px;
   color: var(--label-title-color);
 }

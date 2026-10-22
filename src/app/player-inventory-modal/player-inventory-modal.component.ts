@@ -21,7 +21,7 @@ type InventoryModalMode = 'items' | 'catalog';
   standalone: true,
   imports: [FormsModule, SkeletonRowsComponent],
   templateUrl: './player-inventory-modal.component.html',
-  styleUrls: ['./player-inventory-modal.component.scss'],
+  styleUrls: ['../bottom-drawer/bottom-drawer.scss', './player-inventory-modal.component.scss'],
 })
 export class PlayerInventoryModalComponent implements OnInit {
   private inventoryService = inject(PlayerInventoryService);

@@ -33,6 +33,25 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.3.17',
+    date: '2026-10-21',
+    title: 'Gavetas na sessão também no computador',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'No computador, o Quadro do Mestre e as Ações de personagem também abrem por uma barra na base da tela, numa gaveta da largura dos quadros da sessão.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'As ações do personagem e o inventário agora abrem como gaveta, no celular e no computador.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A barra das gavetas ganhou um puxador, uma seta que se mexe e o aviso "toque para abrir", para ficar claro que dá para abrir.',
+      },
+    ],
+  },
+  {
     version: '1.3.16',
     date: '2026-10-21',
     title: 'Sessão no celular com gavetas na base da tela',

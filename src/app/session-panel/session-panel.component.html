@@ -404,7 +404,7 @@
   </div>
 } @else {
   <!-- ===== DESKTOP LAYOUT ===== -->
-  <div class="container">
+  <div class="container" [class.container--drawer]="isOwner() || !!myPlayer()">
 
     @if (error()) {
       <fieldset class="retro-panel">
@@ -613,7 +613,8 @@
                     }
                   </div>
 
-                  @if (canViewSheet(player)) {
+                  <!-- Jogador usa a gaveta AÇÕES DE PERSONAGEM; no card, só os botões do mestre -->
+                  @if (isOwner()) {
                     <div class="player-card-actions">
                       <button class="player-action-btn" title="Ações"
                         (click)="openPlayerActions(player.id_character, player.character.name)">
@@ -1382,12 +1383,12 @@
     </div>
   </div>
 }
-<!-- ===== QUADRO DO MESTRE (gaveta lateral, só o dono da sessão) ===== -->
+<!-- ===== QUADRO DO MESTRE (gaveta de baixo, só o dono da sessão) ===== -->
 @if (isOwner() && !dmBoardOpen() && sessionDetail()) {
-  <app-dm-board-tab [mobile]="isMobile()" (expand)="openDmBoard()" />
+  <app-dm-board-tab (expand)="openDmBoard()" />
 }
-<!-- ===== AÇÕES DE PERSONAGEM (gaveta de baixo, celular, jogador com personagem) ===== -->
-@if (isMobile() && myPlayer(); as me) {
+<!-- ===== AÇÕES DE PERSONAGEM (gaveta de baixo, jogador com personagem) ===== -->
+@if (myPlayer(); as me) {
   <app-character-drawer
     [characterName]="me.character!.name"
     [canEndTurn]="isPlayerCurrentTurn(me) && canEndCurrentTurn()"
@@ -1408,7 +1409,6 @@
     [screenEffectsEnabled]="screenEffectsEnabled()"
     [endingCombat]="endingCombat()"
     [revealingMonsterId]="revealingMonsterId()"
-    [mobile]="isMobile()"
     (closed)="closeDmBoard()"
     (rollDice)="closeDmBoard(); openDmRoll()"
     (secretRoll)="closeDmBoard(); openSecretRequest()"

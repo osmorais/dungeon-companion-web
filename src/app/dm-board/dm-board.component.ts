@@ -51,7 +51,7 @@ export interface AreaApplyRequest {
 }
 
 /**
- * Quadro do mestre: gaveta lateral, só pro dono da sessão, que agrupa as funções de mesa (dados,
+ * Quadro do mestre: gaveta de baixo, só pro dono da sessão, que agrupa as funções de mesa (dados,
  * rolagens ocultas, grupo, descanso, área, cena, combate, recompensas, sessão). Fora as fichas da
  * visão do grupo e o descanso do grupo, não chama a API — cada botão emite um evento e o
  * session-panel abre o modal/faz a ação que já fazia antes (o PV editado fica num lugar só).
@@ -60,7 +60,7 @@ export interface AreaApplyRequest {
   selector: 'app-dm-board',
   standalone: true,
   templateUrl: './dm-board.component.html',
-  styleUrls: ['./dm-board.component.scss', './dm-board-tab.scss', './bottom-drawer.scss'],
+  styleUrls: ['./dm-board.component.scss', '../bottom-drawer/bottom-drawer.scss'],
 })
 export class DmBoardComponent implements OnInit, OnDestroy {
   private charService = inject(CharacterService);
@@ -72,8 +72,6 @@ export class DmBoardComponent implements OnInit, OnDestroy {
   @Input() endingCombat = false;
   /** Monstro com revelar/esconder em andamento — desabilita o botão dele. */
   @Input() revealingMonsterId: string | null = null;
-  /** Celular: abre como gaveta de baixo em vez da lateral esquerda. */
-  @Input() mobile = false;
 
   @Output() closed = new EventEmitter<void>();
   @Output() rollDice = new EventEmitter<void>();

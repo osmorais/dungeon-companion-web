@@ -1,63 +1,14 @@
-// Abaixo dos modais/toasts da sessão (overlay 1000+): o quadro fecha antes de abrir um modal,
-// mas as notificações em tela cheia (rolagem, monstro revelado) podem chegar com ele aberto.
-.dm-board-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 950;
-  background: rgba(0, 0, 0, 0.55);
-}
-
-// Gaveta pela esquerda, com a aba de recolher presa na borda direita (mesma altura da aba
-// recolhida, então parece a mesma aba indo e voltando).
-.dm-board {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 951;
-  display: flex;
-  flex-direction: column;
-  width: 340px;
-  border-right: 2px solid var(--border-color);
-  background-color: var(--panel-bg);
-  animation: dm-board-slide-in-left 0.25s steps(5) both;
-}
-
-@keyframes dm-board-slide-in-left {
-  from {
-    transform: translateX(-100%);
+// Gaveta: bottom-drawer.scss. No desktop a gaveta é larga (largura dos quadros da sessão), então
+// as seções se distribuem em colunas em vez de uma pilha só.
+@media (min-width: 768px) {
+  .dm-board-body {
+    column-width: 320px;
+    column-gap: 32px;
   }
-  to {
-    transform: translateX(0);
+
+  .dm-board-section {
+    break-inside: avoid;
   }
-}
-
-.dm-board-tab--attached {
-  position: absolute;
-  top: 50%;
-  left: 100%;
-  transform: translateY(-50%);
-}
-
-.dm-board-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 14px 16px;
-  border-bottom: 2px solid var(--border-color);
-}
-
-.dm-board-title {
-  margin: 0;
-  font-size: 11px;
-  color: var(--accent-color);
-}
-
-.dm-board-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 8px 16px 20px;
 }
 
 .dm-board-section {

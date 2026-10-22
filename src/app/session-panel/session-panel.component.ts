@@ -2116,14 +2116,14 @@ export class SessionPanelComponent implements OnDestroy {
     this.router.navigate(['/my-sessions']);
   }
 
-  /** Mestre: quadro do mestre (gaveta lateral; no celular, de baixo). Ações que abrem modal fecham a gaveta antes. */
+  /** Mestre: quadro do mestre (gaveta de baixo). Ações que abrem modal fecham a gaveta antes. */
   dmBoardOpen = signal(false);
 
   /** Celular: quadro ROLAGENS começa recolhido (só a legenda, com a contagem). */
   mobileRollsOpen = signal(false);
 
   /**
-   * Celular, jogador: o próprio jogador (com personagem) — dono da gaveta AÇÕES DE PERSONAGEM.
+   * Jogador: o próprio jogador (com personagem) — dono da gaveta AÇÕES DE PERSONAGEM.
    * O mestre não tem: os botões dele continuam nos cards de cada aventureiro.
    */
   myPlayer = computed(() => {

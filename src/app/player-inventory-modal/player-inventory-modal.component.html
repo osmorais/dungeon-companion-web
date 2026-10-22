@@ -1,7 +1,15 @@
-<div class="overlay modal-overlay" (click)="close()">
-  <div class="retro-panel inventory-modal" (click)="$event.stopPropagation()">
-    <button class="modal-close-btn" (click)="close()">✕</button>
-    <h3 class="modal-title">INVENTÁRIO — {{ playerName.toUpperCase() }}</h3>
+<!-- Gaveta de baixo (bottom-drawer.scss), como as Ações do personagem -->
+<div class="bottom-drawer-backdrop" (click)="close()"></div>
+<aside class="bottom-drawer" role="dialog" [attr.aria-label]="'Inventário de ' + playerName">
+  <button class="bottom-drawer-bar bottom-drawer-bar--attached" (click)="close()">
+    <span class="bottom-drawer-bar-label">
+      <span class="bottom-drawer-arrow">▼</span>
+      <img class="ui-icon" src="assets/icons/inventory.png" alt="" /> INVENTÁRIO —
+      {{ playerName.toUpperCase() }}
+    </span>
+    <span class="bottom-drawer-hint">TOQUE PARA FECHAR</span>
+  </button>
+  <div class="bottom-drawer-body inventory-modal">
     <p class="inventory-gold">PO atual: {{ playerGold() ?? '—' }}</p>
 
     <div class="mode-tabs">
@@ -159,4 +167,4 @@
       </div>
     }
   </div>
-</div>
+</aside>

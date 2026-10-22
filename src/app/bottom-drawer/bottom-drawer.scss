@@ -1,0 +1,180 @@
+// Gavetas de baixo da sessão: Quadro do Mestre, Ações de personagem e os modais de ações e de
+// inventário (1.3.16 no celular; 1.3.17 também no desktop e nos modais). Incluído no `styleUrls`
+// de cada componente que usa — não no styles.scss, porque a regra do componente ganharia da global.
+//
+// Recolhida: barra larga presa na base da tela, com um puxador em cima (a alça com duas linhas)
+// pra dizer que ela abre. Aberta: a mesma barra fica no topo da gaveta (`--attached`) e recolhe.
+// No desktop a barra e a gaveta têm a largura dos quadros da sessão (o .container, 1440px/96vw) e
+// ficam acima do rodapé global (48px).
+//
+// Camadas: barra 140, fundo 145, gaveta 146 — acima do rodapé (100) e abaixo dos modais da sessão
+// (rolagem 200, .overlay 999+), que abrem por cima das gavetas.
+
+$drawer-desktop-width: min(1440px, 96vw);
+$footer-height: 48px;
+
+.bottom-drawer-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 140;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 58px;
+  padding: 10px 16px;
+  box-sizing: border-box;
+  border: 2px solid var(--accent-color);
+  border-bottom: none;
+  background-color: var(--panel-bg);
+  box-shadow: 0 -6px 14px rgba(0, 0, 0, 0.55);
+  color: var(--accent-color);
+  font-family: inherit;
+  font-size: 10px;
+  letter-spacing: 1px;
+  cursor: var(--cp);
+
+  // Puxador: alça presa no meio da borda de cima, com duas linhas de pegada.
+  &::before {
+    content: '';
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    width: 72px;
+    height: 14px;
+    margin-left: -36px;
+    box-sizing: border-box;
+    border: 2px solid var(--accent-color);
+    border-bottom: none;
+    background:
+      linear-gradient(var(--accent-color), var(--accent-color)) center 3px / 32px 2px no-repeat,
+      linear-gradient(var(--accent-color), var(--accent-color)) center 7px / 32px 2px no-repeat,
+      var(--panel-bg);
+  }
+
+  &:hover {
+    background-color: var(--btn-color-hover);
+  }
+
+  .ui-icon {
+    font-size: 12px;
+  }
+
+  // Dentro da gaveta aberta: topo dela, não presa na tela.
+  &--attached {
+    position: static;
+    flex-shrink: 0;
+    min-height: 0;
+    border: none;
+    border-bottom: 2px solid var(--border-color);
+    box-shadow: none;
+
+    &::before {
+      display: none;
+    }
+  }
+}
+
+.bottom-drawer-bar-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// "TOQUE PARA ABRIR" / "TOQUE PARA FECHAR" embaixo do nome da gaveta.
+.bottom-drawer-hint {
+  font-size: 6px;
+  color: var(--label-title-color);
+}
+
+// A seta da barra recolhida sobe e desce de leve: chama pra puxar.
+.bottom-drawer-arrow {
+  display: inline-block;
+  font-size: 9px;
+  animation: bottom-drawer-nudge 1.4s steps(2) infinite;
+
+  .bottom-drawer-bar--attached & {
+    animation: none;
+  }
+}
+
+@keyframes bottom-drawer-nudge {
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.bottom-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 145;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.bottom-drawer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 146;
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+  border: 2px solid var(--accent-color);
+  border-bottom: none;
+  background-color: var(--panel-bg);
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.6);
+  animation: bottom-drawer-slide-up 0.25s steps(5) both;
+}
+
+.bottom-drawer-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+@keyframes bottom-drawer-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@media (min-width: 768px) {
+  .bottom-drawer-bar,
+  .bottom-drawer {
+    bottom: $footer-height;
+    width: $drawer-desktop-width;
+    margin: 0 auto;
+  }
+
+  .bottom-drawer-bar--attached {
+    width: auto;
+  }
+
+  .bottom-drawer {
+    max-height: calc(85vh - #{$footer-height});
+  }
+
+  .bottom-drawer-body {
+    padding: 20px 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bottom-drawer,
+  .bottom-drawer-arrow {
+    animation: none;
+  }
+}

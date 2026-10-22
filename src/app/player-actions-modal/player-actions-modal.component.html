@@ -1,7 +1,14 @@
-<div class="pa-modal-backdrop" (click)="close()">
-  <div class="pa-modal" (click)="$event.stopPropagation()">
-    <button class="pa-modal-close" (click)="close()">✕</button>
-    <h3 class="pa-modal-title">{{ actorName }}</h3>
+<!-- Gaveta de baixo (bottom-drawer.scss), como o Quadro do Mestre e as Ações de personagem -->
+<div class="bottom-drawer-backdrop" (click)="close()"></div>
+<aside class="bottom-drawer" role="dialog" [attr.aria-label]="'Ações de ' + actorName">
+  <button class="bottom-drawer-bar bottom-drawer-bar--attached" (click)="close()">
+    <span class="bottom-drawer-bar-label">
+      <span class="bottom-drawer-arrow">▼</span>
+      <img class="ui-icon" src="assets/icons/actions.png" alt="" /> {{ actorName }}
+    </span>
+    <span class="bottom-drawer-hint">TOQUE PARA FECHAR</span>
+  </button>
+  <div class="bottom-drawer-body pa-modal">
 
     @if (loading()) {
       <div aria-busy="true" aria-label="Carregando a ficha">
@@ -349,7 +356,7 @@
       }
     }
   </div>
-</div>
+</aside>
 
 @if (activeRoll(); as roll) {
   <app-roll-modal

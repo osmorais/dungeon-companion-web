@@ -1,8 +1,3 @@
-.character-drawer-body {
-  overflow-y: auto;
-  padding: 16px 16px 24px;
-}
-
 .character-drawer-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -14,5 +9,12 @@
 
   .m-card-icon {
     font-size: 18px;
+  }
+}
+
+// Desktop: gaveta larga, botões numa linha só.
+@media (min-width: 768px) {
+  .character-drawer-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   }
 }

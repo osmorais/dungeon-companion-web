@@ -1,7 +1,10 @@
 @if (!open()) {
   <button class="bottom-drawer-bar" aria-expanded="false" (click)="open.set(true)">
-    <span class="bottom-drawer-arrow">▲</span>
-    <img class="ui-icon" src="assets/icons/actions.png" alt="" /> AÇÕES DE PERSONAGEM
+    <span class="bottom-drawer-bar-label">
+      <span class="bottom-drawer-arrow">▲</span>
+      <img class="ui-icon" src="assets/icons/actions.png" alt="" /> AÇÕES DE PERSONAGEM
+    </span>
+    <span class="bottom-drawer-hint">TOQUE PARA ABRIR</span>
   </button>
 } @else {
   <div class="bottom-drawer-backdrop" (click)="close()"></div>
@@ -11,10 +14,13 @@
       aria-expanded="true"
       (click)="close()"
     >
-      <span class="bottom-drawer-arrow">▼</span>
-      <img class="ui-icon" src="assets/icons/actions.png" alt="" /> AÇÕES DE PERSONAGEM
+      <span class="bottom-drawer-bar-label">
+        <span class="bottom-drawer-arrow">▼</span>
+        <img class="ui-icon" src="assets/icons/actions.png" alt="" /> AÇÕES DE PERSONAGEM
+      </span>
+      <span class="bottom-drawer-hint">TOQUE PARA FECHAR</span>
     </button>
-    <div class="character-drawer-body">
+    <div class="bottom-drawer-body">
       <p class="m-section-title">{{ characterName }}</p>
       <div class="character-drawer-grid">
         <button class="m-card" (click)="run(actions)">

@@ -57,7 +57,7 @@ export function isLongCastingTime(castingTime: string | null | undefined): boole
   standalone: true,
   imports: [CommonModule, KeyValuePipe, RollModalComponent, SkeletonRowsComponent],
   templateUrl: './player-actions-modal.component.html',
-  styleUrls: ['./player-actions-modal.component.scss'],
+  styleUrls: ['../bottom-drawer/bottom-drawer.scss', './player-actions-modal.component.scss'],
 })
 export class PlayerActionsModalComponent implements OnInit {
   private charService = inject(CharacterService);

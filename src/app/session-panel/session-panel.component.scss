@@ -18,6 +18,11 @@
   padding: 12px 0;
   display: flex;
   flex-direction: column;
+
+  // Com gaveta (mestre ou jogador): a barra de baixo + o puxador (~72px) ficam no padding.
+  &--drawer {
+    padding-bottom: 84px;
+  }
 }
 
 /* A coluna do meio (.main-column) é quem dita a altura da linha: ela é a única
