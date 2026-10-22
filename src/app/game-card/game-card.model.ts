@@ -15,8 +15,10 @@ export interface GameCardData {
   /** Ilustração da janela de arte; `null` usa `fallbackIcon` sobre `artBackground`. */
   art: string | null;
   fallbackIcon: string;
-  /** Cor de fundo da janela de arte (armas: por tipo de dano). */
+  /** Fundo da janela de arte (armas: degradê pela cor do tipo de dano). Valor de `background`. */
   artBackground: string | null;
+  /** `cover` (padrão: ilustração de cena, magias) ou `contain` (objeto solto, armas). */
+  artFit?: 'cover' | 'contain';
   /** Faixa embaixo da arte: escola e círculo / categoria da arma. */
   ribbon: string;
   /** Números do pergaminho. A carta mini mostra só os dois primeiros. */

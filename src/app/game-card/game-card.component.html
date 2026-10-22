@@ -5,9 +5,15 @@
   [class.gc--ready]="state === 'ready'"
   [class.gc--locked]="state === 'locked'"
 >
-  <div class="gc-art" [style.background-color]="card.artBackground">
+  <div class="gc-art" [style.background]="card.artBackground">
     @if (card.art) {
-      <img class="gc-art-img" [src]="card.art" alt="" loading="lazy" />
+      <img
+        class="gc-art-img"
+        [class.gc-art-img--contain]="card.artFit === 'contain'"
+        [src]="card.art"
+        alt=""
+        loading="lazy"
+      />
     } @else {
       <img class="gc-art-fallback" [src]="card.fallbackIcon" alt="" />
     }

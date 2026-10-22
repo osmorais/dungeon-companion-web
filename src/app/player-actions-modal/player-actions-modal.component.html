@@ -235,18 +235,39 @@
           @if (data.character_sheet.weapons.length || combatFeatures()?.unarmed) {
             <div class="pa-section">
               <h4 class="pa-section-title">ARMAS</h4>
-              <div class="pa-row-list">
+              <!-- Cartas (como as magias): tocar abre a carta em tela cheia; ATACAR embaixo -->
+              <div class="card-grid">
                 @for (weapon of data.character_sheet.weapons; track weapon.id_weapon) {
-                  <button class="pa-action-row" (click)="rollAttack(weapon)">
-                    <span>{{ weapon.name }}</span>
-                    <span class="pa-action-value">{{ formatMod(weapon.attack_bonus) }}</span>
-                  </button>
+                  <div class="card-grid-item">
+                    <app-game-card
+                      class="card-clickable"
+                      [card]="weaponCards().get(weapon.id_weapon)!"
+                      role="button"
+                      tabindex="0"
+                      [attr.aria-label]="'Ver a carta de ' + weapon.name"
+                      (click)="selectedWeaponCard.set(weapon)"
+                      (keydown.enter)="selectedWeaponCard.set(weapon)"
+                    />
+                    <button class="pa-cast-btn pa-attack-btn" (click)="rollAttack(weapon)">
+                      <span class="pa-cast-btn-label">ATACAR {{ formatMod(weapon.attack_bonus) }}</span>
+                    </button>
+                  </div>
                 }
                 @if (combatFeatures()?.unarmed; as unarmed) {
-                  <button class="pa-action-row" (click)="rollUnarmed()">
-                    <span>{{ unarmed.name }} ({{ unarmed.dice.count }}d{{ unarmed.dice.sides }})</span>
-                    <span class="pa-action-value">{{ formatMod(unarmed.attack_bonus) }}</span>
-                  </button>
+                  <div class="card-grid-item">
+                    <app-game-card
+                      class="card-clickable"
+                      [card]="unarmedCard()!"
+                      role="button"
+                      tabindex="0"
+                      [attr.aria-label]="'Ver a carta de ' + unarmed.name"
+                      (click)="selectedWeaponCard.set('unarmed')"
+                      (keydown.enter)="selectedWeaponCard.set('unarmed')"
+                    />
+                    <button class="pa-cast-btn pa-attack-btn" (click)="rollUnarmed()">
+                      <span class="pa-cast-btn-label">ATACAR {{ formatMod(unarmed.attack_bonus) }}</span>
+                    </button>
+                  </div>
                 }
               </div>
             </div>
@@ -506,6 +527,19 @@
     [applyTargets]="applyTargets"
     (applyToTarget)="applyToTarget.emit($event)"
   />
+}
+
+<!-- Carta da arma em tela cheia, com ATACAR -->
+@if (selectedWeaponCard(); as w) {
+  <app-card-viewer
+    [card]="w === 'unarmed' ? unarmedCard()! : weaponCards().get(w.id_weapon)!"
+    backLabel="VOLTAR ÀS AÇÕES"
+    (closed)="selectedWeaponCard.set(null)"
+  >
+    <button class="pa-cast-btn pa-attack-btn" (click)="attackFromCard(w)">
+      <span class="pa-cast-btn-label">ATACAR</span>
+    </button>
+  </app-card-viewer>
 }
 
 <!-- Carta em tela cheia (substituiu o modal de detalhe): fecha e volta pra tela de trás -->

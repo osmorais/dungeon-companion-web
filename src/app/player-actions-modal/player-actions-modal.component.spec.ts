@@ -836,4 +836,23 @@ describe('PlayerActionsModalComponent — lançamento de magia (1.5.0)', () => {
     expect(own).toHaveBeenCalledWith(cast.castId);
     expect(publish).not.toHaveBeenCalled();
   });
+
+  it('ATACAR na carta da arma em tela cheia fecha a carta e abre a rolagem do ataque', () => {
+    const sword = {
+      id_weapon: 20,
+      attack_bonus: 5,
+      damage_modifier: 3,
+      name: 'Espada Longa',
+      damage_die: '1d8',
+      damage_type: 'cortante',
+      properties: null,
+      weight: 1.5,
+      price_value: 15,
+      isRanged: false,
+    } as WeaponRow;
+    modal.selectedWeaponCard.set(sword);
+    modal.attackFromCard(sword);
+    expect(modal.selectedWeaponCard()).toBeNull();
+    expect(modal.activeRoll()).toMatchObject({ mode: 'ability', rollType: 'attack' });
+  });
 });

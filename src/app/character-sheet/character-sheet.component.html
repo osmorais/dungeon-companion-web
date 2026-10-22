@@ -260,23 +260,24 @@
             <div class="m-section">
               <h3 class="m-section-title">ARMAS</h3>
               @if (data.character_sheet.weapons.length) {
-                <ul class="m-card-list">
+                <div class="card-grid">
                   @for (weapon of data.character_sheet.weapons; track weapon.id_weapon) {
-                    <li class="m-card mobile-weapon-card" (click)="openWeaponModal(weapon)">
-                      <span class="m-card-body">
-                        <span class="m-card-title">{{ weapon.name }}</span>
-                        <span class="weapon-card-stats">
-                          <span><strong>ATAQUE</strong>{{ formatMod(weapon.attack_bonus) }}</span>
-                          <span><strong>DANO</strong>{{ weapon.damage_die ?? '—' }} {{ weapon.damage_type ?? '' }}</span>
-                        </span>
-                        @if (weapon.properties) {
-                          <span class="m-card-desc">{{ weapon.properties }}</span>
-                        }
-                      </span>
-                      <button class="roll-trigger-btn mobile-roll-btn" title="Rolar ataque" (click)="rollAttack(weapon); $event.stopPropagation()"><img class="ui-icon" src="assets/icons/d20.png" alt="" /></button>
-                    </li>
+                    <div class="card-grid-item">
+                      <app-game-card
+                        class="card-clickable"
+                        [card]="weaponCards().get(weapon.id_weapon)!"
+                        role="button"
+                        tabindex="0"
+                        [attr.aria-label]="'Ver a carta de ' + weapon.name"
+                        (click)="openWeaponModal(weapon)"
+                        (keydown.enter)="openWeaponModal(weapon)"
+                      />
+                      <button class="retro-btn sheet-attack-btn" (click)="rollAttack(weapon)">
+                        <img class="ui-icon" src="assets/icons/d20.png" alt="" /> ATACAR {{ formatMod(weapon.attack_bonus) }}
+                      </button>
+                    </div>
                   }
-                </ul>
+                </div>
               } @else {
                 <p class="m-empty">NENHUMA ARMA EQUIPADA.</p>
               }
@@ -756,30 +757,24 @@
         <fieldset class="retro-panel">
           <legend>ARMAS EQUIPADAS</legend>
           @if (data.character_sheet.weapons.length) {
-            <table class="weapons-table">
-              <thead>
-                <tr>
-                  <th>NOME</th>
-                  <th>ATAQUE</th>
-                  <th>DANO</th>
-                  <th>PROPRIEDADES</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (weapon of data.character_sheet.weapons; track weapon.id_weapon) {
-                  <tr class="clickable-row" (click)="openWeaponModal(weapon)">
-                    <td>{{ weapon.name }}</td>
-                    <td class="text-center">{{ formatMod(weapon.attack_bonus) }}</td>
-                    <td>{{ weapon.damage_die ?? '—' }} {{ weapon.damage_type ?? '' }}</td>
-                    <td class="props-cell">{{ weapon.properties || '—' }}</td>
-                    <td class="text-center">
-                      <button class="roll-trigger-btn" (click)="rollAttack(weapon); $event.stopPropagation()"><img class="ui-icon" src="assets/icons/d20.png" alt="" /></button>
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
+            <div class="card-grid">
+              @for (weapon of data.character_sheet.weapons; track weapon.id_weapon) {
+                <div class="card-grid-item">
+                  <app-game-card
+                    class="card-clickable"
+                    [card]="weaponCards().get(weapon.id_weapon)!"
+                    role="button"
+                    tabindex="0"
+                    [attr.aria-label]="'Ver a carta de ' + weapon.name"
+                    (click)="openWeaponModal(weapon)"
+                    (keydown.enter)="openWeaponModal(weapon)"
+                  />
+                  <button class="retro-btn sheet-attack-btn" (click)="rollAttack(weapon)">
+                    <img class="ui-icon" src="assets/icons/d20.png" alt="" /> ATACAR {{ formatMod(weapon.attack_bonus) }}
+                  </button>
+                </div>
+              }
+            </div>
           } @else {
             <p class="m-empty">NENHUMA ARMA EQUIPADA.</p>
           }
@@ -942,41 +937,17 @@
 
   <!-- ===== MODALS (shared between mobile and desktop) ===== -->
 
-  @if (selectedWeapon) {
-    <div class="overlay modal-overlay" (click)="closeWeaponModal()">
-      <div class="retro-panel item-modal" (click)="$event.stopPropagation()">
-        <button class="item-modal-close" (click)="closeWeaponModal()">✕</button>
-        <h3 class="item-modal-title">{{ selectedWeapon.name }}</h3>
-        <div class="item-modal-image">
-          <span><img class="ui-icon" [src]="selectedWeapon.isRanged ? 'assets/icons/bow.png' : 'assets/icons/swords.png'" alt="" /></span>
-        </div>
-        <div class="item-modal-info">
-          <div class="item-modal-row">
-            <span class="item-modal-label">BÔNUS DE ATAQUE</span>
-            <span class="item-modal-value">{{ formatMod(selectedWeapon.attack_bonus) }}</span>
-          </div>
-          <div class="item-modal-row">
-            <span class="item-modal-label">DANO</span>
-            <span class="item-modal-value">{{ selectedWeapon.damage_die ?? '—' }}</span>
-          </div>
-          <div class="item-modal-row">
-            <span class="item-modal-label">TIPO DE DANO</span>
-            <span class="item-modal-value">{{ selectedWeapon.damage_type ?? '—' }}</span>
-          </div>
-          @if (selectedWeapon.properties) {
-            <div class="item-modal-properties">
-              <span class="item-modal-label">PROPRIEDADES</span>
-              <ul>
-                <li>{{ selectedWeapon.properties }}</li>
-              </ul>
-            </div>
-          }
-        </div>
-        <button class="retro-btn item-modal-roll-btn" (click)="rollAttack(selectedWeapon); closeWeaponModal()">
-          <img class="ui-icon" src="assets/icons/d20.png" alt="" /> ATACAR
-        </button>
-      </div>
-    </div>
+  <!-- Carta da arma em tela cheia (substituiu o modal da arma), com ATACAR embaixo -->
+  @if (selectedWeapon; as weapon) {
+    <app-card-viewer
+      [card]="weaponCards().get(weapon.id_weapon) ?? weaponToCard(weapon)"
+      backLabel="VOLTAR À FICHA"
+      (closed)="closeWeaponModal()"
+    >
+      <button class="retro-btn sheet-attack-btn" (click)="rollAttack(weapon); closeWeaponModal()">
+        <img class="ui-icon" src="assets/icons/d20.png" alt="" /> ATACAR {{ formatMod(weapon.attack_bonus) }}
+      </button>
+    </app-card-viewer>
   }
 
   <!-- Carta em tela cheia (substituiu o modal de detalhe), com PREPARAR e LANÇAR embaixo -->

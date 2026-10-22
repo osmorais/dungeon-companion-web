@@ -771,10 +771,6 @@ ul {
     color: var(--accent-color);
   }
 
-  .props-cell {
-    color: var(--label-title-color);
-    font-size: 7px;
-  }
 }
 
 .warn-label {
@@ -1375,32 +1371,6 @@ ul {
   }
 }
 
-/* Armas */
-.mobile-weapon-card .weapon-card-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-
-  span {
-    font-size: 8px;
-    color: var(--text-soft);
-
-    strong {
-      display: block;
-      margin-bottom: 4px;
-      font-size: 6px;
-      font-weight: normal;
-      color: var(--label-title-color);
-    }
-  }
-}
-
-.roll-trigger-btn.mobile-roll-btn {
-  width: 32px;
-  height: 32px;
-  margin-left: 0;
-  font-size: 14px;
-}
 
 /* Magias */
 .mobile-spell-level {
@@ -1634,11 +1604,6 @@ ul {
   }
 }
 
-.item-modal-roll-btn {
-  width: 100%;
-  margin-top: 16px;
-  float: none !important;
-}
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
@@ -1818,3 +1783,13 @@ ul {
   border-color: var(--accent-color);
   color: var(--accent-color);
 }
+
+// ATACAR embaixo da carta da arma (e na carta em tela cheia).
+.sheet-attack-btn {
+  float: none;
+  width: 100%;
+  margin: 0;
+  padding: 8px;
+  font-size: 8px;
+}
+

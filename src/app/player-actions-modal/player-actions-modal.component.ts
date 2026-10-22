@@ -39,6 +39,7 @@ import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { GameCardComponent } from '../game-card/game-card.component';
 import { CardViewerComponent } from '../game-card/card-viewer.component';
 import { spellCardState, spellToCard } from '../game-card/spell-card';
+import { unarmedToCard, weaponToCard } from '../game-card/weapon-card';
 import { CharacterCardData } from '../character-card/character-card.component';
 import { SpellCastContext, castStagePayload, newCastId } from '../spell-cast/spell-cast-context';
 
@@ -571,6 +572,24 @@ export class PlayerActionsModalComponent implements OnInit {
     () => new Map((this.sheet()?.character_sheet.spells ?? []).map((s) => [s.id_spell, spellToCard(s)])),
   );
   readonly spellToCard = spellToCard;
+
+  /** Cartas das armas da ficha, por id, e a do ataque desarmado (Monge). */
+  weaponCards = computed(
+    () => new Map((this.sheet()?.character_sheet.weapons ?? []).map((w) => [w.id_weapon, weaponToCard(w)])),
+  );
+  unarmedCard = computed(() => {
+    const unarmed = this.combatFeatures()?.unarmed;
+    return unarmed ? unarmedToCard(unarmed) : null;
+  });
+  /** Arma aberta em carta de tela cheia (`'unarmed'` = ataque desarmado). */
+  selectedWeaponCard = signal<WeaponRow | 'unarmed' | null>(null);
+
+  /** ATACAR na carta em tela cheia: fecha a carta e abre a rolagem do ataque. */
+  attackFromCard(weapon: WeaponRow | 'unarmed'): void {
+    this.selectedWeaponCard.set(null);
+    if (weapon === 'unarmed') this.rollUnarmed();
+    else this.rollAttack(weapon);
+  }
 
   /** Grimório: CARTAS (padrão) ou LISTA compacta. Não é guardado: reabre em CARTAS. */
   grimoireMode = signal<'cards' | 'list'>('cards');

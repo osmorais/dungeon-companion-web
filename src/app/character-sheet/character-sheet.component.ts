@@ -19,6 +19,7 @@ import { attrLabel } from '../models/level-up.interface';
 import { GameCardComponent } from '../game-card/game-card.component';
 import { CardViewerComponent } from '../game-card/card-viewer.component';
 import { spellCardState, spellToCard } from '../game-card/spell-card';
+import { weaponToCard } from '../game-card/weapon-card';
 
 type MobileTab = 'combat' | 'attrs' | 'skills' | 'traits' | 'equipment' | 'spells' | 'notes';
 type DesktopPage = 'sheet' | 'notes';
@@ -288,6 +289,12 @@ export class CharacterSheetComponent {
     () => new Map((this.sheetData()?.character_sheet.spells ?? []).map((s) => [s.id_spell, spellToCard(s)])),
   );
   readonly spellToCard = spellToCard;
+
+  /** Cartas das armas da ficha, por id. */
+  weaponCards = computed(
+    () => new Map((this.sheetData()?.character_sheet.weapons ?? []).map((w) => [w.id_weapon, weaponToCard(w)])),
+  );
+  readonly weaponToCard = weaponToCard;
 
   spellCardState(spell: Spell): 'ready' | 'preparable' | 'locked' {
     const prepares = !!this.sheetData()?.character_sheet.spellcasting_info?.prepares_spells;

@@ -33,6 +33,25 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.6.0',
+    date: '2026-10-22',
+    title: 'Armas em cartas',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'As armas também viraram cartas, cada uma com a própria ilustração, o bônus de ataque no medalhão, a categoria (simples ou marcial, corpo a corpo ou à distância) e o dano, o tipo e as propriedades no pergaminho.',
+      },
+      {
+        kind: 'novidade',
+        text: 'Nas ações da sessão e na ficha, as armas aparecem como cartas com o botão ATACAR. Tocar na carta abre a arma em tela cheia, no lugar da antiga janela de detalhes.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'O fundo da ilustração da arma muda de cor conforme o tipo de dano: cortante, perfurante ou concussão.',
+      },
+    ],
+  },
+  {
     version: '1.5.0',
     date: '2026-10-22',
     title: 'Lançamento de magia com as cartas',

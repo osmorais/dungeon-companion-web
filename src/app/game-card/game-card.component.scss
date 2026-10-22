@@ -42,6 +42,14 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+
+  // Arma: objeto solto em fundo transparente, inteiro e com folga, sobre o degradê do tipo de dano.
+  &--contain {
+    width: 86%;
+    height: 86%;
+    object-fit: contain;
+    filter: drop-shadow(0 0.8cqw 1.2cqw rgba(0, 0, 0, 0.6));
+  }
 }
 
 .gc-art-fallback {
