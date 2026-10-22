@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.6.3',
+    date: '2026-10-22',
+    title: 'Verso da carta aparecendo no aviso',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'No aviso de magia ou de ataque, a carta agora mostra de verdade o verso enquanto cai virada para baixo, antes de virar. A frente aparecia por cima o tempo todo.',
+      },
+    ],
+  },
+  {
     version: '1.6.2',
     date: '2026-10-22',
     title: 'Cartas viradas e rolagens com mais impacto',

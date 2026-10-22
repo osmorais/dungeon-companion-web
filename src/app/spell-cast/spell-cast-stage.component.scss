@@ -22,10 +22,22 @@
 }
 
 // Mesmo tamanho do card do personagem (largura clamp e proporção da carta 760×1064).
+// O surgir (opacidade) fica aqui, FORA do elemento 3D: opacidade animada no .cs-flip faz o
+// navegador achatar a carta e ignorar o backface-visibility — a frente cobria o verso o tempo todo.
 .cs-spell {
   width: clamp(130px, 36vw, 200px);
   aspect-ratio: 760 / 1064;
   perspective: 900px;
+  animation: cs-appear 0.5s steps(5) both;
+}
+
+@keyframes cs-appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .cs-flip {
@@ -39,7 +51,13 @@
 .cs-face {
   position: absolute;
   inset: 0;
+  -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
+}
+
+// A frente também entra no 3D (sem isso, alguns navegadores não a escondem quando está de costas).
+.cs-face--front {
+  transform: rotateY(0deg);
 }
 
 // Verso: imagem do tema (--card-back, design/spell-cards/process.py), mesma tela da frente.
@@ -53,11 +71,9 @@
 @keyframes cs-throw {
   0% {
     transform: translate(40%, -120%) rotateZ(-25deg) rotateY(180deg) scale(0.6);
-    opacity: 0;
   }
   20% {
     transform: translate(0, 0) rotateZ(5deg) rotateY(180deg) scale(1);
-    opacity: 1;
   }
   26% {
     transform: rotateZ(-2deg) rotateY(180deg) scale(1);
@@ -316,6 +332,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .cs-spell,
   .cs-flip,
   .cs-roll,
   .cs-roll-total,
