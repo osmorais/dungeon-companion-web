@@ -161,4 +161,3 @@ export function weaponInfoToCard(info: WeaponCardInfo): GameCardData {
     isRanged: info.is_ranged,
   });
 }
-

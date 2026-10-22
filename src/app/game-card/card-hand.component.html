@@ -1,0 +1,67 @@
+<!-- Clique fora de botão/carta (em qualquer lugar da tela) fecha a mão — ver onBackdropClick -->
+<div class="hand-backdrop" (click)="onBackdropClick($event)">
+  <div class="hand-top">
+    <button class="hand-back" (click)="closed.emit()">◀ {{ backLabel }}</button>
+    <span class="hand-title">{{ title }} · {{ index() + 1 }}/{{ items.length }}</span>
+  </div>
+
+  <div class="hand-stage" (pointerdown)="onPointerDown($event)" (pointerup)="onPointerUp($event)">
+    <button
+      class="hand-nav"
+      aria-label="Carta anterior"
+      [disabled]="index() === 0"
+      (click)="prev()"
+    >
+      ◀
+    </button>
+    <div class="hand-carousel">
+      @for (item of items; track item.key; let i = $index) {
+        <div
+          class="hand-slot"
+          [class.hand-slot--focus]="i === index()"
+          [class.hand-slot--far]="offset(i) > 2 || offset(i) < -2"
+          [style.--offset]="offset(i)"
+          [style.z-index]="zIndex(i)"
+          (click)="select(i)"
+        >
+          <app-game-card
+            [card]="item.card"
+            [size]="i === index() ? 'full' : 'mini'"
+            [state]="item.state ?? null"
+          />
+        </div>
+      }
+    </div>
+    <button
+      class="hand-nav"
+      aria-label="Próxima carta"
+      [disabled]="index() >= items.length - 1"
+      (click)="next()"
+    >
+      ▶
+    </button>
+  </div>
+
+  <div class="hand-actions">
+    @if (actions && current(); as item) {
+      <ng-container *ngTemplateOutlet="actions; context: { $implicit: item.key }" />
+    }
+  </div>
+
+  <!-- A mão em leque: todas as cartas pequenas; tocar leva a carta pro centro -->
+  <div class="hand-fan">
+    @for (item of items; track item.key; let i = $index) {
+      <button
+        type="button"
+        class="hand-fan-card"
+        [class.hand-fan-card--active]="i === index()"
+        [style.--i]="i"
+        [style.--n]="items.length"
+        [attr.aria-label]="item.card.title"
+        (click)="select(i)"
+      >
+        <app-game-card [card]="item.card" size="mini" />
+      </button>
+    }
+  </div>
+</div>

@@ -352,43 +352,10 @@
   overflow-y: auto;
 }
 
-.pa-prepared-quickview {
-  border: 1px solid var(--border-color);
-  padding: 8px 10px;
-}
 
-.pa-prepared-quickview-title {
-  margin: 0 0 6px;
-  font-size: 7px;
-  color: var(--label-title-color);
-}
 
-.pa-prepared-quickview-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
 
-.pa-prepared-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background-color: var(--btn-color);
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-  padding: 5px 8px;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 7px;
-  cursor: var(--cp);
 
-  &:hover {
-    background-color: var(--btn-color-hover);
-  }
-}
-
-.pa-prepared-chip-level {
-  color: var(--accent-color);
-}
 
 .pa-spell-row {
   border: 1px solid var(--border-color);
@@ -756,5 +723,124 @@
   align-items: center;
   width: 100%;
   padding: 8px;
+}
+
+// ===== Botões da carta da vez na "mão" (ATACAR / LANÇAR) =====
+// Grandes, com relevo de pixel art (base escura embaixo que "afunda" ao apertar), brilho pulsando
+// e ícone. ATACAR carmesim; LANÇAR dourado/brasa. Só na mão — no grimório os botões são os pequenos.
+.pa-hand-actions {
+  --hand-btn-top: #c0392b;
+  --hand-btn-bottom: #5c120c;
+  --hand-btn-edge: #ff8a73;
+  --hand-btn-glow: rgba(255, 80, 50, 0.55);
+  --hand-btn-icon: url('/assets/icons/swords.png');
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+
+  &--spell {
+    --hand-btn-top: #e0a33a;
+    --hand-btn-bottom: #7a3a0c;
+    --hand-btn-edge: #ffe08a;
+    --hand-btn-glow: rgba(255, 190, 60, 0.55);
+    --hand-btn-icon: url('/assets/icons/spellbook.png');
+  }
+
+  .pa-cast-btn {
+    align-items: center;
+    gap: 6px;
+    min-width: 200px;
+    padding: 14px 24px 12px;
+    border: 3px solid var(--hand-btn-edge);
+    background: linear-gradient(180deg, var(--hand-btn-top) 0%, var(--hand-btn-bottom) 100%);
+    color: #fff8e8;
+    box-shadow:
+      0 6px 0 #1c0b0b,
+      0 0 18px var(--hand-btn-glow);
+    text-shadow: 2px 2px 0 #1c0b0b;
+    transition:
+      transform 0.08s,
+      box-shadow 0.08s,
+      filter 0.15s;
+    animation: pa-hand-glow 1.6s steps(4) infinite alternate;
+
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      filter: brightness(1.12);
+      background: linear-gradient(180deg, var(--hand-btn-top) 0%, var(--hand-btn-bottom) 100%);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(5px);
+      box-shadow:
+        0 1px 0 #1c0b0b,
+        0 0 10px var(--hand-btn-glow);
+    }
+
+    &:disabled {
+      filter: grayscale(0.8) brightness(0.7);
+      animation: none;
+    }
+  }
+
+  .pa-cast-btn-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    letter-spacing: 2px;
+
+    &::before {
+      content: '';
+      width: 22px;
+      height: 22px;
+      background: var(--hand-btn-icon) center / contain no-repeat;
+      image-rendering: pixelated;
+      filter: drop-shadow(2px 2px 0 #1c0b0b);
+    }
+  }
+
+  .pa-cast-btn-slots {
+    font-size: 7px;
+    color: #fff1cc;
+    opacity: 0.9;
+  }
+
+  .pa-no-slots {
+    font-size: 8px;
+    color: #ffb4a8;
+  }
+}
+
+@keyframes pa-hand-glow {
+  from {
+    box-shadow:
+      0 6px 0 #1c0b0b,
+      0 0 10px var(--hand-btn-glow);
+  }
+  to {
+    box-shadow:
+      0 6px 0 #1c0b0b,
+      0 0 24px var(--hand-btn-glow);
+  }
+}
+
+@media (max-width: 767px) {
+  .pa-hand-actions .pa-cast-btn {
+    min-width: 0;
+    flex: 1 1 140px;
+    padding: 12px 14px 10px;
+  }
+
+  .pa-hand-actions .pa-cast-btn-label {
+    font-size: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pa-hand-actions .pa-cast-btn {
+    animation: none;
+  }
 }
 

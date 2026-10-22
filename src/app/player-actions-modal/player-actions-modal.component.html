@@ -235,41 +235,12 @@
           @if (data.character_sheet.weapons.length || combatFeatures()?.unarmed) {
             <div class="pa-section">
               <h4 class="pa-section-title">ARMAS</h4>
-              <!-- Cartas (como as magias): tocar abre a carta em tela cheia; ATACAR embaixo -->
-              <div class="card-grid">
-                @for (weapon of data.character_sheet.weapons; track weapon.id_weapon) {
-                  <div class="card-grid-item">
-                    <app-game-card
-                      class="card-clickable"
-                      [card]="weaponCards().get(weapon.id_weapon)!"
-                      role="button"
-                      tabindex="0"
-                      [attr.aria-label]="'Ver a carta de ' + weapon.name"
-                      (click)="selectedWeaponCard.set(weapon)"
-                      (keydown.enter)="selectedWeaponCard.set(weapon)"
-                    />
-                    <button class="pa-cast-btn pa-attack-btn" (click)="rollAttack(weapon)">
-                      <span class="pa-cast-btn-label">ATACAR {{ formatMod(weapon.attack_bonus) }}</span>
-                    </button>
-                  </div>
-                }
-                @if (combatFeatures()?.unarmed; as unarmed) {
-                  <div class="card-grid-item">
-                    <app-game-card
-                      class="card-clickable"
-                      [card]="unarmedCard()!"
-                      role="button"
-                      tabindex="0"
-                      [attr.aria-label]="'Ver a carta de ' + unarmed.name"
-                      (click)="selectedWeaponCard.set('unarmed')"
-                      (keydown.enter)="selectedWeaponCard.set('unarmed')"
-                    />
-                    <button class="pa-cast-btn pa-attack-btn" (click)="rollUnarmed()">
-                      <span class="pa-cast-btn-label">ATACAR {{ formatMod(unarmed.attack_bonus) }}</span>
-                    </button>
-                  </div>
-                }
-              </div>
+              <!-- Baralho: tocar abre a "mão" em tela cheia, com ATACAR na carta da vez -->
+              <app-card-deck
+                [cards]="weaponHandCards()"
+                label="ARMAS"
+                (open)="activeHand.set('weapons')"
+              />
             </div>
           }
           @for (res of resourceTrackers(); track res.name) {
@@ -396,19 +367,12 @@
 
                 <ng-container *ngTemplateOutlet="slotsBar" />
 
-                @if (spellInfo.prepares_spells && preparedSpells().length > 0) {
-                  <div class="pa-prepared-quickview">
-                    <p class="pa-prepared-quickview-title">MAGIAS PREPARADAS</p>
-                    <div class="pa-prepared-quickview-list">
-                      @for (spell of preparedSpells(); track spell.id_spell) {
-                        <button type="button" class="pa-prepared-chip" (click)="openSpellDetail(spell)">
-                          <span class="pa-prepared-chip-level">{{ spell.spellLevel === 0 ? 'T' : spell.spellLevel }}</span>
-                          {{ spell.name }}
-                        </button>
-                      }
-                    </div>
-                  </div>
-                }
+                <!-- Baralho das magias prontas (truques + preparadas): a "mão" tem LANÇAR -->
+                <app-card-deck
+                  [cards]="spellHandCards()"
+                  label="MAGIAS PRONTAS"
+                  (open)="activeHand.set('spells')"
+                />
 
                 <button class="pa-freeform-btn pa-grimoire-btn" (click)="openGrimoire()">
                   <span><img class="ui-icon" src="assets/icons/scroll.png" alt="" /> ABRIR GRIMÓRIO</span>
@@ -529,18 +493,42 @@
   />
 }
 
-<!-- Carta da arma em tela cheia, com ATACAR -->
-@if (selectedWeaponCard(); as w) {
-  <app-card-viewer
-    [card]="w === 'unarmed' ? unarmedCard()! : weaponCards().get(w.id_weapon)!"
+<!-- A "mão" em tela cheia: armas ou magias prontas, uma de cada vez, com os botões embaixo -->
+@if (activeHand() === 'weapons') {
+  <app-card-hand
+    [items]="weaponHand()"
+    title="ARMAS"
     backLabel="VOLTAR ÀS AÇÕES"
-    (closed)="selectedWeaponCard.set(null)"
-  >
-    <button class="pa-cast-btn pa-attack-btn" (click)="attackFromCard(w)">
-      <span class="pa-cast-btn-label">ATACAR</span>
-    </button>
-  </app-card-viewer>
+    [actions]="weaponHandActions"
+    (closed)="activeHand.set(null)"
+  />
+} @else if (activeHand() === 'spells') {
+  <app-card-hand
+    [items]="spellHand()"
+    title="MAGIAS PRONTAS"
+    backLabel="VOLTAR ÀS AÇÕES"
+    [actions]="spellHandActions"
+    (closed)="activeHand.set(null)"
+  />
 }
+
+<!-- Botões da carta da vez na mão: grandes e com destaque (pa-hand-actions no .scss) -->
+<ng-template #weaponHandActions let-key>
+  <div class="pa-hand-actions pa-hand-actions--attack">
+    <button class="pa-cast-btn" (click)="attackByKey(key)">
+      <span class="pa-cast-btn-label">ATACAR</span>
+      <span class="pa-cast-btn-slots">{{ formatMod(attackBonusByKey(key)) }} no ataque</span>
+    </button>
+  </div>
+</ng-template>
+
+<ng-template #spellHandActions let-key>
+  @if (spellByKey(key); as spell) {
+    <div class="pa-hand-actions pa-hand-actions--spell">
+      <ng-container *ngTemplateOutlet="spellCastButtons; context: { $implicit: spell }" />
+    </div>
+  }
+</ng-template>
 
 <!-- Carta em tela cheia (substituiu o modal de detalhe): fecha e volta pra tela de trás -->
 @if (selectedSpellDetail(); as spell) {
@@ -560,6 +548,18 @@
 <!-- Botões da magia (LANÇAR / PREPARAR): no card da lista, embaixo da carta e na carta em tela
      cheia. Param o clique pra não abrir a carta junto. -->
 <ng-template #spellActions let-spell>
+  <ng-container *ngTemplateOutlet="spellCastButtons; context: { $implicit: spell }" />
+  @if (spell.spellLevel > 0 && sheet()?.character_sheet?.spellcasting_info?.prepares_spells) {
+    <button class="pa-prepare-btn" [class.pa-prepare-btn--on]="spell.is_prepared"
+      [disabled]="isInActiveCombat() || (!spell.is_prepared && !canPrepareMore())"
+      (click)="$event.stopPropagation(); togglePrepared(spell)">
+      {{ spell.is_prepared ? '✓ PREPARADA' : 'PREPARAR' }}
+    </button>
+  }
+</ng-template>
+
+<!-- Só os botões de lançar (a mão usa sem o PREPARAR — preparar é no grimório) -->
+<ng-template #spellCastButtons let-spell>
   @if (isOnHitSpell(spell) && isCastable(spell)) {
     <span class="pa-no-slots">use ao acertar um ataque com arma</span>
   } @else if (isCastable(spell)) {
@@ -578,11 +578,5 @@
       <span class="pa-no-slots">sem espaços disponíveis</span>
     }
   }
-  @if (spell.spellLevel > 0 && sheet()?.character_sheet?.spellcasting_info?.prepares_spells) {
-    <button class="pa-prepare-btn" [class.pa-prepare-btn--on]="spell.is_prepared"
-      [disabled]="isInActiveCombat() || (!spell.is_prepared && !canPrepareMore())"
-      (click)="$event.stopPropagation(); togglePrepared(spell)">
-      {{ spell.is_prepared ? '✓ PREPARADA' : 'PREPARAR' }}
-    </button>
-  }
 </ng-template>
+

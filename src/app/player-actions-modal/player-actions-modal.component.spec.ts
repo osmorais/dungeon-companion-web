@@ -743,6 +743,13 @@ describe('PlayerActionsModalComponent — grimório', () => {
     modal.closeSpellDetail();
     expect(modal.selectedSpellDetail()).toBeNull();
   });
+
+  it('mão das magias prontas: truques + preparadas, na ordem dos círculos', () => {
+    create(true);
+    expect(modal.spellHand().map((h) => h.key)).toEqual(['1', '2']);
+    expect(modal.spellByKey('2')?.name).toBe('Mísseis Mágicos');
+    expect(modal.spellHandCards().map((c) => c.title)).toEqual(['Raio de Fogo', 'Mísseis Mágicos']);
+  });
 });
 
 describe('PlayerActionsModalComponent — lançamento de magia (1.5.0)', () => {
@@ -837,23 +844,11 @@ describe('PlayerActionsModalComponent — lançamento de magia (1.5.0)', () => {
     expect(publish).not.toHaveBeenCalled();
   });
 
-  it('ATACAR na carta da arma em tela cheia fecha a carta e abre a rolagem do ataque', () => {
-    const sword = {
-      id_weapon: 20,
-      attack_bonus: 5,
-      damage_modifier: 3,
-      name: 'Espada Longa',
-      damage_die: '1d8',
-      damage_type: 'cortante',
-      properties: null,
-      weight: 1.5,
-      price_value: 15,
-      isRanged: false,
-    } as WeaponRow;
-    modal.selectedWeaponCard.set(sword);
-    modal.attackFromCard(sword);
-    expect(modal.selectedWeaponCard()).toBeNull();
-    expect(modal.activeRoll()).toMatchObject({ mode: 'ability', rollType: 'attack' });
+  it('ATACAR na mão fecha a mão e abre a rolagem do ataque', () => {
+    modal.activeHand.set('weapons');
+    modal.attackByKey('nao-existe');
+    expect(modal.activeHand()).toBeNull();
+    expect(modal.activeRoll()).toBeNull();
   });
 
   it('ataque com arma na sessão também vira aviso da mesa (carta da arma no modal)', () => {

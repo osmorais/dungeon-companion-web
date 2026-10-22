@@ -33,6 +33,21 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.6.5',
+    date: '2026-10-22',
+    title: 'Armas e magias como baralho e mão',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'Nas ações do personagem, as armas e as magias prontas viraram baralhos. Tocar num baralho abre a sua mão em tela cheia, como num jogo de cartas: a carta da vez grande no centro, as outras dos lados e todas em leque embaixo.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Na mão, dá para passar as cartas com as setas, arrastando para o lado ou tocando nelas, e atacar ou lançar direto da carta da vez. Tocar fora das cartas e dos botões fecha a mão. Os botões ATACAR e LANÇAR ficaram grandes, com relevo e brilho.',
+      },
+    ],
+  },
+  {
     version: '1.6.4',
     date: '2026-10-22',
     title: 'Sessão no celular sem o Tom',

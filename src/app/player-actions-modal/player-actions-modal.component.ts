@@ -38,6 +38,8 @@ import { attrLabel } from '../models/level-up.interface';
 import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { GameCardComponent } from '../game-card/game-card.component';
 import { CardViewerComponent } from '../game-card/card-viewer.component';
+import { CardDeckComponent } from '../game-card/card-deck.component';
+import { CardHandComponent, HandCard } from '../game-card/card-hand.component';
 import { spellCardState, spellToCard } from '../game-card/spell-card';
 import {
   unarmedCardInfo,
@@ -76,6 +78,8 @@ export function isLongCastingTime(castingTime: string | null | undefined): boole
     SkeletonRowsComponent,
     GameCardComponent,
     CardViewerComponent,
+    CardDeckComponent,
+    CardHandComponent,
   ],
   templateUrl: './player-actions-modal.component.html',
   styleUrls: ['../bottom-drawer/bottom-drawer.scss', './player-actions-modal.component.scss'],
@@ -521,13 +525,6 @@ export class PlayerActionsModalComponent implements OnInit {
     return circle === 0 ? 'TRUQUES' : `${circle}º CÍRCULO`;
   }
 
-  /** Magias preparadas, ordenadas por círculo e nome — lista rápida separada no topo, além do
-   *  agrupamento por círculo já existente. */
-  preparedSpells(): Spell[] {
-    return (this.sheet()?.character_sheet.spells ?? [])
-      .filter((s) => s.is_prepared)
-      .sort((a, b) => a.spellLevel - b.spellLevel || a.name.localeCompare(b.name, 'pt-BR'));
-  }
 
   /** ========================= GRIMÓRIO (segunda tela da gaveta) ========================= */
 
@@ -611,14 +608,58 @@ export class PlayerActionsModalComponent implements OnInit {
     const unarmed = this.combatFeatures()?.unarmed;
     return unarmed ? unarmedToCard(unarmed) : null;
   });
-  /** Arma aberta em carta de tela cheia (`'unarmed'` = ataque desarmado). */
-  selectedWeaponCard = signal<WeaponRow | 'unarmed' | null>(null);
+  /** ========================= A "MÃO" (baralho → cartas em tela cheia) ========================= */
 
-  /** ATACAR na carta em tela cheia: fecha a carta e abre a rolagem do ataque. */
-  attackFromCard(weapon: WeaponRow | 'unarmed'): void {
-    this.selectedWeaponCard.set(null);
-    if (weapon === 'unarmed') this.rollUnarmed();
-    else this.rollAttack(weapon);
+  /** Mão aberta em tela cheia: armas ou magias prontas. */
+  activeHand = signal<'weapons' | 'spells' | null>(null);
+
+  /** Armas da ficha + ataque desarmado (Monge), como cartas da mão. Chave: id da arma ou 'unarmed'. */
+  weaponHand = computed<HandCard[]>(() => {
+    const items: HandCard[] = (this.sheet()?.character_sheet.weapons ?? []).map((w) => ({
+      key: String(w.id_weapon),
+      card: this.weaponCards().get(w.id_weapon)!,
+    }));
+    const unarmed = this.unarmedCard();
+    if (unarmed) items.push({ key: 'unarmed', card: unarmed });
+    return items;
+  });
+  weaponHandCards = computed(() => this.weaponHand().map((i) => i.card));
+
+  /** Magias prontas pra lançar agora (truques + preparadas; tudo pra quem não prepara). */
+  spellHand = computed<HandCard[]>(() =>
+    this.spellsByCircle()
+      .flatMap((g) => g.spells)
+      .filter((s) => this.isCastable(s))
+      .map((s) => ({
+        key: String(s.id_spell),
+        card: this.spellCards().get(s.id_spell) ?? spellToCard(s),
+        state: this.spellCardState(s),
+      })),
+  );
+  spellHandCards = computed(() => this.spellHand().map((i) => i.card));
+
+  spellByKey(key: string): Spell | null {
+    return (this.sheet()?.character_sheet.spells ?? []).find((s) => String(s.id_spell) === key) ?? null;
+  }
+
+  private weaponByKey(key: string): WeaponRow | null {
+    return (this.sheet()?.character_sheet.weapons ?? []).find((w) => String(w.id_weapon) === key) ?? null;
+  }
+
+  attackBonusByKey(key: string): number {
+    if (key === 'unarmed') return this.combatFeatures()?.unarmed?.attack_bonus ?? 0;
+    return this.weaponByKey(key)?.attack_bonus ?? 0;
+  }
+
+  /** ATACAR na mão: fecha a mão e abre a rolagem do ataque. */
+  attackByKey(key: string): void {
+    this.activeHand.set(null);
+    if (key === 'unarmed') {
+      this.rollUnarmed();
+      return;
+    }
+    const weapon = this.weaponByKey(key);
+    if (weapon) this.rollAttack(weapon);
   }
 
   /** Grimório: CARTAS (padrão) ou LISTA compacta. Não é guardado: reabre em CARTAS. */
@@ -1023,6 +1064,7 @@ export class PlayerActionsModalComponent implements OnInit {
     ) {
       return;
     }
+    this.activeHand.set(null);
     const rollConfig = spellRollConfig(spell, slotLevel);
     // Ataque mágico também soma Bruxaria (vale pra qualquer ataque).
     if (rollConfig?.damage && spell.roll?.kind === 'attack') {
