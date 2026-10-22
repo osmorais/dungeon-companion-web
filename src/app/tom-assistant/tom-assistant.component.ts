@@ -7,12 +7,16 @@ import {
   OnDestroy,
   Output,
   SimpleChanges,
+  inject,
+  signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TomService } from './tom.service';
 
 /** Tom, o mascote/assistente do site — acompanha o jogador durante a criação de personagem
  *  com uma imagem e um balão de fala contextual pra cada passo, digitado letra por letra tipo
- *  caixa de diálogo de jogo antigo. */
+ *  caixa de diálogo de jogo antigo. OK fecha a fala (ele volta na próxima); DESATIVAR AJUDA
+ *  desliga o Tom no site todo (TomService; religa pelo botão TOM da barra do topo). */
 @Component({
   selector: 'app-tom-assistant',
   standalone: true,
@@ -31,6 +35,10 @@ export class TomAssistantComponent implements OnChanges, OnDestroy {
 
   /** Emite quando o retrato do Tom leva 3 cliques seguidos (dentro de 1s) — easter egg. */
   @Output() tripleClick = new EventEmitter<void>();
+
+  readonly tom = inject(TomService);
+  /** Fechou esta fala no OK: o Tom some até chegar uma fala nova. */
+  dismissed = signal(false);
 
   displayedMessage = '';
 
@@ -57,7 +65,20 @@ export class TomAssistantComponent implements OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['message']) this.startTyping();
+    if (changes['message']) {
+      this.dismissed.set(false);
+      this.startTyping();
+    }
+  }
+
+  /** OK: fecha esta fala. */
+  dismiss(): void {
+    this.dismissed.set(true);
+  }
+
+  /** DESATIVAR AJUDA: desliga o Tom no site todo (fica guardado no navegador). */
+  disable(): void {
+    this.tom.set(false);
   }
 
   ngOnDestroy(): void {

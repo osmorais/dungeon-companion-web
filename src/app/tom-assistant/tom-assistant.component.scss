@@ -138,3 +138,49 @@
     padding: 10px 12px;
   }
 }
+
+// OK (fecha esta fala) e DESATIVAR AJUDA (desliga o Tom) — o contêiner ignora o mouse, os botões não.
+.tom-assistant__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+  pointer-events: auto;
+}
+
+.tom-assistant__ok {
+  padding: 6px 16px;
+  border: 3px solid #111111;
+  background-color: #ffd84a;
+  box-shadow: 2px 2px 0 #111111;
+  color: #111111;
+  font-family: inherit;
+  font-size: 9px;
+  cursor: var(--cp);
+
+  &:hover {
+    background-color: #ffe680;
+  }
+
+  &:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
+  }
+}
+
+.tom-assistant__off {
+  padding: 4px 0;
+  border: none;
+  background: none;
+  color: #555555;
+  font-family: inherit;
+  font-size: 7px;
+  text-decoration: underline;
+  cursor: var(--cp);
+
+  &:hover {
+    color: #111111;
+  }
+}

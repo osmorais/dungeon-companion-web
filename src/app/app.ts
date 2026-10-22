@@ -6,6 +6,7 @@ import { BackgroundService } from './services/background.service';
 import { ServerWakeupComponent } from './server-wakeup/server-wakeup.component';
 import { AuthService } from './services/auth.service';
 import { ThemeService } from './services/theme.service';
+import { TomService } from './tom-assistant/tom.service';
 
 @Component({
   selector: 'app-root',
@@ -26,6 +27,13 @@ import { ThemeService } from './services/theme.service';
           (click)="theme.toggle()"
         >
           TEMA: {{ theme.label }}
+        </button>
+        <button
+          class="retro-btn global-footer__logout"
+          [title]="tom.enabled() ? 'Desligar a ajuda do Tom' : 'Ligar a ajuda do Tom'"
+          (click)="tom.toggle()"
+        >
+          TOM: {{ tom.enabled() ? 'LIGADO' : 'DESLIGADO' }}
         </button>
         <button class="retro-btn global-footer__logout" (click)="logout()">SAIR</button>
       </footer>
@@ -59,6 +67,18 @@ import { ThemeService } from './services/theme.service';
       font-size: 7px;
       padding: 6px 12px;
     }
+    /* Celular estreito: o e-mail sai pra caberem TEMA, TOM e SAIR numa linha. */
+    @media (max-width: 520px) {
+      .global-footer {
+        gap: 8px;
+      }
+      .global-footer__email {
+        display: none;
+      }
+      .global-footer__logout {
+        padding: 6px 8px;
+      }
+    }
     @media (max-width: 767px) {
       .global-footer {
         padding: 0 16px;
@@ -75,6 +95,7 @@ export class App {
   readonly authService = inject(AuthService);
   /** Injetado aqui pra aplicar o tema salvo desde a primeira tela. */
   readonly theme = inject(ThemeService);
+  readonly tom = inject(TomService);
 
   constructor() {
     inject(Router).events.subscribe(event => {

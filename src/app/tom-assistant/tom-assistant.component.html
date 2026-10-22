@@ -1,14 +1,27 @@
-<div class="tom-assistant" [class.tom-assistant--left]="variant === 'left'">
-  <img [src]="imagePath" alt="Tom" class="tom-assistant__portrait" (click)="onPortraitClick()" />
-  @if (message) {
-    <div class="tom-assistant__bubble">
-      <p>
-        {{ displayedMessage
-        }}<span
-          class="tom-assistant__cursor"
-          [class.tom-assistant__cursor--blink]="!isTyping"
-        ></span>
-      </p>
-    </div>
-  }
-</div>
+@if (tom.enabled() && !dismissed()) {
+  <div class="tom-assistant" [class.tom-assistant--left]="variant === 'left'">
+    <img [src]="imagePath" alt="Tom" class="tom-assistant__portrait" (click)="onPortraitClick()" />
+    @if (message) {
+      <div class="tom-assistant__bubble">
+        <p>
+          {{ displayedMessage
+          }}<span
+            class="tom-assistant__cursor"
+            [class.tom-assistant__cursor--blink]="!isTyping"
+          ></span>
+        </p>
+        <div class="tom-assistant__actions">
+          <button type="button" class="tom-assistant__ok" (click)="dismiss()">OK</button>
+          <button
+            type="button"
+            class="tom-assistant__off"
+            title="Desligar a ajuda do Tom (religa no botão TOM do topo)"
+            (click)="disable()"
+          >
+            DESATIVAR AJUDA
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+}

@@ -908,9 +908,42 @@
   margin-bottom: 18px;
 }
 
-// Celular: seções do padrão dos formulários (.m-section/.m-section-title) no lugar dos quadros.
+// Celular: cada seção é um painel do tema (fundo e borda como os quadros das outras telas), com
+// a faixa do título no topo; os campos com a cara dos formulários do site (borda 2px, dourado no
+// foco).
 .wizard-section {
   width: 100%;
+  box-sizing: border-box;
+  padding: 0 12px 14px;
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
+
+  > .m-section-title {
+    margin: 0 -12px 14px;
+    padding: 10px 12px;
+    border-bottom: 2px solid var(--border-color);
+    background-color: rgba(0, 0, 0, 0.3);
+    font-size: 8px;
+    color: var(--accent-color);
+  }
+
+  .mobile-form-stack > label,
+  .mobile-method-label {
+    color: var(--label-title-color);
+  }
+
+  input[type='text'],
+  input[type='number'],
+  select {
+    padding: 10px 12px;
+    border-width: 2px;
+
+    &:focus {
+      outline: none;
+      border-color: var(--accent-color);
+    }
+  }
 }
 
 // Cartas de magias e armas: ESCOLHER / ✓ ESCOLHIDA embaixo de cada carta.

@@ -33,6 +33,25 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.6.8',
+    date: '2026-10-22',
+    title: 'Criação no celular em painéis e controle do Tom',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'No celular, cada parte da criação de personagem fica num painel, com o título no topo e os campos no visual do resto do site.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'O balão do Tom ganhou o botão OK, que fecha a conversa até a próxima fala, e a opção DESATIVAR AJUDA, que desliga o Tom no site todo. Ele volta pelo botão TOM, no topo da página.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A Política de Privacidade passou a citar a preferência da ajuda do Tom, guardada só no seu navegador.',
+      },
+    ],
+  },
+  {
     version: '1.6.7',
     date: '2026-10-22',
     title: 'Criação de personagem com barra de progresso e cartas',
