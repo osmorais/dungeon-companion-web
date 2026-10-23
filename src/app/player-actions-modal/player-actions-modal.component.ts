@@ -145,11 +145,31 @@ export class PlayerActionsModalComponent implements OnInit {
     this.hpAmount.set(Number.isFinite(raw) ? Math.max(0, Math.trunc(raw)) : 0);
   }
 
-  submitHp(kind: 'damage' | 'heal'): void {
-    const amount = this.hpAmount();
-    if (!amount || this.savingHp) return;
+  /** Aplica no próprio PV e fecha a gaveta (a sessão toca o impacto de dano/cura). */
+  submitHp(kind: 'damage' | 'heal', amount = this.hpAmount()): void {
+    if (!amount || amount <= 0 || this.savingHp) return;
     this.adjustHp.emit({ kind, amount });
     this.hpAmount.set(0);
+    this.close();
+  }
+
+  /** PV atuais (ao vivo da sessão, senão da ficha) pra CURA TOTAL / DANO TOTAL. */
+  private currentHp(): { current: number; max: number; temp: number } | null {
+    if (this.liveHp) return this.liveHp;
+    const hp = this.sheet()?.character_sheet.combat_stats.hit_points;
+    return hp ? { current: hp.current, max: hp.max, temp: hp.temporary } : null;
+  }
+
+  /** Quanto falta pra encher a vida (0 = já está cheia). */
+  get fullHealAmount(): number {
+    const hp = this.currentHp();
+    return hp ? Math.max(0, hp.max - hp.current) : 0;
+  }
+
+  /** Dano que zera a vida, temporários incluídos (0 = já está caído). */
+  get fullDamageAmount(): number {
+    const hp = this.currentHp();
+    return hp ? Math.max(0, hp.current) + Math.max(0, hp.temp) : 0;
   }
   sheet = signal<CharacterSheetResponse | null>(null);
   activeRoll = signal<RollConfig | null>(null);

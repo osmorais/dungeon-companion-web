@@ -56,6 +56,7 @@
 // DANO/CURA no próprio PV (1.7.2): número + dois botões, nas cores de dano e cura.
 .pa-hp-adjust {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
   padding: 6px 8px;

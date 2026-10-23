@@ -707,6 +707,8 @@ describe('SessionPanelComponent', () => {
       expect(component.canAdjustHpFor(5)).toBe(true); // mestre (dono da sessão)
       component.adjustHpFor(5, { kind: 'damage', amount: 5 });
       expect(gameSessionService.updatePlayerHp).toHaveBeenCalledWith('p1', 13, 0);
+      // e toca o impacto de dano em tela cheia, como nas rolagens
+      expect(TestBed.inject(DamageImpactService).current()?.effect).toBeNull();
     });
 
     it('cura vai até o máximo; personagem fora da mesa não pode', () => {

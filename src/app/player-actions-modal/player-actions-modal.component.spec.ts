@@ -106,6 +106,22 @@ describe('PlayerActionsModalComponent — habilidades', () => {
     expect(adjust).toHaveBeenCalledTimes(1);
   });
 
+  it('aplicar no PV fecha a gaveta; CURA TOTAL enche e DANO TOTAL zera (com temporários)', () => {
+    create([]);
+    const adjust = vi.fn();
+    modal.adjustHp.subscribe(adjust);
+    modal.liveHp = { current: 12, max: 30, temp: 5 };
+    expect(modal.fullHealAmount).toBe(18);
+    expect(modal.fullDamageAmount).toBe(17);
+    modal.submitHp('heal', modal.fullHealAmount);
+    expect(adjust).toHaveBeenLastCalledWith({ kind: 'heal', amount: 18 });
+    expect(closed).toHaveBeenCalledTimes(1);
+    modal.submitHp('damage', modal.fullDamageAmount);
+    expect(adjust).toHaveBeenLastCalledWith({ kind: 'damage', amount: 17 });
+    modal.liveHp = { current: 30, max: 30, temp: 0 };
+    expect(modal.fullHealAmount).toBe(0); // vida cheia: CURA TOTAL desabilita
+  });
+
   it('habilidade com rolagem: gasta, anuncia "USOU" e abre a cura', () => {
     const second = ability('Retomar o Fôlego', {
       roll: roll({

@@ -203,6 +203,12 @@
               (click)="submitHp('damage')">DANO</button>
             <button class="pa-hp-btn pa-hp-btn--heal" [disabled]="!hpAmount() || savingHp"
               (click)="submitHp('heal')">CURA</button>
+            <button class="pa-hp-btn pa-hp-btn--damage" [disabled]="!fullDamageAmount || savingHp"
+              title="Zera a vida (temporários incluídos)"
+              (click)="submitHp('damage', fullDamageAmount)">DANO TOTAL</button>
+            <button class="pa-hp-btn pa-hp-btn--heal" [disabled]="!fullHealAmount || savingHp"
+              title="Enche a vida até o máximo"
+              (click)="submitHp('heal', fullHealAmount)">CURA TOTAL</button>
           </div>
         }
         <div class="pa-hero-actions">

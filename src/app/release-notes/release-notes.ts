@@ -33,6 +33,21 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.7.3',
+    date: '2026-10-22',
+    title: 'Dano e cura no próprio PV com animação, CURA TOTAL e DANO TOTAL',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'Aplicar DANO ou CURA no próprio personagem pela gaveta de ações agora toca a animação em tela cheia (golpe no dano, névoa verde na cura) e fecha a gaveta.',
+      },
+      {
+        kind: 'novidade',
+        text: 'Novos botões CURA TOTAL (enche a vida até o máximo) e DANO TOTAL (zera a vida, PV temporários incluídos).',
+      },
+    ],
+  },
+  {
     version: '1.7.2',
     date: '2026-10-22',
     title: 'Lançamento sincronizado para toda a mesa, rolagem dentro do aviso e animações',

@@ -685,6 +685,15 @@ export class SessionPanelComponent implements OnDestroy {
     if (!player || !this.canEditHp(player)) return;
     if (kind === 'damage') this.applyPlayerDamage(player, amount);
     else this.applyPlayerHeal(player, amount);
+    // Mesmo impacto em tela cheia das rolagens: golpe no dano, névoa na cura. A força vem da
+    // fração da vida máxima (um "dado" do tamanho do PV máximo).
+    this.damageImpact.trigger({
+      dice_notation: `1d${Math.max(1, player.character!.max_hit_points)}`,
+      modifier: 0,
+      total: amount,
+      roll_type: kind === 'heal' ? 'heal' : 'damage',
+      label: kind === 'heal' ? 'Cura' : 'Dano',
+    });
   }
 
   canEditHp(player: PlayerSession): boolean {
