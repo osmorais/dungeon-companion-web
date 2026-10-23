@@ -21,8 +21,9 @@ Rodar os testes sempre com `npm run test:run`: `npx vitest run <arquivo>` sozinh
 This is an Angular 21 single-page app for D&D 5e character creation and management. It requires a backend API running at `http://localhost:3000` in development (configured in `src/environments/environment.ts`).
 
 **Routing** (`src/app/app.routes.ts`) — lazy-loaded standalone components (no NgModules):
+- `/` tem duas rotas: logado vê a Home (`canMatch: loggedInMatch`); visitante cai na tela inicial pública (`landing/`, não chama a API)
 - Públicas: `/login`, `/signup`, `/forgot-password`, `/reset-password`, `/privacidade`, `/termos`, `/novidades`
-- Com `authGuard`: `/` (home), `/create` (wizard de criação), `/sheet-result`, `/characters`, `/character-sheet/:id`, `/session-create`, `/session-join`, `/my-sessions`, `/sessions`, `/session/:id` (mesa: combate, rolagens, magias), `/conta`, `/monster-catalog` (+ `/new`, `/:id`), `/spell-catalog`
+- Com `authGuard`: `/create` (wizard de criação), `/sheet-result`, `/characters`, `/character-sheet/:id`, `/session-create`, `/session-join`, `/my-sessions`, `/sessions`, `/session/:id` (mesa: combate, rolagens, magias), `/conta`, `/monster-catalog` (+ `/new`, `/:id`), `/spell-catalog`
 
 **State management** — Angular Signals for synchronous local state, RxJS Observables for HTTP responses. `CharacterService` holds cross-route state via signals: `currentCharacter`, `avatarUrl`, `cachedOptions`.
 

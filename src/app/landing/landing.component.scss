@@ -1,0 +1,799 @@
+// Tela inicial pública. Cores só pelas variáveis do tema (styles.scss), então vale pro SOMBRIO e
+// pro FANTASIA. Títulos, botões e rótulos na Press Start 2P; texto corrido na VT323 (legível).
+
+:host {
+  display: block;
+  width: 100%;
+  align-self: stretch;
+  // O body reserva --footer-height em cima pra barra TEMA/SAIR, que só existe logado.
+  margin-top: calc(-1 * var(--footer-height));
+  --lp-gutter: max(20px, calc((100vw - 1180px) / 2));
+  --lp-shade: color-mix(in srgb, var(--bg-color) 88%, transparent);
+  --lp-topbar-h: 64px;
+  // Verde do "AO VIVO" (o tema não tem um verde; é só nesta tela).
+  --lp-live-color: #7ed957;
+  // Foco por teclado: mesmo contorno em tudo que é clicável (o clip-path dos botões corta outline
+  // de fora, então o contorno fica pra dentro).
+  --lp-focus: 2px dashed var(--accent-color);
+  --lp-pixel: polygon(
+    0 4px,
+    4px 4px,
+    4px 0,
+    calc(100% - 4px) 0,
+    calc(100% - 4px) 4px,
+    100% 4px,
+    100% calc(100% - 4px),
+    calc(100% - 4px) calc(100% - 4px),
+    calc(100% - 4px) 100%,
+    4px 100%,
+    4px calc(100% - 4px),
+    0 calc(100% - 4px)
+  );
+}
+
+.landing {
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+p,
+ol,
+ul {
+  margin: 0;
+}
+
+// A barra do topo é fixa: a seção que o menu rola não fica com o título escondido atrás dela.
+section[id] {
+  scroll-margin-top: var(--lp-topbar-h);
+}
+
+a,
+button {
+  &:focus-visible {
+    outline: var(--lp-focus);
+    outline-offset: 3px;
+  }
+}
+
+.lp-hide-mobile {
+  @media (max-width: 767px) {
+    display: none;
+  }
+}
+
+/* ===== Botões e textos comuns ===== */
+
+.lp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0 20px;
+  box-sizing: border-box;
+  background: var(--btn-color);
+  color: var(--text-color);
+  border: 2px solid var(--accent-color);
+  font-size: 9px;
+  line-height: 1.5;
+  text-decoration: none;
+  clip-path: var(--lp-pixel);
+  transition:
+    background-color 0.15s,
+    transform 0.15s;
+
+  &:hover {
+    background: var(--btn-color-hover);
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+
+  &:focus-visible {
+    outline-offset: -6px;
+  }
+
+  &--ghost {
+    background: transparent;
+    border-color: var(--border-color);
+    color: var(--accent-color);
+  }
+
+  &--small {
+    min-height: 36px;
+    padding: 0 14px;
+    font-size: 8px;
+  }
+}
+
+.lp-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  color: var(--accent-color);
+  font-size: 8px;
+  line-height: 1.8;
+}
+
+.lp-lead {
+  max-width: 520px;
+  font-family: 'VT323', monospace;
+  font-size: 22px;
+  line-height: 1.25;
+  color: var(--text-soft);
+}
+
+.lp-h2 {
+  margin-bottom: 20px;
+  font-size: clamp(18px, 2.6vw, 30px);
+  line-height: 1.5;
+  text-shadow: 3px 3px 0 var(--bg-color);
+  text-wrap: balance;
+
+  span {
+    color: var(--accent-color);
+  }
+}
+
+.lp-heading {
+  max-width: 640px;
+
+  &--center {
+    margin: 0 auto;
+    text-align: center;
+
+    .lp-eyebrow {
+      justify-content: center;
+    }
+  }
+}
+
+/* ===== Topo ===== */
+
+.lp-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: var(--lp-topbar-h);
+  padding: 0 var(--lp-gutter);
+  background: var(--lp-shade);
+  border-bottom: 2px solid var(--border-color);
+  backdrop-filter: blur(4px);
+}
+
+.lp-topbar-logo {
+  width: 52px;
+  height: 52px;
+}
+
+.lp-nav {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  gap: 28px;
+}
+
+.lp-nav-link {
+  padding: 6px 0;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--label-title-color);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+
+  &:hover {
+    color: var(--accent-color);
+    border-bottom-color: var(--accent-color);
+  }
+}
+
+.lp-topbar-actions {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
+
+/* ===== Primeira dobra ===== */
+
+.lp-hero {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  align-items: center;
+  gap: 40px;
+  min-height: calc(100svh - var(--lp-topbar-h));
+  padding: 48px var(--lp-gutter);
+  box-sizing: border-box;
+}
+
+.lp-title {
+  margin-bottom: 26px;
+  font-size: clamp(24px, 3.6vw, 46px);
+  line-height: 1.35;
+  text-shadow: 4px 4px 0 var(--bg-color);
+  text-wrap: balance;
+
+  em {
+    font-style: normal;
+    color: var(--accent-color);
+  }
+}
+
+.lp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 32px;
+}
+
+.lp-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  font-family: 'VT323', monospace;
+  font-size: 18px;
+  color: var(--label-title-color);
+}
+
+.lp-hero-visual {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  min-height: 470px;
+  align-items: center;
+}
+
+.lp-sample {
+  position: relative;
+  width: 290px;
+  padding: 16px 18px 18px;
+  background-color: var(--panel-bg);
+  transform: rotate(-2deg);
+  // Sombra dura, de pixel art (a mesma do painel do mestre), no lugar da sombra esfumada.
+  box-shadow: 10px 10px 0 color-mix(in srgb, var(--bg-color) 70%, transparent);
+  animation: lp-float 5s ease-in-out infinite;
+
+  app-hp-bar,
+  app-xp-bar {
+    display: block;
+    margin-top: 8px;
+  }
+}
+
+.lp-sample-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 7px;
+  color: var(--label-title-color);
+}
+
+.lp-sample-tag {
+  color: var(--lp-live-color);
+}
+
+.lp-sample-avatar {
+  width: 128px;
+  height: 128px;
+  margin: 14px auto;
+  border: 2px solid var(--border-color);
+}
+
+.lp-sample-name {
+  font-size: 11px;
+  color: var(--gold-color);
+  text-align: center;
+
+  span {
+    display: block;
+    margin-top: 4px;
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    color: var(--text-soft);
+  }
+}
+
+.lp-sample-class {
+  margin-top: 4px;
+  font-size: 7px;
+  color: var(--label-title-color);
+  text-align: center;
+}
+
+.lp-sample-stats {
+  display: flex;
+  justify-content: space-between;
+  margin: 12px 0 4px;
+  padding: 8px 0;
+  border-block: 2px solid var(--border-color);
+  font-family: 'VT323', monospace;
+  font-size: 20px;
+
+  b {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    font-weight: 400;
+    color: var(--sheet-label-color);
+  }
+}
+
+.lp-token {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lp-token--die {
+  top: 4%;
+  right: 6%;
+  padding: 8px 12px 8px 8px;
+  background: var(--bg-color);
+  border: 2px solid var(--accent-color);
+  transform: rotate(8deg);
+  animation: lp-float 4s ease-in-out infinite reverse;
+
+  img {
+    width: 40px;
+    height: 40px;
+  }
+
+  span {
+    font-size: 16px;
+    color: var(--accent-color);
+  }
+
+  small {
+    display: block;
+    margin-top: 4px;
+    font-size: 6px;
+    color: var(--text-soft);
+  }
+}
+
+.lp-token--tom {
+  bottom: 0;
+  left: 0;
+  align-items: flex-start;
+
+  img {
+    width: 110px;
+    height: auto;
+  }
+}
+
+.lp-bubble {
+  max-width: 130px;
+  padding: 8px 10px;
+  background: var(--text-soft);
+  color: var(--bg-color);
+  font-family: 'VT323', monospace;
+  font-size: 17px;
+  line-height: 1.05;
+  clip-path: var(--lp-pixel);
+}
+
+/* ===== Seções ===== */
+
+.lp-section {
+  padding: 112px var(--lp-gutter);
+
+  &--dark {
+    background: var(--lp-shade);
+  }
+}
+
+.lp-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-top: 52px;
+
+  &--extras {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 900px;
+    margin-inline: auto;
+  }
+}
+
+.lp-card,
+.lp-step {
+  position: relative;
+  padding: 24px 22px;
+  background: var(--panel-bg);
+  border: 2px solid var(--border-color);
+  clip-path: var(--lp-pixel);
+
+  // Cards só informam (não são links): sem hover que prometa clique.
+  h3 {
+    margin-bottom: 10px;
+    font-size: 9px;
+    line-height: 1.7;
+    color: var(--text-color);
+  }
+
+  p {
+    font-family: 'VT323', monospace;
+    font-size: 19px;
+    line-height: 1.2;
+    color: var(--text-soft);
+  }
+
+  &--row {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+
+    .lp-card-icon {
+      flex: 0 0 48px;
+      margin: 0;
+    }
+  }
+}
+
+.lp-step-number {
+  display: block;
+  margin-bottom: 18px;
+  font-size: 8px;
+  color: var(--label-title-color);
+}
+
+.lp-card-icon {
+  display: block;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 16px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+/* Cartas: texto à esquerda, carrossel à direita. As cartas vizinhas saem da coluna — o corte
+   fica na borda do carrossel (padding pro brilho da carta da vez não ser cortado). */
+.lp-cards {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-items: center;
+  gap: 48px;
+
+  app-landing-cards {
+    overflow: hidden;
+    padding: 24px 0;
+  }
+}
+
+/* Mestres: painel de exemplo à esquerda, texto à direita */
+.lp-master {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 64px;
+}
+
+.lp-panel {
+  padding: 22px;
+  background: var(--bg-color);
+  border: 2px solid var(--border-color);
+  box-shadow: 10px 10px 0 color-mix(in srgb, var(--border-color) 45%, transparent);
+}
+
+.lp-panel-head {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--border-color);
+  font-size: 7px;
+  color: var(--label-title-color);
+}
+
+.lp-live {
+  color: var(--lp-live-color);
+  animation: lp-blink 1.6s steps(2) infinite;
+}
+
+.lp-panel-title {
+  margin-top: 18px;
+  font-size: 13px;
+  color: var(--gold-color);
+}
+
+.lp-panel-code {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 6px 10px;
+  background: var(--accent-color);
+  color: var(--bg-color);
+  font-size: 8px;
+
+  span {
+    margin-left: 8px;
+    font-size: 7px;
+  }
+}
+
+.lp-panel-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 24px;
+
+  small {
+    font-size: 7px;
+    color: var(--label-title-color);
+  }
+}
+
+.lp-row {
+  padding: 8px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
+  font-family: 'VT323', monospace;
+  font-size: 18px;
+  color: var(--text-soft);
+
+  &--turn {
+    color: var(--accent-color);
+  }
+
+  em {
+    font-style: normal;
+    color: var(--sheet-label-color);
+  }
+}
+
+.lp-list {
+  margin-top: 28px;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    gap: 14px;
+    padding: 14px 0;
+    border-top: 2px solid color-mix(in srgb, var(--border-color) 55%, transparent);
+  }
+
+  h3 {
+    margin-bottom: 6px;
+    font-size: 8px;
+    line-height: 1.6;
+  }
+
+  p {
+    font-family: 'VT323', monospace;
+    font-size: 19px;
+    line-height: 1.2;
+    color: var(--text-soft);
+  }
+}
+
+.lp-list-icon {
+  display: flex;
+  flex: 0 0 38px;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  background: color-mix(in srgb, var(--accent-color) 14%, transparent);
+  font-size: 16px;
+}
+
+.lp-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  max-width: 1000px;
+  margin: 52px auto 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+
+.lp-step-number {
+  color: var(--accent-color);
+}
+
+/* ===== Chamada final e rodapé ===== */
+
+.lp-closing {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 80px var(--lp-gutter);
+  background: var(--lp-shade);
+  border-top: 2px solid var(--border-color);
+}
+
+.lp-closing-tom {
+  width: 120px;
+  height: auto;
+}
+
+.lp-closing-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  margin-left: auto;
+}
+
+.lp-closing-login {
+  font-family: 'VT323', monospace;
+  font-size: 20px;
+  color: var(--accent-color);
+
+  &:hover {
+    color: var(--text-color);
+  }
+}
+
+.lp-footer {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 24px var(--lp-gutter);
+  background: var(--bg-color);
+  border-top: 2px solid var(--border-color);
+}
+
+.lp-footer-logo {
+  width: 44px;
+  height: 44px;
+}
+
+.lp-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  flex: 1;
+  gap: 18px;
+
+  a {
+    font-size: 8px;
+    color: var(--label-title-color);
+
+    &:hover {
+      color: var(--accent-color);
+    }
+  }
+}
+
+.lp-footer-copy {
+  font-family: 'VT323', monospace;
+  font-size: 16px;
+  color: var(--label-title-color);
+}
+
+@keyframes lp-float {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -10px;
+  }
+}
+
+@keyframes lp-blink {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-sample,
+  .lp-token--die,
+  .lp-live {
+    animation: none;
+  }
+
+  .lp-btn {
+    transition: none;
+
+    &:hover,
+    &:active {
+      transform: none;
+    }
+  }
+}
+
+/* ===== Tablet ===== */
+@media (max-width: 1024px) {
+  .lp-nav {
+    display: none;
+  }
+
+  .lp-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .lp-cards {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+}
+
+/* ===== Celular ===== */
+@media (max-width: 767px) {
+  :host {
+    --lp-topbar-h: 56px;
+  }
+
+  .lp-topbar-logo {
+    width: 42px;
+    height: 42px;
+  }
+
+  .lp-hero,
+  .lp-master {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .lp-hero {
+    min-height: auto;
+    padding-top: 36px;
+  }
+
+  .lp-actions {
+    flex-direction: column;
+
+    .lp-btn {
+      width: 100%;
+    }
+  }
+
+  .lp-hero-visual {
+    min-height: 430px;
+  }
+
+  .lp-token--die {
+    right: 0;
+  }
+
+  .lp-token--tom img {
+    width: 80px;
+  }
+
+  .lp-lead {
+    font-size: 20px;
+  }
+
+  .lp-section {
+    padding-block: 64px;
+  }
+
+  .lp-grid,
+  .lp-grid--extras,
+  .lp-steps,
+  .lp-panel-cols {
+    grid-template-columns: 1fr;
+  }
+
+  .lp-master .lp-panel {
+    order: 2;
+  }
+
+  .lp-closing {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-block: 56px;
+  }
+
+  .lp-closing-actions {
+    width: 100%;
+    margin-left: 0;
+
+    .lp-btn {
+      width: 100%;
+    }
+  }
+
+  .lp-footer {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+}

@@ -1,0 +1,69 @@
+<div
+  class="lc"
+  (mouseenter)="pause(true)"
+  (mouseleave)="pause(false)"
+  (focusin)="pause(true)"
+  (focusout)="pause(false)"
+>
+  <div class="lc-tabs" role="group" aria-label="Tipo de carta">
+    @for (d of decks; track d.key) {
+      <button
+        type="button"
+        class="lc-tab"
+        [class.lc-tab--active]="deck() === d.key"
+        [attr.aria-pressed]="deck() === d.key"
+        (click)="selectDeck(d.key)"
+      >
+        {{ d.label }}
+      </button>
+    }
+  </div>
+
+  <div
+    class="lc-stage"
+    role="region"
+    aria-roledescription="carrossel"
+    [attr.aria-label]="'Cartas de ' + (deck() === 'spells' ? 'magia' : 'arma')"
+    tabindex="0"
+    (keydown)="onKey($event)"
+    (pointerdown)="onPointerDown($event)"
+    (pointerup)="onPointerUp($event)"
+  >
+    <button type="button" class="lc-nav" aria-label="Carta anterior" (click)="prev()">◀</button>
+    <div class="lc-carousel">
+      @for (item of cards(); track item.key; let i = $index) {
+        <div
+          class="lc-slot"
+          [class.lc-slot--focus]="i === index()"
+          [class.lc-slot--far]="offset(i) > 2 || offset(i) < -2"
+          [style.--offset]="offset(i)"
+          [style.z-index]="zIndex(i)"
+          [attr.aria-hidden]="i !== index()"
+          (click)="select(i)"
+        >
+          <app-game-card
+            [card]="item.card"
+            [size]="i === index() ? 'full' : 'mini'"
+            [state]="item.state"
+          />
+        </div>
+      }
+    </div>
+    <button type="button" class="lc-nav" aria-label="Próxima carta" (click)="next()">▶</button>
+  </div>
+
+  <p class="lc-status" [attr.aria-live]="autoplay() ? 'off' : 'polite'">{{ status() }}</p>
+
+  <div class="lc-dots">
+    @for (item of cards(); track item.key; let i = $index) {
+      <button
+        type="button"
+        class="lc-dot"
+        [class.lc-dot--active]="i === index()"
+        [attr.aria-label]="'Ver ' + item.card.title"
+        [attr.aria-current]="i === index()"
+        (click)="select(i)"
+      ></button>
+    }
+  </div>
+</div>

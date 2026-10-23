@@ -63,6 +63,8 @@
 }
 
 .auth-links {
+  display: flex;
+  justify-content: space-between;
   margin-top: 16px;
 
   a {
@@ -143,6 +145,8 @@
 }
 
 .mobile-auth-links {
+  display: flex;
+  justify-content: space-between;
   margin-top: 12px;
 
   a {

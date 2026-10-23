@@ -33,6 +33,21 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.8.0',
+    date: '2026-10-23',
+    title: 'Nova tela inicial',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'Quem chega ao site agora encontra uma tela inicial que apresenta a Forja Arcana: o que dá para fazer como jogador e como mestre, como começar em três passos e os atalhos para entrar ou criar a conta. Um carrossel mostra as cartas de magia e de arma usadas na mesa.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Ao sair da conta, você volta para a tela inicial. As telas de entrar e de criar conta ganharam um link para voltar ao início.',
+      },
+    ],
+  },
+  {
     version: '1.7.5',
     date: '2026-10-22',
     title: 'Tema sombrio como padrão',

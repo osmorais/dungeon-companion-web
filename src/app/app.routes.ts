@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './guards/auth.guard';
+import { authGuard, loggedInMatch } from './guards/auth.guard';
 
 export const routes: Routes = [
   // Públicas
@@ -46,12 +46,20 @@ export const routes: Routes = [
       ),
   },
 
-  // Protegidas
+  // `/`: logado vê a Home; visitante (ou sessão expirada) vê a tela inicial pública.
   {
     path: '',
-    canActivate: [authGuard],
+    pathMatch: 'full',
+    canMatch: [loggedInMatch],
     loadComponent: () => import('./home/home.component').then(m => m.HomeComponent),
   },
+  {
+    path: '',
+    pathMatch: 'full',
+    loadComponent: () => import('./landing/landing.component').then(m => m.LandingComponent),
+  },
+
+  // Protegidas
   {
     path: 'create',
     canActivate: [authGuard],

@@ -1,6 +1,6 @@
 {
   "name": "dungeon-companion-web",
-  "version": "1.7.5",
+  "version": "1.8.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -20,6 +20,7 @@
     "@angular/platform-browser": "^21.2.0",
     "@angular/router": "^21.2.0",
     "@fontsource/press-start-2p": "5.2.7",
+    "@fontsource/vt323": "5.3.0",
     "rxjs": "~7.8.0",
     "socket.io-client": "^4.8.3",
     "tslib": "^2.3.0"

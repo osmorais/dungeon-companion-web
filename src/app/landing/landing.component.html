@@ -1,0 +1,288 @@
+<div class="landing">
+  <!-- ===== TOPO ===== -->
+  <header class="lp-topbar">
+    <img class="lp-topbar-logo" src="forja_arcana.png" alt="Forja Arcana" width="52" height="52" />
+    <nav class="lp-nav" aria-label="Seções da página">
+      @for (s of sections; track s.id) {
+        <button type="button" class="lp-nav-link" (click)="scrollTo(s.id)">{{ s.label }}</button>
+      }
+    </nav>
+    <div class="lp-topbar-actions">
+      <a class="lp-btn lp-btn--ghost lp-btn--small" routerLink="/login">ENTRAR</a>
+      <a class="lp-btn lp-btn--small lp-hide-mobile" routerLink="/signup">CRIAR CONTA</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- ===== PRIMEIRA DOBRA ===== -->
+    <section class="lp-hero">
+      <div class="lp-hero-copy">
+        <h1 class="lp-title">Crie sua lenda.<br /><em>Viva a aventura.</em></h1>
+        <p class="lp-lead">
+          A Forja Arcana é o seu companheiro de mesa para D&amp;D 5e: crie personagens com a ficha
+          calculada sozinha, reúna o grupo numa sessão ao vivo e deixe a parte chata com a gente.
+        </p>
+        <div class="lp-actions">
+          <a class="lp-btn" routerLink="/signup">CRIAR CONTA GRÁTIS ▶</a>
+          <a class="lp-btn lp-btn--ghost" routerLink="/login">JÁ TENHO CONTA</a>
+        </div>
+        <p class="lp-note">
+          <img class="ui-icon" src="assets/icons/campfire.png" alt="" width="96" height="96" /> Para
+          quem joga e para quem mestra. Entre com e-mail ou com o Google.
+        </p>
+      </div>
+
+      <div class="lp-hero-visual" aria-hidden="true">
+        <div class="lp-sample framed-card">
+          <div class="lp-sample-top">
+            <span>FICHA DE AVENTUREIRO</span>
+            <span class="lp-sample-tag">AO VIVO</span>
+          </div>
+          <div class="lp-sample-avatar"><app-avatar-display [preset]="sampleAvatar" /></div>
+          <p class="lp-sample-name">THORIN <span>Barba-de-Brasa</span></p>
+          <p class="lp-sample-class">BÁRBARO · ANÃO</p>
+          <div class="lp-sample-stats">
+            <span><b>FOR</b> 16</span><span><b>CON</b> 15</span><span><b>DES</b> 13</span>
+          </div>
+          <app-hp-bar [current]="27" [max]="31" />
+          <app-xp-bar [level]="3" [xp]="2100" [nextLevelXp]="2700" />
+        </div>
+        <div class="lp-token lp-token--die">
+          <img src="assets/dice/d20.png" alt="" width="40" height="40" />
+          <span>20<small>CRÍTICO!</small></span>
+        </div>
+        <div class="lp-token lp-token--tom">
+          <img src="assets/tom/tom-hi.png" alt="" width="402" height="436" />
+          <span class="lp-bubble">Eu te ajudo na primeira ficha!</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== JOGADORES ===== -->
+    <section id="jogadores" class="lp-section lp-section--dark">
+      <div class="lp-heading">
+        <p class="lp-eyebrow">PARA QUEM JOGA</p>
+        <h2 class="lp-h2">Seu próximo herói<br /><span>começa com uma escolha.</span></h2>
+        <p class="lp-lead">
+          Da primeira decisão ao último dado, tudo pensado para você entrar na história com
+          confiança.
+        </p>
+      </div>
+      <div class="lp-grid">
+        @for (f of playerFeatures; track f.title) {
+          <article class="lp-card">
+            <img
+              class="lp-card-icon"
+              [src]="iconSrc(f.icon)"
+              alt=""
+              width="44"
+              height="44"
+              loading="lazy"
+            />
+            <h3>{{ f.title }}</h3>
+            <p>{{ f.text }}</p>
+          </article>
+        }
+      </div>
+    </section>
+
+    <!-- ===== MESTRES ===== -->
+    <section id="mestres" class="lp-section lp-master">
+      <div class="lp-panel" data-ui aria-hidden="true">
+        <div class="lp-panel-head">
+          <span>PAINEL DO MESTRE</span><span class="lp-live">● AO VIVO</span>
+        </div>
+        <p class="lp-panel-title">A Mina Perdida</p>
+        <p class="lp-panel-code">K7Q2X <span>3 / 5 JOGADORES</span></p>
+        <div class="lp-panel-cols">
+          <div>
+            <small>COMBATE · RODADA 2</small>
+            <p class="lp-row lp-row--turn">▶ Thorin</p>
+            <p class="lp-row">Lyra</p>
+            <p class="lp-row">Goblin <em>revelado</em></p>
+          </div>
+          <div>
+            <small>ROLAGENS</small>
+            <p class="lp-row">
+              <img
+                class="ui-icon"
+                src="assets/icons/d20.png"
+                alt=""
+                width="96"
+                height="96"
+                loading="lazy"
+              />
+              Lyra: 17
+            </p>
+            <p class="lp-row">
+              <img
+                class="ui-icon"
+                src="assets/icons/swords.png"
+                alt=""
+                width="96"
+                height="96"
+                loading="lazy"
+              />
+              Thorin: 9 de dano
+            </p>
+            <p class="lp-row">
+              <img
+                class="ui-icon"
+                src="assets/icons/padlock.png"
+                alt=""
+                width="96"
+                height="96"
+                loading="lazy"
+              />
+              Teste secreto
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="lp-master-copy">
+        <p class="lp-eyebrow">PARA QUEM CONDUZ</p>
+        <h2 class="lp-h2">Menos planilha.<br /><span>Mais história.</span></h2>
+        <p class="lp-lead">
+          Um painel para preparar a mesa, acompanhar a aventura e manter a narrativa em movimento.
+        </p>
+        <ul class="lp-list">
+          @for (f of masterFeatures; track f.title) {
+            <li>
+              <span class="lp-list-icon"
+                ><img
+                  class="ui-icon"
+                  [src]="iconSrc(f.icon)"
+                  alt=""
+                  width="96"
+                  height="96"
+                  loading="lazy"
+              /></span>
+              <div>
+                <h3>{{ f.title }}</h3>
+                <p>{{ f.text }}</p>
+              </div>
+            </li>
+          }
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===== CARTAS ===== -->
+    <section id="cartas" class="lp-section lp-section--dark lp-cards">
+      <div class="lp-cards-copy">
+        <p class="lp-eyebrow">MAGIAS E ARMAS</p>
+        <h2 class="lp-h2">Na mesa,<br /><span>tudo vira carta.</span></h2>
+        <p class="lp-lead">
+          Seu grimório e seu arsenal viram uma mão de cartas, como num card game, com os números já
+          calculados para o seu personagem.
+        </p>
+        <ul class="lp-list">
+          @for (f of cardFeatures; track f.title) {
+            <li>
+              <span class="lp-list-icon"
+                ><img
+                  class="ui-icon"
+                  [src]="iconSrc(f.icon)"
+                  alt=""
+                  width="96"
+                  height="96"
+                  loading="lazy"
+              /></span>
+              <div>
+                <h3>{{ f.title }}</h3>
+                <p>{{ f.text }}</p>
+              </div>
+            </li>
+          }
+        </ul>
+      </div>
+      <app-landing-cards />
+    </section>
+
+    <!-- ===== PARA TODOS ===== -->
+    <section class="lp-section lp-extras">
+      <div class="lp-heading lp-heading--center">
+        <h2 class="lp-h2">Para toda a <span>companhia.</span></h2>
+      </div>
+      <div class="lp-grid lp-grid--extras">
+        @for (f of extras; track f.title) {
+          <article class="lp-card lp-card--row">
+            <img
+              class="lp-card-icon"
+              [src]="iconSrc(f.icon)"
+              alt=""
+              width="44"
+              height="44"
+              loading="lazy"
+            />
+            <div>
+              <h3>{{ f.title }}</h3>
+              <p>{{ f.text }}</p>
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+
+    <!-- ===== COMO FUNCIONA ===== -->
+    <section id="como-funciona" class="lp-section lp-section--dark">
+      <div class="lp-heading lp-heading--center">
+        <h2 class="lp-h2">Da ideia à aventura<br /><span>em três passos.</span></h2>
+      </div>
+      <ol class="lp-steps">
+        @for (s of steps; track s.number) {
+          <li class="lp-step">
+            <span class="lp-step-number">{{ s.number }}</span>
+            <img
+              class="lp-card-icon"
+              [src]="iconSrc(s.icon)"
+              alt=""
+              width="44"
+              height="44"
+              loading="lazy"
+            />
+            <h3>{{ s.title }}</h3>
+            <p>{{ s.text }}</p>
+          </li>
+        }
+      </ol>
+    </section>
+
+    <!-- ===== CHAMADA FINAL ===== -->
+    <section class="lp-closing">
+      <img
+        class="lp-closing-tom"
+        src="assets/tom/tom-forging.png"
+        alt=""
+        width="402"
+        height="436"
+        loading="lazy"
+      />
+      <div>
+        <h2 class="lp-h2">Qual história você<br /><span>vai forjar hoje?</span></h2>
+      </div>
+      <div class="lp-closing-actions">
+        <a class="lp-btn" routerLink="/signup">CRIAR MINHA CONTA ▶</a>
+        <a class="lp-closing-login" routerLink="/login">Já tenho conta: entrar</a>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== RODAPÉ ===== -->
+  <footer class="lp-footer">
+    <img
+      class="lp-footer-logo"
+      src="forja_arcana.png"
+      alt="Forja Arcana"
+      width="44"
+      height="44"
+      loading="lazy"
+    />
+    <nav class="lp-footer-links" aria-label="Documentos e novidades">
+      <a [routerLink]="legalRoutes.privacy">PRIVACIDADE</a>
+      <a [routerLink]="legalRoutes.terms">TERMOS DE USO</a>
+      <a routerLink="/novidades">NOVIDADES v{{ currentVersion }}</a>
+    </nav>
+    <span class="lp-footer-copy">© {{ year }} Forja Arcana</span>
+  </footer>
+</div>

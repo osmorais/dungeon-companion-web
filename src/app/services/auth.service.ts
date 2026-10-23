@@ -28,9 +28,10 @@ export class AuthService {
       .pipe(tap(res => this.handleAuthResponse(res)));
   }
 
+  /** SAIR leva pra tela inicial; sessão expirada (401) e conta excluída vão pro login. */
   logout(): Observable<unknown> {
     return this.http.post(`${this.baseUrl}/auth/logout`, {}).pipe(
-      tap(() => this.clearSession()),
+      tap(() => this.clearSession('/')),
     );
   }
 
@@ -63,10 +64,10 @@ export class AuthService {
     });
   }
 
-  clearSession(): void {
+  clearSession(redirectTo: '/login' | '/' = '/login'): void {
     localStorage.removeItem(AUTH_TOKEN_KEY);
     this.currentUser.set(null);
-    this.router.navigate(['/login']);
+    this.router.navigate([redirectTo]);
   }
 
   private handleAuthResponse(res: AuthResponse): void {
