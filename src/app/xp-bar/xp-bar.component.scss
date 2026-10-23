@@ -45,6 +45,22 @@
   }
 }
 
+// Dono do personagem com XP pra subir: a barra é um botão (vai pra ficha e abre a subida).
+.xp-bar--clickable {
+  cursor: var(--cp);
+  transition: transform 0.1s;
+
+  &:hover,
+  &:focus-visible {
+    transform: scale(1.03);
+    outline: none;
+
+    .fb-text {
+      text-decoration: underline;
+    }
+  }
+}
+
 @keyframes xp-glow {
   0%,
   100% {

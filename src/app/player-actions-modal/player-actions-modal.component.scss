@@ -53,6 +53,73 @@
   }
 }
 
+// Começou a vez (1.7.4): faixa SUA VEZ, destaque pulsando nas ações de turno e na coluna COMBATE.
+.pa-turn-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 2px solid var(--accent-color);
+  background: linear-gradient(180deg, rgba(255, 170, 0, 0.22), rgba(0, 0, 0, 0.35));
+  text-align: center;
+  animation: pa-turn-in 0.4s steps(5) both;
+}
+
+.pa-turn-banner-title {
+  font-size: 14px;
+  color: var(--accent-color);
+  text-shadow: 2px 2px 0 #000, 0 0 12px var(--accent-color);
+}
+
+.pa-turn-banner-hint {
+  font-size: 7px;
+  line-height: 1.6;
+  color: var(--text-color);
+}
+
+.pa-hero--turn {
+  animation: pa-turn-glow 1.4s ease-in-out infinite;
+
+  .pa-hero-btn--main {
+    background-color: var(--accent-color);
+    color: var(--bg-color);
+  }
+}
+
+.pa-col-title--turn {
+  color: var(--gold-color);
+  border-bottom-color: var(--accent-color);
+}
+
+@keyframes pa-turn-in {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes pa-turn-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(255, 170, 0, 0);
+  }
+  50% {
+    box-shadow: 0 0 14px 2px rgba(255, 170, 0, 0.55);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pa-hero--turn,
+  .pa-turn-banner {
+    animation: none;
+  }
+}
+
 // DANO/CURA no próprio PV (1.7.2): número + dois botões, nas cores de dano e cura.
 .pa-hp-adjust {
   display: flex;

@@ -66,6 +66,43 @@ $drawer-desktop-width: min(1440px, 96vw);
   white-space: nowrap;
 }
 
+// Avatar de quem é a gaveta (personagem ou mestre), com o anel (.avatar-ring-wrap do styles.scss),
+// à esquerda da barra recolhida, sobressaindo por cima dela.
+.bottom-drawer-avatar {
+  --avatar-size: 44px;
+  position: absolute !important;
+  left: 22px;
+  // Sobe o suficiente pro brasão de baixo do anel não sair da tela.
+  bottom: calc(var(--avatar-size) * 0.5);
+  margin: 0 !important;
+  pointer-events: none;
+}
+
+.bottom-drawer-avatar-circle {
+  display: block;
+  overflow: hidden;
+  border-radius: 50%;
+  background-color: var(--bg-color);
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+// Com avatar: espaço dos dois lados pro nome continuar centralizado sem passar por baixo dele.
+.bottom-drawer-bar--avatar {
+  padding-left: 92px;
+  padding-right: 92px;
+}
+
+// Na gaveta aberta a barra não é fixa: o avatar se posiciona por ela.
+.bottom-drawer-bar--attached.bottom-drawer-bar--avatar {
+  position: relative;
+}
+
 // "TOQUE PARA ABRIR" / "TOQUE PARA FECHAR" embaixo do nome da gaveta.
 .bottom-drawer-hint {
   font-size: 6px;

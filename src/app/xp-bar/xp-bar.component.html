@@ -1,11 +1,19 @@
 <div
   class="fb xp-bar"
   [class.xp-bar--ready]="canLevelUp"
-  role="progressbar"
+  [class.xp-bar--clickable]="clickable"
+  [attr.role]="clickable ? 'button' : 'progressbar'"
+  [attr.tabindex]="clickable ? 0 : null"
+  [attr.title]="clickable ? 'Subir de nível' : null"
   aria-valuemin="0"
   aria-valuemax="100"
-  [attr.aria-valuenow]="percent"
-  [attr.aria-label]="'Nível ' + level + ': ' + label"
+  [attr.aria-valuenow]="clickable ? null : percent"
+  [attr.aria-label]="
+    clickable ? 'Subir de nível (nível ' + level + ')' : 'Nível ' + level + ': ' + label
+  "
+  (click)="open()"
+  (keydown.enter)="open()"
+  (keydown.space)="open(); $event.preventDefault()"
 >
   <span class="fb-track"><span class="fb-fill xp-fill" [style.width.%]="fillPercent"></span></span>
   <span class="fb-frame" aria-hidden="true"></span>

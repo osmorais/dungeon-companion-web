@@ -2,11 +2,15 @@
 <div class="bottom-drawer-backdrop" (click)="close()"></div>
 <aside class="bottom-drawer" role="dialog" aria-label="Quadro do mestre">
   <button
-    class="bottom-drawer-bar bottom-drawer-bar--attached"
+    class="bottom-drawer-bar bottom-drawer-bar--attached bottom-drawer-bar--avatar"
     title="Recolher o quadro do mestre"
     aria-expanded="true"
     (click)="close()"
   >
+    <span class="bottom-drawer-avatar avatar-ring-wrap" aria-hidden="true">
+      <span class="bottom-drawer-avatar-circle"><img src="assets/dm.png" alt="" /></span>
+      <span class="avatar-ring"></span>
+    </span>
     <span class="bottom-drawer-bar-label">
       <span class="bottom-drawer-arrow">▼</span>
       <img class="ui-icon" src="assets/icons/scroll.png" alt="" /> QUADRO DO MESTRE

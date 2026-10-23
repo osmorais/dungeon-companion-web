@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FRAME_BAR_MIN_FILL } from '../hp-bar/hp-bar.component';
 
 /** Progresso até o próximo nível: 0–100 (cheio no nível 20 ou quando já dá pra subir). */
@@ -22,6 +22,17 @@ export class XpBarComponent {
   @Input({ required: true }) xp = 0;
   /** XP total do próximo nível; `null` no nível 20 (ou API antiga, sem o campo). */
   @Input() nextLevelXp: number | null | undefined = null;
+  /** Quem vê é o dono do personagem: com XP pra subir, a barra vira botão (abre a subida de nível). */
+  @Input() canOpenLevelUp = false;
+  @Output() levelUp = new EventEmitter<void>();
+
+  get clickable(): boolean {
+    return this.canOpenLevelUp && this.canLevelUp;
+  }
+
+  open(): void {
+    if (this.clickable) this.levelUp.emit();
+  }
 
   get maxed(): boolean {
     return !this.nextLevelXp;

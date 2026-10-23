@@ -3,14 +3,22 @@
 <aside class="bottom-drawer" role="dialog" [attr.aria-label]="'Ações de ' + actorName">
   @if (view() === 'grimoire') {
     <!-- Segunda tela: a barra volta pras ações (fechar tudo: tocar no fundo) -->
-    <button class="bottom-drawer-bar bottom-drawer-bar--attached" (click)="backToActions()">
+    <button class="bottom-drawer-bar bottom-drawer-bar--attached bottom-drawer-bar--avatar" (click)="backToActions()">
+      <span class="bottom-drawer-avatar avatar-ring-wrap" aria-hidden="true">
+        <span class="bottom-drawer-avatar-circle"><app-avatar-display [preset]="barAvatar()" /></span>
+        <span class="avatar-ring"></span>
+      </span>
       <span class="bottom-drawer-bar-label">
         <span class="bottom-drawer-arrow">◀</span> VOLTAR ÀS AÇÕES
       </span>
       <span class="bottom-drawer-hint">GRIMÓRIO DE {{ actorName.toUpperCase() }}</span>
     </button>
   } @else {
-    <button class="bottom-drawer-bar bottom-drawer-bar--attached" (click)="close()">
+    <button class="bottom-drawer-bar bottom-drawer-bar--attached bottom-drawer-bar--avatar" (click)="close()">
+      <span class="bottom-drawer-avatar avatar-ring-wrap" aria-hidden="true">
+        <span class="bottom-drawer-avatar-circle"><app-avatar-display [preset]="barAvatar()" /></span>
+        <span class="avatar-ring"></span>
+      </span>
       <span class="bottom-drawer-bar-label">
         <span class="bottom-drawer-arrow">▼</span>
         <img class="ui-icon" src="assets/icons/actions.png" alt="" /> {{ actorName }}
@@ -165,8 +173,15 @@
         <p class="pa-action-error">{{ err }}</p>
       }
 
+      @if (turnFocus) {
+        <div class="pa-turn-banner" role="status">
+          <span class="pa-turn-banner-title">SUA VEZ!</span>
+          <span class="pa-turn-banner-hint">Ataque, lance magias ou use habilidades — depois, FINALIZAR TURNO.</span>
+        </div>
+      }
+
       <!-- Destaque: números e ações que se usam toda hora -->
-      <div class="pa-hero">
+      <div class="pa-hero" [class.pa-hero--turn]="turnFocus">
         <div class="pa-hero-stats">
           @let hp = liveHp ?? data.character_sheet.combat_stats.hit_points;
           <div class="pa-stat pa-stat--hp">
@@ -250,7 +265,7 @@
            habilidade só cresce a própria coluna, nada troca de lugar). -->
       <div class="pa-columns">
         <div class="pa-col">
-          <h3 class="pa-col-title"><img class="ui-icon" src="assets/icons/swords.png" alt="" /> COMBATE</h3>
+          <h3 class="pa-col-title" [class.pa-col-title--turn]="turnFocus"><img class="ui-icon" src="assets/icons/swords.png" alt="" /> COMBATE</h3>
           @if (data.character_sheet.weapons.length || combatFeatures()?.unarmed) {
             <div class="pa-section">
               <h4 class="pa-section-title">ARMAS</h4>

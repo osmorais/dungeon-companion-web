@@ -33,6 +33,25 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.7.4',
+    date: '2026-10-22',
+    title: 'Gaveta de ações abre sozinha na sua vez e barra de XP leva à subida de nível',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'Quando começa a vez do seu personagem no combate, a gaveta de ações abre sozinha logo depois do aviso de troca de vez, com o destaque SUA VEZ e FINALIZAR TURNO em evidência. Atacar, lançar magias e usar habilidades continuam disponíveis como sempre.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Quando a barra de XP do seu personagem brilha (dá para subir de nível), é só tocar nela: abre a ficha já na subida de nível.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'As barras AÇÕES DE PERSONAGEM e QUADRO DO MESTRE, na base da tela, mostram o avatar do seu personagem (ou o do mestre) com o anel de moldura, recolhidas ou com a gaveta aberta.',
+      },
+    ],
+  },
+  {
     version: '1.7.3',
     date: '2026-10-22',
     title: 'Dano e cura no próprio PV com animação, CURA TOTAL e DANO TOTAL',

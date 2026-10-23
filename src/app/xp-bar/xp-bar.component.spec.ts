@@ -49,4 +49,20 @@ describe('XpBarComponent', () => {
     expect(create(1, 3, 300).fillPercent).toBe(7);
     expect(create(1, 0, 300).fillPercent).toBe(0);
   });
+
+  it('só o dono, com XP pra subir, clica: avisa pra abrir a subida de nível', () => {
+    const ready = create(2, 1000, 900);
+    const levelUp = vi.fn();
+    ready.levelUp.subscribe(levelUp);
+    ready.open();
+    expect(levelUp).not.toHaveBeenCalled(); // não é o dono
+    ready.canOpenLevelUp = true;
+    expect(ready.clickable).toBe(true);
+    ready.open();
+    expect(levelUp).toHaveBeenCalledTimes(1);
+
+    const notYet = create(2, 450, 900);
+    notYet.canOpenLevelUp = true;
+    expect(notYet.clickable).toBe(false); // ainda não dá pra subir
+  });
 });

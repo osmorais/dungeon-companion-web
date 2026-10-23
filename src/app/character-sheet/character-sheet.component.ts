@@ -43,6 +43,9 @@ export class CharacterSheetComponent {
   sessionId = input<string>();
   /** Aberta pela gaveta de ações da sessão (id do personagem): o voltar reabre as ações. */
   fromActions = input<string>();
+  /** `?levelUp=1` (barra de XP da sessão): abre a subida de nível assim que a ficha carrega, se
+   *  der pra subir. */
+  levelUp = input<string>();
 
   sheetData = this.charService.currentCharacter;
   avatarUrl = this.charService.avatarUrl;
@@ -87,6 +90,7 @@ export class CharacterSheetComponent {
               this.charService.currentCharacter.set(sheet);
               this.initNotesFields(background?.full_history ?? '');
               this.loading.set(false);
+              this.openLevelUpIfRequested();
             },
             error: () => this.loading.set(false),
           });
@@ -777,6 +781,11 @@ export class CharacterSheetComponent {
     const header = this.sheetData()?.character_sheet.header;
     if (!header || header.next_level_xp === null) return 0;
     return Math.max(0, header.next_level_xp - header.experience_points);
+  }
+
+  /** Veio da barra de XP da sessão (`?levelUp=1`) e dá pra subir: já abre a subida de nível. */
+  openLevelUpIfRequested(): void {
+    if (this.levelUp() && this.canLevelUp()) this.openLevelUpModal();
   }
 
   openLevelUpModal(): void {

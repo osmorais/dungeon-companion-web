@@ -220,6 +220,7 @@ export class SessionPanelComponent implements OnDestroy {
   }
 
   ngOnDestroy() {
+    if (this.myTurnDrawerTimer) clearTimeout(this.myTurnDrawerTimer);
     this.releaseLoadingOverlay();
     this.disconnectRealtime();
     this.stopPolling();
@@ -449,7 +450,8 @@ export class SessionPanelComponent implements OnDestroy {
 
   /** ========================= AÇÕES DO PERSONAGEM ========================= */
 
-  activeActionsCharacter = signal<{ id: number; name: string } | null>(null);
+  /** `turnFocus`: abriu sozinha porque começou a vez do personagem (destaque SUA VEZ). */
+  activeActionsCharacter = signal<{ id: number; name: string; turnFocus?: boolean } | null>(null);
 
   openPlayerActions(idCharacter: number, name: string) {
     this.activeActionsCharacter.set({ id: idCharacter, name });
@@ -645,6 +647,18 @@ export class SessionPanelComponent implements OnDestroy {
   /** Passa a sessão atual via query param pra ficha saber voltar pra cá (goBack), em vez de
    *  sempre voltar pra lista de personagens. */
   /** `fromActions`: aberta pela gaveta de ações — o voltar da ficha reabre as ações. */
+  /** Personagem do jogador que está olhando (não basta ser o mestre). */
+  isMyCharacter(player: PlayerSession): boolean {
+    return !!player.character && player.user_id === this.authService.currentUser()?.id;
+  }
+
+  /** Barra de XP brilhando (dá pra subir): vai pra ficha já com a subida de nível aberta. */
+  openLevelUp(idCharacter: number) {
+    this.router.navigate(['/character-sheet', idCharacter], {
+      queryParams: { sessionId: this.id(), levelUp: 1 },
+    });
+  }
+
   viewCharacterSheet(idCharacter: number, fromActions = false) {
     this.router.navigate(['/character-sheet', idCharacter], {
       queryParams: { sessionId: this.id(), ...(fromActions ? { fromActions: idCharacter } : {}) },
@@ -2090,6 +2104,10 @@ export class SessionPanelComponent implements OnDestroy {
   private host = inject<ElementRef<HTMLElement>>(ElementRef, { optional: true });
   private turnState: TurnState = { encounterId: null, currentId: null };
   private turnOffsets = new Map<string, TurnOffset>();
+  /** Já viu o estado do combate uma vez (recarregar a página no meio da vez não abre a gaveta). */
+  private turnStateSeen = false;
+  private myTurnDrawerTimer: ReturnType<typeof setTimeout> | null = null;
+  private pendingMyTurn: string | null = null;
 
   /** Depois de cada renderização em que o combate mudou: se a vez passou pra outro
    *  participante, desliza o marcador do card antigo pro novo; e guarda as posições pra próxima. */
@@ -2100,10 +2118,22 @@ export class SessionPanelComponent implements OnDestroy {
       currentId: combat?.encounter.status === 'active' ? combat.encounter.current_turn_participant_id : null,
     };
     const list = this.host?.nativeElement.querySelector<HTMLElement>('.combat-order-list') ?? null;
-    if (shouldAnimateTurn(this.turnState, next)) {
+    const animate = shouldAnimateTurn(this.turnState, next);
+    if (animate) {
       if (list) playTurnSlide(list, this.turnOffsets.get(this.turnState.currentId!), next.currentId!);
       this.showTurnChangeToast(this.turnState.currentId!, next.currentId!);
     }
+    // Começou a vez do meu personagem (troca de vez ou início do combate): a gaveta de ações abre
+    // sozinha depois do aviso de troca de vez.
+    if (
+      this.turnStateSeen &&
+      next.currentId &&
+      next.currentId !== this.turnState.currentId &&
+      this.myPlayerForParticipant(next.currentId)
+    ) {
+      this.scheduleMyTurnDrawer(next.currentId, animate ? TURN_CHANGE_TOAST_MS : 0);
+    }
+    this.turnStateSeen = true;
     this.turnState = next;
     this.turnOffsets = snapshotTurnOffsets(list);
   });
@@ -2142,6 +2172,43 @@ export class SessionPanelComponent implements OnDestroy {
   }
 
 
+  /** Jogador deste navegador dono do participante (só personagem de jogador). */
+  private myPlayerForParticipant(participantId: string): PlayerSession | null {
+    const p = this.combat()?.participants.find((c) => c.id_combat_participant === participantId);
+    const user = this.authService.currentUser();
+    if (!p || p.participant_type !== 'player' || !user) return null;
+    return (
+      this.sessionDetail()?.players.find(
+        (pl) => pl.id_player_session === p.id_player_session && pl.user_id === user.id && pl.character,
+      ) ?? null
+    );
+  }
+
+  private scheduleMyTurnDrawer(participantId: string, delayMs: number): void {
+    if (this.myTurnDrawerTimer) clearTimeout(this.myTurnDrawerTimer);
+    this.pendingMyTurn = participantId;
+    this.myTurnDrawerTimer = setTimeout(() => this.openMyTurnDrawer(), delayMs);
+  }
+
+  /** Abre a gaveta do personagem da vez com o destaque SUA VEZ — se a vez ainda é dele e não há
+   *  outra gaveta aberta. As ações (atacar, magias, testes) continuam todas disponíveis. */
+  openMyTurnDrawer(): void {
+    if (this.myTurnDrawerTimer) clearTimeout(this.myTurnDrawerTimer);
+    this.myTurnDrawerTimer = null;
+    const participantId = this.pendingMyTurn;
+    this.pendingMyTurn = null;
+    const combat = this.combat();
+    if (!participantId || combat?.encounter.current_turn_participant_id !== participantId) return;
+    const player = this.myPlayerForParticipant(participantId);
+    const open = this.activeActionsCharacter();
+    if (!player || (open && open.id !== player.id_character)) return;
+    this.activeActionsCharacter.set({
+      id: player.id_character,
+      name: player.character!.name,
+      turnFocus: true,
+    });
+  }
+
   showTurnChangeToast(fromId: string, toId: string): void {
     const combat = this.combat();
     const to = combat?.participants.find((p) => p.id_combat_participant === toId);
@@ -2169,6 +2236,8 @@ export class SessionPanelComponent implements OnDestroy {
   closeTurnChangeToast(): void {
     if (this.turnChangeToastTimer) clearTimeout(this.turnChangeToastTimer);
     this.turnChangeToast.set(null);
+    // Fechou o aviso antes do tempo: a gaveta da vez abre já.
+    if (this.pendingMyTurn) this.openMyTurnDrawer();
   }
 
   currentTurnParticipant = computed<CombatParticipant | null>(() => {

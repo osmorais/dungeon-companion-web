@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { CharacterSheetComponent } from './character-sheet.component';
@@ -49,6 +50,42 @@ describe('CharacterSheetComponent', () => {
       (component as unknown as { sessionId: () => string }).sessionId = () => 'gs';
       component.goBack();
       expect(nav).toHaveBeenCalledWith(['/session', 'gs'], { queryParams: {} });
+    });
+  });
+
+  describe('vindo da barra de XP da sessão (?levelUp=1)', () => {
+    const withSheet = (xp: number, next: number | null, level = 3) => {
+      TestBed.resetTestingModule();
+      const currentCharacter = signal({
+        character_sheet: {
+          header: { experience_points: xp, next_level_xp: next },
+          combat_stats: { hit_dice_total: level },
+        },
+      });
+      TestBed.configureTestingModule({
+        providers: [
+          provideRouter([]),
+          { provide: CharacterService, useValue: { currentCharacter } },
+        ],
+      });
+      const c = TestBed.runInInjectionContext(() => new CharacterSheetComponent());
+      (c as unknown as { levelUp: () => string }).levelUp = () => '1';
+      return c;
+    };
+
+    it('com XP pra subir, abre a subida de nível', () => {
+      const c = withSheet(2800, 2700);
+      c.openLevelUpIfRequested();
+      expect(c.showLevelUpModal()).toBe(true);
+    });
+
+    it('sem XP suficiente (ou no nível 20), não abre', () => {
+      const c = withSheet(100, 2700);
+      c.openLevelUpIfRequested();
+      expect(c.showLevelUpModal()).toBe(false);
+      const max = withSheet(400000, null, 20);
+      max.openLevelUpIfRequested();
+      expect(max.showLevelUpModal()).toBe(false);
     });
   });
 });

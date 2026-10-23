@@ -688,6 +688,71 @@ describe('SessionPanelComponent', () => {
     });
   });
 
+  it('barra de XP do meu personagem leva pra ficha com a subida de nível aberta', () => {
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    expect(component.isMyCharacter(player('p1', { user_id: 'dm' }))).toBe(true);
+    expect(component.isMyCharacter(player('p2', { user_id: 'outro' }))).toBe(false);
+    component.openLevelUp(5);
+    expect(navigate).toHaveBeenCalledWith(['/character-sheet', 5], {
+      queryParams: { sessionId: undefined, levelUp: 1 },
+    });
+  });
+
+  describe('começou a minha vez: a gaveta abre com SUA VEZ (1.7.4)', () => {
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    const mine = player('p1', { user_id: 'dm', id_character: 5 });
+    const other = player('p2', { user_id: 'outro', id_character: 6 });
+    const withTurn = (current: 'a' | 'b') =>
+      sessionDetail({
+        players: [mine, other],
+        combat: combat([
+          participant('a', { id_player_session: 'p1', is_current_turn: current === 'a' }),
+          participant('b', { id_player_session: 'p2', is_current_turn: current === 'b' }),
+        ]),
+      });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const schedule = (id: string, ms: number) => (component as any).scheduleMyTurnDrawer(id, ms);
+
+    it('abre depois do aviso de troca de vez, com o destaque da vez', () => {
+      detail.set(withTurn('a'));
+      schedule('a', 2600);
+      expect(component.activeActionsCharacter()).toBeNull();
+      vi.advanceTimersByTime(2600);
+      expect(component.activeActionsCharacter()).toEqual({
+        id: 5,
+        name: mine.character!.name,
+        turnFocus: true,
+      });
+    });
+
+    it('fechar o aviso antes abre na hora; vez que já passou ou de outro não abre', () => {
+      detail.set(withTurn('a'));
+      schedule('a', 2600);
+      component.closeTurnChangeToast();
+      expect(component.activeActionsCharacter()?.turnFocus).toBe(true);
+
+      component.closePlayerActions();
+      schedule('a', 100);
+      detail.set(withTurn('b')); // a vez passou antes de abrir
+      vi.advanceTimersByTime(100);
+      expect(component.activeActionsCharacter()).toBeNull();
+
+      schedule('b', 0);
+      vi.advanceTimersByTime(0);
+      expect(component.activeActionsCharacter()).toBeNull(); // personagem de outro jogador
+    });
+
+    it('não troca uma gaveta de outro personagem que já está aberta', () => {
+      detail.set(withTurn('a'));
+      component.openPlayerActions(99, 'NPC');
+      schedule('a', 0);
+      vi.advanceTimersByTime(0);
+      expect(component.activeActionsCharacter()?.id).toBe(99);
+    });
+  });
+
   describe('DANO/CURA na gaveta de ações (1.7.2)', () => {
     it('dano no próprio personagem consome os temporários primeiro e grava o PV', () => {
       detail.set(

@@ -52,6 +52,8 @@ import { WeaponCardInfo } from '../models/game-session.interface';
 import { CharacterCardData } from '../character-card/character-card.component';
 import { SpellCastContext, castStagePayload, newCastId } from '../spell-cast/spell-cast-context';
 import { CastStageView } from '../spell-cast/spell-cast-stage.model';
+import { AvatarPreset } from '../models/avatar-preset.interface';
+import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
 
 /** Atributo da perícia (sigla em português do banco) → chave em inglês dos traços. */
 const PT_TO_EN: Record<string, string> = {
@@ -80,8 +82,7 @@ export function isLongCastingTime(castingTime: string | null | undefined): boole
     GameCardComponent,
     CardViewerComponent,
     CardDeckComponent,
-    CardHandComponent,
-  ],
+    CardHandComponent, AvatarDisplayComponent],
   templateUrl: './player-actions-modal.component.html',
   styleUrls: ['../bottom-drawer/bottom-drawer.scss', './player-actions-modal.component.scss'],
 })
@@ -107,6 +108,9 @@ export class PlayerActionsModalComponent implements OnInit {
   /** Vez deste personagem e quem abriu pode encerrar — FINALIZAR (e ATRASAR) no destaque. */
   @Input() canEndTurn = false;
   @Input() canDelay = false;
+  /** Abriu sozinha porque começou a vez deste personagem: destaque SUA VEZ no topo, nas ações de
+   *  turno e na coluna COMBATE (todas as ações continuam disponíveis). */
+  @Input() turnFocus = false;
   @Input() endingTurn = false;
   @Input() delayingTurn = false;
   /** Jogador abrindo o próprio personagem: FICHA e ITENS no destaque (o mestre tem nos cards). */
@@ -151,6 +155,11 @@ export class PlayerActionsModalComponent implements OnInit {
     this.adjustHp.emit({ kind, amount });
     this.hpAmount.set(0);
     this.close();
+  }
+
+  /** Avatar do personagem na barra do topo da gaveta (com o anel). */
+  barAvatar(): AvatarPreset | null {
+    return this.actorCard?.avatarPreset ?? this.sheet()?.character_sheet.avatar_preset ?? null;
   }
 
   /** PV atuais (ao vivo da sessão, senão da ficha) pra CURA TOTAL / DANO TOTAL. */

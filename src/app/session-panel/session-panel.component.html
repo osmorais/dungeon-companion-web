@@ -173,7 +173,8 @@
                   <span class="mobile-char-meta">{{ player.character.class }}</span>
                   <span class="mobile-char-meta">{{ player.character.race }}</span>
                   <app-xp-bar class="mobile-xp-bar" [level]="player.character.level"
-                    [xp]="player.character.experience_points" [nextLevelXp]="player.character.next_level_xp" />
+                    [xp]="player.character.experience_points" [nextLevelXp]="player.character.next_level_xp"
+                    [canOpenLevelUp]="isMyCharacter(player)" (levelUp)="openLevelUp(player.id_character)" />
 
                   <div class="mobile-hp">
                     <app-hp-bar class="session-hp-bar" [current]="editedHp(player)"
@@ -579,7 +580,8 @@
                   <span class="char-name">{{ player.character.name }}</span>
                   <span class="char-meta">{{ player.character.class }} — {{ player.character.race }}</span>
                   <app-xp-bar class="card-xp-bar" [level]="player.character.level"
-                    [xp]="player.character.experience_points" [nextLevelXp]="player.character.next_level_xp" />
+                    [xp]="player.character.experience_points" [nextLevelXp]="player.character.next_level_xp"
+                    [canOpenLevelUp]="isMyCharacter(player)" (levelUp)="openLevelUp(player.id_character)" />
 
                   <div class="hp-section">
                     <app-hp-bar class="session-hp-bar" [current]="editedHp(player)"
@@ -867,6 +869,7 @@
     [allies]="alliesFor(actionsChar.id)"
     [liveHp]="liveHpFor(actionsChar.id)"
     [canEndTurn]="isCharacterCurrentTurn(actionsChar.id) && canEndCurrentTurn()"
+    [turnFocus]="!!actionsChar.turnFocus && isCharacterCurrentTurn(actionsChar.id)"
     [canDelay]="canDelayCurrentTurn()"
     [endingTurn]="endingTurn()"
     [delayingTurn]="delayingTurn()"
@@ -1415,7 +1418,10 @@
 <!-- ===== AÇÕES DE PERSONAGEM (barra de baixo, jogador com personagem): abre direto as ações ===== -->
 @if (myPlayer(); as me) {
   @if (!activeActionsCharacter() && !activeInventoryPlayer()) {
-    <app-character-drawer (open)="openPlayerActions(me.id_character, me.character!.name)" />
+    <app-character-drawer
+      [avatarPreset]="me.character?.avatar_preset ?? null"
+      (open)="openPlayerActions(me.id_character, me.character!.name)"
+    />
   }
 }
 @if (dmBoardOpen() && isOwner() && sessionDetail(); as detail) {
