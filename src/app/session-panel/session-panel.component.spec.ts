@@ -1053,6 +1053,16 @@ describe('SessionPanelComponent', () => {
       expect(component.activeCastView()?.done).toBe(true);
     });
 
+    it('cancelou (fechou sem rolar): o aviso some na hora e sai da fila', () => {
+      component.onSpellCastStage(stage('c1'));
+      component.onSpellCastStage(stage('c2', { actor_name: 'Bram' }));
+      component.onSpellCastStage(stage('c2', { phase: 'cancel' }));
+      component.onSpellCastStage(stage('c1', { phase: 'cancel' }));
+      expect(component.activeCastId()).toBeNull();
+      component.onSpellCastStage(stage('c1'));
+      expect(component.activeCastId()).toBeNull(); // etapa atrasada não reabre
+    });
+
     it('vários lançamentos entram em fila', () => {
       component.onSpellCastStage(stage('c1'));
       component.onSpellCastStage(stage('c2', { actor_name: 'Bram' }));
@@ -1065,6 +1075,8 @@ describe('SessionPanelComponent', () => {
       component.markOwnCast('c1');
       component.onSpellCastStage(stage('c1', { user_id: 'dm' }));
       expect(component.activeCastId()).toBeNull();
+      // ...mas o painel dele lê este mesmo estado (mesmo evento pra todos, ao mesmo tempo)
+      expect(component.castViewFor('c1')?.key).toBe('c1');
     });
 
     it('sem notícia de quem lança, o aviso some sozinho depois do tempo máximo', () => {

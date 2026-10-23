@@ -1,0 +1,21 @@
+@if (playing()) {
+  <div class="tr" [class.tr--heal]="kind === 'heal'" aria-hidden="true">
+    @if (kind === 'heal') {
+      <span class="tr-wave"></span>
+    } @else {
+      <span class="tr-slash"></span>
+    }
+    @for (s of sparks; track $index) {
+      <span
+        class="tr-spark"
+        [style.left.%]="s.x"
+        [style.top.%]="s.y"
+        [style.width.px]="s.size"
+        [style.height.px]="s.size"
+        [style.--dx]="s.dx + 'px'"
+        [style.--dy]="s.dy + 'px'"
+        [style.animation-delay.ms]="s.delay"
+      ></span>
+    }
+  </div>
+}

@@ -33,6 +33,37 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.7.2',
+    date: '2026-10-22',
+    title: 'Lançamento sincronizado para toda a mesa, rolagem dentro do aviso e animações',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'O aviso do lançamento agora aparece ao mesmo tempo para todos — mestre, jogadores e quem está agindo — e os dados de cada rolagem são revelados no mesmo instante para todo mundo. Se quem lança desistir antes de rolar, o aviso some para a mesa.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Quem lança uma magia ou ataca agora decide tudo (vantagem, rolar, acertou?, dano, aplicar) num painel só, logo abaixo do aviso do lançamento, sem repetir o título nem os dados — eles já aparecem no aviso. A mesa continua vendo o mesmo aviso de antes.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Os títulos dos avisos da mesa (rolagem, monstro derrotado e monstro revelado) trocaram o vermelho escuro pelo dourado do tema.',
+      },
+      {
+        kind: 'novidade',
+        text: 'Errou o ataque? Depois do carimbo ERROU, o aviso do lançamento trinca, se estilhaça em cacos e some, para quem ataca e para a mesa.',
+      },
+      {
+        kind: 'novidade',
+        text: 'Ao concluir o dano (ou a cura) de um lançamento, um corte dourado atravessa o painel (na cura, uma onda verde), faíscas sobem e ele se recolhe — para quem lança e, logo depois, no aviso da mesa. Ao selecionar todos os alvos, o botão TODOS vira NENHUM.',
+      },
+      {
+        kind: 'correcao',
+        text: 'No aviso do lançamento, o d20 descartado pela vantagem ou desvantagem agora aparece cortado, como no aviso de rolagem.',
+      },
+    ],
+  },
+  {
     version: '1.7.1',
     date: '2026-10-22',
     title: 'Barra de XP, dano e cura na gaveta de ações e ranking em lista',

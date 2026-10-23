@@ -1,0 +1,26 @@
+@if (phase() !== 'idle') {
+  <div class="sh" [class.sh--fly]="phase() === 'fly'" aria-hidden="true">
+    @if (phase() === 'crack') {
+      <div class="sh-flash"></div>
+      <svg class="sh-cracks" viewBox="0 0 100 100" preserveAspectRatio="none">
+        @for (d of cracks; track $index) {
+          <path [attr.d]="d" pathLength="1" />
+        }
+      </svg>
+    } @else {
+      @for (s of shards; track $index) {
+        <!-- O pedaço voa (transform) e brilha na borda do corte (drop-shadow do recorte). -->
+        <span
+          class="sh-piece"
+          [style.--dx]="s.dx + 'px'"
+          [style.--dy]="s.dy + 'px'"
+          [style.--r]="s.r + 'deg'"
+          [style.animation-delay.ms]="s.delay"
+          [style.animation-duration.ms]="flyMs"
+        >
+          <span class="sh-shard" [style.clip-path]="'polygon(' + s.poly + ')'"></span>
+        </span>
+      }
+    }
+  </div>
+}

@@ -35,7 +35,7 @@ export function castStagePayload(
   ctx: SpellCastContext,
   idCharacter: number,
   actorName: string,
-  phase: 'open' | 'done',
+  phase: 'open' | 'done' | 'cancel',
   rolls: CastStageRoll[],
   applied: CastStageApplied[] = [],
 ): SpellCastStagePayload {

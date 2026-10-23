@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { GameSessionService } from '../services/game-session.service';
@@ -13,6 +14,8 @@ import { PixelDieComponent } from '../pixel-die/pixel-die.component';
 import { PixelNumericDieComponent } from '../pixel-numeric-die/pixel-numeric-die.component';
 import { hasRiderChoices, RiderChoices, RiderOption } from './spell-riders';
 import { ApplyKind, ApplyRequest, ApplyTarget, resistsDamage } from './apply-target';
+import { CastShatterComponent } from '../spell-cast/cast-shatter.component';
+import { CastTriumphComponent } from '../spell-cast/cast-triumph.component';
 import { SpellCastStageComponent } from '../spell-cast/spell-cast-stage.component';
 import { SpellCastContext, castStagePayload, castVerb } from '../spell-cast/spell-cast-context';
 import { CastStageView, castRollView } from '../spell-cast/spell-cast-stage.model';
@@ -109,11 +112,24 @@ const DIE_OPTIONS = [4, 6, 8, 10, 12, 20, 100];
 const MAX_PER_DIE_TYPE = 9;
 const ROLL_TICKS = 10;
 const ROLL_TICK_MS = 80;
+/** Tempo máximo esperando o palco mostrar a rolagem (carta entrando + dados) antes de liberar as
+ *  decisões mesmo sem o aviso dele. */
+const CAST_REVEAL_SAFETY_MS = 6000;
+/** Quanto esperar o eco do servidor (o próprio aviso voltando pelo tempo real) antes de desenhar o
+ *  palco só com o estado local. */
+const CAST_ECHO_WAIT_MS = 2500;
 
 @Component({
   selector: 'app-roll-modal',
   standalone: true,
-  imports: [PixelDieComponent, PixelNumericDieComponent, SpellCastStageComponent],
+  imports: [
+    NgTemplateOutlet,
+    PixelDieComponent,
+    PixelNumericDieComponent,
+    SpellCastStageComponent,
+    CastShatterComponent,
+    CastTriumphComponent,
+  ],
   templateUrl: './roll-modal.component.html',
   styleUrls: ['./roll-modal.component.scss'],
 })
@@ -141,6 +157,10 @@ export class RollModalComponent implements OnInit, OnDestroy {
    * mandado pra mesa. `null` = rolagem comum.
    */
   @Input() cast: SpellCastContext | null = null;
+  /** Aviso do lançamento montado pelos eventos da mesa: com ele, o palco daqui mostra exatamente o
+   *  que todos veem, no mesmo instante (o evento chega junto pra todo mundo). Sem eco do servidor
+   *  em CAST_ECHO_WAIT_MS (modo sem tempo real), usa o palco montado aqui mesmo. */
+  @Input() castViewSource: ((castId: string) => CastStageView | null) | null = null;
   @Output() closed = new EventEmitter<void>();
   /** O jogador/mestre pediu pra aplicar o resultado num alvo — o pai aplica no PV. */
   @Output() applyToTarget = new EventEmitter<ApplyRequest>();
@@ -346,9 +366,14 @@ export class RollModalComponent implements OnInit, OnDestroy {
   /** Etapas vão em fila: a mesa precisa receber na ordem (a última é sempre o "terminou"). */
   private castQueue: Promise<unknown> = Promise.resolve();
 
+  /** Passou o tempo sem o eco do servidor: desenha o palco com o estado local. */
+  private castEchoMissing = signal(false);
+  private castEchoTimer: ReturnType<typeof setTimeout> | null = null;
+
   castView = computed<CastStageView | null>(() => {
     const cast = this.cast;
     if (!cast) return null;
+    if (this.castViewSource && !this.castEchoMissing()) return this.castViewSource(cast.castId);
     return {
       key: cast.castId,
       actorName: this.actorName,
@@ -380,6 +405,7 @@ export class RollModalComponent implements OnInit, OnDestroy {
       const replace = kind === 'attack' && last?.ref.kind === 'attack' && last.ref.outcome === 'pending';
       return [...(replace ? list.slice(0, -1) : list), { ref, entry }];
     });
+    this.holdUntilRevealed(entry.id_roll);
     this.sendCastStage('open');
   }
 
@@ -396,10 +422,48 @@ export class RollModalComponent implements OnInit, OnDestroy {
     this.sendCastStage('open');
   }
 
-  private sendCastStage(phase: 'open' | 'done'): void {
+  /** Rolagem do lançamento que o palco ainda não mostrou: as decisões (acertou?, dano, aplicar)
+   *  só aparecem quando o total dela aparece no palco, pra não chegar antes do resultado. */
+  private castAwaitingReveal = signal<string | null>(null);
+  private castRevealTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /** Errou o ataque no lançamento: o painel quebra antes de fechar. */
+  castShatter = signal(false);
+  castBroken = signal(false);
+  /** Concluiu depois do dano/cura: saída de vitória antes de fechar. */
+  castTriumph = signal(false);
+
+  holdDecisions = computed(
+    () =>
+      !!this.cast &&
+      (this.isRolling() ||
+        this.posting() ||
+        this.castAwaitingReveal() !== null ||
+        this.castShatter() ||
+        this.castTriumph()),
+  );
+
+  onCastRollRevealed(id: string): void {
+    if (this.castAwaitingReveal() === id) this.releaseCastDecisions();
+  }
+
+  private holdUntilRevealed(id: string): void {
+    this.castAwaitingReveal.set(id);
+    if (this.castRevealTimer) clearTimeout(this.castRevealTimer);
+    // Rede de segurança: se o palco não avisar (aba em segundo plano…), libera assim mesmo.
+    this.castRevealTimer = setTimeout(() => this.releaseCastDecisions(), CAST_REVEAL_SAFETY_MS);
+  }
+
+  private releaseCastDecisions(): void {
+    if (this.castRevealTimer) clearTimeout(this.castRevealTimer);
+    this.castRevealTimer = null;
+    this.castAwaitingReveal.set(null);
+  }
+
+  private sendCastStage(phase: 'open' | 'done' | 'cancel'): void {
     const cast = this.cast;
     if (!cast || !this.sessionId || this.idCharacter === null || this.castDone) return;
-    if (phase === 'done') this.castDone = true;
+    if (phase !== 'open') this.castDone = true;
     const payload = castStagePayload(
       cast,
       this.idCharacter,
@@ -418,10 +482,22 @@ export class RollModalComponent implements OnInit, OnDestroy {
 
   /** Fechou (terminou, errou ou desistiu): a mesa recebe o "terminou" e o aviso some sozinho. */
   ngOnDestroy(): void {
-    this.sendCastStage('done');
+    if (this.castRevealTimer) clearTimeout(this.castRevealTimer);
+    if (this.castEchoTimer) clearTimeout(this.castEchoTimer);
+    // Fechou sem rolar nada: a mesa tira o aviso (o lançamento não aconteceu).
+    this.sendCastStage(this.castRolls().length ? 'done' : 'cancel');
   }
 
   ngOnInit(): void {
+    if (this.cast) {
+      // Anuncia o lançamento já ao abrir: a mesa e quem lança veem a carta entrar juntos.
+      this.sendCastStage('open');
+      if (this.castViewSource) {
+        this.castEchoTimer = setTimeout(() => {
+          if (this.cast && !this.castViewSource?.(this.cast.castId)) this.castEchoMissing.set(true);
+        }, CAST_ECHO_WAIT_MS);
+      }
+    }
     if (this.pendingDamage && this.config.mode === 'ability' && this.config.autoHit) {
       this.attackPhase.set('damage');
       // Valor fixo, sem dado (Integridade Corporal, Curar pelo Toque, Preservar a Vida): já
@@ -682,6 +758,18 @@ export class RollModalComponent implements OnInit, OnDestroy {
     this.toggleIn(this.selectedKeys, key);
   }
 
+  /** Todos os alvos que faltam já estão marcados: o botão vira NENHUM. */
+  get allTargetsSelected(): boolean {
+    const pending = this.pendingTargets;
+    return pending.length > 0 && pending.every((t) => this.selectedKeys().has(t.key));
+  }
+
+  /** TODOS marca os que faltam; com todos marcados, NENHUM desmarca. */
+  toggleAllTargets(): void {
+    if (this.allTargetsSelected) this.selectedKeys.set(new Set());
+    else this.selectAllTargets();
+  }
+
   selectAllTargets(): void {
     this.selectedKeys.set(new Set(this.pendingTargets.map((t) => t.key)));
   }
@@ -770,6 +858,22 @@ export class RollModalComponent implements OnInit, OnDestroy {
   /** Encerra a rolagem depois de aplicar (ou desistir de aplicar). */
   finishApply(): void {
     this.awaitingApply.set(false);
+    // No lançamento, concluir o dano/cura tem uma saída de vitória (cast-triumph) e só então fecha;
+    // a mesa recebe o fim agora.
+    if (this.cast) {
+      this.sendCastStage('done');
+      this.castTriumph.set(true);
+      return;
+    }
+    this.emitFinished();
+  }
+
+  /** A saída de vitória do lançamento acabou. */
+  onTriumphFinished(): void {
+    this.emitFinished();
+  }
+
+  private emitFinished(): void {
     const res = this.result();
     this.rolled.emit({ rolls: res?.rolls ?? [], modifier: this.modifier, total: res?.total ?? 0 });
   }
@@ -960,6 +1064,22 @@ export class RollModalComponent implements OnInit, OnDestroy {
       this.attackPhase.set('next-instance');
       return;
     }
+    // No lançamento, errou = o painel quebra (cast-shatter) e só então fecha.
+    if (this.cast) {
+      // A mesa recebe o fim agora, pra quebrar junto (não só quando este modal fechar).
+      this.sendCastStage('done');
+      this.castShatter.set(true);
+      return;
+    }
+    this.emitMissRolled();
+  }
+
+  /** Errou e o painel do lançamento acabou de quebrar. */
+  onShatterFinished(): void {
+    this.emitMissRolled();
+  }
+
+  private emitMissRolled(): void {
     const res = this.result();
     this.rolled.emit({ rolls: res?.rolls ?? [], modifier: this.modifier, total: res?.total ?? 0 });
   }
@@ -1044,6 +1164,11 @@ export class RollModalComponent implements OnInit, OnDestroy {
     }
     const pool = this.freeformPool();
     return this.dieOptions.flatMap((sides) => Array(pool[sides] ?? 0).fill(sides));
+  }
+
+  /** Cura (botões verdes no painel do lançamento). */
+  get isHealRoll(): boolean {
+    return this.isHealing;
   }
 
   private get isHealing(): boolean {

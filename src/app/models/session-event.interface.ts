@@ -91,7 +91,7 @@ export interface SessionEventPayloadMap {
     /** Magia (`weapon` null) ou ataque com arma (`spell` null). A API antiga não manda `weapon`. */
     spell: SpellCardInfo | null;
     weapon?: WeaponCardInfo | null;
-    phase: 'open' | 'done';
+    phase: 'open' | 'done' | 'cancel';
     rolls: CastStageRoll[];
     /** O que já foi aplicado nos alvos (a API antiga não manda). */
     applied?: CastStageApplied[];

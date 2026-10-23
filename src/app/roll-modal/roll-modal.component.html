@@ -1,16 +1,50 @@
 <div class="roll-modal-backdrop" [class.roll-modal-backdrop--cast]="!!castView()" (click)="close()">
-  <!-- Lançamento de magia: em cima, o mesmo que a mesa vê; embaixo, as decisões de quem lança -->
+  <!-- Lançamento (magia/ataque): um painel só, com o mesmo palco que a mesa vê e, embaixo, as
+       decisões de quem lança — sem título nem dados/total (o palco já mostra a rolagem). A mesa
+       continua vendo só o aviso (spell-cast-notice). -->
   @if (castView(); as stage) {
-    <div class="roll-cast-stage framed-toast" (click)="$event.stopPropagation()">
-      <app-spell-cast-stage [view]="stage" />
+    <div
+      class="roll-cast-stage framed-toast"
+      [class.roll-cast-stage--shatter]="castShatter()"
+      [class.roll-cast-stage--broken]="castBroken()"
+      [class.roll-cast-stage--triumph]="castTriumph()"
+      (click)="$event.stopPropagation()"
+    >
+      <app-spell-cast-stage [view]="stage" (rollRevealed)="onCastRollRevealed($event)" />
+      <app-cast-shatter
+        [active]="castShatter()"
+        (broke)="castBroken.set(true)"
+        (finished)="onShatterFinished()"
+      />
+      <app-cast-triumph
+        [active]="castTriumph()"
+        [kind]="isHealRoll ? 'heal' : 'damage'"
+        (finished)="onTriumphFinished()"
+      />
+      <ng-container *ngTemplateOutlet="controls" />
     </div>
+  } @else if (!cast) {
+    <ng-container *ngTemplateOutlet="controls" />
   }
-  <div class="roll-modal" (click)="$event.stopPropagation()">
+  <!-- Lançamento esperando o eco do servidor: aparece junto com o aviso da mesa -->
+</div>
+
+<ng-template #controls>
+  <div
+    class="roll-modal"
+    [class.roll-modal--cast]="!!castView()"
+    [class.roll-modal--heal]="isHealRoll"
+    (click)="$event.stopPropagation()"
+  >
     <button class="roll-modal-close" (click)="close()">✕</button>
-    @if (backLabel) {
+    @if (backLabel && !castView()) {
       <button class="roll-modal-back" (click)="close()">◀ {{ backLabel }}</button>
     }
-    <h3 class="roll-modal-title">{{ title }}</h3>
+    @if (castView()) {
+      <p class="roll-cast-heading"><span>SUA JOGADA</span></p>
+    } @else {
+      <h3 class="roll-modal-title">{{ title }}</h3>
+    }
     @for (reminder of reminders; track reminder) {
       <p class="roll-modifier-line">
         <img class="ui-icon" src="assets/icons/candle.png" alt="" /> {{ reminder }}
@@ -130,202 +164,219 @@
       </div>
     }
 
-    <div class="roll-dice-display">
-      @if (isRolling()) {
-        @for (v of displayValues(); track $index) {
-          @if (sidesAt($index) === 6) {
-            <app-pixel-die [face]="v" [rolling]="true" />
-          } @else {
-            <app-pixel-numeric-die [sides]="sidesAt($index)" [rolling]="true" />
+    @if (!castView()) {
+      <div class="roll-dice-display">
+        @if (isRolling()) {
+          @for (v of displayValues(); track $index) {
+            @if (sidesAt($index) === 6) {
+              <app-pixel-die [face]="v" [rolling]="true" />
+            } @else {
+              <app-pixel-numeric-die [sides]="sidesAt($index)" [rolling]="true" />
+            }
+          }
+        } @else if (result(); as res) {
+          @for (v of res.rolls; track $index) {
+            @if (sidesAt($index) === 6) {
+              <app-pixel-die [face]="v" [dropped]="isDropped($index)" />
+            } @else {
+              <app-pixel-numeric-die
+                [sides]="sidesAt($index)"
+                [value]="v"
+                [critical]="criticalFor($index)"
+                [dropped]="isDropped($index)"
+              />
+            }
+          }
+        } @else {
+          @for (i of placeholderIndexes(); track i) {
+            @if (sidesAt(i) === 6) {
+              <app-pixel-die [face]="1" />
+            } @else {
+              <app-pixel-numeric-die [sides]="sidesAt(i)" [value]="null" />
+            }
           }
         }
-      } @else if (result(); as res) {
-        @for (v of res.rolls; track $index) {
-          @if (sidesAt($index) === 6) {
-            <app-pixel-die [face]="v" [dropped]="isDropped($index)" />
-          } @else {
-            <app-pixel-numeric-die
-              [sides]="sidesAt($index)"
-              [value]="v"
-              [critical]="criticalFor($index)"
-              [dropped]="isDropped($index)"
-            />
+      </div>
+    }
+
+    <!-- No lançamento, as decisões esperam o resultado aparecer no palco (sincronizado) -->
+    @if (!holdDecisions()) {
+      @if (result(); as res) {
+        <div class="roll-result">
+          @if (!castView()) {
+            <p class="roll-modifier-line">{{ formatMod(modifier) }} (modificador)</p>
+            <p class="roll-total">TOTAL: {{ res.total }}</p>
           }
-        }
-      } @else {
-        @for (i of placeholderIndexes(); track i) {
-          @if (sidesAt(i) === 6) {
-            <app-pixel-die [face]="1" />
-          } @else {
-            <app-pixel-numeric-die [sides]="sidesAt(i)" [value]="null" />
+          @if (riderSaveLine; as line) {
+            <p class="roll-modifier-line">{{ line }}</p>
           }
-        }
+          @if (saveSuccessTotal !== null) {
+            <p class="roll-modifier-line">Quem passar na resistência: {{ saveSuccessTotal }}</p>
+          }
+          @if (canHideRoll && freeformHidden()) {
+            <p class="roll-hidden-note">
+              <img class="ui-icon" src="assets/icons/padlock.png" alt="" /> Só você vê esse
+              resultado
+            </p>
+          }
+          @if (secretRequestId) {
+            <p class="roll-hidden-note">
+              <img class="ui-icon" src="assets/icons/padlock.png" alt="" /> Teste secreto: só você e
+              o mestre veem
+            </p>
+          }
+          @if (postFailed()) {
+            <p class="roll-post-error">Não foi possível registrar na sessão.</p>
+          }
+        </div>
       }
-    </div>
 
-    @if (result(); as res) {
-      <div class="roll-result">
-        <p class="roll-modifier-line">{{ formatMod(modifier) }} (modificador)</p>
-        <p class="roll-total">TOTAL: {{ res.total }}</p>
-        @if (riderSaveLine; as line) {
-          <p class="roll-modifier-line">{{ line }}</p>
-        }
-        @if (saveSuccessTotal !== null) {
-          <p class="roll-modifier-line">Quem passar na resistência: {{ saveSuccessTotal }}</p>
-        }
-        @if (canHideRoll && freeformHidden()) {
-          <p class="roll-hidden-note">
-            <img class="ui-icon" src="assets/icons/padlock.png" alt="" /> Só você vê esse resultado
-          </p>
-        }
-        @if (secretRequestId) {
-          <p class="roll-hidden-note">
-            <img class="ui-icon" src="assets/icons/padlock.png" alt="" /> Teste secreto: só você e o
-            mestre veem
-          </p>
-        }
-        @if (postFailed()) {
-          <p class="roll-post-error">Não foi possível registrar na sessão.</p>
-        }
-      </div>
-    }
-
-    @if (canApply) {
-      <div class="roll-apply" [class.roll-apply--heal]="applyKind !== 'damage'">
-        <p class="roll-apply-title">
-          @if (applyKind === 'damage') {
-            <img class="ui-icon" src="assets/icons/swords.png" alt="" />
-          }
-          {{
-            applyKind === 'damage'
-              ? 'APLICAR O DANO'
-              : applyKind === 'heal'
-                ? '✚ APLICAR A CURA'
-                : '✚ APLICAR OS PV TEMPORÁRIOS'
-          }}
-        </p>
-        <p class="roll-apply-hint">Marque quem foi atingido (opcional)</p>
-        @if (isDistributing) {
-          <select class="roll-apply-select" (change)="setApplyTarget($event)">
-            <option value="" [selected]="applyTargetKey() === ''">Escolha o alvo…</option>
-            @for (target of applicableTargets; track target.key) {
-              <option [value]="target.key" [selected]="applyTargetKey() === target.key">
-                {{ target.label }}
-              </option>
+      @if (canApply) {
+        <div class="roll-apply" [class.roll-apply--heal]="applyKind !== 'damage'">
+          <p class="roll-apply-title">
+            @if (applyKind === 'damage') {
+              <img class="ui-icon" src="assets/icons/swords.png" alt="" />
             }
-          </select>
-          <div class="roll-modal-actions">
-            <input
-              class="roll-apply-select"
-              type="number"
-              min="1"
-              [max]="distributeRemaining"
-              [value]="distributeAmount() ?? distributeRemaining"
-              (input)="setDistributeAmount($event)"
-            />
-            <button
-              class="roll-btn-secondary"
-              [disabled]="!applyTargetKey() || distributeRemaining <= 0"
-              (click)="apply()"
-            >
-              APLICAR (SOBRA {{ distributeRemaining }})
-            </button>
-          </div>
-        } @else if (pendingTargets.length > 0) {
-          <div class="roll-apply-list">
-            @for (target of pendingTargets; track target.key) {
-              <div class="roll-apply-row">
-                <label class="roll-apply-check">
-                  <input
-                    type="checkbox"
-                    class="retro-checkbox"
-                    [checked]="isTargetSelected(target.key)"
-                    (change)="toggleTarget(target.key)"
-                  />
+            {{
+              applyKind === 'damage'
+                ? 'APLICAR O DANO'
+                : applyKind === 'heal'
+                  ? '✚ APLICAR A CURA'
+                  : '✚ APLICAR OS PV TEMPORÁRIOS'
+            }}
+          </p>
+          <p class="roll-apply-hint">Marque quem foi atingido (opcional)</p>
+          @if (isDistributing) {
+            <select class="roll-apply-select" (change)="setApplyTarget($event)">
+              <option value="" [selected]="applyTargetKey() === ''">Escolha o alvo…</option>
+              @for (target of applicableTargets; track target.key) {
+                <option [value]="target.key" [selected]="applyTargetKey() === target.key">
                   {{ target.label }}
-                  <span class="roll-apply-amount">{{ pendingAmount(target) }}</span>
-                </label>
-                @if (saveSuccessTotal !== null) {
-                  <label class="roll-apply-check roll-apply-flag">
+                </option>
+              }
+            </select>
+            <div class="roll-modal-actions">
+              <input
+                class="roll-apply-select"
+                type="number"
+                min="1"
+                [max]="distributeRemaining"
+                [value]="distributeAmount() ?? distributeRemaining"
+                (input)="setDistributeAmount($event)"
+              />
+              <button
+                class="roll-btn-secondary"
+                [disabled]="!applyTargetKey() || distributeRemaining <= 0"
+                (click)="apply()"
+              >
+                APLICAR (SOBRA {{ distributeRemaining }})
+              </button>
+            </div>
+          } @else if (pendingTargets.length > 0) {
+            <div class="roll-apply-list">
+              @for (target of pendingTargets; track target.key) {
+                <div class="roll-apply-row">
+                  <label class="roll-apply-check">
                     <input
                       type="checkbox"
                       class="retro-checkbox"
-                      [checked]="isPassed(target.key)"
-                      (change)="togglePassed(target.key)"
+                      [checked]="isTargetSelected(target.key)"
+                      (change)="toggleTarget(target.key)"
                     />
-                    PASSOU
+                    {{ target.label }}
+                    <span class="roll-apply-amount">{{ pendingAmount(target) }}</span>
                   </label>
-                }
-                @if (canUncannyDodge(target)) {
-                  <label class="roll-apply-check roll-apply-flag">
-                    <input
-                      type="checkbox"
-                      class="retro-checkbox"
-                      [checked]="isUncanny(target.key)"
-                      (change)="toggleUncanny(target.key)"
-                    />
-                    ESQUIVA
-                  </label>
-                }
-                @if (resistanceOf(target)) {
-                  <span class="roll-apply-note">resiste a {{ resistanceOf(target) }}</span>
-                }
-                @if (hasEvasion(target)) {
-                  <span class="roll-apply-note">Evasão</span>
-                }
-              </div>
-            }
-          </div>
-          <div class="roll-modal-actions">
-            <button class="roll-btn-secondary" (click)="selectAllTargets()">TODOS</button>
-            <button
-              class="roll-btn-primary roll-apply-btn"
-              [disabled]="selectedCount === 0"
-              (click)="applySelected()"
-            >
-              APLICAR EM {{ selectedCount }} {{ selectedCount === 1 ? 'ALVO' : 'ALVOS' }}
+                  @if (saveSuccessTotal !== null) {
+                    <label class="roll-apply-check roll-apply-flag">
+                      <input
+                        type="checkbox"
+                        class="retro-checkbox"
+                        [checked]="isPassed(target.key)"
+                        (change)="togglePassed(target.key)"
+                      />
+                      PASSOU
+                    </label>
+                  }
+                  @if (canUncannyDodge(target)) {
+                    <label class="roll-apply-check roll-apply-flag">
+                      <input
+                        type="checkbox"
+                        class="retro-checkbox"
+                        [checked]="isUncanny(target.key)"
+                        (change)="toggleUncanny(target.key)"
+                      />
+                      ESQUIVA
+                    </label>
+                  }
+                  @if (resistanceOf(target)) {
+                    <span class="roll-apply-note">resiste a {{ resistanceOf(target) }}</span>
+                  }
+                  @if (hasEvasion(target)) {
+                    <span class="roll-apply-note">Evasão</span>
+                  }
+                </div>
+              }
+            </div>
+            <div class="roll-modal-actions">
+              <button class="roll-btn-secondary" (click)="toggleAllTargets()">
+                {{ allTargetsSelected ? 'NENHUM' : 'TODOS' }}
+              </button>
+              <button
+                class="roll-btn-primary roll-apply-btn"
+                [disabled]="selectedCount === 0"
+                (click)="applySelected()"
+              >
+                APLICAR EM {{ selectedCount }} {{ selectedCount === 1 ? 'ALVO' : 'ALVOS' }}
+              </button>
+            </div>
+          }
+          @for (entry of applied(); track $index) {
+            <p class="roll-modifier-line">✓ {{ entry.label }}: {{ entry.amount }}</p>
+          }
+        </div>
+      }
+
+      @if (inspirationRoll() !== null) {
+        <p class="roll-modifier-line">Inspiração Bárdica: +{{ inspirationRoll() }}</p>
+      }
+      @if (canHalflingReroll || canUseLuck || canIndomitable || canUseInspiration) {
+        <div class="roll-modal-actions">
+          @if (canUseInspiration) {
+            <button class="roll-btn-secondary" (click)="useInspiration()">
+              <img class="ui-icon" src="assets/icons/lute.png" alt="" /> INSPIRAÇÃO BÁRDICA (d{{
+                inspirationSides
+              }})
             </button>
-          </div>
-        }
-        @for (entry of applied(); track $index) {
-          <p class="roll-modifier-line">✓ {{ entry.label }}: {{ entry.amount }}</p>
-        }
-      </div>
+          }
+          @if (canIndomitable) {
+            <button class="roll-btn-secondary" (click)="rerollIndomitable()">
+              <img class="ui-icon" src="assets/icons/shield.png" alt="" /> INDOMÁVEL: ROLAR DE NOVO
+            </button>
+          }
+          @if (canHalflingReroll) {
+            <button class="roll-btn-secondary" (click)="rerollHalfling()">
+              <img class="ui-icon" src="assets/icons/clover.png" alt="" /> SORTUDO: ROLAR O 1 DE
+              NOVO
+            </button>
+          }
+          @if (canUseLuck) {
+            <button class="roll-btn-secondary" (click)="useLuck()">
+              <img class="ui-icon" src="assets/icons/clover.png" alt="" /> PONTO DE SORTE ({{
+                config.mode === 'ability' ? config.luckPoints : 0
+              }})
+            </button>
+          }
+        </div>
+      }
     }
 
-    @if (inspirationRoll() !== null) {
-      <p class="roll-modifier-line">Inspiração Bárdica: +{{ inspirationRoll() }}</p>
-    }
-    @if (canHalflingReroll || canUseLuck || canIndomitable || canUseInspiration) {
+    @if (castShatter() || castTriumph()) {
+      <!-- errou (quebrando) ou concluiu (saída de vitória) -->
+    } @else if (holdDecisions()) {
       <div class="roll-modal-actions">
-        @if (canUseInspiration) {
-          <button class="roll-btn-secondary" (click)="useInspiration()">
-            <img class="ui-icon" src="assets/icons/lute.png" alt="" /> INSPIRAÇÃO BÁRDICA (d{{
-              inspirationSides
-            }})
-          </button>
-        }
-        @if (canIndomitable) {
-          <button class="roll-btn-secondary" (click)="rerollIndomitable()">
-            <img class="ui-icon" src="assets/icons/shield.png" alt="" /> INDOMÁVEL: ROLAR DE NOVO
-          </button>
-        }
-        @if (canHalflingReroll) {
-          <button class="roll-btn-secondary" (click)="rerollHalfling()">
-            <img class="ui-icon" src="assets/icons/clover.png" alt="" /> SORTUDO: ROLAR O 1 DE NOVO
-          </button>
-        }
-        @if (canUseLuck) {
-          <button class="roll-btn-secondary" (click)="useLuck()">
-            <img class="ui-icon" src="assets/icons/clover.png" alt="" /> PONTO DE SORTE ({{
-              config.mode === 'ability' ? config.luckPoints : 0
-            }})
-          </button>
-        }
+        <button class="roll-btn-primary" disabled>ROLANDO...</button>
       </div>
-    }
-
-    @if (awaitingLuck()) {
+    } @else if (awaitingLuck()) {
       <div class="roll-modal-actions">
         <button class="roll-btn-primary" (click)="finishLuck()">CONCLUIR</button>
       </div>
@@ -447,4 +498,4 @@
       </div>
     }
   </div>
-</div>
+</ng-template>

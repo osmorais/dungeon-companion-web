@@ -35,13 +35,20 @@
           <span class="cs-roll-dice">
             @for (v of r.rolls; track $index) {
               @if (r.sides[$index] === 6) {
-                <app-pixel-die [face]="v" [rolling]="!shown" />
+                <app-pixel-die
+                  [face]="v"
+                  [rolling]="!shown"
+                  [dropped]="shown && r.dropped[$index]"
+                />
               } @else {
                 <app-pixel-numeric-die
                   [sides]="r.sides[$index]"
                   [value]="v"
                   [rolling]="!shown"
-                  [critical]="r.critical && v === r.sides[$index] ? 'high' : null"
+                  [critical]="
+                    r.critical && v === r.sides[$index] && !r.dropped[$index] ? 'high' : null
+                  "
+                  [dropped]="shown && r.dropped[$index]"
                 />
               }
             }

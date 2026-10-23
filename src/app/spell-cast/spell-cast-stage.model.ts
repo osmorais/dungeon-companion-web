@@ -13,6 +13,8 @@ export interface CastStageRollView {
   sides: number[];
   modifier: number;
   total: number;
+  /** Dado descartado pela vantagem/desvantagem (mesma ordem de `rolls`). */
+  dropped: boolean[];
 }
 
 /**
@@ -62,6 +64,20 @@ export function appliedLines(
   });
 }
 
+/** Vantagem fica com o maior d20 e desvantagem com o menor: o outro aparece cortado. Dano e cura
+ *  somam todos os dados. */
+export function droppedDice(
+  kind: CastStageRoll['kind'],
+  rolls: number[],
+  advantage: RollLogEntry['advantage_state'] | undefined,
+): boolean[] {
+  const none = rolls.map(() => false);
+  if (kind !== 'attack' || rolls.length < 2 || !advantage || advantage === 'normal') return none;
+  const target = advantage === 'advantage' ? Math.max(...rolls) : Math.min(...rolls);
+  const kept = rolls.indexOf(target);
+  return rolls.map((_, i) => i !== kept);
+}
+
 /** "2d6 + 1d8" com 3 dados → [6, 6, 8]; d20 com vantagem (2 dados, "1d20") repete o último. */
 export function sidesFromNotation(notation: string, count: number): number[] {
   const sides: number[] = [];
@@ -76,9 +92,11 @@ export function sidesFromNotation(notation: string, count: number): number[] {
 /** Junta a referência do lançamento com a rolagem registrada (do histórico ou da resposta da API). */
 export function castRollView(
   ref: CastStageRoll,
-  entry: Pick<RollLogEntry, 'rolls' | 'dice_notation' | 'modifier' | 'total'>,
+  entry: Pick<RollLogEntry, 'rolls' | 'dice_notation' | 'modifier' | 'total'> &
+    Partial<Pick<RollLogEntry, 'advantage_state'>>,
 ): CastStageRollView {
   return {
+    dropped: droppedDice(ref.kind, entry.rolls, entry.advantage_state),
     id: ref.id_roll,
     kind: ref.kind,
     outcome: ref.outcome,

@@ -1093,6 +1093,21 @@ describe('RollModalComponent — fase 4 dos traços (d20 e defesas)', () => {
       { key: 'monster:m', label: 'Goblin', allowsTempHp: false },
     ];
 
+    it('TODOS marca todos e vira NENHUM; NENHUM desmarca todos', () => {
+      const { modal } = create(fireball, targets);
+      expect(modal.allTargetsSelected).toBe(false);
+      modal.toggleAllTargets();
+      expect(modal.selectedCount).toBe(5);
+      expect(modal.allTargetsSelected).toBe(true);
+      modal.toggleAllTargets();
+      expect(modal.selectedCount).toBe(0);
+      expect(modal.allTargetsSelected).toBe(false);
+      // desmarcar um à mão volta o botão pra TODOS
+      modal.toggleAllTargets();
+      modal.toggleTarget('player:a');
+      expect(modal.allTargetsSelected).toBe(false);
+    });
+
     it('cada alvo com o seu valor: falhou, passou, resistência e Evasão', () => {
       const { modal, applied } = create(fireball, targets);
       modal.selectAllTargets();
@@ -1285,7 +1300,7 @@ describe('RollModalComponent — lançamento de magia', () => {
     for (let i = 0; i < 20; i++) await Promise.resolve();
   };
 
-  function create() {
+  function create(withCast = true) {
     const modal = TestBed.runInInjectionContext(() => new RollModalComponent());
     modal.config = fireBolt;
     modal.sessionId = 'gs';
@@ -1312,6 +1327,7 @@ describe('RollModalComponent — lançamento de magia', () => {
       saveAbility: null,
       saveNote: null,
     };
+    if (!withCast) modal.cast = null;
     modal.ngOnInit();
     return modal;
   }
@@ -1362,9 +1378,112 @@ describe('RollModalComponent — lançamento de magia', () => {
     });
   });
 
-  it('rolagem comum (sem lançamento) não manda etapa nem cast_id', async () => {
+  it('fechou sem rolar: avisa a mesa que cancelou', async () => {
     const modal = create();
-    modal.cast = null;
+    modal.ngOnDestroy();
+    await flush();
+    expect(lastStage()).toMatchObject({ phase: 'cancel', rolls: [] });
+  });
+
+  it('anuncia o lançamento já ao abrir (a mesa vê a carta entrar junto)', async () => {
+    create();
+    await flush();
+    expect(lastStage()).toMatchObject({ cast_id: 'cast-1234', phase: 'open', rolls: [] });
+  });
+
+  it('com o aviso da mesa, o palco daqui é o mesmo (espera o eco do servidor)', async () => {
+    const modal = TestBed.runInInjectionContext(() => new RollModalComponent());
+    const synced = { key: 'cast-1234' } as unknown as ReturnType<typeof modal.castView>;
+    let echoed = false;
+    modal.config = fireBolt;
+    modal.sessionId = 'gs';
+    modal.idCharacter = 7;
+    modal.cast = create().cast;
+    modal.castViewSource = () => (echoed ? synced : null);
+    modal.ngOnInit();
+    expect(modal.castView()).toBeNull(); // ainda sem eco: não mostra nada
+    echoed = true;
+    expect(modal.castViewSource!('cast-1234')).toBe(synced);
+  });
+
+  it('sem eco do servidor (sem tempo real), desenha o palco local depois da espera', () => {
+    const modal = TestBed.runInInjectionContext(() => new RollModalComponent());
+    modal.config = fireBolt;
+    modal.sessionId = 'gs';
+    modal.idCharacter = 7;
+    modal.cast = create().cast;
+    modal.castViewSource = () => null;
+    modal.ngOnInit();
+    expect(modal.castView()).toBeNull();
+    vi.advanceTimersByTime(2500);
+    expect(modal.castView()?.key).toBe('cast-1234');
+  });
+
+  it('as decisões esperam o palco mostrar o resultado (sincronizado com o aviso)', async () => {
+    const modal = create();
+    modal.roll();
+    expect(modal.holdDecisions()).toBe(true); // dados rolando
+    vi.advanceTimersByTime(1000);
+    await flush();
+    expect(modal.isAwaitingHitDecision).toBe(true);
+    expect(modal.holdDecisions()).toBe(true); // registrada, mas o palco ainda não mostrou
+    modal.onCastRollRevealed('outra');
+    expect(modal.holdDecisions()).toBe(true);
+    modal.onCastRollRevealed('r1');
+    expect(modal.holdDecisions()).toBe(false); // agora aparece "passou da CA?"
+  });
+
+  it('sem aviso do palco, libera as decisões depois do tempo máximo', async () => {
+    const modal = create();
+    modal.roll();
+    vi.advanceTimersByTime(1000);
+    await flush();
+    expect(modal.holdDecisions()).toBe(true);
+    vi.advanceTimersByTime(6000);
+    expect(modal.holdDecisions()).toBe(false);
+  });
+
+  it('errou no lançamento: manda o fim na hora, quebra o painel e só depois fecha', async () => {
+    const modal = create();
+    const rolled = vi.fn();
+    modal.rolled.subscribe(rolled);
+    modal.roll();
+    vi.advanceTimersByTime(1000);
+    await flush();
+    modal.confirmMiss();
+    await flush();
+    expect(lastStage()).toMatchObject({ phase: 'done', rolls: [{ outcome: 'miss' }] });
+    expect(modal.castShatter()).toBe(true);
+    expect(rolled).not.toHaveBeenCalled();
+    modal.onShatterFinished();
+    expect(rolled).toHaveBeenCalledTimes(1);
+  });
+
+  it('concluir depois do dano: manda o fim, toca a saída de vitória e só depois fecha', async () => {
+    const modal = create();
+    const rolled = vi.fn();
+    modal.rolled.subscribe(rolled);
+    modal.awaitingApply.set(true);
+    modal.finishApply();
+    await flush();
+    expect(lastStage().phase).toBe('done');
+    expect(modal.castTriumph()).toBe(true);
+    expect(modal.holdDecisions()).toBe(true);
+    expect(rolled).not.toHaveBeenCalled();
+    modal.onTriumphFinished();
+    expect(rolled).toHaveBeenCalledTimes(1);
+  });
+
+  it('fora de lançamento nada espera o palco', async () => {
+    const modal = create(false);
+    modal.roll();
+    vi.advanceTimersByTime(1000);
+    await flush();
+    expect(modal.holdDecisions()).toBe(false);
+  });
+
+  it('rolagem comum (sem lançamento) não manda etapa nem cast_id', async () => {
+    const modal = create(false);
     modal.roll();
     vi.advanceTimersByTime(1000);
     await flush();

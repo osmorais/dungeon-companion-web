@@ -1,0 +1,86 @@
+/* Cobre o painel inteiro (inclusive a moldura) por cima de tudo. */
+.sh {
+  position: absolute;
+  inset: -6px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.sh-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.55), transparent 60%);
+  animation: sh-flash 0.38s steps(4) both;
+}
+
+.sh-cracks {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+
+  path {
+    fill: none;
+    stroke: #fff6e0;
+    stroke-width: 2.5;
+    vector-effect: non-scaling-stroke;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    filter: drop-shadow(0 0 2px rgba(255, 170, 0, 0.9));
+    animation: sh-crack 0.32s steps(6) forwards;
+  }
+}
+
+/* Cada caco: pedaço do painel (fundo do tema com um reflexo) recortado num triângulo; o pai
+   voa girando e dá o brilho dourado na borda do corte. */
+.sh-piece {
+  position: absolute;
+  inset: 0;
+  filter: drop-shadow(0 0 1px #ffd27a) drop-shadow(0 0 3px rgba(255, 170, 0, 0.6));
+  animation-name: sh-fly;
+  animation-timing-function: cubic-bezier(0.3, 0, 0.8, 0.6);
+  animation-fill-mode: both;
+}
+
+.sh-shard {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.16), transparent 45%),
+    linear-gradient(315deg, rgba(0, 0, 0, 0.35), transparent 50%), var(--panel-bg);
+}
+
+@keyframes sh-flash {
+  0% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes sh-crack {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes sh-fly {
+  0% {
+    transform: none;
+    opacity: 1;
+  }
+  15% {
+    transform: translate(calc(var(--dx) * 0.08), calc(var(--dy) * 0.02))
+      rotate(calc(var(--r) * 0.05));
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--dx), var(--dy)) rotate(var(--r)) scale(0.6);
+    opacity: 0;
+  }
+}

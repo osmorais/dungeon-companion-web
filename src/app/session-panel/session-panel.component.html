@@ -875,6 +875,7 @@
     [savingHp]="isSavingHpFor(actionsChar.id)"
     (adjustHp)="adjustHpFor(actionsChar.id, $event)"
     [actorCard]="characterCardFor(actionsChar.id, actionsChar.name)"
+    [castViewSource]="castViewFor"
     (ownCast)="markOwnCast($event)"
     (endTurn)="closePlayerActions(); endTurn()"
     (delayTurn)="closePlayerActions(); delayTurn()"

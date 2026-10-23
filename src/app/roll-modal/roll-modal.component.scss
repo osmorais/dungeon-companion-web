@@ -32,11 +32,91 @@
 
 // Moldura do tema (.framed-toast, styles.scss): não definir border aqui.
 .roll-cast-stage {
+  position: relative;
   width: 92vw;
   max-width: 640px;
   padding: 8px 6px;
   box-sizing: border-box;
   background-color: var(--panel-bg);
+}
+
+// Errou o ataque: o painel treme quando trinca e, quebrado, só os cacos aparecem (cast-shatter).
+.roll-cast-stage--shatter {
+  animation: roll-cast-shake 0.38s steps(6) 0.7s both;
+}
+
+.roll-cast-stage--broken {
+  border-image: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+
+  > :not(app-cast-shatter) {
+    visibility: hidden;
+  }
+}
+
+// Concluiu o dano/cura: o painel brilha com o corte e se recolhe subindo (cast-triumph).
+.roll-cast-stage--triumph {
+  animation: roll-cast-triumph 1.25s ease-in both;
+}
+
+@keyframes roll-cast-triumph {
+  0% {
+    transform: none;
+    filter: none;
+    opacity: 1;
+  }
+  18% {
+    transform: scale(1.03);
+    filter: brightness(1.5);
+  }
+  35% {
+    transform: none;
+    filter: brightness(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-40px) scale(0.82);
+    filter: brightness(1.6) blur(2px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .roll-cast-stage--triumph {
+    animation: none;
+  }
+}
+
+@keyframes roll-cast-shake {
+  0%,
+  100% {
+    transform: none;
+  }
+  25% {
+    transform: translate(-6px, 2px) rotate(-0.6deg);
+  }
+  50% {
+    transform: translate(5px, -3px) rotate(0.5deg);
+  }
+  75% {
+    transform: translate(-3px, 3px);
+  }
+}
+
+// Dentro do painel do lançamento: sem caixa própria, as decisões logo embaixo do palco, na mesma
+// largura das rolagens; o ✕ vai pro canto do painel. Duas classes: o .roll-modal vem depois.
+.roll-modal.roll-modal--cast {
+  position: static;
+  width: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 4px 0 8px;
+  border: none;
+  background-color: transparent;
+  overflow: visible;
+  gap: 12px;
 }
 
 .roll-modal {
@@ -395,4 +475,158 @@
 .roll-apply-note {
   font-size: 8px;
   opacity: 0.7;
+}
+
+/* ===== Painel do lançamento (1.7.2) =====
+   As decisões de quem lança seguem a cara do palco (spell-cast-stage): sem caixa de modal, faixas
+   escuras com borda do tema, botão principal em relevo (vermelho no ataque/dano, verde na cura),
+   escolhas como fichas e a pergunta no tom do título do palco. */
+.roll-modal--cast {
+  --cast-btn-top: #c0392b;
+  --cast-btn-bottom: #5c120c;
+  --cast-btn-edge: #ff8a73;
+  --cast-btn-glow: rgba(255, 80, 50, 0.5);
+  align-items: stretch;
+  text-align: center;
+
+  &.roll-modal--heal {
+    --cast-btn-top: #3e9a4a;
+    --cast-btn-bottom: #13451b;
+    --cast-btn-edge: #9cf0a6;
+    --cast-btn-glow: rgba(80, 220, 110, 0.45);
+  }
+
+  .roll-cast-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 4px 0 0;
+    font-size: 7px;
+    letter-spacing: 2px;
+    color: var(--label-title-color);
+
+    &::before,
+    &::after {
+      content: '';
+      flex: 1;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+    }
+  }
+
+  .roll-modifier-line,
+  .smite-special-toggle {
+    margin: 0;
+    font-size: 7px;
+    line-height: 1.7;
+    color: var(--label-title-color);
+  }
+
+  // Pergunta da vez ("O ataque passou da CA?"): como o título do palco.
+  .roll-hit-question {
+    font-size: 10px;
+    line-height: 1.7;
+    color: var(--text-color);
+    text-shadow: 0 0 10px var(--accent-color);
+  }
+
+  // Escolhas (vantagem, Destruição, magia no acerto): fichas lado a lado.
+  .roll-toggle-row {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .roll-toggle-btn {
+    flex: 0 1 auto;
+    padding: 7px 10px;
+    border: 2px solid var(--border-color);
+    background-color: rgba(0, 0, 0, 0.45);
+    font-size: 7px;
+
+    &.active {
+      border-color: var(--accent-color);
+      color: var(--accent-color);
+      background-color: rgba(0, 0, 0, 0.6);
+      box-shadow: 0 0 8px rgba(255, 170, 0, 0.35);
+    }
+  }
+
+  .roll-modal-actions {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  // Ação principal: botão em relevo, como ATACAR/LANÇAR da mão de cartas.
+  .roll-btn-primary {
+    flex: 1 1 200px;
+    max-width: 320px;
+    padding: 12px 18px 10px;
+    border: 3px solid var(--cast-btn-edge);
+    background: linear-gradient(180deg, var(--cast-btn-top) 0%, var(--cast-btn-bottom) 100%);
+    color: #fff8e8;
+    font-size: 10px;
+    text-shadow: 2px 2px 0 #1c0b0b;
+    box-shadow:
+      0 5px 0 #1c0b0b,
+      0 0 14px var(--cast-btn-glow);
+    transition:
+      transform 0.08s,
+      box-shadow 0.08s,
+      filter 0.15s;
+
+    &:hover:not(:disabled) {
+      background: linear-gradient(180deg, var(--cast-btn-top) 0%, var(--cast-btn-bottom) 100%);
+      filter: brightness(1.12);
+      transform: translateY(-2px);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(4px);
+      box-shadow:
+        0 1px 0 #1c0b0b,
+        0 0 8px var(--cast-btn-glow);
+    }
+
+    &:disabled {
+      filter: grayscale(0.8) brightness(0.7);
+      opacity: 1;
+    }
+  }
+
+  // Secundárias (NÃO ACERTEI, FECHAR, Sortudo…): contorno discreto.
+  .roll-btn-secondary {
+    flex: 0 1 auto;
+    padding: 10px 14px;
+    border: 2px solid var(--border-color);
+    background-color: rgba(0, 0, 0, 0.45);
+    font-size: 7px;
+
+    &:hover {
+      border-color: var(--accent-color);
+    }
+  }
+
+  // Aplicar nos alvos: faixa escura como as rolagens do palco, borda na cor do dano/cura.
+  .roll-apply {
+    margin-top: 0;
+    padding: 10px 12px;
+    background-color: rgba(0, 0, 0, 0.45);
+    box-shadow: none;
+  }
+
+  .roll-apply-title {
+    font-size: 9px;
+  }
+
+  .roll-apply-row {
+    border: 2px solid var(--border-color);
+    background-color: rgba(0, 0, 0, 0.35);
+    padding: 6px 8px;
+  }
+
+  .roll-apply-check {
+    font-size: 8px;
+  }
 }

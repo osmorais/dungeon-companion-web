@@ -1602,10 +1602,20 @@ export class SessionPanelComponent implements OnDestroy {
   private castReactedRollIds = new Set<string>();
 
   activeCastView = computed<CastStageView | null>(() => {
-    this.castStagesVersion();
     const id = this.activeCastId();
-    const stage = id ? this.castStages.get(id) : undefined;
-    if (!id || !stage) return null;
+    return id ? this.buildCastView(id) : null;
+  });
+
+  /**
+   * O mesmo aviso montado pelos eventos da mesa, pro palco de quem lança (roll-modal): todo mundo
+   * vê a carta entrar e os dados aparecerem com o mesmo evento, ao mesmo tempo.
+   */
+  readonly castViewFor = (castId: string): CastStageView | null => this.buildCastView(castId);
+
+  private buildCastView(id: string): CastStageView | null {
+    this.castStagesVersion();
+    const stage = this.castStages.get(id);
+    if (!stage) return null;
     // Magia (carta buscada pela API) ou ataque com arma (carta vinda de quem atacou, 1.6.1).
     const weapon = stage.weapon ?? null;
     const card = weapon
@@ -1630,7 +1640,7 @@ export class SessionPanelComponent implements OnDestroy {
       applied: stage.applied ?? [],
       done: stage.phase === 'done',
     };
-  });
+  }
 
   /** A gaveta de ações avisou que este lançamento é de quem está olhando (acompanha no modal). */
   markOwnCast(castId: string): void {
@@ -1639,13 +1649,18 @@ export class SessionPanelComponent implements OnDestroy {
 
   onSpellCastStage(stage: SessionEventPayloadMap['spell_cast_stage']): void {
     const me = this.authService.currentUser()?.id;
-    if ((stage.user_id === me && this.ownCastIds.has(stage.cast_id)) || this.closedCastIds.has(stage.cast_id)) {
+    const own = stage.user_id === me && this.ownCastIds.has(stage.cast_id);
+    if (stage.phase === 'cancel') {
+      this.cancelCast(stage.cast_id);
       return;
     }
+    if (!own && this.closedCastIds.has(stage.cast_id)) return;
     // Etapa fora de ordem: "terminou" já chegou, uma "em andamento" atrasada não volta atrás.
     if (this.castStages.get(stage.cast_id)?.phase === 'done' && stage.phase === 'open') return;
     this.castStages.set(stage.cast_id, stage);
     this.castStagesVersion.update((v) => v + 1);
+    // Quem lança acompanha no próprio painel (que lê este mesmo estado), não no aviso da mesa.
+    if (own) return;
 
     const active = this.activeCastId();
     if (!active) {
@@ -1677,6 +1692,18 @@ export class SessionPanelComponent implements OnDestroy {
       () => this.closeCastNotice(),
       stage.phase === 'done' ? SPELL_CAST_DONE_MS : this.CAST_NOTICE_SAFETY_MS,
     );
+  }
+
+  /** Quem lança fechou sem rolar: o aviso some na hora (ou sai da fila). */
+  private cancelCast(castId: string): void {
+    this.castNoticeQueue = this.castNoticeQueue.filter((id) => id !== castId);
+    if (this.activeCastId() === castId) {
+      this.closeCastNotice();
+      return;
+    }
+    this.closedCastIds.add(castId);
+    this.castStages.delete(castId);
+    this.castStagesVersion.update((v) => v + 1);
   }
 
   closeCastNotice(): void {

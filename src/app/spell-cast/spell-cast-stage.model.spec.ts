@@ -28,7 +28,40 @@ describe('castRollView', () => {
       sides: [20],
       modifier: 5,
       total: 25,
+      dropped: [false],
     });
+  });
+
+  it('vantagem corta o menor d20, desvantagem o maior; dano soma tudo', () => {
+    const ref = {
+      id_roll: 'r1',
+      kind: 'attack' as const,
+      outcome: 'hit' as const,
+      critical: false,
+    };
+    const entry = { rolls: [1, 8], dice_notation: '1d20', modifier: 1, total: 9 };
+    expect(castRollView(ref, { ...entry, advantage_state: 'advantage' }).dropped).toEqual([
+      true,
+      false,
+    ]);
+    expect(castRollView(ref, { ...entry, advantage_state: 'disadvantage' }).dropped).toEqual([
+      false,
+      true,
+    ]);
+    expect(castRollView(ref, { ...entry, advantage_state: 'normal' }).dropped).toEqual([
+      false,
+      false,
+    ]);
+    expect(
+      castRollView(
+        { ...ref, kind: 'damage', outcome: null },
+        { ...entry, advantage_state: 'advantage' },
+      ).dropped,
+    ).toEqual([false, false]);
+    // empate: corta só um dos dois
+    expect(
+      castRollView(ref, { ...entry, rolls: [7, 7], advantage_state: 'advantage' }).dropped,
+    ).toEqual([false, true]);
   });
 });
 

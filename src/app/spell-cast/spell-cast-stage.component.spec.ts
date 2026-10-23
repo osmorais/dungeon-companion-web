@@ -15,6 +15,7 @@ const roll = (id: string, kind: CastStageRollView['kind']): CastStageRollView =>
   sides: [20],
   modifier: 5,
   total: 17,
+  dropped: [false],
 });
 
 const view = (rolls: CastStageRollView[]): CastStageView => ({

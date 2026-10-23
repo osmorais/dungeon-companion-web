@@ -255,7 +255,7 @@ export interface SpellCastStagePayload {
   /** Magia — ou `weapon` (ataque com arma), um dos dois. */
   id_spell?: number | null;
   weapon?: WeaponCardInfo | null;
-  phase: 'open' | 'done';
+  phase: 'open' | 'done' | 'cancel';
   rolls: CastStageRoll[];
   applied?: CastStageApplied[];
   save_dc?: number | null;

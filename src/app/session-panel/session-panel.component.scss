@@ -1572,7 +1572,7 @@
 .roll-toast-label {
   font-size: 17px;
   font-weight: bold;
-  color: #8b0000;
+  color: var(--gold-color);
   letter-spacing: 0.5px;
   text-shadow:
     -1px -1px 0 #000,
@@ -1735,7 +1735,7 @@
 .monster-defeated-label {
   font-size: 17px;
   font-weight: bold;
-  color: #8b0000;
+  color: var(--gold-color);
   letter-spacing: 0.5px;
   text-shadow:
     -1px -1px 0 #000,
@@ -1886,7 +1886,7 @@
 .monster-announcement-label {
   font-size: 17px;
   font-weight: bold;
-  color: #8b0000;
+  color: var(--gold-color);
   letter-spacing: 0.5px;
   text-shadow:
     -1px -1px 0 #000,

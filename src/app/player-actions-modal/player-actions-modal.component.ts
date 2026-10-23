@@ -51,6 +51,7 @@ import { GameCardData } from '../game-card/game-card.model';
 import { WeaponCardInfo } from '../models/game-session.interface';
 import { CharacterCardData } from '../character-card/character-card.component';
 import { SpellCastContext, castStagePayload, newCastId } from '../spell-cast/spell-cast-context';
+import { CastStageView } from '../spell-cast/spell-cast-stage.model';
 
 /** Atributo da perícia (sigla em português do banco) → chave em inglês dos traços. */
 const PT_TO_EN: Record<string, string> = {
@@ -118,6 +119,9 @@ export class PlayerActionsModalComponent implements OnInit {
   @Input() actorCard: CharacterCardData | null = null;
   /** Lançamento com rolagem começou: quem lança acompanha no modal de rolagem, então a sessão não
    *  mostra pra ele o aviso da mesa desse lançamento. */
+  /** Aviso do lançamento montado pelos eventos da mesa (sessão): o palco de quem lança mostra o
+   *  mesmo que todos, ao mesmo tempo. */
+  @Input() castViewSource: ((castId: string) => CastStageView | null) | null = null;
   @Output() ownCast = new EventEmitter<string>();
   @Output() endTurn = new EventEmitter<void>();
   @Output() delayTurn = new EventEmitter<void>();
