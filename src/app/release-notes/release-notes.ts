@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.7.5',
+    date: '2026-10-22',
+    title: 'Tema sombrio como padrão',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'O tema SOMBRIO agora é o padrão do site. Quem já tinha escolhido o FANTASIA continua com ele, e dá para trocar a qualquer momento no botão TEMA.',
+      },
+    ],
+  },
+  {
     version: '1.7.4',
     date: '2026-10-22',
     title: 'Gaveta de ações abre sozinha na sua vez e barra de XP leva à subida de nível',

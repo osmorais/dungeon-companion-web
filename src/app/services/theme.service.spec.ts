@@ -14,22 +14,28 @@ describe('ThemeService (tema de cores)', () => {
 
   const create = () => TestBed.runInInjectionContext(() => new ThemeService());
 
-  it('sem preferência salva usa FANTASIA e marca o <html>', () => {
+  it('sem preferência salva usa SOMBRIO (padrão) e marca o <html>', () => {
     const theme = create();
-    expect(theme.theme()).toBe('fantasia');
-    expect(theme.label).toBe('FANTASIA');
+    expect(theme.theme()).toBe('sombrio');
+    expect(theme.label).toBe('SOMBRIO');
+    expect(document.documentElement.dataset['theme']).toBe('sombrio');
+  });
+
+  it('quem escolheu FANTASIA continua nele', () => {
+    localStorage.setItem(THEME_STORAGE_KEY, 'fantasia');
+    expect(create().theme()).toBe('fantasia');
     expect(document.documentElement.dataset['theme']).toBe('fantasia');
   });
 
   it('alternar troca o <html> e grava a preferência', () => {
     const theme = create();
     theme.toggle();
-    expect(theme.theme()).toBe('sombrio');
-    expect(theme.label).toBe('SOMBRIO');
-    expect(document.documentElement.dataset['theme']).toBe('sombrio');
-    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('sombrio');
-    theme.toggle();
+    expect(theme.theme()).toBe('fantasia');
+    expect(theme.label).toBe('FANTASIA');
+    expect(document.documentElement.dataset['theme']).toBe('fantasia');
     expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('fantasia');
+    theme.toggle();
+    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('sombrio');
   });
 
   it('lê a preferência salva ao abrir o site', () => {
@@ -40,7 +46,7 @@ describe('ThemeService (tema de cores)', () => {
 
   it('valor desconhecido salvo cai no padrão', () => {
     localStorage.setItem(THEME_STORAGE_KEY, 'neon');
-    expect(create().theme()).toBe('fantasia');
+    expect(create().theme()).toBe('sombrio');
   });
 
   it('navegador sem armazenamento: usa o padrão e troca só na tela', () => {
@@ -51,9 +57,9 @@ describe('ThemeService (tema de cores)', () => {
       throw new Error('bloqueado');
     });
     const theme = create();
-    expect(theme.theme()).toBe('fantasia');
-    theme.toggle();
     expect(theme.theme()).toBe('sombrio');
-    expect(document.documentElement.dataset['theme']).toBe('sombrio');
+    theme.toggle();
+    expect(theme.theme()).toBe('fantasia');
+    expect(document.documentElement.dataset['theme']).toBe('fantasia');
   });
 });

@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 
-/** Tema de cores do site. `fantasia` é o visual original (padrão); `sombrio`, o escuro discreto. */
+/** Tema de cores do site. `sombrio` é o padrão (desde a 1.7.5); `fantasia`, o visual original. */
 export type Theme = 'fantasia' | 'sombrio';
 
 export const THEMES: { value: Theme; label: string }[] = [
@@ -49,9 +49,10 @@ export class ThemeService {
 
   private readTheme(): Theme {
     try {
-      return localStorage.getItem(THEME_STORAGE_KEY) === 'sombrio' ? 'sombrio' : 'fantasia';
+      // Só quem escolheu FANTASIA fica nele; sem escolha (ou valor desconhecido), sombrio.
+      return localStorage.getItem(THEME_STORAGE_KEY) === 'fantasia' ? 'fantasia' : 'sombrio';
     } catch {
-      return 'fantasia';
+      return 'sombrio';
     }
   }
 }
