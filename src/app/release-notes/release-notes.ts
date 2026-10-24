@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.11.1',
+    date: '2026-10-25',
+    title: 'Ajustes visuais na tela inicial',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'Na tela inicial, o dado em destaque não cobre mais o "AO VIVO" do cartão de exemplo em telas menores.',
+      },
+    ],
+  },
+  {
     version: '1.11.0',
     date: '2026-10-25',
     title: 'Monstros atacam de verdade',
