@@ -35,11 +35,19 @@ export const RELEASES: Release[] = [
   {
     version: '1.8.1',
     date: '2026-10-24',
-    title: 'Volta depois da sessão expirada',
+    title: 'Tela inicial renovada e fundo novo no card do personagem',
     changes: [
       {
         kind: 'correcao',
         text: 'Quem volta ao site depois que a sessão expirou agora vê a tela inicial, em vez de cair direto na tela de entrar.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Tela inicial com textos revistos, logo e Tom maiores, menu do topo sempre visível ao rolar e um novo personagem de exemplo.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Na mesa, o card de quem não tem imagem própria ganhou um fundo de masmorra iluminada por tochas.',
       },
     ],
   },

@@ -11,9 +11,11 @@ import { AvatarPreset, avatarBasePath } from '../models/avatar-preset.interface'
 })
 export class AvatarDisplayComponent {
   @Input() preset?: AvatarPreset | null;
+  /** Troca a imagem da base (pele) montada pelo preset — ex.: o desenho original da raça. */
+  @Input() basePath?: string;
 
   get racePath(): string {
-    return avatarBasePath(this.preset!);
+    return this.basePath ?? avatarBasePath(this.preset!);
   }
 
   get clothesPath(): string {

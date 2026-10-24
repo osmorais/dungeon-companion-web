@@ -975,6 +975,12 @@ input[type="checkbox"].retro-checkbox {
    rebites (round), então serve pra card de qualquer tamanho. A imagem vem do tema
    (--card-frame). Destaque (vez do personagem, hover) é o brilho em box-shadow, porque a cor da
    borda some debaixo da imagem. O componente não pode redefinir `border` do card. */
+/* Fundo padrão do card de personagem (parede de masmorra com tochas), o mesmo nos dois temas.
+   Detalhes só nas beiradas: o centro é liso pro nome e as barras ficarem legíveis. */
+:root {
+  --character-card-bg: url('/assets/frames/character-card-bg.webp');
+}
+
 .framed-card {
   /* A moldura é desenhada com 22 px (corte de 72 px da imagem, que cabe o enfeite do canto), mas a
      faixa em si termina antes — em 38–44 dos 72 px, ou seja ~12–13 px na tela. A borda que ocupa

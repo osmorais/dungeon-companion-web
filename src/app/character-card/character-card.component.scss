@@ -17,6 +17,11 @@
   background-size: cover;
   background-position: center;
   text-align: center;
+
+  /* Personagem sem imagem: fundo padrão (styles.scss). Com imagem, o style do template sobrepõe. */
+  &:not(.turn-card--monster) {
+    background-image: var(--character-card-bg);
+  }
 }
 
 .turn-card-ring {

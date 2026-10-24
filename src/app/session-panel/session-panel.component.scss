@@ -181,13 +181,14 @@
   /* Borda = moldura (.framed-card, global; a imagem avança ~11 px pra dentro): o padding afasta o
      conteúdo dos enfeites dos cantos. */
   padding: 10px 8px;
+  /* Sem imagem do personagem, o fundo padrão (styles.scss); com imagem, o style do template
+     sobrepõe o background-image. Propriedades separadas, não o atalho `background`: ele zera o
+     background-clip da .framed-card e a imagem passa por baixo da moldura. */
   background-color: var(--bg-color);
+  background-image: var(--character-card-bg);
+  background-size: cover;
+  background-position: center;
   text-align: center;
-
-  &.player-card--has-bg {
-    background-size: cover;
-    background-position: center;
-  }
 
   /* Sobe o card acima dos vizinhos no grid enquanto o tooltip de atributos estiver aberto —
      sem isso, um card mais adiante no DOM pintaria por cima do tooltip que vaza pra fora da
@@ -984,12 +985,10 @@
   gap: 6px;
   padding: 10px 6px;
   background-color: var(--bg-color);
+  background-image: var(--character-card-bg);
+  background-size: cover;
+  background-position: center;
   text-align: center;
-
-  &.mobile-player-card--has-bg {
-    background-size: cover;
-    background-position: center;
-  }
 }
 
 .mobile-avatar-circle {

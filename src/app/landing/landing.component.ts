@@ -61,16 +61,19 @@ export class LandingComponent {
 
   /** Personagem de exemplo do cartão do topo (montado com as peças do criador de avatar). */
   readonly sampleAvatar: AvatarPreset = {
-    race: 'dwarf',
+    race: 'half_orc',
     gender: 'male',
     classKey: 'barbarian',
-    skinColor: 'light',
-    hairStyle: 'hair_mohawk',
-    hairColor: 'red',
-    beardStyle: 'beard_02',
-    beardColor: 'red',
+    skinColor: 'orc_green',
+    hairStyle: null,
+    hairColor: 'grey',
+    beardStyle: null,
+    beardColor: null,
     showSmile: false,
   };
+
+  /** Pele do desenho original do meio-orc (oliva), que não está entre os tons do personalizador. */
+  readonly sampleAvatarBase = 'assets/avatar/race/base_half_orc.png';
 
   readonly playerFeatures: LandingFeature[] = [
     {
@@ -81,7 +84,7 @@ export class LandingComponent {
     {
       icon: 'sheet',
       title: 'A CONTA É DA FORJA',
-      text: 'Modificadores, perícias, CA, vida e espaços de magia calculados pelas regras de D&D 5e. Você só decide quem o herói é.',
+      text: 'Modificadores, perícias, CA, vida e espaços de magia calculados automaticamente. Você só decide quem o herói é.',
     },
     {
       icon: 'd20',

@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { LANDING_SECTIONS, LandingComponent, landingIconSrc } from './landing.component';
-import { avatarBasePath } from '../models/avatar-preset.interface';
 import { CURRENT_VERSION } from '../release-notes/release-notes';
 
 describe('LandingComponent (tela inicial pública)', () => {
@@ -36,9 +35,12 @@ describe('LandingComponent (tela inicial pública)', () => {
   });
 
   it('personagem de exemplo usa as peças do criador de avatar', () => {
-    const { sampleAvatar } = create();
-    expect(avatarBasePath(sampleAvatar)).toBe('assets/avatar/race_skin/base_dwarf_light.png');
+    const { sampleAvatar, sampleAvatarBase } = create();
+    expect(sampleAvatar.race).toBe('half_orc');
     expect(sampleAvatar.classKey).toBe('barbarian');
+    expect(sampleAvatarBase).toBe('assets/avatar/race/base_half_orc.png');
+    expect(sampleAvatar.hairStyle).toBeNull();
+    expect(sampleAvatar.beardStyle).toBeNull();
   });
 
   it('mostra a versão atual no rodapé', () => {
@@ -99,6 +101,20 @@ describe('LandingComponent (tela inicial pública)', () => {
         expect(img.getAttribute('width'), img.getAttribute('src') ?? '').toBeTruthy();
         expect(img.getAttribute('height'), img.getAttribute('src') ?? '').toBeTruthy();
       }
+    });
+
+    it('card de exemplo: avatar no anel padrão e XP acima da vida', () => {
+      const card = el.querySelector('.lp-sample')!;
+      expect(card.querySelector('.avatar-ring-wrap app-avatar-display')).not.toBeNull();
+      // Pele do desenho original, não um tom do personalizador.
+      expect(card.querySelector('app-avatar-display img')?.getAttribute('src')).toBe(
+        'assets/avatar/race/base_half_orc.png',
+      );
+      expect(card.querySelector('.avatar-ring-wrap .avatar-ring')).not.toBeNull();
+      const bars = Array.from(card.querySelectorAll('app-xp-bar, app-hp-bar')).map((b) =>
+        b.tagName.toLowerCase(),
+      );
+      expect(bars).toEqual(['app-xp-bar', 'app-hp-bar']);
     });
 
     it('cada item do menu tem a seção correspondente na página', () => {

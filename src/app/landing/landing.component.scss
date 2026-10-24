@@ -9,7 +9,7 @@
   margin-top: calc(-1 * var(--footer-height));
   --lp-gutter: max(20px, calc((100vw - 1180px) / 2));
   --lp-shade: color-mix(in srgb, var(--bg-color) 88%, transparent);
-  --lp-topbar-h: 64px;
+  --lp-topbar-h: 88px;
   // Verde do "AO VIVO" (o tema não tem um verde; é só nesta tela).
   --lp-live-color: #7ed957;
   // Foco por teclado: mesmo contorno em tudo que é clicável (o clip-path dos botões corta outline
@@ -32,7 +32,9 @@
 }
 
 .landing {
-  overflow-x: hidden;
+  // `clip`, não `hidden`: `hidden` vira contêiner de rolagem e a barra do topo (sticky) deixa de
+  // ficar presa na tela ao rolar.
+  overflow-x: clip;
 }
 
 h1,
@@ -169,8 +171,8 @@ button {
 }
 
 .lp-topbar-logo {
-  width: 52px;
-  height: 52px;
+  width: 76px;
+  height: 76px;
 }
 
 .lp-nav {
@@ -211,6 +213,13 @@ button {
   min-height: calc(100svh - var(--lp-topbar-h));
   padding: 48px var(--lp-gutter);
   box-sizing: border-box;
+}
+
+.lp-hero-logo {
+  display: block;
+  width: clamp(140px, 16vw, 200px);
+  height: auto;
+  margin-bottom: 20px;
 }
 
 .lp-title {
@@ -255,7 +264,11 @@ button {
   position: relative;
   width: 290px;
   padding: 16px 18px 18px;
+  // Propriedades separadas: o atalho `background` zeraria o background-clip da .framed-card.
   background-color: var(--panel-bg);
+  background-image: var(--character-card-bg);
+  background-size: cover;
+  background-position: center;
   transform: rotate(-2deg);
   // Sombra dura, de pixel art (a mesma do painel do mestre), no lugar da sombra esfumada.
   box-shadow: 10px 10px 0 color-mix(in srgb, var(--bg-color) 70%, transparent);
@@ -279,11 +292,15 @@ button {
   color: var(--lp-live-color);
 }
 
+.lp-sample-ring {
+  --avatar-size: 112px;
+  margin-inline: auto;
+}
+
 .lp-sample-avatar {
-  width: 128px;
-  height: 128px;
-  margin: 14px auto;
-  border: 2px solid var(--border-color);
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: var(--bg-color);
 }
 
 .lp-sample-name {
@@ -359,13 +376,16 @@ button {
 }
 
 .lp-token--tom {
+  // À direita do card, virado pra ele, com o balão em cima.
   bottom: 0;
-  left: 0;
-  align-items: flex-start;
+  right: 0;
+  flex-direction: column-reverse;
+  align-items: center;
 
   img {
-    width: 110px;
+    width: 160px;
     height: auto;
+    transform: scaleX(-1);
   }
 }
 
@@ -609,7 +629,7 @@ button {
 }
 
 .lp-closing-tom {
-  width: 120px;
+  width: 175px;
   height: auto;
 }
 
@@ -641,8 +661,8 @@ button {
 }
 
 .lp-footer-logo {
-  width: 44px;
-  height: 44px;
+  width: 64px;
+  height: 64px;
 }
 
 .lp-footer-links {
@@ -719,12 +739,12 @@ button {
 /* ===== Celular ===== */
 @media (max-width: 767px) {
   :host {
-    --lp-topbar-h: 56px;
+    --lp-topbar-h: 68px;
   }
 
   .lp-topbar-logo {
-    width: 42px;
-    height: 42px;
+    width: 58px;
+    height: 58px;
   }
 
   .lp-hero,
@@ -755,7 +775,11 @@ button {
   }
 
   .lp-token--tom img {
-    width: 80px;
+    width: 115px;
+  }
+
+  .lp-hero-logo {
+    width: 120px;
   }
 
   .lp-lead {

@@ -1,7 +1,7 @@
 <div class="landing">
   <!-- ===== TOPO ===== -->
   <header class="lp-topbar">
-    <img class="lp-topbar-logo" src="forja_arcana.png" alt="Forja Arcana" width="52" height="52" />
+    <img class="lp-topbar-logo" src="forja_arcana.png" alt="Forja Arcana" width="76" height="76" />
     <nav class="lp-nav" aria-label="Seções da página">
       @for (s of sections; track s.id) {
         <button type="button" class="lp-nav-link" (click)="scrollTo(s.id)">{{ s.label }}</button>
@@ -17,10 +17,13 @@
     <!-- ===== PRIMEIRA DOBRA ===== -->
     <section class="lp-hero">
       <div class="lp-hero-copy">
+        <!-- Decorativo: o nome já está no logo do topo e no texto logo abaixo. -->
+        <img class="lp-hero-logo" src="forja_arcana.png" alt="" width="200" height="200" />
         <h1 class="lp-title">Crie sua lenda.<br /><em>Viva a aventura.</em></h1>
         <p class="lp-lead">
-          A Forja Arcana é o seu companheiro de mesa para D&amp;D 5e: crie personagens com a ficha
-          calculada sozinha, reúna o grupo numa sessão ao vivo e deixe a parte chata com a gente.
+          A Forja Arcana é o seu companheiro de mesa para RPG de fantasia: crie personagens com a
+          ficha calculada sozinha, reúna o grupo numa sessão ao vivo e deixe a parte chata com a
+          gente.
         </p>
         <div class="lp-actions">
           <a class="lp-btn" routerLink="/signup">CRIAR CONTA GRÁTIS ▶</a>
@@ -38,14 +41,20 @@
             <span>FICHA DE AVENTUREIRO</span>
             <span class="lp-sample-tag">AO VIVO</span>
           </div>
-          <div class="lp-sample-avatar"><app-avatar-display [preset]="sampleAvatar" /></div>
-          <p class="lp-sample-name">THORIN <span>Barba-de-Brasa</span></p>
-          <p class="lp-sample-class">BÁRBARO · ANÃO</p>
+          <!-- O mesmo anel do avatar do card da sessão (classes globais de styles.scss). -->
+          <div class="avatar-ring-wrap lp-sample-ring">
+            <div class="lp-sample-avatar">
+              <app-avatar-display [preset]="sampleAvatar" [basePath]="sampleAvatarBase" />
+            </div>
+            <span class="avatar-ring"></span>
+          </div>
+          <p class="lp-sample-name">GORAK <span>Dente-Solto</span></p>
+          <p class="lp-sample-class">BÁRBARO · MEIO-ORC</p>
           <div class="lp-sample-stats">
             <span><b>FOR</b> 16</span><span><b>CON</b> 15</span><span><b>DES</b> 13</span>
           </div>
-          <app-hp-bar [current]="27" [max]="31" />
           <app-xp-bar [level]="3" [xp]="2100" [nextLevelXp]="2700" />
+          <app-hp-bar [current]="27" [max]="31" />
         </div>
         <div class="lp-token lp-token--die">
           <img src="assets/dice/d20.png" alt="" width="40" height="40" />
@@ -97,7 +106,7 @@
         <div class="lp-panel-cols">
           <div>
             <small>COMBATE · RODADA 2</small>
-            <p class="lp-row lp-row--turn">▶ Thorin</p>
+            <p class="lp-row lp-row--turn">▶ Gorak</p>
             <p class="lp-row">Lyra</p>
             <p class="lp-row">Goblin <em>revelado</em></p>
           </div>
@@ -123,7 +132,7 @@
                 height="96"
                 loading="lazy"
               />
-              Thorin: 9 de dano
+              Gorak: 9 de dano
             </p>
             <p class="lp-row">
               <img
@@ -274,8 +283,8 @@
       class="lp-footer-logo"
       src="forja_arcana.png"
       alt="Forja Arcana"
-      width="44"
-      height="44"
+      width="64"
+      height="64"
       loading="lazy"
     />
     <nav class="lp-footer-links" aria-label="Documentos e novidades">
