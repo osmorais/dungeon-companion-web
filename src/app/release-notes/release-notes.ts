@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.8.3',
+    date: '2026-10-24',
+    title: 'Moldura nova no tema sombrio',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'No tema SOMBRIO, os cards de personagem ganharam uma moldura nova, com caveiras e detalhes em dourado.',
+      },
+    ],
+  },
+  {
     version: '1.8.2',
     date: '2026-10-24',
     title: 'Sair leva pra tela de entrar',
