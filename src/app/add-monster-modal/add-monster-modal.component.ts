@@ -4,9 +4,10 @@ import { GameSessionService } from '../services/game-session.service';
 import { MonsterCatalogService } from '../services/monster-catalog.service';
 import {
   MonsterCatalogEntry,
-  SrdMonsterDetail,
-  SrdMonsterSummary,
+  BestiaryMonsterSummary,
+  MonsterStatBlock,
 } from '../models/monster-catalog.interface';
+import { challengeRatingText, normalizeSearch } from '../services/monster-format';
 import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 
 type AddMonsterMode = 'catalog' | 'new';
@@ -34,23 +35,23 @@ export class AddMonsterModalComponent implements OnInit {
   addingCatalogId = signal<string | null>(null);
 
   // --- Modo "catalogar agora" ---
-  loadingSrdList = signal(false);
-  srdListError = signal(false);
-  srdListLoaded = signal(false);
-  allSrdMonsters = signal<SrdMonsterSummary[]>([]);
+  loadingBestiary = signal(false);
+  bestiaryError = signal(false);
+  bestiaryLoaded = signal(false);
+  allBestiaryMonsters = signal<BestiaryMonsterSummary[]>([]);
   searchText = signal('');
 
-  filteredSrdMonsters = computed(() => {
-    const term = this.searchText().trim().toLowerCase();
-    const all = this.allSrdMonsters();
+  filteredBestiaryMonsters = computed(() => {
+    const term = normalizeSearch(this.searchText());
+    const all = this.allBestiaryMonsters();
     if (!term) return all;
-    return all.filter(m => m.name.toLowerCase().includes(term));
+    return all.filter(m => normalizeSearch(m.name).includes(term));
   });
 
   selectedSlug = signal<string | null>(null);
   loadingDetail = signal(false);
   detailError = signal(false);
-  selectedDetail = signal<SrdMonsterDetail | null>(null);
+  selectedDetail = signal<MonsterStatBlock | null>(null);
   customName = signal('');
 
   submitting = signal(false);
@@ -63,8 +64,8 @@ export class AddMonsterModalComponent implements OnInit {
   setMode(mode: AddMonsterMode) {
     this.mode.set(mode);
     this.submitError.set(null);
-    if (mode === 'new' && !this.srdListLoaded()) {
-      this.loadSrdList();
+    if (mode === 'new' && !this.bestiaryLoaded()) {
+      this.loadBestiary();
     }
   }
 
@@ -83,18 +84,18 @@ export class AddMonsterModalComponent implements OnInit {
     });
   }
 
-  private loadSrdList() {
-    this.loadingSrdList.set(true);
-    this.srdListError.set(false);
-    this.monsterCatalogService.searchSrdMonsters().subscribe({
+  private loadBestiary() {
+    this.loadingBestiary.set(true);
+    this.bestiaryError.set(false);
+    this.monsterCatalogService.listBestiary().subscribe({
       next: monsters => {
-        this.allSrdMonsters.set(monsters);
-        this.srdListLoaded.set(true);
-        this.loadingSrdList.set(false);
+        this.allBestiaryMonsters.set(monsters);
+        this.bestiaryLoaded.set(true);
+        this.loadingBestiary.set(false);
       },
       error: () => {
-        this.srdListError.set(true);
-        this.loadingSrdList.set(false);
+        this.bestiaryError.set(true);
+        this.loadingBestiary.set(false);
       },
     });
   }
@@ -114,14 +115,14 @@ export class AddMonsterModalComponent implements OnInit {
       });
   }
 
-  selectSrdMonster(monster: SrdMonsterSummary) {
+  selectBestiaryMonster(monster: BestiaryMonsterSummary) {
     this.selectedSlug.set(monster.index);
     this.selectedDetail.set(null);
     this.detailError.set(false);
     this.customName.set('');
     this.submitError.set(null);
     this.loadingDetail.set(true);
-    this.monsterCatalogService.getSrdMonster(monster.index).subscribe({
+    this.monsterCatalogService.getBestiaryMonster(monster.index).subscribe({
       next: detail => {
         this.selectedDetail.set(detail);
         this.loadingDetail.set(false);
@@ -133,9 +134,11 @@ export class AddMonsterModalComponent implements OnInit {
     });
   }
 
-  acValue(detail: SrdMonsterDetail): number | null {
+  acValue(detail: MonsterStatBlock): number | null {
     return detail.armor_class?.[0]?.value ?? null;
   }
+
+  crText = challengeRatingText;
 
   confirmNew() {
     const slug = this.selectedSlug();

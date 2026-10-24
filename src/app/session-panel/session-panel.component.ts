@@ -73,6 +73,7 @@ import { LoadingOverlayService } from '../loading-overlay/loading-overlay.servic
 import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { monsterDisplayName } from './monster-display-name';
 import { hpColor, hpPercent } from './hp-display';
+import { challengeRatingText, monsterSpeedText } from '../services/monster-format';
 
 @Component({
   selector: 'app-session-panel',
@@ -1348,10 +1349,10 @@ export class SessionPanelComponent implements OnDestroy {
   }
 
   monsterSpeedText(monster: MonsterSession): string {
-    return Object.entries(monster.data_snapshot.speed ?? {})
-      .map(([key, value]) => `${key}: ${value}`)
-      .join(', ');
+    return monsterSpeedText(monster.data_snapshot.speed);
   }
+
+  crText = challengeRatingText;
 
   hpPercent(current: number, max: number): number {
     return hpPercent(current, max);

@@ -26,7 +26,7 @@
             <span class="m-card-body">
               <span class="m-card-title">{{ monsterName(monster) }}</span>
               <span class="m-card-desc">{{ monster.data_snapshot.size }} &mdash; {{ monster.data_snapshot.type }}</span>
-              <span class="m-card-desc">CA {{ monster.ac }} &middot; PV {{ monster.hp_max }} &middot; ND {{ monster.data_snapshot.challenge_rating }}</span>
+              <span class="m-card-desc">CA {{ monster.ac }} &middot; PV {{ monster.hp_max }} &middot; ND {{ crText(monster.data_snapshot.challenge_rating) }}</span>
             </span>
             <span class="m-card-arrow">&#9658;</span>
           </li>
@@ -81,7 +81,7 @@
             <div class="monster-card-stats">
               <span>CA <strong>{{ monster.ac }}</strong></span>
               <span>PV <strong>{{ monster.hp_max }}</strong></span>
-              <span>ND <strong>{{ monster.data_snapshot.challenge_rating }}</strong></span>
+              <span>ND <strong>{{ crText(monster.data_snapshot.challenge_rating) }}</strong></span>
             </div>
           </article>
         }

@@ -1,4 +1,4 @@
-import { SrdMonsterDetail } from './monster-catalog.interface';
+import { MonsterStatBlock } from './monster-catalog.interface';
 
 export interface NpcRef {
   id_character: number;
@@ -81,7 +81,7 @@ export interface NpcSession {
   character?: PlayerCharacterSummary | null;
 }
 
-/** Chaves de atributo dentro de `MonsterSession.data_snapshot` (formato do SRD, em inglês). */
+/** Chaves de atributo dentro de `MonsterSession.data_snapshot` (chaves no formato da dnd5eapi, em inglês). */
 export type MonsterAbilityKey =
   | 'strength'
   | 'dexterity'
@@ -98,7 +98,7 @@ export interface MonsterSession {
   hp_current: number;
   hp_max: number;
   ac: number;
-  data_snapshot: SrdMonsterDetail;
+  data_snapshot: MonsterStatBlock;
   is_revealed: boolean;
   image_url: string | null;
 }

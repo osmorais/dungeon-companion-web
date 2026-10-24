@@ -163,7 +163,7 @@
   box-sizing: border-box;
 }
 
-.srd-list {
+.bestiary-list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -172,7 +172,7 @@
   border: 1px solid var(--border-color);
 }
 
-.srd-row {
+.bestiary-row {
   padding: 8px 10px;
   font-size: 8px;
   color: var(--text-color);
@@ -222,4 +222,11 @@
     opacity: 0.4;
     cursor: var(--cx);
   }
+}
+
+.bestiary-row-meta {
+  display: block;
+  margin-top: 4px;
+  font-size: 7px;
+  opacity: 0.7;
 }

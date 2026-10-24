@@ -51,7 +51,7 @@
             <div class="stat-ability"><span class="stat-ability-key">CAR</span>{{ m.data_snapshot.charisma }}</div>
           </div>
 
-          <div class="stat-row"><span class="stat-label">ND</span><span>{{ m.data_snapshot.challenge_rating }} ({{ m.data_snapshot.xp }} XP)</span></div>
+          <div class="stat-row"><span class="stat-label">ND</span><span>{{ crText(m.data_snapshot.challenge_rating) }} ({{ m.data_snapshot.xp }} XP)</span></div>
 
           @if (m.data_snapshot.special_abilities?.length) {
             <div class="stat-section">
@@ -124,7 +124,7 @@
             <div class="stat-ability"><span class="stat-ability-key">CAR</span>{{ m.data_snapshot.charisma }}</div>
           </div>
 
-          <div class="stat-row"><span class="stat-label">ND</span><span>{{ m.data_snapshot.challenge_rating }} ({{ m.data_snapshot.xp }} XP)</span></div>
+          <div class="stat-row"><span class="stat-label">ND</span><span>{{ crText(m.data_snapshot.challenge_rating) }} ({{ m.data_snapshot.xp }} XP)</span></div>
 
           @if (m.data_snapshot.special_abilities?.length) {
             <div class="stat-section">

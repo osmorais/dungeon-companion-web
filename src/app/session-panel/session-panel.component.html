@@ -1371,7 +1371,7 @@
           </div>
         }
 
-        <div class="stat-row"><span class="stat-label">ND</span><span>{{ monster.data_snapshot.challenge_rating }} ({{ monster.data_snapshot.xp }} XP)</span></div>
+        <div class="stat-row"><span class="stat-label">ND</span><span>{{ crText(monster.data_snapshot.challenge_rating) }} ({{ monster.data_snapshot.xp }} XP)</span></div>
 
         @if (monster.data_snapshot.special_abilities?.length) {
           <div class="stat-section">
