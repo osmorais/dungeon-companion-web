@@ -13,11 +13,11 @@ export interface MonsterRef {
   data_snapshot?: Record<string, unknown>;
 }
 
+/** O mestre aparece com o nome de usuário (1.9.0) — a API preenche o `dm_name`. */
 export interface CreateGameSessionPayload {
   session_name: string;
   session_code: string;
   max_player_quantity: number;
-  dm_name: string;
   npcs: NpcRef[];
   monsters: MonsterRef[];
 }
@@ -316,9 +316,9 @@ export interface ShownReferenceImage {
   title: string | null;
 }
 
+/** O nome que aparece na mesa é o nome de usuário (1.9.0) — a API preenche. */
 export interface JoinSessionPayload {
   session_code: string;
-  player_name: string;
   id_character: number;
 }
 

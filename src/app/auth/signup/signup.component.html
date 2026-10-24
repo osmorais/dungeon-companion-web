@@ -5,8 +5,9 @@
       <legend>FORJAR AVENTUREIRO</legend>
 
       <div class="mobile-form-group">
-        <label for="mobile-fullName">NOME DO HERÓI (OPCIONAL)</label>
-        <input id="mobile-fullName" type="text" [(ngModel)]="fullName" placeholder="Sir Aldric..." />
+        <label for="mobile-username">NOME DE USUÁRIO</label>
+        <input id="mobile-username" type="text" maxlength="20" autocomplete="username" [ngModel]="username()" (ngModelChange)="username.set($event)" placeholder="gorak_dente" />
+        <app-username-status [username]="username()" (pick)="username.set($event)" (validChange)="usernameValid.set($event)" />
       </div>
 
       <div class="mobile-form-group">
@@ -63,8 +64,9 @@
       <legend>FORJAR AVENTUREIRO</legend>
 
       <div class="form-group">
-        <label for="fullName">NOME DO HERÓI (OPCIONAL)</label>
-        <input id="fullName" type="text" [(ngModel)]="fullName" placeholder="Sir Aldric..." />
+        <label for="username">NOME DE USUÁRIO</label>
+        <input id="username" type="text" maxlength="20" autocomplete="username" [ngModel]="username()" (ngModelChange)="username.set($event)" placeholder="gorak_dente" />
+        <app-username-status [username]="username()" (pick)="username.set($event)" (validChange)="usernameValid.set($event)" />
       </div>
 
       <div class="form-group">

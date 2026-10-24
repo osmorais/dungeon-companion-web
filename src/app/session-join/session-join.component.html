@@ -24,20 +24,9 @@
         <p class="m-hint">{{ sessionCode().length }}/5</p>
       </div>
 
-      <div class="m-field">
-        <label class="m-label" for="m-player-name">SEU NOME DE JOGADOR</label>
-        <input
-          id="m-player-name"
-          type="text"
-          class="m-input"
-          placeholder="Como quer ser chamado?"
-          [ngModel]="playerName()"
-          (ngModelChange)="playerName.set($event)"
-        />
-        <p class="name-privacy-hint">
-          Prefira um apelido: este nome aparece para todos da mesa e no ranking.
-        </p>
-      </div>
+      <p class="name-privacy-hint">
+        Você entra como <strong>{{ username() }}</strong>, seu nome de usuário — troque em Minha Conta.
+      </p>
     </section>
 
     <section class="m-section">
@@ -84,7 +73,7 @@
       <legend>ENTRAR EM UMA AVENTURA</legend>
     </fieldset>
 
-    <!-- Código + nome do jogador -->
+    <!-- Código + com que nome você entra -->
     <fieldset class="retro-panel">
       <legend>DADOS DE ENTRADA</legend>
       <div class="entry-grid">
@@ -106,16 +95,10 @@
         </div>
 
         <div class="field">
-          <label class="field-label">SEU NOME DE JOGADOR</label>
-          <input
-            type="text"
-            placeholder="Como quer ser chamado?"
-            [ngModel]="playerName()"
-            (ngModelChange)="playerName.set($event)"
-          />
+          <span class="field-label">VOCÊ ENTRA COMO</span>
           <p class="name-privacy-hint">
-          Prefira um apelido: este nome aparece para todos da mesa e no ranking.
-        </p>
+            <strong>{{ username() }}</strong>, seu nome de usuário — troque em Minha Conta.
+          </p>
         </div>
       </div>
     </fieldset>

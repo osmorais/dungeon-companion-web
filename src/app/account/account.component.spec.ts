@@ -10,7 +10,8 @@ function profile(overrides: Partial<AccountProfile> = {}): AccountProfile {
   return {
     id: 'u1',
     email: 'Heroi@Aventura.com',
-    full_name: 'Sir Aldric',
+    full_name: null,
+    username: 'aldric',
     created_at: null,
     has_password: true,
     google_linked: false,
@@ -24,12 +25,15 @@ describe('AccountComponent', () => {
   let component: AccountComponent;
   let accountService: {
     getProfile: ReturnType<typeof vi.fn>;
-    updateFullName: ReturnType<typeof vi.fn>;
+    updateUsername: ReturnType<typeof vi.fn>;
     updateShowInRanking: ReturnType<typeof vi.fn>;
     exportData: ReturnType<typeof vi.fn>;
     deleteAccount: ReturnType<typeof vi.fn>;
   };
-  let authService: { clearSession: ReturnType<typeof vi.fn> };
+  let authService: {
+    clearSession: ReturnType<typeof vi.fn>;
+    setCurrentUsername: ReturnType<typeof vi.fn>;
+  };
 
   function create(p: AccountProfile = profile()) {
     accountService.getProfile.mockReturnValue(of(p));
@@ -40,12 +44,12 @@ describe('AccountComponent', () => {
   beforeEach(() => {
     accountService = {
       getProfile: vi.fn(),
-      updateFullName: vi.fn(),
+      updateUsername: vi.fn(),
       updateShowInRanking: vi.fn(),
       exportData: vi.fn(),
       deleteAccount: vi.fn().mockReturnValue(of({ message: 'ok' })),
     };
-    authService = { clearSession: vi.fn() };
+    authService = { clearSession: vi.fn(), setCurrentUsername: vi.fn() };
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
@@ -73,10 +77,10 @@ describe('AccountComponent', () => {
     expect(component.profile()?.show_in_ranking).toBe(true);
   });
 
-  it('carrega o perfil e preenche o nome', () => {
+  it('carrega o perfil e preenche o nome de usuário', () => {
     create();
     expect(component.profile()?.email).toBe('Heroi@Aventura.com');
-    expect(component.fullName()).toBe('Sir Aldric');
+    expect(component.username()).toBe('aldric');
   });
 
   it('erro ao carregar o perfil', () => {
@@ -86,28 +90,46 @@ describe('AccountComponent', () => {
     expect(component.loadError()).toBe(true);
   });
 
-  it('salvar nome manda aparado; vazio vira null', () => {
+  it('salvar nome de usuário manda aparado e atualiza o usuário logado', () => {
     create();
-    accountService.updateFullName.mockReturnValue(of(profile({ full_name: 'Elora' })));
-    component.fullName.set('  Elora ');
+    accountService.updateUsername.mockReturnValue(of(profile({ username: 'Elora' })));
+    component.username.set('  Elora ');
+    component.usernameValid.set(true);
     component.saveName();
-    expect(accountService.updateFullName).toHaveBeenCalledWith('Elora');
-    expect(component.nameMessage()).toBe('Nome salvo.');
-
-    accountService.updateFullName.mockReturnValue(of(profile({ full_name: null })));
-    component.fullName.set('   ');
-    component.saveName();
-    expect(accountService.updateFullName).toHaveBeenLastCalledWith(null);
-    expect(component.fullName()).toBe('');
+    expect(accountService.updateUsername).toHaveBeenCalledWith('Elora');
+    expect(authService.setCurrentUsername).toHaveBeenCalledWith('Elora');
+    expect(component.nameMessage()).toBe('Nome de usuário salvo.');
   });
 
-  it('mostra a mensagem de erro do backend ao salvar o nome', () => {
+  it('não salva com o nome inválido/em uso nem igual ao atual', () => {
     create();
-    accountService.updateFullName.mockReturnValue(
-      throwError(() => ({ error: { error: { message: 'O nome pode ter no máximo 255' } } })),
-    );
+    component.username.set('outro_nome');
+    component.usernameValid.set(false);
+    expect(component.canSaveName()).toBe(false);
+    component.usernameValid.set(true);
+    component.username.set('aldric');
+    expect(component.canSaveName()).toBe(false);
     component.saveName();
-    expect(component.nameMessage()).toBe('O nome pode ter no máximo 255');
+    expect(accountService.updateUsername).not.toHaveBeenCalled();
+  });
+
+  it('nome tomado por outra pessoa ao gravar: mensagem do backend', () => {
+    create();
+    accountService.updateUsername.mockReturnValue(
+      throwError(() => ({
+        status: 409,
+        error: {
+          error: {
+            message: 'Esse nome de usuário já está em uso',
+            details: { suggestions: ['elora1'] },
+          },
+        },
+      })),
+    );
+    component.username.set('elora');
+    component.usernameValid.set(true);
+    component.saveName();
+    expect(component.nameMessage()).toBe('Esse nome de usuário já está em uso');
     expect(component.savingName()).toBe(false);
   });
 

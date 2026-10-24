@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { Subject, of, throwError } from 'rxjs';
@@ -7,6 +8,7 @@ import { CharacterListComponent } from '../character-list/character-list.compone
 import { SessionJoinComponent } from '../session-join/session-join.component';
 import { SessionCreateComponent } from '../session-create/session-create.component';
 import { HomeComponent } from '../home/home.component';
+import { AuthService } from '../services/auth.service';
 
 /**
  * Sem o overlay que bloqueava a tela, cada página mostra skeleton enquanto carrega e trava os
@@ -19,6 +21,7 @@ describe('estados de carregamento sem overlay bloqueante', () => {
         provideRouter([]),
         { provide: CharacterService, useValue: charService },
         { provide: GameSessionService, useValue: gameSessionService },
+        { provide: AuthService, useValue: { currentUser: signal({ username: 'ana_mestra' }) } },
       ],
     });
     vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
@@ -56,11 +59,13 @@ describe('estados de carregamento sem overlay bloqueante', () => {
     expect(page.loadingCharacters()).toBe(false);
 
     page.sessionCode.set('ABC12');
-    page.playerName.set('Ana');
     page.selectCharacter({ id_character: 1 } as never);
+    expect(page.username()).toBe('ana_mestra');
     page.join();
     page.join();
     expect(joinSession).toHaveBeenCalledTimes(1);
+    // Sem nome de jogador: a API usa o nome de usuário.
+    expect(joinSession).toHaveBeenCalledWith({ session_code: 'ABC12', id_character: 1 });
     expect(page.joining()).toBe(true);
 
     join.error({ status: 404 });
@@ -81,6 +86,8 @@ describe('estados de carregamento sem overlay bloqueante', () => {
     page.saveSession();
     page.saveSession();
     expect(createSession).toHaveBeenCalledTimes(1);
+    // Sem nome de mestre: a API usa o nome de usuário.
+    expect((createSession.mock.calls[0] as unknown[])[0]).not.toHaveProperty('dm_name');
     expect(page.saving()).toBe(true);
     create.error(new Error('500'));
     expect(page.saving()).toBe(false);

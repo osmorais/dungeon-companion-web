@@ -44,4 +44,35 @@ describe('AuthService — para onde vai ao encerrar a sessão', () => {
     expect(auth.isLoggedIn()).toBe(false);
     expect(navigate).not.toHaveBeenCalled();
   });
+
+  it('/auth/me traz o nome de usuário; sem nome, precisa escolher', () => {
+    auth.loadCurrentUser().subscribe();
+    http
+      .expectOne((req) => req.url.endsWith('/auth/me'))
+      .flush({ id: 'u1', email: 'a@x.com', username: null });
+    expect(auth.currentUser()).toEqual({ id: 'u1', email: 'a@x.com', username: null });
+    expect(auth.needsUsername()).toBe(true);
+
+    auth.setCurrentUsername('gorak');
+    expect(auth.currentUser()?.username).toBe('gorak');
+    expect(auth.needsUsername()).toBe(false);
+  });
+
+  it('cadastro manda o nome de usuário (não mais nome do herói)', () => {
+    auth.signup('a@x.com', 'segredo123', 'gorak').subscribe();
+    const req = http.expectOne((r) => r.url.endsWith('/auth/signup'));
+    expect(req.request.body).toEqual({
+      email: 'a@x.com',
+      password: 'segredo123',
+      username: 'gorak',
+    });
+    req.flush({ token: 't', user: { id: 'u1', email: 'a@x.com', username: 'gorak' } });
+  });
+
+  it('confere a disponibilidade pela query string', () => {
+    auth.checkUsername('gorak').subscribe();
+    const req = http.expectOne((r) => r.url.endsWith('/auth/username-available'));
+    expect(req.request.params.get('username')).toBe('gorak');
+    req.flush({ username: 'gorak', available: true, error: null, suggestions: [] });
+  });
 });

@@ -17,18 +17,25 @@
         </p>
 
         <div class="form-group">
-          <label for="account-name">NOME DE EXIBIÇÃO (OPCIONAL)</label>
+          <label for="account-name">NOME DE USUÁRIO</label>
           <input
             id="account-name"
             type="text"
-            maxlength="255"
-            [ngModel]="fullName()"
-            (ngModelChange)="fullName.set($event)"
-            placeholder="Sir Aldric..."
+            maxlength="20"
+            autocomplete="username"
+            [ngModel]="username()"
+            (ngModelChange)="username.set($event)"
+            placeholder="gorak_dente"
+          />
+          <app-username-status
+            [username]="username()"
+            [current]="p.username"
+            (pick)="username.set($event)"
+            (validChange)="usernameValid.set($event)"
           />
         </div>
         <div class="row-actions">
-          <button type="button" class="retro-btn" (click)="saveName()" [disabled]="savingName()">
+          <button type="button" class="retro-btn" (click)="saveName()" [disabled]="!canSaveName()">
             {{ savingName() ? 'SALVANDO...' : 'SALVAR NOME' }}
           </button>
         </div>
@@ -47,7 +54,7 @@
         <h2>RANKING</h2>
         <p class="hint">
           O ranking mostra para todos os usuários os maiores feitos das mesas, com o avatar e o nome
-          do personagem, o nome de jogador usado na mesa e o nome da sessão.
+          do personagem, o seu nome de usuário e o nome da sessão.
         </p>
         <label class="ack-check">
           <input

@@ -23,6 +23,8 @@ describe('SignupComponent', () => {
     component.email = 'heroi@aventura.com';
     component.password = 'segredo123';
     component.confirmPassword = 'segredo123';
+    component.username.set('gorak');
+    component.usernameValid.set(true);
   });
 
   it('começa sem o aceite marcado', () => {
@@ -71,15 +73,35 @@ describe('SignupComponent', () => {
     expect(component.loading()).toBe(false);
   });
 
-  it('com o aceite, cria a conta e vai pra home', () => {
+  it('sem nome de usuário não cria a conta', () => {
     component.acceptedTerms.set(true);
-    component.fullName = 'Sir Aldric';
+    component.username.set('  ');
     component.submit();
-    expect(authService.signup).toHaveBeenCalledWith(
-      'heroi@aventura.com',
-      'segredo123',
-      'Sir Aldric',
-    );
+    expect(authService.signup).not.toHaveBeenCalled();
+    expect(component.errorMessage()).toBe('Escolha um nome de usuário.');
+  });
+
+  it('nome de usuário com formato inválido não cria a conta', () => {
+    component.acceptedTerms.set(true);
+    component.username.set('gorak dente');
+    component.submit();
+    expect(authService.signup).not.toHaveBeenCalled();
+    expect(component.errorMessage()).toContain('letras sem acento');
+  });
+
+  it('nome em uso (ainda não confirmado livre) não cria a conta', () => {
+    component.acceptedTerms.set(true);
+    component.usernameValid.set(false);
+    component.submit();
+    expect(authService.signup).not.toHaveBeenCalled();
+    expect(component.errorMessage()).toBe('Escolha um nome de usuário que esteja livre.');
+  });
+
+  it('com o aceite, cria a conta com o nome de usuário e vai pra home', () => {
+    component.acceptedTerms.set(true);
+    component.username.set(' gorak ');
+    component.submit();
+    expect(authService.signup).toHaveBeenCalledWith('heroi@aventura.com', 'segredo123', 'gorak');
     expect(component.errorMessage()).toBe('');
     expect(navigate).toHaveBeenCalledWith(['/']);
   });

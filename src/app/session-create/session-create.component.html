@@ -36,18 +36,9 @@
         />
       </div>
 
-      <div class="m-field">
-        <label class="m-label" for="m-master-name">NOME DO MESTRE</label>
-        <input
-          id="m-master-name"
-          type="text"
-          class="m-input"
-          placeholder="Seu apelido de mestre"
-          [ngModel]="masterName()"
-          (ngModelChange)="masterName.set($event)"
-        />
-        <p class="name-privacy-hint">Prefira um apelido: este nome aparece para todos da mesa.</p>
-      </div>
+      <p class="name-privacy-hint">
+        Você mestra como <strong>{{ username() }}</strong>, seu nome de usuário — troque em Minha Conta.
+      </p>
     </section>
 
     <section class="m-section">
@@ -150,14 +141,10 @@
         </div>
 
         <div class="field field--full">
-          <label class="field-label">NOME DO MESTRE</label>
-          <input
-            type="text"
-            placeholder="Seu apelido de mestre"
-            [ngModel]="masterName()"
-            (ngModelChange)="masterName.set($event)"
-          />
-          <p class="name-privacy-hint">Prefira um apelido: este nome aparece para todos da mesa.</p>
+          <span class="field-label">MESTRE</span>
+          <p class="name-privacy-hint">
+            <strong>{{ username() }}</strong>, seu nome de usuário — troque em Minha Conta.
+          </p>
         </div>
       </div>
     </fieldset>

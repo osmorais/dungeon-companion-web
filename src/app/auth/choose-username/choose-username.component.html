@@ -1,0 +1,41 @@
+<div class="auth-container">
+  <fieldset class="auth-panel">
+    <legend>ESCOLHA SEU NOME</legend>
+
+    <p class="success-msg">
+      Agora cada aventureiro tem um nome de usuário único. É com ele que você aparece na mesa e no
+      ranking.
+    </p>
+
+    <div class="form-group">
+      <label for="username">NOME DE USUÁRIO</label>
+      <input
+        id="username"
+        type="text"
+        maxlength="20"
+        autocomplete="username"
+        placeholder="gorak_dente"
+        [ngModel]="username()"
+        (ngModelChange)="username.set($event)"
+        (keyup.enter)="save()"
+      />
+      <app-username-status
+        [username]="username()"
+        (pick)="username.set($event)"
+        (validChange)="valid.set($event)"
+      />
+    </div>
+
+    @if (errorMessage()) {
+      <p class="error-msg">{{ errorMessage() }}</p>
+    }
+
+    <button class="retro-btn full-btn" (click)="save()" [disabled]="!valid() || saving()">
+      {{ saving() ? 'SALVANDO...' : 'CONTINUAR' }}
+    </button>
+
+    <div class="auth-links">
+      <a href="" (click)="$event.preventDefault(); logout()">SAIR</a>
+    </div>
+  </fieldset>
+</div>

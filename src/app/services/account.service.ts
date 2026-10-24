@@ -14,10 +14,9 @@ export class AccountService {
     return this.http.get<AccountProfile>(`${this.baseUrl}/api/account`);
   }
 
-  updateFullName(fullName: string | null): Observable<AccountProfile> {
-    return this.http.patch<AccountProfile>(`${this.baseUrl}/api/account`, {
-      full_name: fullName,
-    });
+  /** Grava o nome de usuário (único; 409 com sugestões em `error.details.suggestions`). */
+  updateUsername(username: string): Observable<AccountProfile> {
+    return this.http.patch<AccountProfile>(`${this.baseUrl}/api/account`, { username });
   }
 
   updateShowInRanking(show: boolean): Observable<AccountProfile> {

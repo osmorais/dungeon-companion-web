@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal, viewChild } from '@angular/core';
 import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -7,6 +7,8 @@ import { AuthService } from '../services/auth.service';
 import { AccountProfile } from '../models/account.interface';
 import { LEGAL_CONTACT_EMAIL, LEGAL_DOC_ROUTES } from '../legal/legal-info';
 import { apiErrorMessage } from '../auth/auth-errors';
+import { suggestionsFromError } from '../auth/username';
+import { UsernameStatusComponent } from '../auth/username-status/username-status.component';
 
 /** Nome do arquivo baixado na exportação, ex.: forja-arcana-meus-dados-2026-10-14.json */
 export function exportFileName(date: Date): string {
@@ -16,13 +18,13 @@ export function exportFileName(date: Date): string {
 }
 
 /**
- * "Minha conta": ver/corrigir o nome, baixar os dados (portabilidade) e excluir a conta —
+ * "Minha conta": ver/trocar o nome de usuário, baixar os dados (portabilidade) e excluir a conta —
  * direitos do titular da LGPD (art. 18).
  */
 @Component({
   selector: 'app-account',
   standalone: true,
-  imports: [FormsModule, RouterLink, SkeletonRowsComponent],
+  imports: [FormsModule, RouterLink, SkeletonRowsComponent, UsernameStatusComponent],
   templateUrl: './account.component.html',
   styleUrls: ['./account.component.scss'],
 })
@@ -37,9 +39,17 @@ export class AccountComponent implements OnInit {
   profile = signal<AccountProfile | null>(null);
   loadError = signal(false);
 
-  fullName = signal('');
+  private usernameStatus = viewChild(UsernameStatusComponent);
+  username = signal('');
+  usernameValid = signal(false);
   nameMessage = signal('');
   savingName = signal(false);
+  /** Botão só com um nome válido e diferente do atual. */
+  canSaveName = computed(() => {
+    const current = this.profile()?.username ?? '';
+    const typed = this.username().trim();
+    return this.usernameValid() && !this.savingName() && typed !== current;
+  });
 
   savingRanking = signal(false);
   rankingMessage = signal('');
@@ -67,24 +77,26 @@ export class AccountComponent implements OnInit {
     this.accountService.getProfile().subscribe({
       next: (profile) => {
         this.profile.set(profile);
-        this.fullName.set(profile.full_name ?? '');
+        this.username.set(profile.username ?? '');
       },
       error: () => this.loadError.set(true),
     });
   }
 
   saveName(): void {
+    if (!this.canSaveName()) return;
     this.nameMessage.set('');
     this.savingName.set(true);
-    const name = this.fullName().trim();
-    this.accountService.updateFullName(name.length ? name : null).subscribe({
+    this.accountService.updateUsername(this.username().trim()).subscribe({
       next: (profile) => {
         this.profile.set(profile);
-        this.fullName.set(profile.full_name ?? '');
-        this.nameMessage.set('Nome salvo.');
+        this.username.set(profile.username ?? '');
+        if (profile.username) this.authService.setCurrentUsername(profile.username);
+        this.nameMessage.set('Nome de usuário salvo.');
         this.savingName.set(false);
       },
       error: (err) => {
+        if (err?.status === 409) this.usernameStatus()?.showTaken(suggestionsFromError(err));
         this.nameMessage.set(apiErrorMessage(err, 'Não foi possível salvar o nome.'));
         this.savingName.set(false);
       },

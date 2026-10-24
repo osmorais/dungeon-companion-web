@@ -1,4 +1,4 @@
-import { Component, HostListener, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, HostListener, inject, OnInit, signal } from '@angular/core';
 import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -6,6 +6,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { CharacterService } from '../services/character.service';
 import { GameSessionService } from '../services/game-session.service';
 import { CharacterSummary } from '../models/character-summary.interface';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-session-join',
@@ -18,6 +19,9 @@ export class SessionJoinComponent implements OnInit {
   private router = inject(Router);
   private charService = inject(CharacterService);
   private gameSessionService = inject(GameSessionService);
+  private auth = inject(AuthService);
+  /** Na mesa você aparece com o nome de usuário (1.9.0) — não há mais nome de jogador a digitar. */
+  readonly username = computed(() => this.auth.currentUser()?.username ?? '');
 
   isMobile = signal(typeof window !== 'undefined' && window.innerWidth < 768);
   characters = signal<CharacterSummary[]>([]);
@@ -27,7 +31,6 @@ export class SessionJoinComponent implements OnInit {
   joining = signal(false);
   selectedCharacter = signal<CharacterSummary | null>(null);
   sessionCode = signal('');
-  playerName = signal('');
   loadError = signal(false);
   joinError = signal('');
 
@@ -64,7 +67,6 @@ export class SessionJoinComponent implements OnInit {
   canJoin(): boolean {
     return (
       this.sessionCode().length === 5 &&
-      this.playerName().trim().length > 0 &&
       this.selectedCharacter() !== null
     );
   }
@@ -77,7 +79,6 @@ export class SessionJoinComponent implements OnInit {
     this.gameSessionService
       .joinSession({
         session_code: this.sessionCode(),
-        player_name: this.playerName().trim(),
         id_character: this.selectedCharacter()!.id_character,
       })
       .subscribe({

@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, catchError, of, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { AuthResponse, MeResponse, UserPublic } from '../models/auth.interface';
+import { AuthResponse, MeResponse, UserPublic, UsernameCheck } from '../models/auth.interface';
 
 export const AUTH_TOKEN_KEY = 'auth_token';
 
@@ -15,11 +15,28 @@ export class AuthService {
 
   readonly currentUser = signal<UserPublic | null>(null);
   readonly isLoggedIn = computed(() => this.currentUser() !== null);
+  /** Logado mas sem nome de usuário (conta antiga ou recém-criada com o Google): precisa escolher. */
+  readonly needsUsername = computed(() => {
+    const user = this.currentUser();
+    return user !== null && !user.username;
+  });
 
-  signup(email: string, password: string, fullName?: string): Observable<AuthResponse> {
+  signup(email: string, password: string, username: string): Observable<AuthResponse> {
     return this.http
-      .post<AuthResponse>(`${this.baseUrl}/auth/signup`, { email, password, full_name: fullName })
+      .post<AuthResponse>(`${this.baseUrl}/auth/signup`, { email, password, username })
       .pipe(tap(res => this.handleAuthResponse(res)));
+  }
+
+  /** O nome está livre? Se não, a API sugere outros. Pública (o cadastro pergunta antes da conta). */
+  checkUsername(username: string): Observable<UsernameCheck> {
+    return this.http.get<UsernameCheck>(`${this.baseUrl}/auth/username-available`, {
+      params: { username },
+    });
+  }
+
+  /** Depois de gravar o nome (escolha no primeiro acesso ou Minha Conta). */
+  setCurrentUsername(username: string): void {
+    this.currentUser.update((user) => (user ? { ...user, username } : user));
   }
 
   login(email: string, password: string): Observable<AuthResponse> {
@@ -46,7 +63,7 @@ export class AuthService {
     if (!localStorage.getItem(AUTH_TOKEN_KEY)) return of(null);
 
     return this.http.get<MeResponse>(`${this.baseUrl}/auth/me`).pipe(
-      tap(me => this.currentUser.set({ id: me.id, email: me.email })),
+      tap(me => this.currentUser.set({ id: me.id, email: me.email, username: me.username ?? null })),
       catchError(() => {
         this.clearSession(redirectTo);
         return of(null);

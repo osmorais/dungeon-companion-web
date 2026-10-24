@@ -1,0 +1,36 @@
+<div class="username-status" aria-live="polite">
+  @switch (state()) {
+    @case ('checking') {
+      <p class="username-status__msg">CONFERINDO...</p>
+    }
+    @case ('available') {
+      <p class="username-status__msg username-status__msg--ok">✓ DISPONÍVEL</p>
+    }
+    @case ('current') {
+      <p class="username-status__msg username-status__msg--ok">É O SEU NOME ATUAL</p>
+    }
+    @case ('taken') {
+      <p class="username-status__msg username-status__msg--bad">JÁ ESTÁ EM USO.</p>
+    }
+    @case ('invalid') {
+      <p class="username-status__msg username-status__msg--bad">{{ formatError() }}</p>
+    }
+    @case ('unknown') {
+      <p class="username-status__msg">NÃO DEU PRA CONFERIR AGORA — CONFERIMOS AO SALVAR.</p>
+    }
+  }
+
+  @if (suggestions().length && (state() === 'taken' || state() === 'invalid')) {
+    <div class="username-status__suggestions">
+      <span>QUE TAL:</span>
+      @for (s of suggestions(); track s) {
+        <button type="button" class="username-status__chip" (click)="pick.emit(s)">{{ s }}</button>
+      }
+    </div>
+  }
+
+  <p class="name-privacy-hint">
+    Letras sem acento, números, _ e -, de 3 a 20 caracteres. Aparece para todos da mesa e no
+    ranking: prefira um apelido.
+  </p>
+</div>

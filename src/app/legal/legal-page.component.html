@@ -30,13 +30,15 @@
         <ul>
           <li>
             <strong>Dados de conta:</strong> e-mail, senha (guardada apenas na forma de hash
-            criptográfico, nunca em texto puro) e, opcionalmente, um nome de exibição. Se você
-            entrar com o Google, recebemos do Google o seu e-mail, nome e um identificador da sua
-            conta Google.
+            criptográfico, nunca em texto puro) e um nome de usuário, único, que você escolhe e
+            que aparece para os outros (veja a seção 4). Se você entrar com o Google, usamos do
+            Google apenas o seu e-mail e um identificador da sua conta Google; o nome da sua conta
+            Google não é guardado. Contas criadas antes de outubro de 2026 podem ter um nome de
+            exibição informado no cadastro, que não aparece para ninguém.
           </li>
           <li>
             <strong>Conteúdo que você cria:</strong> personagens e fichas, anotações, inventário,
-            sessões de jogo, nomes de jogador e de mestre, NPCs, monstros, rolagens de dados,
+            sessões de jogo, NPCs, monstros, rolagens de dados,
             estatísticas de jogo dos seus personagens (como dano causado, cura e rolagens, usadas
             no ranking) e demais informações de jogo.
           </li>
@@ -87,15 +89,16 @@
         <h2>4. Quem vê e com quem compartilhamos</h2>
         <p>
           <strong>Outros participantes das suas sessões.</strong> Ao entrar numa sessão, o mestre e
-          os demais jogadores daquela sessão veem o nome de jogador que você informou, os dados do
-          seu personagem (incluindo a imagem), seus pontos de vida e suas rolagens. Por isso,
-          recomendamos usar um apelido em vez do seu nome real. Se você é o mestre, as imagens de
+          os demais jogadores daquela sessão veem o seu nome de usuário, os dados do seu personagem
+          (incluindo a imagem), seus pontos de vida e suas rolagens. Quando você é o mestre, os
+          jogadores veem o seu nome de usuário como nome do mestre. Por isso, recomendamos usar um
+          apelido em vez do seu nome real. Se você é o mestre, as imagens de
           referência que você mostrar (e as legendas) aparecem para todos os jogadores da sessão.
         </p>
         <p>
           <strong>Todos os usuários (ranking).</strong> A página de ranking mostra a todos os
-          usuários logados os maiores feitos das mesas: o avatar e o nome do personagem, o nome de
-          jogador usado naquela sessão, o nome da sessão e o número do feito (por exemplo, dano
+          usuários logados os maiores feitos das mesas: o avatar e o nome do personagem, o seu nome
+          de usuário, o nome da sessão e o número do feito (por exemplo, dano
           causado ou 20 naturais). Por padrão seus personagens aparecem; para sair, desmarque a
           opção na página <a routerLink="/conta">Minha Conta</a>.
         </p>
@@ -172,8 +175,8 @@
           <li>revogar consentimento, quando o tratamento se basear nele.</li>
         </ul>
         <p>
-          Na página <a routerLink="/conta">Minha Conta</a> você pode, a qualquer momento, corrigir
-          seu nome, sair do ranking, baixar uma cópia dos seus dados (arquivo JSON) e excluir sua
+          Na página <a routerLink="/conta">Minha Conta</a> você pode, a qualquer momento, trocar
+          seu nome de usuário, sair do ranking, baixar uma cópia dos seus dados (arquivo JSON) e excluir sua
           conta. Para os
           demais direitos, ou para trocar o e-mail da conta, envie um e-mail para
           <a [href]="'mailto:' + contactEmail">{{ contactEmail }}</a> a partir do e-mail cadastrado

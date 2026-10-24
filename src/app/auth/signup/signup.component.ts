@@ -1,4 +1,13 @@
-import { AfterViewInit, Component, ElementRef, HostListener, inject, signal, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  HostListener,
+  inject,
+  signal,
+  ViewChild,
+  viewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -6,13 +15,15 @@ import { GoogleIdentityService } from '../../services/google-identity.service';
 import { environment } from '../../../environments/environment';
 import { LEGAL_DOC_ROUTES, LEGAL_MINIMUM_AGE } from '../../legal/legal-info';
 import { apiErrorMessage, newPasswordError } from '../auth-errors';
+import { suggestionsFromError, usernameFormatError } from '../username';
+import { UsernameStatusComponent } from '../username-status/username-status.component';
 
 export const TERMS_NOT_ACCEPTED_MESSAGE = `Para criar a conta, declare ter ${LEGAL_MINIMUM_AGE} anos ou mais e aceite os Termos e a Política de Privacidade.`;
 
 @Component({
   selector: 'app-signup',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, UsernameStatusComponent],
   templateUrl: './signup.component.html',
   styleUrls: ['./signup.component.scss'],
 })
@@ -31,7 +42,11 @@ export class SignupComponent implements AfterViewInit {
     this.isMobile.set(window.innerWidth < 768);
   }
 
-  fullName = '';
+  private usernameStatus = viewChild(UsernameStatusComponent);
+
+  /** Nome de usuário (1.9.0): obrigatório, único — aparece pra mesa e no ranking. */
+  username = signal('');
+  usernameValid = signal(false);
   email = '';
   password = '';
   confirmPassword = '';
@@ -91,6 +106,14 @@ export class SignupComponent implements AfterViewInit {
 
   submit() {
     if (!this.ensureTermsAccepted()) return;
+    const username = this.username().trim();
+    const usernameError = username
+      ? usernameFormatError(username)
+      : 'Escolha um nome de usuário.';
+    if (usernameError || !this.usernameValid()) {
+      this.errorMessage.set(usernameError ?? 'Escolha um nome de usuário que esteja livre.');
+      return;
+    }
     const passwordError = newPasswordError(this.password, this.confirmPassword);
     if (passwordError) {
       this.errorMessage.set(passwordError);
@@ -98,9 +121,13 @@ export class SignupComponent implements AfterViewInit {
     }
     this.errorMessage.set('');
     this.loading.set(true);
-    this.authService.signup(this.email, this.password, this.fullName || undefined).subscribe({
+    this.authService.signup(this.email, this.password, username).subscribe({
       next: () => this.router.navigate(['/']),
       error: err => {
+        // Outra pessoa pegou o nome entre a conferência e o envio: mostra as sugestões.
+        if (err?.status === 409 && suggestionsFromError(err).length) {
+          this.usernameStatus()?.showTaken(suggestionsFromError(err));
+        }
         this.errorMessage.set(apiErrorMessage(err, 'Erro ao criar conta. Tente novamente.'));
         this.loading.set(false);
       },

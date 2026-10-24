@@ -1,0 +1,45 @@
+.username-status {
+  margin-top: 6px;
+  text-align: left;
+}
+
+.username-status__msg {
+  margin: 0 0 4px;
+  font-size: 7px;
+  line-height: 1.6;
+  color: var(--label-title-color);
+
+  &--ok {
+    color: var(--accent-color);
+  }
+
+  &--bad {
+    color: var(--sheet-label-color);
+  }
+}
+
+.username-status__suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  font-size: 7px;
+  color: var(--label-title-color);
+}
+
+.username-status__chip {
+  padding: 4px 8px;
+  background: var(--panel-bg);
+  color: var(--text-color);
+  border: 2px solid var(--border-color);
+  font-family: inherit;
+  font-size: 8px;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+  }
+}

@@ -1,10 +1,11 @@
-import { Component, HostListener, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, HostListener, inject, OnInit, signal } from '@angular/core';
 import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { GameSessionService } from '../services/game-session.service';
 import { CharacterService } from '../services/character.service';
 import { CharacterSummary } from '../models/character-summary.interface';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-session-create',
@@ -17,12 +18,14 @@ export class SessionCreateComponent implements OnInit {
   private router = inject(Router);
   private gameSessionService = inject(GameSessionService);
   private charService = inject(CharacterService);
+  private auth = inject(AuthService);
+  /** O mestre aparece com o nome de usuário (1.9.0) — não há mais nome de mestre a digitar. */
+  readonly username = computed(() => this.auth.currentUser()?.username ?? '');
 
   isMobile = signal(typeof window !== 'undefined' && window.innerWidth < 768);
 
   sessionName = signal('');
   maxPlayers = signal<number | null>(null);
-  masterName = signal('');
   sessionCode = signal('');
   saveError = signal('');
   /** Salvando — trava o botão (sem o overlay que bloqueava a tela). */
@@ -72,8 +75,7 @@ export class SessionCreateComponent implements OnInit {
   canGenerate(): boolean {
     return (
       this.sessionName().trim().length > 0 &&
-      (this.maxPlayers() ?? 0) > 0 &&
-      this.masterName().trim().length > 0
+      (this.maxPlayers() ?? 0) > 0
     );
   }
 
@@ -93,7 +95,6 @@ export class SessionCreateComponent implements OnInit {
         session_name: this.sessionName().trim(),
         session_code: this.sessionCode(),
         max_player_quantity: this.maxPlayers()!,
-        dm_name: this.masterName().trim(),
         npcs,
         monsters: [],
       })

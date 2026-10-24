@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, loggedInMatch } from './guards/auth.guard';
+import { authGuard, chooseUsernameGuard, loggedInMatch } from './guards/auth.guard';
 
 export const routes: Routes = [
   // Públicas
@@ -43,6 +43,16 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./release-notes/release-notes-page.component').then(
         m => m.ReleaseNotesPageComponent,
+      ),
+  },
+
+  // Logado sem nome de usuário (conta antiga ou recém-criada com o Google) escolhe antes de seguir.
+  {
+    path: 'nome-de-usuario',
+    canActivate: [chooseUsernameGuard],
+    loadComponent: () =>
+      import('./auth/choose-username/choose-username.component').then(
+        m => m.ChooseUsernameComponent,
       ),
   },
 

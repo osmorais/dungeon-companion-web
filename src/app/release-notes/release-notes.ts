@@ -33,6 +33,29 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.9.0',
+    date: '2026-10-24',
+    title: 'Nome de usuário',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'Cada aventureiro agora tem um nome de usuário único, escolhido no cadastro. Se o nome já existir, o site sugere outros parecidos.',
+      },
+      {
+        kind: 'novidade',
+        text: 'Quem já tinha conta, ou entra com o Google pela primeira vez, escolhe o nome de usuário no próximo acesso.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Ao entrar ou criar uma sessão você não precisa mais digitar o nome de jogador ou de mestre: a mesa e o ranking mostram o seu nome de usuário.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Dá pra trocar o nome de usuário em Minha Conta; a mesa e o ranking passam a mostrar o nome novo.',
+      },
+    ],
+  },
+  {
     version: '1.8.3',
     date: '2026-10-24',
     title: 'Moldura nova no tema sombrio',
