@@ -24,12 +24,12 @@ describe('AuthService — para onde vai ao encerrar a sessão', () => {
     localStorage.removeItem(AUTH_TOKEN_KEY);
   });
 
-  it('SAIR limpa a sessão e leva pra tela inicial', () => {
+  it('SAIR limpa a sessão e leva pro login', () => {
     auth.logout().subscribe();
     http.expectOne((req) => req.url.endsWith('/auth/logout')).flush({});
     expect(localStorage.getItem(AUTH_TOKEN_KEY)).toBeNull();
     expect(auth.isLoggedIn()).toBe(false);
-    expect(navigate).toHaveBeenCalledWith(['/']);
+    expect(navigate).toHaveBeenCalledWith(['/login']);
   });
 
   it('sessão expirada (clearSession sem destino) continua indo pro login', () => {

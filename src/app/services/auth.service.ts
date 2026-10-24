@@ -28,10 +28,13 @@ export class AuthService {
       .pipe(tap(res => this.handleAuthResponse(res)));
   }
 
-  /** SAIR leva pra tela inicial; sessão expirada (401) e conta excluída vão pro login. */
+  /**
+   * SAIR leva pro login. Não pra `/`: quem sai da Home já está em `/`, o roteador ignora a
+   * navegação pra mesma URL e a Home ficava na tela.
+   */
   logout(): Observable<unknown> {
     return this.http.post(`${this.baseUrl}/auth/logout`, {}).pipe(
-      tap(() => this.clearSession('/')),
+      tap(() => this.clearSession('/login')),
     );
   }
 
@@ -69,7 +72,7 @@ export class AuthService {
   }
 
   /** `null` = só limpa, sem navegar. */
-  clearSession(redirectTo: '/login' | '/' | null = '/login'): void {
+  clearSession(redirectTo: '/login' | null = '/login'): void {
     localStorage.removeItem(AUTH_TOKEN_KEY);
     this.currentUser.set(null);
     if (redirectTo) this.router.navigate([redirectTo]);

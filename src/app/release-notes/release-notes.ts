@@ -33,6 +33,21 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.8.2',
+    date: '2026-10-24',
+    title: 'Sair leva pra tela de entrar',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'Ao clicar em SAIR, você agora vai pra tela de entrar. Antes, saindo do menu inicial, a tela continuava a mesma.',
+      },
+      {
+        kind: 'correcao',
+        text: 'O código de mesa do exemplo na tela inicial não pode mais coincidir com o de uma mesa de verdade.',
+      },
+    ],
+  },
+  {
     version: '1.8.1',
     date: '2026-10-24',
     title: 'Tela inicial renovada e fundo novo no card do personagem',
