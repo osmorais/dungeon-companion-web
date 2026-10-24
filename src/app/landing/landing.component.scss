@@ -271,6 +271,8 @@ button {
 .lp-sample-top {
   display: flex;
   justify-content: space-between;
+  // Reserva espaço à direita pro dado "CRÍTICO!" que fica pendurado no canto do cartão.
+  padding-right: 70px;
   font-size: 7px;
   color: var(--label-title-color);
 }
@@ -333,7 +335,9 @@ button {
 
 .lp-token--die {
   top: 4%;
-  right: 6%;
+  // Ancorado à borda direita do cartão (largura fixa de 290px), não do container: em telas
+  // estreitas o container encolhe mas o cartão não, e uma % simples desalinha o dado.
+  right: calc(50% - 145px - 36px);
   padding: 8px 12px 8px 8px;
   background: var(--bg-color);
   border: 2px solid var(--accent-color);
@@ -359,8 +363,10 @@ button {
 }
 
 .lp-token--tom {
-  bottom: 0;
-  left: 0;
+  top: 100%;
+  // Mesma lógica do dado: ancorado à borda esquerda do cartão (290px fixos), não do container.
+  left: calc(50% - 145px - 20px);
+  margin-top: -10px;
   align-items: flex-start;
 
   img {
