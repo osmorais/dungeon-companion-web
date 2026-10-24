@@ -35,13 +35,17 @@ export class AuthService {
     );
   }
 
-  loadCurrentUser(): Observable<MeResponse | null> {
+  /**
+   * Confirma o token salvo no `/auth/me`. Se falhar, limpa a sessão e vai pra `redirectTo`; `null`
+   * só limpa, sem navegar (o `canMatch` de `/` deixa o roteador seguir pra tela inicial).
+   */
+  loadCurrentUser(redirectTo: '/login' | null = '/login'): Observable<MeResponse | null> {
     if (!localStorage.getItem(AUTH_TOKEN_KEY)) return of(null);
 
     return this.http.get<MeResponse>(`${this.baseUrl}/auth/me`).pipe(
       tap(me => this.currentUser.set({ id: me.id, email: me.email })),
       catchError(() => {
-        this.clearSession();
+        this.clearSession(redirectTo);
         return of(null);
       }),
     );
@@ -64,10 +68,11 @@ export class AuthService {
     });
   }
 
-  clearSession(redirectTo: '/login' | '/' = '/login'): void {
+  /** `null` = só limpa, sem navegar. */
+  clearSession(redirectTo: '/login' | '/' | null = '/login'): void {
     localStorage.removeItem(AUTH_TOKEN_KEY);
     this.currentUser.set(null);
-    this.router.navigate([redirectTo]);
+    if (redirectTo) this.router.navigate([redirectTo]);
   }
 
   private handleAuthResponse(res: AuthResponse): void {

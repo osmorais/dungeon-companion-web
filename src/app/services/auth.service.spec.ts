@@ -37,4 +37,11 @@ describe('AuthService — para onde vai ao encerrar a sessão', () => {
     expect(localStorage.getItem(AUTH_TOKEN_KEY)).toBeNull();
     expect(navigate).toHaveBeenCalledWith(['/login']);
   });
+
+  it('clearSession(null) só limpa a sessão, sem navegar', () => {
+    auth.clearSession(null);
+    expect(localStorage.getItem(AUTH_TOKEN_KEY)).toBeNull();
+    expect(auth.isLoggedIn()).toBe(false);
+    expect(navigate).not.toHaveBeenCalled();
+  });
 });

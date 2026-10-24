@@ -4,12 +4,15 @@ import { map, Observable, of } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { AUTH_TOKEN_KEY } from '../services/auth.service';
 
-/** Logado? Com token salvo e sem usuário carregado ainda, confirma no `/auth/me`. */
+/**
+ * Logado? Com token salvo e sem usuário carregado ainda, confirma no `/auth/me`. Token vencido ou
+ * erro: limpa sem redirecionar pro login — quem chama decide pra onde vai.
+ */
 function checkLoggedIn(): Observable<boolean> {
   const authService = inject(AuthService);
   if (authService.isLoggedIn()) return of(true);
   if (!localStorage.getItem(AUTH_TOKEN_KEY)) return of(false);
-  return authService.loadCurrentUser().pipe(map((user) => !!user));
+  return authService.loadCurrentUser(null).pipe(map((user) => !!user));
 }
 
 export const authGuard: CanActivateFn = () => {

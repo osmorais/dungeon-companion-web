@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.8.1',
+    date: '2026-10-24',
+    title: 'Volta depois da sessão expirada',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'Quem volta ao site depois que a sessão expirou agora vê a tela inicial, em vez de cair direto na tela de entrar.',
+      },
+    ],
+  },
+  {
     version: '1.8.0',
     date: '2026-10-23',
     title: 'Nova tela inicial',
