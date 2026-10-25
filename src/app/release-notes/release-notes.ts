@@ -53,6 +53,10 @@ export const RELEASES: Release[] = [
         kind: 'melhoria',
         text: 'A seção "Para toda a companhia" aproveita melhor a largura da tela em monitores grandes.',
       },
+      {
+        kind: 'correcao',
+        text: 'Na tela inicial, a carta da vitrine não passa mais por cima da barra do topo ao rolar a página.',
+      },
     ],
   },
   {
