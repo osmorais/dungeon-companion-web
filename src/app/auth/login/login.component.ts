@@ -1,4 +1,12 @@
-import { AfterViewInit, Component, ElementRef, HostListener, inject, signal, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  HostListener,
+  inject,
+  signal,
+  ViewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -62,12 +70,12 @@ export class LoginComponent implements AfterViewInit {
     }
   }
 
-  private handleGoogleCredential(idToken: string): void {
+  handleGoogleCredential(idToken: string): void {
     this.errorMessage.set('');
     this.loading.set(true);
     this.authService.googleLogin(idToken).subscribe({
       next: () => this.router.navigate(['/']),
-      error: err => {
+      error: (err) => {
         this.errorMessage.set(apiErrorMessage(err, 'Erro ao entrar com Google. Tente novamente.'));
         this.loading.set(false);
       },
@@ -79,7 +87,7 @@ export class LoginComponent implements AfterViewInit {
     this.loading.set(true);
     this.authService.login(this.email, this.password).subscribe({
       next: () => this.router.navigate(['/']),
-      error: err => {
+      error: (err) => {
         this.errorMessage.set(apiErrorMessage(err, 'Erro ao entrar. Tente novamente.'));
         this.loading.set(false);
       },

@@ -10,19 +10,43 @@
 
       <div class="mobile-form-group">
         <label for="mobile-email">EMAIL</label>
-        <input id="mobile-email" type="email" [(ngModel)]="email" placeholder="heroi@aventura.com" />
+        <input
+          id="mobile-email"
+          name="email"
+          type="email"
+          autocomplete="email"
+          inputmode="email"
+          spellcheck="false"
+          [(ngModel)]="email"
+          placeholder="heroi@aventura.com"
+          (keyup.enter)="passwordInput.focus()"
+        />
       </div>
 
       <div class="mobile-form-group">
         <label for="mobile-password">SENHA</label>
-        <input id="mobile-password" type="password" [(ngModel)]="password" placeholder="••••••••" (keyup.enter)="submit()" />
+        <input
+          id="mobile-password"
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          [(ngModel)]="password"
+          placeholder="••••••••"
+          #passwordInput
+          (keyup.enter)="submit()"
+        />
       </div>
 
       @if (errorMessage()) {
-        <p class="mobile-error-msg">{{ errorMessage() }}</p>
+        <p class="mobile-error-msg" role="alert">{{ errorMessage() }}</p>
       }
 
-      <button class="retro-btn mobile-full-btn" (click)="submit()" [disabled]="loading()">
+      <button
+        class="retro-btn mobile-full-btn"
+        [class.is-loading]="loading()"
+        (click)="submit()"
+        [disabled]="loading()"
+      >
         {{ loading() ? 'ENTRANDO...' : 'ENTRAR' }}
       </button>
 
@@ -60,19 +84,44 @@
 
       <div class="form-group">
         <label for="email">EMAIL</label>
-        <input id="email" type="email" [(ngModel)]="email" placeholder="heroi@aventura.com" />
+        <input
+          id="email"
+          name="email"
+          type="email"
+          autocomplete="email"
+          inputmode="email"
+          spellcheck="false"
+          autofocus
+          [(ngModel)]="email"
+          placeholder="heroi@aventura.com"
+          (keyup.enter)="passwordInput.focus()"
+        />
       </div>
 
       <div class="form-group">
         <label for="password">SENHA</label>
-        <input id="password" type="password" [(ngModel)]="password" placeholder="••••••••" (keyup.enter)="submit()" />
+        <input
+          id="password"
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          [(ngModel)]="password"
+          placeholder="••••••••"
+          #passwordInput
+          (keyup.enter)="submit()"
+        />
       </div>
 
       @if (errorMessage()) {
-        <p class="error-msg">{{ errorMessage() }}</p>
+        <p class="error-msg" role="alert">{{ errorMessage() }}</p>
       }
 
-      <button class="retro-btn full-btn" (click)="submit()" [disabled]="loading()">
+      <button
+        class="retro-btn full-btn"
+        [class.is-loading]="loading()"
+        (click)="submit()"
+        [disabled]="loading()"
+      >
         {{ loading() ? 'ENTRANDO...' : 'ENTRAR' }}
       </button>
 

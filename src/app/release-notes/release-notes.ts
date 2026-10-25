@@ -33,6 +33,25 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.11.1',
+    date: '2026-10-25',
+    title: 'Tela de entrada mais caprichada',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'A tela de entrada (login) ganhou um visual mais caprichado, no mesmo estilo da tela de criar conta.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'O botão de entrar e o aviso de erro ficaram mais visíveis, com um efeito de clique no botão.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Aperte Enter no campo de e-mail para ir direto pro campo de senha, sem precisar clicar.',
+      },
+    ],
+  },
+  {
     version: '1.11.0',
     date: '2026-10-25',
     title: 'Monstros atacam de verdade',
