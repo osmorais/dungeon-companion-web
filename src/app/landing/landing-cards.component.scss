@@ -51,6 +51,9 @@
   width: 100%;
   touch-action: pan-y;
   outline: none;
+  // As cartas (z-index até 50) e as setas (60) se ordenam só aqui dentro: sem isso, a carta da vez
+  // empatava com a barra fixa do topo (.lp-topbar, 50) e passava por cima dela ao rolar a página.
+  isolation: isolate;
 
   &:focus-visible .lc-carousel {
     outline: 2px dashed var(--accent-color);
