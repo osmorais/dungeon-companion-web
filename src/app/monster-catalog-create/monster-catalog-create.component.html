@@ -8,7 +8,7 @@
     </div>
 
     <section class="m-section">
-      <h2 class="m-section-title">BUSCAR NO SRD</h2>
+      <h2 class="m-section-title">BUSCAR NO BESTIÁRIO</h2>
       <div class="m-field">
         <input
           type="text"
@@ -22,7 +22,7 @@
       @if (loadingList()) {
         <app-skeleton-rows [rows]="6" [height]="36" />
       } @else if (listError()) {
-        <p class="m-empty">ERRO AO CARREGAR O SRD.</p>
+        <p class="m-empty">ERRO AO CARREGAR O BESTIÁRIO.</p>
       } @else if (filteredMonsters().length === 0) {
         <p class="m-empty">NENHUM MONSTRO ENCONTRADO.</p>
       } @else {
@@ -35,6 +35,7 @@
             >
               <span class="m-card-body">
                 <span class="m-card-title">{{ m.name }}</span>
+                <span class="m-card-desc">ND {{ crText(m.challenge_rating) }} &middot; {{ m.type }}</span>
               </span>
               @if (selectedSlug() === m.index) {
                 <span class="m-card-icon"><img class="ui-icon" src="assets/icons/check.png" alt="" /></span>
@@ -71,7 +72,7 @@
               <div class="stat-ability"><span class="stat-ability-key">CAR</span>{{ detail.charisma }}</div>
             </div>
 
-            <div class="stat-row"><span class="stat-label">ND</span><span>{{ detail.challenge_rating }} ({{ detail.xp }} XP)</span></div>
+            <div class="stat-row"><span class="stat-label">ND</span><span>{{ crText(detail.challenge_rating) }} ({{ detail.xp }} XP)</span></div>
 
             @if (detail.special_abilities?.length) {
               <div class="stat-section">
@@ -124,7 +125,7 @@
     <div class="create-layout">
 
       <fieldset class="retro-panel search-panel">
-        <legend>BUSCAR NO SRD</legend>
+        <legend>BUSCAR NO BESTIÁRIO</legend>
         <input
           type="text"
           class="search-input"
@@ -135,12 +136,13 @@
         @if (loadingList()) {
           <app-skeleton-rows [rows]="10" [height]="16" />
         } @else if (listError()) {
-          <p class="empty-msg">ERRO AO CARREGAR O SRD.</p>
+          <p class="empty-msg">ERRO AO CARREGAR O BESTIÁRIO.</p>
         } @else {
-          <ul class="srd-list">
+          <ul class="bestiary-list">
             @for (m of filteredMonsters(); track m.index) {
-              <li class="srd-row" [class.srd-row--active]="selectedSlug() === m.index" (click)="selectMonster(m)">
+              <li class="bestiary-row" [class.bestiary-row--active]="selectedSlug() === m.index" (click)="selectMonster(m)">
                 {{ m.name }}
+                <span class="bestiary-row-meta">ND {{ crText(m.challenge_rating) }} &middot; {{ m.type }}</span>
               </li>
             }
             @if (filteredMonsters().length === 0) {
@@ -176,7 +178,7 @@
               <div class="stat-ability"><span class="stat-ability-key">CAR</span>{{ detail.charisma }}</div>
             </div>
 
-            <div class="stat-row"><span class="stat-label">ND</span><span>{{ detail.challenge_rating }} ({{ detail.xp }} XP)</span></div>
+            <div class="stat-row"><span class="stat-label">ND</span><span>{{ crText(detail.challenge_rating) }} ({{ detail.xp }} XP)</span></div>
 
             @if (detail.special_abilities?.length) {
               <div class="stat-section">

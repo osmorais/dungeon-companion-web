@@ -33,6 +33,25 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.10.0',
+    date: '2026-10-24',
+    title: 'Bestiário do Manual dos Monstros',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'Ao catalogar um monstro, o mestre agora escolhe entre as 428 criaturas do Manual dos Monstros, com as fichas em português.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A lista mostra o nível de desafio e o tipo de cada criatura, e a busca encontra o nome mesmo sem acento.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'O nível de desafio aparece como no livro (1/4, 1/2), e o deslocamento de quem paira mostra só "pairar".',
+      },
+    ],
+  },
+  {
     version: '1.9.0',
     date: '2026-10-24',
     title: 'Nome de usuário',

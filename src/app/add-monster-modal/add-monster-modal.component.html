@@ -46,23 +46,24 @@
         <input
           type="text"
           class="search-input"
-          placeholder="Buscar monstro no SRD..."
+          placeholder="Buscar monstro no bestiário..."
           [ngModel]="searchText()"
           (ngModelChange)="searchText.set($event)"
         />
 
-        @if (loadingSrdList()) {
+        @if (loadingBestiary()) {
           <app-skeleton-rows [rows]="6" [height]="16" />
-        } @else if (srdListError()) {
-          <p class="modal-empty">Erro ao carregar o SRD.</p>
+        } @else if (bestiaryError()) {
+          <p class="modal-empty">Erro ao carregar o bestiário.</p>
         } @else {
-          <ul class="srd-list">
-            @for (m of filteredSrdMonsters(); track m.index) {
-              <li class="srd-row" [class.srd-row--active]="selectedSlug() === m.index" (click)="selectSrdMonster(m)">
+          <ul class="bestiary-list">
+            @for (m of filteredBestiaryMonsters(); track m.index) {
+              <li class="bestiary-row" [class.bestiary-row--active]="selectedSlug() === m.index" (click)="selectBestiaryMonster(m)">
                 {{ m.name }}
+                <span class="bestiary-row-meta">ND {{ crText(m.challenge_rating) }} &middot; {{ m.type }}</span>
               </li>
             }
-            @if (filteredSrdMonsters().length === 0) {
+            @if (filteredBestiaryMonsters().length === 0) {
               <p class="modal-empty">Nenhum monstro encontrado.</p>
             }
           </ul>
@@ -78,7 +79,7 @@
               <div class="preview-summary">
                 <span class="preview-name">{{ detail.name }}</span>
                 <span class="preview-meta">
-                  CA {{ acValue(detail) }} &mdash; PV {{ detail.hit_points }} &mdash; ND {{ detail.challenge_rating }}
+                  CA {{ acValue(detail) }} &mdash; PV {{ detail.hit_points }} &mdash; ND {{ crText(detail.challenge_rating) }}
                 </span>
               </div>
               <input

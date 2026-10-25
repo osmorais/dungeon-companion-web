@@ -2,7 +2,8 @@ import { Component, HostListener, OnInit, inject, signal } from '@angular/core';
 import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MonsterCatalogService } from '../services/monster-catalog.service';
-import { MonsterCatalogEntry, SrdMonsterDetail } from '../models/monster-catalog.interface';
+import { MonsterCatalogEntry, MonsterStatBlock } from '../models/monster-catalog.interface';
+import { challengeRatingText, monsterSpeedText } from '../services/monster-format';
 
 @Component({
   selector: 'app-monster-catalog-detail',
@@ -53,15 +54,15 @@ export class MonsterCatalogDetailComponent implements OnInit {
     return monster.custom_name ?? monster.data_snapshot.name;
   }
 
-  acValue(detail: SrdMonsterDetail): number | null {
+  acValue(detail: MonsterStatBlock): number | null {
     return detail.armor_class?.[0]?.value ?? null;
   }
 
-  speedText(detail: SrdMonsterDetail): string {
-    return Object.entries(detail.speed ?? {})
-      .map(([key, value]) => `${key}: ${value}`)
-      .join(', ');
+  speedText(detail: MonsterStatBlock): string {
+    return monsterSpeedText(detail.speed);
   }
+
+  crText = challengeRatingText;
 
   /** ========================= IMAGEM CUSTOMIZADA ========================= */
 

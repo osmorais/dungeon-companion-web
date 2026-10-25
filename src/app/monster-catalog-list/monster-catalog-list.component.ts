@@ -4,6 +4,7 @@ import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { Router } from '@angular/router';
 import { MonsterCatalogService } from '../services/monster-catalog.service';
 import { MonsterCatalogEntry } from '../models/monster-catalog.interface';
+import { challengeRatingText } from '../services/monster-format';
 
 const PAGE_SIZE = 12;
 
@@ -17,6 +18,8 @@ const PAGE_SIZE = 12;
 export class MonsterCatalogListComponent implements OnInit {
   private router = inject(Router);
   private monsterCatalogService = inject(MonsterCatalogService);
+
+  crText = challengeRatingText;
 
   /** Miniatura padrão pra monstros catalogados sem image_url. */
   readonly DEFAULT_MONSTER_IMAGE = 'assets/monster.png';

@@ -3,7 +3,12 @@ import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MonsterCatalogService } from '../services/monster-catalog.service';
-import { SrdMonsterDetail, SrdMonsterSummary } from '../models/monster-catalog.interface';
+import { BestiaryMonsterSummary, MonsterStatBlock } from '../models/monster-catalog.interface';
+import {
+  challengeRatingText,
+  monsterSpeedText,
+  normalizeSearch,
+} from '../services/monster-format';
 
 @Component({
   selector: 'app-monster-catalog-create',
@@ -25,27 +30,27 @@ export class MonsterCatalogCreateComponent implements OnInit {
 
   loadingList = signal(true);
   listError = signal(false);
-  allMonsters = signal<SrdMonsterSummary[]>([]);
+  allMonsters = signal<BestiaryMonsterSummary[]>([]);
   searchText = signal('');
 
   filteredMonsters = computed(() => {
-    const term = this.searchText().trim().toLowerCase();
+    const term = normalizeSearch(this.searchText());
     const all = this.allMonsters();
     if (!term) return all;
-    return all.filter(m => m.name.toLowerCase().includes(term));
+    return all.filter(m => normalizeSearch(m.name).includes(term));
   });
 
   selectedSlug = signal<string | null>(null);
   loadingDetail = signal(false);
   detailError = signal(false);
-  selectedDetail = signal<SrdMonsterDetail | null>(null);
+  selectedDetail = signal<MonsterStatBlock | null>(null);
   customName = signal('');
 
   cataloging = signal(false);
   catalogError = signal<string | null>(null);
 
   ngOnInit() {
-    this.monsterCatalogService.searchSrdMonsters().subscribe({
+    this.monsterCatalogService.listBestiary().subscribe({
       next: monsters => {
         this.allMonsters.set(monsters);
         this.loadingList.set(false);
@@ -57,14 +62,14 @@ export class MonsterCatalogCreateComponent implements OnInit {
     });
   }
 
-  selectMonster(monster: SrdMonsterSummary) {
+  selectMonster(monster: BestiaryMonsterSummary) {
     this.selectedSlug.set(monster.index);
     this.selectedDetail.set(null);
     this.detailError.set(false);
     this.customName.set('');
     this.catalogError.set(null);
     this.loadingDetail.set(true);
-    this.monsterCatalogService.getSrdMonster(monster.index).subscribe({
+    this.monsterCatalogService.getBestiaryMonster(monster.index).subscribe({
       next: detail => {
         this.selectedDetail.set(detail);
         this.loadingDetail.set(false);
@@ -76,15 +81,15 @@ export class MonsterCatalogCreateComponent implements OnInit {
     });
   }
 
-  acValue(detail: SrdMonsterDetail): number | null {
+  acValue(detail: MonsterStatBlock): number | null {
     return detail.armor_class?.[0]?.value ?? null;
   }
 
-  speedText(detail: SrdMonsterDetail): string {
-    return Object.entries(detail.speed ?? {})
-      .map(([key, value]) => `${key}: ${value}`)
-      .join(', ');
+  speedText(detail: MonsterStatBlock): string {
+    return monsterSpeedText(detail.speed);
   }
+
+  crText = challengeRatingText;
 
   confirmCatalog() {
     const slug = this.selectedSlug();

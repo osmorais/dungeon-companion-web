@@ -1,11 +1,17 @@
-/** Resumo de um monstro do SRD (D&D 5e), usado na busca antes de catalogar. */
-export interface SrdMonsterSummary {
+/** Item da lista do bestiário (fichas do Manual dos Monstros), usado na busca antes de catalogar. */
+export interface BestiaryMonsterSummary {
   index: string;
   name: string;
+  challenge_rating: number;
+  size: string;
+  type: string;
 }
 
-/** Stat block completo do SRD — só os campos usados na pré-visualização; o restante é ignorado. */
-export interface SrdMonsterDetail {
+/**
+ * Ficha do monstro (chaves no formato da dnd5eapi): do bestiário do livro, em português, ou das
+ * fichas antigas catalogadas da dnd5eapi, em inglês. Só os campos usados nas telas.
+ */
+export interface MonsterStatBlock {
   index: string;
   name: string;
   size: string;
@@ -15,7 +21,7 @@ export interface SrdMonsterDetail {
   armor_class: { type: string; value: number }[];
   hit_points: number;
   hit_dice: string;
-  speed: Record<string, string>;
+  speed: Record<string, string | boolean>;
   strength: number;
   dexterity: number;
   constitution: number;
@@ -35,7 +41,7 @@ export interface MonsterCatalogEntry {
   custom_name: string | null;
   hp_max: number;
   ac: number;
-  data_snapshot: SrdMonsterDetail;
+  data_snapshot: MonsterStatBlock;
   created_at: string;
   /** Arte customizada subida pelo mestre — null enquanto não subir nenhuma. */
   image_url: string | null;

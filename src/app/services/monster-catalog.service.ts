@@ -5,8 +5,8 @@ import { environment } from '../../environments/environment';
 import {
   MonsterCatalogEntry,
   MonsterCatalogPagedList,
-  SrdMonsterDetail,
-  SrdMonsterSummary,
+  BestiaryMonsterSummary,
+  MonsterStatBlock,
 } from '../models/monster-catalog.interface';
 
 @Injectable({
@@ -16,13 +16,13 @@ export class MonsterCatalogService {
   private http = inject(HttpClient);
   private baseUrl = environment.apiUrl;
 
-  /** Lista de monstros do SRD disponíveis pra catalogar (via proxy do nosso backend). */
-  searchSrdMonsters(): Observable<SrdMonsterSummary[]> {
-    return this.http.get<SrdMonsterSummary[]>(`${this.baseUrl}/api/monster-catalog/srd`);
+  /** Lista do bestiário (fichas do Manual dos Monstros) disponível pra catalogar. */
+  listBestiary(): Observable<BestiaryMonsterSummary[]> {
+    return this.http.get<BestiaryMonsterSummary[]>(`${this.baseUrl}/api/monster-catalog/bestiary`);
   }
 
-  getSrdMonster(slug: string): Observable<SrdMonsterDetail> {
-    return this.http.get<SrdMonsterDetail>(`${this.baseUrl}/api/monster-catalog/srd/${slug}`);
+  getBestiaryMonster(slug: string): Observable<MonsterStatBlock> {
+    return this.http.get<MonsterStatBlock>(`${this.baseUrl}/api/monster-catalog/bestiary/${slug}`);
   }
 
   catalogMonster(slug: string, customName: string | null): Observable<MonsterCatalogEntry> {
