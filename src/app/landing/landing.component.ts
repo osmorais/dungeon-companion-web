@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, HostListener, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
 import { HpBarComponent } from '../hp-bar/hp-bar.component';
@@ -39,6 +39,9 @@ export const LANDING_SECTIONS = [
  * Tela inicial pública (`/` para quem não está logado): explica o site e leva ao login/cadastro.
  * Não chama a API — abre rápido mesmo com o servidor dormindo.
  */
+/** Largura a partir da qual as seções cabem na barra do topo (mesmo valor do @media do SCSS). */
+export const MENU_BREAKPOINT_PX = 1024;
+
 @Component({
   selector: 'app-landing',
   standalone: true,
@@ -188,6 +191,25 @@ export class LandingComponent {
 
   toggleMenu(): void {
     this.menuOpen.update((open) => !open);
+  }
+
+  @HostListener('document:keydown.escape')
+  closeMenu(): void {
+    this.menuOpen.set(false);
+  }
+
+  /** Toque fora da barra do topo fecha o menu (o botão e o painel ficam dentro dela). */
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    if (!this.menuOpen()) return;
+    const target = event.target as Element | null;
+    if (!target?.closest?.('.lp-topbar')) this.menuOpen.set(false);
+  }
+
+  /** Acima de 1024px o menu volta a ser a barra horizontal: não deixa o painel "aberto" guardado. */
+  @HostListener('window:resize')
+  onResize(): void {
+    if (this.menuOpen() && window.innerWidth > MENU_BREAKPOINT_PX) this.menuOpen.set(false);
   }
 
   /**

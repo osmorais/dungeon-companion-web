@@ -1,6 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { LANDING_SECTIONS, LandingComponent, landingIconSrc } from './landing.component';
+import {
+  LANDING_SECTIONS,
+  LandingComponent,
+  MENU_BREAKPOINT_PX,
+  landingIconSrc,
+} from './landing.component';
 import { CURRENT_VERSION } from '../release-notes/release-notes';
 
 describe('LandingComponent (tela inicial pública)', () => {
@@ -85,6 +90,47 @@ describe('LandingComponent (tela inicial pública)', () => {
       landing.scrollTo('nao-existe');
       expect(landing.menuOpen()).toBe(false);
     });
+
+    it('Esc fecha o menu', () => {
+      const landing = create();
+      landing.toggleMenu();
+      landing.closeMenu();
+      expect(landing.menuOpen()).toBe(false);
+    });
+
+    it('toque fora da barra do topo fecha; dentro dela (botão, painel) não', () => {
+      const landing = create();
+      const topbar = document.createElement('header');
+      topbar.className = 'lp-topbar';
+      const inside = document.createElement('button');
+      topbar.appendChild(inside);
+      const outside = document.createElement('p');
+
+      landing.toggleMenu();
+      landing.onDocumentClick({ target: inside } as unknown as Event);
+      expect(landing.menuOpen()).toBe(true);
+      landing.onDocumentClick({ target: outside } as unknown as Event);
+      expect(landing.menuOpen()).toBe(false);
+    });
+
+    it('alargar a tela além do menu horizontal fecha o painel', () => {
+      const width = window.innerWidth;
+      const landing = create();
+      try {
+        landing.toggleMenu();
+        Object.defineProperty(window, 'innerWidth', { configurable: true, value: 800 });
+        landing.onResize();
+        expect(landing.menuOpen()).toBe(true);
+        Object.defineProperty(window, 'innerWidth', {
+          configurable: true,
+          value: MENU_BREAKPOINT_PX + 1,
+        });
+        landing.onResize();
+        expect(landing.menuOpen()).toBe(false);
+      } finally {
+        Object.defineProperty(window, 'innerWidth', { configurable: true, value: width });
+      }
+    });
   });
 
   describe('página renderizada', () => {
@@ -145,27 +191,37 @@ describe('LandingComponent (tela inicial pública)', () => {
       }
     });
 
-    it('botão de menu abre o painel de seções e fecha ao escolher uma', () => {
-      // jsdom não implementa scrollIntoView; o clique real no link vai chamar scrollTo de verdade.
-      Element.prototype.scrollIntoView = vi.fn();
+    it('botão de menu abre o painel de seções e rola até a escolhida, fechando', () => {
+      // Na página de verdade (presa ao documento) pra o getElementById achar a seção. jsdom não
+      // tem scrollIntoView: simulado só na seção alvo, sem mexer no protótipo global.
+      document.body.appendChild(el);
+      try {
+        const target = el.querySelector<HTMLElement>(`#${LANDING_SECTIONS[0].id}`)!;
+        target.scrollIntoView = vi.fn();
 
-      const toggle = el.querySelector('.lp-menu-toggle') as HTMLButtonElement;
-      expect(toggle).not.toBeNull();
-      expect(el.querySelector('.lp-mobile-nav')).toBeNull();
-      expect(toggle.getAttribute('aria-expanded')).toBe('false');
+        const toggle = el.querySelector('.lp-menu-toggle') as HTMLButtonElement;
+        const nav = el.querySelector('#lp-nav')!;
+        expect(toggle.getAttribute('aria-controls')).toBe('lp-nav');
+        expect(toggle.getAttribute('aria-expanded')).toBe('false');
+        expect(nav.classList).not.toContain('is-open');
 
-      toggle.click();
-      fixture.detectChanges();
-      expect(toggle.getAttribute('aria-expanded')).toBe('true');
-      const nav = el.querySelector('#lp-mobile-nav');
-      expect(nav).not.toBeNull();
-      const links = nav!.querySelectorAll('.lp-mobile-nav-link');
-      expect(links.length).toBe(LANDING_SECTIONS.length);
+        toggle.click();
+        fixture.detectChanges();
+        expect(toggle.getAttribute('aria-expanded')).toBe('true');
+        expect(nav.classList).toContain('is-open');
+        // Um menu só (o mesmo do desktop), com todas as seções.
+        expect(el.querySelectorAll('nav[aria-label="Seções da página"]').length).toBe(1);
+        const links = nav.querySelectorAll<HTMLButtonElement>('.lp-nav-link');
+        expect(links.length).toBe(LANDING_SECTIONS.length);
 
-      (links[0] as HTMLButtonElement).click();
-      fixture.detectChanges();
-      expect(el.querySelector('.lp-mobile-nav')).toBeNull();
-      expect(toggle.getAttribute('aria-expanded')).toBe('false');
+        links[0].click();
+        fixture.detectChanges();
+        expect(target.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
+        expect(nav.classList).not.toContain('is-open');
+        expect(toggle.getAttribute('aria-expanded')).toBe('false');
+      } finally {
+        el.remove();
+      }
     });
   });
 });
