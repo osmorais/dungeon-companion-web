@@ -7,6 +7,44 @@
   box-sizing: border-box;
 }
 
+/* ===== PAINEL (COMPARTILHADO) ===== */
+
+.auth-panel,
+.mobile-signup-panel {
+  position: relative;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.45);
+
+  legend {
+    font-size: 12px;
+    letter-spacing: 0.5px;
+  }
+
+  /* Cantos em destaque: dão o ar de "quadro de missão" sem usar sombra suave ou gradiente. */
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--accent-color);
+    pointer-events: none;
+  }
+
+  &::before {
+    top: -2px;
+    left: -2px;
+    border-right: none;
+    border-bottom: none;
+  }
+
+  &::after {
+    bottom: -2px;
+    right: -2px;
+    border-left: none;
+    border-top: none;
+  }
+}
+
 .auth-panel {
   width: 400px;
   max-width: 90vw;
@@ -17,19 +55,40 @@
   legend {
     border: 2px solid var(--border-color);
     background: var(--bg-color);
-    padding: 5px 10px;
-    font-size: 10px;
+    padding: 6px 12px;
     color: var(--text-color);
   }
 }
 
-.form-group {
+/* ===== LOGO (COMPARTILHADO) ===== */
+
+.logo-container,
+.mobile-logo-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+.logo {
+  max-width: 200px;
+  width: 100%;
+  height: auto;
+}
+
+.mobile-logo {
+  max-width: 130px;
+  width: 100%;
+  height: auto;
+}
+
+/* ===== CAMPOS (COMPARTILHADO) ===== */
+
+.form-group,
+.mobile-form-group {
   display: flex;
   flex-direction: column;
-  margin-bottom: 16px;
 
   label {
-    font-size: 8px;
     color: var(--label-title-color);
     margin-bottom: 4px;
   }
@@ -39,30 +98,126 @@
     color: var(--text-color);
     border: 1px solid var(--border-color);
     font-family: 'Press Start 2P', monospace;
-    font-size: 8px;
-    padding: 8px;
+    box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.5);
     width: 100%;
     box-sizing: border-box;
+    transition: border-color 0.1s ease-out;
 
     &:focus {
       outline: 2px solid var(--accent-color);
+      border-color: var(--accent-color);
+    }
+
+    &::placeholder {
+      color: var(--border-color);
     }
   }
 }
 
-.error-msg {
-  color: #ff4444;
-  font-size: 7px;
-  margin: 4px 0 12px;
+.form-group {
+  margin-bottom: 18px;
+
+  label {
+    font-size: 8px;
+  }
+
+  input {
+    font-size: 8px;
+    padding: 10px;
+  }
 }
 
-.full-btn {
+.mobile-form-group {
+  margin-bottom: 12px;
+
+  label {
+    font-size: 7px;
+  }
+
+  input {
+    font-size: 8px;
+    padding: 9px 8px;
+  }
+}
+
+/* ===== MENSAGEM DE ERRO (COMPARTILHADO) ===== */
+
+.error-msg,
+.mobile-error-msg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffb199;
+  background: rgba(255, 68, 68, 0.14);
+  border: 1px solid #ff4444;
+  padding: 8px 10px;
+  font-size: 7px;
+  line-height: 1.6;
+  margin: 4px 0 14px;
+
+  &::before {
+    content: '!';
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ff4444;
+    color: var(--bg-color);
+    font-weight: bold;
+  }
+}
+
+/* ===== BOTÃO PRINCIPAL (COMPARTILHADO) ===== */
+
+.full-btn,
+.mobile-full-btn {
   float: none;
   width: 100%;
   margin-top: 8px;
+  background-color: var(--accent-color);
+  color: var(--bg-color);
+  box-shadow: 4px 4px 0 var(--border-color);
+  transition:
+    transform 0.08s ease-out,
+    box-shadow 0.08s ease-out,
+    filter 0.15s ease-out;
+
+  &:hover:not(:disabled) {
+    background-color: var(--accent-color);
+    filter: brightness(1.1);
+  }
+
+  &:active:not(:disabled) {
+    transform: translate(4px, 4px);
+    box-shadow: none;
+  }
+
+  &:disabled {
+    opacity: 0.75;
+  }
+
+  &.is-loading {
+    animation: signup-loading-pulse 1s ease-in-out infinite;
+  }
 }
 
-.auth-links {
+@keyframes signup-loading-pulse {
+  0%,
+  100% {
+    opacity: 0.75;
+  }
+
+  50% {
+    opacity: 0.95;
+  }
+}
+
+/* ===== LINKS (COMPARTILHADO) ===== */
+
+.auth-links,
+.mobile-auth-links {
   display: flex;
   justify-content: space-between;
   margin-top: 16px;
@@ -72,6 +227,11 @@
     font-size: 7px;
     cursor: var(--cp);
     text-decoration: underline;
+
+    &:focus-visible {
+      outline: 2px solid var(--accent-color);
+      outline-offset: 2px;
+    }
   }
 }
 
@@ -99,61 +259,8 @@
   legend {
     border: 2px solid var(--border-color);
     background: var(--bg-color);
-    padding: 5px 10px;
-    font-size: 10px;
+    padding: 6px 10px;
     color: var(--text-color);
-  }
-}
-
-.mobile-form-group {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 10px;
-
-  label {
-    font-size: 7px;
-    color: var(--label-title-color);
-    margin-bottom: 4px;
-  }
-
-  input {
-    background: var(--bg-color);
-    color: var(--text-color);
-    border: 1px solid var(--border-color);
-    font-family: 'Press Start 2P', monospace;
-    font-size: 8px;
-    padding: 8px;
-    width: 100%;
-    box-sizing: border-box;
-
-    &:focus {
-      outline: 2px solid var(--accent-color);
-    }
-  }
-}
-
-.mobile-error-msg {
-  color: #ff4444;
-  font-size: 7px;
-  margin: 4px 0 10px;
-}
-
-.mobile-full-btn {
-  float: none;
-  width: 100%;
-  margin-top: 8px;
-}
-
-.mobile-auth-links {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 12px;
-
-  a {
-    color: var(--accent-color);
-    font-size: 7px;
-    cursor: var(--cp);
-    text-decoration: underline;
   }
 }
 
@@ -184,6 +291,15 @@
   display: flex;
   justify-content: center;
   margin-bottom: 4px;
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-color);
+}
+
+/* Sem o aceite, o botão do Google (iframe do próprio Google) não pode ser clicado. */
+.google-btn-wrapper--locked {
+  opacity: 0.4;
+  pointer-events: none;
 }
 
 /* ===== DECLARAÇÃO DE IDADE + ACEITE DOS TERMOS ===== */
@@ -192,26 +308,27 @@
 .mobile-terms-check {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-  margin: 4px 0 12px;
+  gap: 10px;
+  margin: 6px 0 14px;
   font-size: 7px;
-  line-height: 1.6;
+  line-height: 1.7;
   color: var(--text-color);
   cursor: var(--cp);
 
   input {
     flex-shrink: 0;
-    top: 0;
+    top: 1px;
+    width: 16px;
+    height: 16px;
   }
 
   a {
     color: var(--accent-color);
     text-decoration: underline;
-  }
-}
 
-/* Sem o aceite, o botão do Google (iframe do próprio Google) não pode ser clicado. */
-.google-btn-wrapper--locked {
-  opacity: 0.4;
-  pointer-events: none;
+    &:focus-visible {
+      outline: 2px solid var(--accent-color);
+      outline-offset: 2px;
+    }
+  }
 }

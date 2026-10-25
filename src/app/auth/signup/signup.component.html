@@ -4,25 +4,29 @@
     <fieldset class="mobile-signup-panel">
       <legend>FORJAR AVENTUREIRO</legend>
 
+      <div class="mobile-logo-container">
+        <img src="forja_arcana.png" alt="Forja Arcana" class="mobile-logo" />
+      </div>
+
       <div class="mobile-form-group">
         <label for="mobile-username">NOME DE USUÁRIO</label>
-        <input id="mobile-username" type="text" maxlength="20" autocomplete="username" [ngModel]="username()" (ngModelChange)="username.set($event)" placeholder="gorak_dente" />
+        <input id="mobile-username" name="username" type="text" maxlength="20" autocomplete="username" spellcheck="false" [ngModel]="username()" (ngModelChange)="username.set($event)" placeholder="gorak_dente" />
         <app-username-status [username]="username()" (pick)="username.set($event)" (validChange)="usernameValid.set($event)" />
       </div>
 
       <div class="mobile-form-group">
         <label for="mobile-email">EMAIL</label>
-        <input id="mobile-email" type="email" [(ngModel)]="email" placeholder="heroi@aventura.com" />
+        <input id="mobile-email" name="email" type="email" autocomplete="email" inputmode="email" spellcheck="false" [(ngModel)]="email" placeholder="heroi@aventura.com" />
       </div>
 
       <div class="mobile-form-group">
         <label for="mobile-password">SENHA (MÍN. 8 CARACTERES)</label>
-        <input id="mobile-password" type="password" [(ngModel)]="password" placeholder="••••••••" />
+        <input id="mobile-password" name="password" type="password" autocomplete="new-password" [(ngModel)]="password" placeholder="••••••••" />
       </div>
 
       <div class="mobile-form-group">
         <label for="mobile-confirmPassword">CONFIRMAR SENHA</label>
-        <input id="mobile-confirmPassword" type="password" [(ngModel)]="confirmPassword" placeholder="••••••••" (keyup.enter)="submit()" />
+        <input id="mobile-confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" [(ngModel)]="confirmPassword" placeholder="••••••••" (keyup.enter)="submit()" />
       </div>
 
       <label class="mobile-terms-check">
@@ -35,10 +39,10 @@
       </label>
 
       @if (errorMessage()) {
-        <p class="mobile-error-msg">{{ errorMessage() }}</p>
+        <p class="mobile-error-msg" role="alert">{{ errorMessage() }}</p>
       }
 
-      <button class="retro-btn mobile-full-btn" (click)="submit()" [disabled]="loading()">
+      <button class="retro-btn mobile-full-btn" [class.is-loading]="loading()" (click)="submit()" [disabled]="loading()">
         {{ loading() ? 'FORJANDO...' : 'FORJAR' }}
       </button>
 
@@ -63,25 +67,29 @@
     <fieldset class="auth-panel">
       <legend>FORJAR AVENTUREIRO</legend>
 
+      <div class="logo-container">
+        <img src="forja_arcana.png" alt="Forja Arcana" class="logo" />
+      </div>
+
       <div class="form-group">
         <label for="username">NOME DE USUÁRIO</label>
-        <input id="username" type="text" maxlength="20" autocomplete="username" [ngModel]="username()" (ngModelChange)="username.set($event)" placeholder="gorak_dente" />
+        <input id="username" name="username" type="text" maxlength="20" autocomplete="username" spellcheck="false" [ngModel]="username()" (ngModelChange)="username.set($event)" placeholder="gorak_dente" />
         <app-username-status [username]="username()" (pick)="username.set($event)" (validChange)="usernameValid.set($event)" />
       </div>
 
       <div class="form-group">
         <label for="email">EMAIL</label>
-        <input id="email" type="email" [(ngModel)]="email" placeholder="heroi@aventura.com" />
+        <input id="email" name="email" type="email" autocomplete="email" inputmode="email" spellcheck="false" [(ngModel)]="email" placeholder="heroi@aventura.com" />
       </div>
 
       <div class="form-group">
         <label for="password">SENHA (MÍN. 8 CARACTERES)</label>
-        <input id="password" type="password" [(ngModel)]="password" placeholder="••••••••" />
+        <input id="password" name="password" type="password" autocomplete="new-password" [(ngModel)]="password" placeholder="••••••••" />
       </div>
 
       <div class="form-group">
         <label for="confirmPassword">CONFIRMAR SENHA</label>
-        <input id="confirmPassword" type="password" [(ngModel)]="confirmPassword" placeholder="••••••••" (keyup.enter)="submit()" />
+        <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" [(ngModel)]="confirmPassword" placeholder="••••••••" (keyup.enter)="submit()" />
       </div>
 
       <label class="terms-check">
@@ -94,10 +102,10 @@
       </label>
 
       @if (errorMessage()) {
-        <p class="error-msg">{{ errorMessage() }}</p>
+        <p class="error-msg" role="alert">{{ errorMessage() }}</p>
       }
 
-      <button class="retro-btn full-btn" (click)="submit()" [disabled]="loading()">
+      <button class="retro-btn full-btn" [class.is-loading]="loading()" (click)="submit()" [disabled]="loading()">
         {{ loading() ? 'FORJANDO...' : 'FORJAR' }}
       </button>
 
