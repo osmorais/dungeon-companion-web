@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.12.1',
+    date: '2026-10-25',
+    title: 'E-mail de recuperação de senha de volta',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'O e-mail para redefinir a senha (ESQUECI MINHA SENHA) voltou a ser enviado.',
+      },
+    ],
+  },
+  {
     version: '1.12.0',
     date: '2026-10-25',
     title: 'Menu de seções também no celular e no tablet',
