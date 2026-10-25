@@ -59,12 +59,6 @@ button {
   }
 }
 
-.lp-hide-mobile {
-  @media (max-width: 767px) {
-    display: none;
-  }
-}
-
 /* ===== Botões e textos comuns ===== */
 
 .lp-btn {
@@ -105,7 +99,8 @@ button {
   }
 
   &--small {
-    min-height: 36px;
+    // 44px: alvo de toque mínimo recomendado — é o único botão visível no topo no celular.
+    min-height: 44px;
     padding: 0 14px;
     font-size: 8px;
   }
@@ -201,6 +196,81 @@ button {
   display: flex;
   gap: 10px;
   margin-left: auto;
+}
+
+// Só aparece quando o menu horizontal (.lp-nav) não cabe mais — ver @media (max-width: 1024px).
+.lp-menu-toggle {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: transparent;
+  border: 2px solid var(--border-color);
+
+  span {
+    width: 20px;
+    height: 2px;
+    background: var(--label-title-color);
+    transition:
+      transform 0.15s,
+      opacity 0.15s;
+  }
+
+  &:hover span {
+    background: var(--accent-color);
+  }
+
+  // As três barras viram um X.
+  &.is-open {
+    span:nth-child(1) {
+      transform: translateY(7px) rotate(45deg);
+    }
+
+    span:nth-child(2) {
+      opacity: 0;
+    }
+
+    span:nth-child(3) {
+      transform: translateY(-7px) rotate(-45deg);
+    }
+  }
+}
+
+// Painel de seções que substitui o .lp-nav quando ele está escondido (telas ≤1024px).
+.lp-mobile-nav {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 4px var(--lp-gutter) 12px;
+  background: var(--lp-shade);
+  border-bottom: 2px solid var(--border-color);
+  backdrop-filter: blur(4px);
+}
+
+.lp-mobile-nav-link {
+  padding: 14px 4px;
+  background: none;
+  border: none;
+  border-top: 2px solid color-mix(in srgb, var(--border-color) 55%, transparent);
+  color: var(--label-title-color);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  text-align: left;
+
+  &:first-child {
+    border-top: none;
+  }
+
+  &:hover {
+    color: var(--accent-color);
+  }
 }
 
 /* ===== Primeira dobra ===== */
@@ -417,15 +487,11 @@ button {
 
 .lp-grid {
   display: grid;
+  // Mesma grade de 4 colunas da seção "jogadores": cheia a largura em telas largas, sem o vazio
+  // lateral que uma grade mais estreita centralizada deixava aqui.
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   margin-top: 52px;
-
-  &--extras {
-    grid-template-columns: repeat(2, 1fr);
-    max-width: 900px;
-    margin-inline: auto;
-  }
 }
 
 .lp-card,
@@ -723,12 +789,20 @@ button {
       transform: none;
     }
   }
+
+  .lp-menu-toggle span {
+    transition: none;
+  }
 }
 
 /* ===== Tablet ===== */
 @media (max-width: 1024px) {
   .lp-nav {
     display: none;
+  }
+
+  .lp-menu-toggle {
+    display: flex;
   }
 
   .lp-grid {
@@ -750,6 +824,13 @@ button {
   .lp-topbar-logo {
     width: 58px;
     height: 58px;
+  }
+
+  // Dentro do bloco de breakpoint (não num `@media` separado acima de `.lp-btn`): com a mesma
+  // especificidade, quem vem depois no CSS gerado ganha — e `.lp-btn { display: inline-flex }`
+  // vinha depois, então esse `display: none` nunca tinha efeito nenhum.
+  .lp-hide-mobile {
+    display: none;
   }
 
   .lp-hero,
@@ -792,7 +873,6 @@ button {
   }
 
   .lp-grid,
-  .lp-grid--extras,
   .lp-steps,
   .lp-panel-cols {
     grid-template-columns: 1fr;

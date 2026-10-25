@@ -33,6 +33,29 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.12.0',
+    date: '2026-10-25',
+    title: 'Menu de seções também no celular e no tablet',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'Na tela inicial, quem acessa pelo celular ou tablet agora tem um botão de menu para ir direto a cada seção — antes isso só existia no computador.',
+      },
+      {
+        kind: 'correcao',
+        text: 'No celular, o botão CRIAR CONTA do topo (que deveria aparecer só no botão de destaque mais abaixo) estava indevidamente visível ao lado do ENTRAR.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'O botão ENTRAR do topo ficou maior, mais fácil de tocar no celular.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A seção "Para toda a companhia" aproveita melhor a largura da tela em monitores grandes.',
+      },
+    ],
+  },
+  {
     version: '1.11.1',
     date: '2026-10-25',
     title: 'Ajustes visuais na tela inicial',

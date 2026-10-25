@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
 import { HpBarComponent } from '../hp-bar/hp-bar.component';
@@ -58,6 +58,9 @@ export class LandingComponent {
   readonly currentVersion = CURRENT_VERSION;
   readonly year = new Date().getFullYear();
   readonly iconSrc = landingIconSrc;
+
+  /** Menu de seções em telas estreitas (sem espaço pro menu horizontal do topo). */
+  readonly menuOpen = signal(false);
 
   /** Personagem de exemplo do cartão do topo (montado com as peças do criador de avatar). */
   readonly sampleAvatar: AvatarPreset = {
@@ -183,11 +186,16 @@ export class LandingComponent {
     },
   ];
 
+  toggleMenu(): void {
+    this.menuOpen.update((open) => !open);
+  }
+
   /**
    * Rola até a seção sem mexer na URL (`href="#…"` faria o roteador navegar de novo). Com "reduzir
-   * movimento" ligado, pula direto.
+   * movimento" ligado, pula direto. Fecha o menu de seções, se estiver aberto.
    */
   scrollTo(id: string): void {
+    this.menuOpen.set(false);
     const behavior: ScrollBehavior = prefersReducedMotion() ? 'auto' : 'smooth';
     document.getElementById(id)?.scrollIntoView({ behavior, block: 'start' });
   }

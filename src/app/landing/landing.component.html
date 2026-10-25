@@ -11,6 +11,26 @@
       <a class="lp-btn lp-btn--ghost lp-btn--small" routerLink="/login">ENTRAR</a>
       <a class="lp-btn lp-btn--small lp-hide-mobile" routerLink="/signup">CRIAR CONTA</a>
     </div>
+    <button
+      type="button"
+      class="lp-menu-toggle"
+      [class.is-open]="menuOpen()"
+      [attr.aria-expanded]="menuOpen()"
+      aria-controls="lp-mobile-nav"
+      [attr.aria-label]="menuOpen() ? 'Fechar menu' : 'Abrir menu'"
+      (click)="toggleMenu()"
+    >
+      <span></span><span></span><span></span>
+    </button>
+    @if (menuOpen()) {
+      <nav id="lp-mobile-nav" class="lp-mobile-nav" aria-label="Seções da página">
+        @for (s of sections; track s.id) {
+          <button type="button" class="lp-mobile-nav-link" (click)="scrollTo(s.id)">
+            {{ s.label }}
+          </button>
+        }
+      </nav>
+    }
   </header>
 
   <main>
@@ -213,7 +233,7 @@
       <div class="lp-heading lp-heading--center">
         <h2 class="lp-h2">Para toda a <span>companhia.</span></h2>
       </div>
-      <div class="lp-grid lp-grid--extras">
+      <div class="lp-grid">
         @for (f of extras; track f.title) {
           <article class="lp-card lp-card--row">
             <img

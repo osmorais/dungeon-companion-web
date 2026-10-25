@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { LANDING_SECTIONS, LandingComponent, landingIconSrc } from './landing.component';
 import { CURRENT_VERSION } from '../release-notes/release-notes';
@@ -66,11 +66,33 @@ describe('LandingComponent (tela inicial pública)', () => {
     });
   });
 
+  describe('menu mobile (hambúrguer, telas sem espaço pro menu horizontal)', () => {
+    it('começa fechado', () => {
+      expect(create().menuOpen()).toBe(false);
+    });
+
+    it('toggleMenu alterna aberto/fechado', () => {
+      const landing = create();
+      landing.toggleMenu();
+      expect(landing.menuOpen()).toBe(true);
+      landing.toggleMenu();
+      expect(landing.menuOpen()).toBe(false);
+    });
+
+    it('scrollTo fecha o menu mobile, mesmo numa seção inexistente', () => {
+      const landing = create();
+      landing.toggleMenu();
+      landing.scrollTo('nao-existe');
+      expect(landing.menuOpen()).toBe(false);
+    });
+  });
+
   describe('página renderizada', () => {
+    let fixture: ComponentFixture<LandingComponent>;
     let el: HTMLElement;
 
     beforeEach(() => {
-      const fixture = TestBed.createComponent(LandingComponent);
+      fixture = TestBed.createComponent(LandingComponent);
       fixture.detectChanges();
       el = fixture.nativeElement;
     });
@@ -121,6 +143,29 @@ describe('LandingComponent (tela inicial pública)', () => {
       for (const s of LANDING_SECTIONS) {
         expect(el.querySelector(`#${s.id}`), s.id).not.toBeNull();
       }
+    });
+
+    it('botão de menu abre o painel de seções e fecha ao escolher uma', () => {
+      // jsdom não implementa scrollIntoView; o clique real no link vai chamar scrollTo de verdade.
+      Element.prototype.scrollIntoView = vi.fn();
+
+      const toggle = el.querySelector('.lp-menu-toggle') as HTMLButtonElement;
+      expect(toggle).not.toBeNull();
+      expect(el.querySelector('.lp-mobile-nav')).toBeNull();
+      expect(toggle.getAttribute('aria-expanded')).toBe('false');
+
+      toggle.click();
+      fixture.detectChanges();
+      expect(toggle.getAttribute('aria-expanded')).toBe('true');
+      const nav = el.querySelector('#lp-mobile-nav');
+      expect(nav).not.toBeNull();
+      const links = nav!.querySelectorAll('.lp-mobile-nav-link');
+      expect(links.length).toBe(LANDING_SECTIONS.length);
+
+      (links[0] as HTMLButtonElement).click();
+      fixture.detectChanges();
+      expect(el.querySelector('.lp-mobile-nav')).toBeNull();
+      expect(toggle.getAttribute('aria-expanded')).toBe('false');
     });
   });
 });
