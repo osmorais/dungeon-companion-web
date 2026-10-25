@@ -141,8 +141,11 @@ export class RollModalComponent implements OnInit, OnDestroy {
   @Input() idCharacter: number | null = null;
   @Input() actorName = 'Aventureiro';
   @Input() sessionId: string | undefined;
-  /** Só o mestre pode rolar oculto — mostra o alternador PÚBLICO/OCULTO no modo freeform. */
+  /** Só o mestre pode rolar oculto — mostra o alternador PÚBLICO/OCULTO (dados livres e rolagens
+   *  de monstro). */
   @Input() canHideRoll = false;
+  /** Com `canHideRoll`: já abre em OCULTO (monstro ainda escondido dos jogadores). */
+  @Input() startHidden = false;
   /** Resposta a um teste secreto do mestre: a rolagem vai oculta (só o mestre e quem rolou veem). */
   @Input() secretRequestId: string | null = null;
   /** Alvos em que o dano/cura rolado pode ser aplicado direto (opcional). Vazio = sem a opção,
@@ -349,7 +352,7 @@ export class RollModalComponent implements OnInit, OnDestroy {
   freeformPool = signal<Record<number, number>>(Object.fromEntries(DIE_OPTIONS.map((d) => [d, 0])));
   freeformModifier = signal(0);
   /** Só tem efeito se canHideRoll — ver comentário no @Input. */
-  freeformHidden = signal(false);
+  rollHidden = signal(false);
 
   /** Fase do fluxo de ataque — só avança além de 'attack' quando config.damage existe. */
   attackPhase = signal<AttackPhase>('attack');
@@ -489,6 +492,7 @@ export class RollModalComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    if (this.canHideRoll && this.startHidden) this.rollHidden.set(true);
     if (this.cast) {
       // Anuncia o lançamento já ao abrir: a mesa e quem lança veem a carta entrar juntos.
       this.sendCastStage('open');
@@ -983,9 +987,9 @@ export class RollModalComponent implements OnInit, OnDestroy {
     this.result.set(null);
   }
 
-  setFreeformHidden(hidden: boolean) {
+  setRollHidden(hidden: boolean) {
     if (this.isRolling()) return;
-    this.freeformHidden.set(hidden);
+    this.rollHidden.set(hidden);
   }
 
   roll() {
@@ -1282,7 +1286,7 @@ export class RollModalComponent implements OnInit, OnDestroy {
       advantage_state: this.isAbility ? this.advantageState() : 'normal',
       modifier: this.modifier,
       total,
-      is_hidden: this.canHideRoll && this.config.mode === 'freeform' && this.freeformHidden(),
+      is_hidden: this.canHideRoll && this.rollHidden(),
       ...(this.secretRequestId ? { secret_request_id: this.secretRequestId } : {}),
       ...(this.cast ? { cast_id: this.cast.castId } : {}),
     };

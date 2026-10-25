@@ -1493,3 +1493,76 @@ describe('RollModalComponent — lançamento de magia', () => {
     expect(publish).not.toHaveBeenCalled();
   });
 });
+
+/** PÚBLICO/OCULTO também fora dos dados livres (1.11.0): rolagens de monstro do mestre. */
+describe('RollModalComponent — rolagem oculta do mestre', () => {
+  let postRoll: ReturnType<typeof vi.fn>;
+
+  const attack: AbilityRollConfig = {
+    mode: 'ability',
+    rollType: 'attack',
+    label: 'Cimitarra',
+    modifier: 4,
+    damage: { diceCount: 1, diceSides: 6, modifier: 2, label: 'Dano — Cimitarra' },
+  };
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.spyOn(Math, 'random').mockReturnValue(0.5);
+    postRoll = vi.fn(() => of({}));
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: GameSessionService, useValue: { postRoll } },
+        { provide: DamageImpactService, useValue: { trigger: vi.fn() } },
+      ],
+    });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  function create(canHideRoll: boolean, startHidden: boolean) {
+    const modal = TestBed.runInInjectionContext(() => new RollModalComponent());
+    Object.assign(modal, {
+      config: attack,
+      sessionId: 'gs',
+      idCharacter: null,
+      canHideRoll,
+      startHidden,
+    });
+    modal.ngOnInit();
+    return modal;
+  }
+
+  const settle = () => vi.advanceTimersByTime(1000);
+  const hiddenFlags = () =>
+    postRoll.mock.calls.map(([, payload]) => (payload as { is_hidden: boolean }).is_hidden);
+
+  it('monstro escondido: abre oculto e o ataque e o dano vão ocultos', () => {
+    const modal = create(true, true);
+    expect(modal.rollHidden()).toBe(true);
+    modal.roll();
+    settle();
+    modal.rollDamageNow();
+    settle();
+    expect(hiddenFlags()).toEqual([true, true]);
+  });
+
+  it('o mestre pode trocar pra público antes de rolar', () => {
+    const modal = create(true, true);
+    modal.setRollHidden(false);
+    modal.roll();
+    settle();
+    expect(hiddenFlags()).toEqual([false]);
+  });
+
+  it('sem permissão de ocultar, startHidden não vale', () => {
+    const modal = create(false, true);
+    expect(modal.rollHidden()).toBe(false);
+    modal.roll();
+    settle();
+    expect(hiddenFlags()).toEqual([false]);
+  });
+});

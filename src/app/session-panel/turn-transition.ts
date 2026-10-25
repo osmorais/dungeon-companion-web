@@ -130,3 +130,26 @@ export function playTurnSlide(list: HTMLElement, from: TurnOffset | undefined, t
   animation.onfinish = done;
   animation.oncancel = () => ghost.remove();
 }
+
+/** Contagem de iniciativa das ações de covil (perde os empates: vem depois de quem tirou 20). */
+export const LAIR_INITIATIVE = 20;
+
+/** Vez no combate pra conta do covil: iniciativa de quem joga e a rodada. */
+export interface LairPoint {
+  initiative: number;
+  round: number;
+}
+
+/**
+ * A vez que começa (`next`) passou pela contagem 20 desde a anterior (`prev`, `null` no início do
+ * combate)? Na mesma rodada, quando sai de quem tem 20 ou mais pra quem tem menos; na virada de
+ * rodada, quando ninguém tem 20 (a de covil abre a rodada) ou quando todos têm (fechou a anterior).
+ */
+export function crossedLairCount(prev: LairPoint | null, next: LairPoint): boolean {
+  if (!prev || prev.round !== next.round) {
+    return (
+      next.initiative < LAIR_INITIATIVE || (prev !== null && prev.initiative >= LAIR_INITIATIVE)
+    );
+  }
+  return prev.initiative >= LAIR_INITIATIVE && next.initiative < LAIR_INITIATIVE;
+}

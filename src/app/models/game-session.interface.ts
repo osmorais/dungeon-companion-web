@@ -101,13 +101,50 @@ export interface MonsterSession {
   data_snapshot: MonsterStatBlock;
   is_revealed: boolean;
   image_url: string | null;
+  /** Usos das ações (1.11.0) — nulo/ausente = nada gasto. */
+  action_state?: MonsterActionState | null;
 }
 
-/** Versão pública de um monstro revelado — só o que os jogadores podem ver: nome, sem status/PV. */
+/**
+ * Usos das ações de um monstro na mesa — espelho de `monster-action-state.ts` da API. Chave dos
+ * usos: nome da habilidade na ficha.
+ */
+export interface MonsterActionState {
+  uses: Record<string, number>;
+  recharge: string[];
+  legendary_used: number;
+  reaction_used: boolean;
+  in_lair: boolean;
+}
+
+/** O que o mestre faz com os usos (PATCH .../action-state). */
+export type MonsterActionOp =
+  | { op: 'use'; ability: string }
+  | { op: 'restore'; ability: string }
+  | { op: 'legendary'; ability: string }
+  | { op: 'reaction' }
+  | { op: 'lair'; on: boolean }
+  | { op: 'rest' };
+
+/** d6 de recarga rolado pelo servidor no início do turno do monstro. */
+export interface RechargeRoll {
+  ability: string;
+  roll: number;
+  min: number;
+  recharged: boolean;
+}
+
+/**
+ * Versão pública de um monstro revelado — só o que os jogadores podem ver: nome, imagem e a carta
+ * (tipo, tamanho, descrição; 1.11.0), sem status/PV. Os campos da carta são nulos em ficha antiga.
+ */
 export interface RevealedMonster {
   id_monster_session: string;
   name: string;
   image_url: string | null;
+  monster_type?: string | null;
+  size?: string | null;
+  lore?: string | null;
 }
 
 export type RollType =

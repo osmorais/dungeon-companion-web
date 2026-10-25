@@ -1,0 +1,168 @@
+// Mesmo padrão do aviso de lançamento (spell-cast-notice / spell-cast-stage): fundo escuro,
+// painel com a moldura do tema, carta que cai de costas e vira, título com o nome em dourado.
+.mrn-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100; // aviso global, como o de rolagem avulso
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.65);
+  overflow-y: auto;
+}
+
+// Moldura do tema (.framed-toast, styles.scss): não definir border aqui.
+.mrn-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 92vw;
+  max-width: 520px;
+  margin: auto 0;
+  padding: 14px 10px 6px;
+  box-sizing: border-box;
+  background-color: var(--panel-bg);
+  text-align: center;
+  animation: modal-blast-in 0.5s steps(10) both;
+}
+
+.mrn-close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  padding: 4px 8px;
+  border: none;
+  background: none;
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 11px;
+  cursor: var(--cp);
+
+  &:hover {
+    color: var(--accent-color);
+  }
+}
+
+.mrn-label {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--gold-color);
+  letter-spacing: 0.5px;
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;
+}
+
+// Maior que a carta do lançamento (clamp 130–200px): é a estrela do aviso, com a descrição legível.
+// O surgir (opacidade) fica fora do elemento 3D — ver o gotcha do verso no spell-cast-stage.
+.mrn-card {
+  width: clamp(230px, 74vw, 340px);
+  aspect-ratio: 760 / 1064;
+  perspective: 1100px;
+  animation: mrn-appear 0.5s steps(5) both;
+}
+
+@keyframes mrn-appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.mrn-flip {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  animation: mrn-throw 2.4s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+.mrn-face {
+  position: absolute;
+  inset: 0;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.mrn-face--front {
+  transform: rotateY(0deg);
+}
+
+// Verso das cartas de magia/arma (--card-back do tema).
+.mrn-face--back {
+  background: var(--card-back) center / 100% 100% no-repeat;
+  transform: rotateY(180deg);
+}
+
+@keyframes mrn-throw {
+  0% {
+    transform: translate(40%, -120%) rotateZ(-25deg) rotateY(180deg) scale(0.6);
+  }
+  20% {
+    transform: translate(0, 0) rotateZ(5deg) rotateY(180deg) scale(1);
+  }
+  26% {
+    transform: rotateZ(-2deg) rotateY(180deg) scale(1);
+  }
+  32%,
+  58% {
+    transform: rotateZ(0) rotateY(180deg) scale(1);
+  }
+  74% {
+    transform: translateY(-6%) rotateY(90deg) scale(1.12);
+  }
+  88% {
+    transform: translateY(-3%) rotateY(0) scale(1.08);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+.mrn-title {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.8;
+  color: var(--text-color);
+}
+
+.mrn-name {
+  color: var(--gold-color);
+}
+
+.mrn-timer {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.mrn-timer-fill {
+  height: 100%;
+  background: var(--accent-color);
+  animation: mrn-timer linear both;
+}
+
+@keyframes mrn-timer {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mrn-card,
+  .mrn-flip {
+    animation: none;
+  }
+}

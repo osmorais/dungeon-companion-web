@@ -1,0 +1,73 @@
+<div class="mdn-overlay" (click)="closed.emit()">
+  <app-modal-burst variant="defeat" />
+  <div
+    class="mdn-panel framed-toast"
+    role="status"
+    aria-live="polite"
+    (click)="$event.stopPropagation()"
+  >
+    <button class="mdn-close" title="Fechar" (click)="closed.emit()">✕</button>
+    <div class="mdn-stage" [class.mdn-stage--boom]="phase() === 'boom'">
+      @if (phase() === 'boom') {
+        <div class="mdn-flash" aria-hidden="true"></div>
+        <div class="mdn-blast" aria-hidden="true"></div>
+        @for (p of pieces; track $index) {
+          <!-- Cada pedaço é a carta inteira recortada num triângulo, voando pra fora girando. -->
+          <span
+            class="mdn-piece"
+            aria-hidden="true"
+            [style.--dx]="p.dx + 'px'"
+            [style.--dy]="p.dy + 'px'"
+            [style.--r]="p.r + 'deg'"
+            [style.animation-delay.ms]="p.delay"
+            [style.animation-duration.ms]="flyMs"
+          >
+            <span class="mdn-shard" [style.clip-path]="'polygon(' + p.poly + ')'">
+              <app-game-card [card]="card" size="mini" />
+            </span>
+          </span>
+        }
+        @for (e of embers; track $index) {
+          <span
+            class="mdn-ember"
+            aria-hidden="true"
+            [style.--dx]="e.dx + 'px'"
+            [style.--dy]="e.dy + 'px'"
+            [style.width.px]="e.size"
+            [style.height.px]="e.size"
+            [style.animation-delay.ms]="e.delay"
+          ></span>
+        }
+      } @else {
+        <div
+          class="mdn-card"
+          [class.mdn-card--cracking]="phase() === 'cracking'"
+          [class.mdn-card--still]="phase() === 'still'"
+        >
+          <app-game-card [card]="card" size="mini" />
+          @if (phase() === 'cracking') {
+            <svg
+              class="mdn-cracks"
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              @for (d of cracks; track $index) {
+                <path [attr.d]="d" pathLength="1" />
+              }
+            </svg>
+          }
+        </div>
+      }
+    </div>
+    @if (phase() === 'boom' || phase() === 'still') {
+      <p class="mdn-name">{{ name }}</p>
+      <p class="mdn-label">FOI DERROTADO!</p>
+    }
+    @if (durationMs > 0) {
+      <div class="mdn-timer">
+        <div class="mdn-timer-fill" [style.animation-duration.ms]="durationMs"></div>
+      </div>
+    }
+  </div>
+</div>

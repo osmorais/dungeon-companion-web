@@ -33,6 +33,57 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.11.0',
+    date: '2026-10-25',
+    title: 'Monstros atacam de verdade',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'Na ficha do monstro, o mestre agora ataca, rola o dano e usa sopros e venenos com um clique, já com a CD, e aplica o resultado nos personagens (com as resistências deles).',
+      },
+      {
+        kind: 'novidade',
+        text: 'A ficha do monstro também rola os testes dele: resistências, atributos e perícias.',
+      },
+      {
+        kind: 'novidade',
+        text: 'Usos contados: recarga (o d6 é rolado sozinho no início do turno do monstro), usos por dia, ações lendárias por rodada e reação, com descanso pra restaurar tudo.',
+      },
+      {
+        kind: 'novidade',
+        text: 'Multiataque guiado, com cada ataque rolado e contado, e a ficha do monstro abrindo sozinha pro mestre quando chega a vez dele.',
+      },
+      {
+        kind: 'novidade',
+        text: 'Ações de covil: com o monstro no covil, o mestre recebe o lembrete na contagem 20 da iniciativa.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A ficha do monstro mostra resistências, imunidades, vulnerabilidades, sentidos e idiomas.',
+      },
+      {
+        kind: 'novidade',
+        text: 'Monstro revelado agora aparece como uma carta, que cai na mesa e vira, com a imagem dele e uma descrição sobre a criatura.',
+      },
+      {
+        kind: 'novidade',
+        text: 'No painel de combate, o monstro em destaque é a carta dele (toque pra ler a descrição), e quando ele é derrotado a carta racha e explode.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Nova imagem padrão para monstros sem imagem.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Monstro ainda escondido rola em segredo por padrão; o mestre pode mostrar a rolagem pra mesa quando quiser.',
+      },
+      {
+        kind: 'correcao',
+        text: 'Ajustes de segurança nas rolagens da mesa.',
+      },
+    ],
+  },
+  {
     version: '1.10.0',
     date: '2026-10-24',
     title: 'Bestiário do Manual dos Monstros',

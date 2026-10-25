@@ -31,8 +31,52 @@ export interface MonsterStatBlock {
   languages?: string;
   challenge_rating: number;
   xp: number;
-  special_abilities?: { name: string; desc: string }[];
-  actions?: { name: string; desc: string }[];
+  special_abilities?: MonsterAbility[];
+  actions?: MonsterAbility[];
+  /** Campos estruturados só das fichas do bestiário (1.10.0); as antigas da dnd5eapi não têm. */
+  reactions?: MonsterAbility[];
+  legendary_actions?: MonsterAbility[];
+  legendary_count?: number | null;
+  saving_throws?: { ability: MonsterAbilityAbbr; bonus: number }[];
+  skills?: { name: string; bonus: number }[];
+  damage_vulnerabilities?: string[];
+  damage_resistances?: string[];
+  damage_immunities?: string[];
+  condition_immunities?: string[];
+  senses?: string;
+  /** Texto do livro sobre as ações lendárias e as de covil (só o que a ficha mostra). */
+  legendary_desc?: string | null;
+  lair_actions?: string | null;
+}
+
+/** Atributo como o livro abrevia (bestiário). */
+export type MonsterAbilityAbbr = 'FOR' | 'DES' | 'CON' | 'INT' | 'SAB' | 'CAR';
+
+/**
+ * Habilidade/ação da ficha. `name`/`desc` existem nos dois formatos; o resto só no bestiário
+ * (ver docs/dungeon-companion/conceitos/monstros.md).
+ */
+export interface MonsterAbility {
+  name: string;
+  desc: string;
+  usage?:
+    | { type: 'recharge'; min: number }
+    | { type: 'per_day'; times: number }
+    | { type: 'rest'; rest: string }
+    | { type: 'cost'; actions: number }
+    | { type: 'form'; desc: string }
+    | null;
+  attack?: {
+    kind: string;
+    bonus: number;
+    reach_m: number | null;
+    range_m: string | null;
+    target: string | null;
+  } | null;
+  /** `note`: dano condicional ou alternativo (duas mãos, se agarrado); `type` null segue a arma. */
+  damage?: { dice: string; average: number; type: string | null; note?: string }[];
+  dc?: { ability: MonsterAbilityAbbr; value: number; success: 'metade' | 'nenhum' | null } | null;
+  multiattack?: { action: string; count: number }[] | null;
 }
 
 export interface MonsterCatalogEntry {

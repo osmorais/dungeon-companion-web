@@ -3,9 +3,11 @@ import {
   CastStageRoll,
   CombatEncounterDetail,
   MonsterAbilityKey,
+  MonsterActionState,
   MonsterSession,
   NpcSession,
   PlayerSession,
+  RechargeRoll,
   RollLogEntry,
   SecretRollCheck,
   ShownReferenceImage,
@@ -24,7 +26,14 @@ export interface SessionEventPayloadMap {
   npc_removed: { id_npc_session: string };
   monster_added: { monster: MonsterSession };
   monster_removed: { id_monster_session: string };
-  monster_defeated: { id_monster_session: string; name: string; image_url: string | null };
+  /** Tipo e tamanho vão pra carta que explode no aviso (1.11.0). */
+  monster_defeated: {
+    id_monster_session: string;
+    name: string;
+    image_url: string | null;
+    monster_type?: string | null;
+    size?: string | null;
+  };
   /** Mestre apagou a sessão — quem está nela vê o aviso e volta pro início. */
   session_deleted: Record<never, never>;
   /** Mestre declarou um descanso do grupo — só o aviso pra mesa (PV vai em *_hp_updated). */
@@ -59,7 +68,22 @@ export interface SessionEventPayloadMap {
     abilities?: Partial<Record<MonsterAbilityKey, number>>;
   };
   monster_image_updated: { id_monster_session: string; image_url: string };
-  monster_revealed: { id_monster_session: string; name: string; image_url: string | null };
+  /** Usos das ações do monstro (1.11.0) — só o mestre recebe. `recharge_rolls`: d6 do início
+   *  do turno dele. */
+  monster_action_state_updated: {
+    id_monster_session: string;
+    action_state: MonsterActionState;
+    recharge_rolls?: RechargeRoll[];
+  };
+  /** Tipo, tamanho e descrição vão pra carta do aviso (1.11.0); `null` em ficha antiga/sem lore. */
+  monster_revealed: {
+    id_monster_session: string;
+    name: string;
+    image_url: string | null;
+    monster_type?: string | null;
+    size?: string | null;
+    lore?: string | null;
+  };
   monster_hidden: { id_monster_session: string };
   roll_added: { roll: RollLogEntry };
   /** Teste secreto pedido pelo mestre — o backend só manda pro jogador alvo. */

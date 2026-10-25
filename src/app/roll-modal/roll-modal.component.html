@@ -92,6 +92,9 @@
           DESVANTAGEM
         </button>
       </div>
+      @if (canHideRoll) {
+        <ng-container [ngTemplateOutlet]="hiddenToggle" />
+      }
     } @else if (config.mode === 'freeform') {
       <div class="roll-freeform-config">
         <div class="roll-freeform-pool">
@@ -139,27 +142,7 @@
           </div>
         </div>
         @if (canHideRoll) {
-          <div class="roll-config-row">
-            <span class="roll-config-label">MODO</span>
-            <div class="roll-toggle-row">
-              <button
-                class="roll-toggle-btn"
-                [class.active]="!freeformHidden()"
-                [disabled]="isRolling()"
-                (click)="setFreeformHidden(false)"
-              >
-                PÚBLICO
-              </button>
-              <button
-                class="roll-toggle-btn"
-                [class.active]="freeformHidden()"
-                [disabled]="isRolling()"
-                (click)="setFreeformHidden(true)"
-              >
-                <img class="ui-icon" src="assets/icons/padlock.png" alt="" /> OCULTO
-              </button>
-            </div>
-          </div>
+          <ng-container [ngTemplateOutlet]="hiddenToggle" />
         }
       </div>
     }
@@ -213,7 +196,7 @@
           @if (saveSuccessTotal !== null) {
             <p class="roll-modifier-line">Quem passar na resistência: {{ saveSuccessTotal }}</p>
           }
-          @if (canHideRoll && freeformHidden()) {
+          @if (canHideRoll && rollHidden()) {
             <p class="roll-hidden-note">
               <img class="ui-icon" src="assets/icons/padlock.png" alt="" /> Só você vê esse
               resultado
@@ -497,5 +480,30 @@
         <button class="roll-btn-secondary" (click)="close()">FECHAR</button>
       </div>
     }
+  </div>
+</ng-template>
+
+<!-- PÚBLICO/OCULTO do mestre: dados livres e rolagens de monstro (vale pra rolagem e pro dano). -->
+<ng-template #hiddenToggle>
+  <div class="roll-config-row">
+    <span class="roll-config-label">MODO</span>
+    <div class="roll-toggle-row">
+      <button
+        class="roll-toggle-btn"
+        [class.active]="!rollHidden()"
+        [disabled]="isRolling()"
+        (click)="setRollHidden(false)"
+      >
+        PÚBLICO
+      </button>
+      <button
+        class="roll-toggle-btn"
+        [class.active]="rollHidden()"
+        [disabled]="isRolling()"
+        (click)="setRollHidden(true)"
+      >
+        <img class="ui-icon" src="assets/icons/padlock.png" alt="" /> OCULTO
+      </button>
+    </div>
   </div>
 </ng-template>

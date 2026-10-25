@@ -1,6 +1,7 @@
 import {
   TURN_ARRIVE_CLASS,
   TURN_ID_ATTR,
+  crossedLairCount,
   playTurnSlide,
   shouldAnimateTurn,
   snapshotTurnOffsets,
@@ -107,5 +108,39 @@ describe('turn-transition', () => {
     const el = list({ a: 0 });
     playTurnSlide(el, { top: 0, left: 0, width: 1, height: 1 }, 'x');
     expect(document.querySelector('.turn-slide-ghost')).toBeNull();
+  });
+});
+
+describe('crossedLairCount (ações de covil na contagem 20)', () => {
+  it('mesma rodada: dispara ao sair de 20+ pra menos de 20', () => {
+    expect(crossedLairCount({ initiative: 22, round: 1 }, { initiative: 15, round: 1 })).toBe(true);
+    expect(crossedLairCount({ initiative: 20, round: 1 }, { initiative: 19, round: 1 })).toBe(true);
+  });
+
+  it('mesma rodada: não dispara acima nem abaixo da contagem', () => {
+    expect(crossedLairCount({ initiative: 25, round: 1 }, { initiative: 21, round: 1 })).toBe(
+      false,
+    );
+    expect(crossedLairCount({ initiative: 18, round: 1 }, { initiative: 9, round: 1 })).toBe(false);
+  });
+
+  it('empate perde: quem tirou 20 joga antes do covil', () => {
+    expect(crossedLairCount({ initiative: 23, round: 1 }, { initiative: 20, round: 1 })).toBe(
+      false,
+    );
+  });
+
+  it('início do combate ou virada de rodada sem ninguém com 20: abre a rodada', () => {
+    expect(crossedLairCount(null, { initiative: 17, round: 1 })).toBe(true);
+    expect(crossedLairCount({ initiative: 5, round: 1 }, { initiative: 17, round: 2 })).toBe(true);
+  });
+
+  it('virada de rodada com alguém de 20+: o covil já veio no meio da anterior', () => {
+    expect(crossedLairCount(null, { initiative: 21, round: 1 })).toBe(false);
+    expect(crossedLairCount({ initiative: 8, round: 1 }, { initiative: 21, round: 2 })).toBe(false);
+  });
+
+  it('virada de rodada com todos em 20+: o covil fechou a anterior', () => {
+    expect(crossedLairCount({ initiative: 20, round: 1 }, { initiative: 24, round: 2 })).toBe(true);
   });
 });

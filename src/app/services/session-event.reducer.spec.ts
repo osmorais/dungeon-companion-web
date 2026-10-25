@@ -155,7 +155,14 @@ describe('applySessionEvent', () => {
       detail = apply(detail, reveal);
       expect(detail.monsters[0].is_revealed).toBe(true);
       expect(detail.revealed_monsters).toEqual([
-        { id_monster_session: 'm1', name: 'Goblin', image_url: null },
+        {
+          id_monster_session: 'm1',
+          name: 'Goblin',
+          image_url: null,
+          monster_type: null,
+          size: null,
+          lore: null,
+        },
       ]);
 
       detail = apply(detail, { type: 'monster_hidden', id_monster_session: 'm1' });
@@ -163,16 +170,26 @@ describe('applySessionEvent', () => {
       expect(detail.revealed_monsters).toEqual([]);
     });
 
-    it('jogador (sem lista de monstros) também recebe o revelado', () => {
+    it('jogador (sem lista de monstros) também recebe o revelado, com a carta', () => {
       const detail = apply(sessionDetail(), {
         type: 'monster_revealed',
         id_monster_session: 'm9',
         name: 'Dragão',
         image_url: 'd.png',
+        monster_type: 'dragão',
+        size: 'Enorme',
+        lore: 'Senhor da montanha.',
       });
       expect(detail.monsters).toEqual([]);
       expect(detail.revealed_monsters).toEqual([
-        { id_monster_session: 'm9', name: 'Dragão', image_url: 'd.png' },
+        {
+          id_monster_session: 'm9',
+          name: 'Dragão',
+          image_url: 'd.png',
+          monster_type: 'dragão',
+          size: 'Enorme',
+          lore: 'Senhor da montanha.',
+        },
       ]);
     });
 

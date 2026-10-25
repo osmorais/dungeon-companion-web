@@ -1,0 +1,27 @@
+<div class="mrn-overlay" (click)="closed.emit()">
+  <app-modal-burst variant="reveal" />
+  <div
+    class="mrn-panel framed-toast"
+    role="status"
+    aria-live="polite"
+    (click)="$event.stopPropagation()"
+  >
+    <button class="mrn-close" title="Fechar" (click)="closed.emit()">✕</button>
+    <p class="mrn-label">UM MONSTRO FOI REVELADO!</p>
+    <!-- Carta jogada na mesa: cai virada pra baixo, mostra o verso um instante e vira -->
+    <div class="mrn-card">
+      <div class="mrn-flip">
+        <div class="mrn-face mrn-face--back" aria-hidden="true"></div>
+        <app-game-card class="mrn-face mrn-face--front" [card]="card" size="full" />
+      </div>
+    </div>
+    <p class="mrn-title">
+      <span class="mrn-name">{{ name }}</span> SURGE DAS SOMBRAS
+    </p>
+    @if (durationMs > 0) {
+      <div class="mrn-timer">
+        <div class="mrn-timer-fill" [style.animation-duration.ms]="durationMs"></div>
+      </div>
+    }
+  </div>
+</div>

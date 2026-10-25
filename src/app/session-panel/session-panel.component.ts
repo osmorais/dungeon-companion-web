@@ -10,9 +10,12 @@ import {
   CombatParticipant,
   GameSessionDetail,
   MonsterAbilityKey,
+  MonsterActionOp,
+  MonsterActionState,
   MonsterSession,
   NpcSession,
   PlayerSession,
+  RechargeRoll,
   RevealedMonster,
   RollLogEntry,
 } from '../models/game-session.interface';
@@ -29,6 +32,10 @@ import { PlayerActionsModalComponent } from '../player-actions-modal/player-acti
 import { StartFightModalComponent } from '../start-fight-modal/start-fight-modal.component';
 import { DistributeXpModalComponent } from '../distribute-xp-modal/distribute-xp-modal.component';
 import { AbilityRollConfig, RollModalComponent } from '../roll-modal/roll-modal.component';
+import {
+  MonsterActionsComponent,
+  MonsterRollRequest,
+} from '../monster-actions/monster-actions.component';
 import { AddMonsterModalComponent } from '../add-monster-modal/add-monster-modal.component';
 import { TomAssistantComponent } from '../tom-assistant/tom-assistant.component';
 import { PlayerInventoryModalComponent } from '../player-inventory-modal/player-inventory-modal.component';
@@ -37,8 +44,10 @@ import { ModalBurstComponent } from '../modal-burst/modal-burst.component';
 import { SecretRollRequestModalComponent } from '../secret-roll/secret-roll-request-modal.component';
 import { apiErrorMessage } from '../auth/auth-errors';
 import {
+  LairPoint,
   TurnOffset,
   TurnState,
+  crossedLairCount,
   playTurnSlide,
   shouldAnimateTurn,
   snapshotTurnOffsets,
@@ -63,6 +72,10 @@ import { spellToCard } from '../game-card/spell-card';
 import { weaponInfoToCard } from '../game-card/weapon-card';
 import { castVerb } from '../spell-cast/spell-cast-context';
 import { SPELL_CAST_DONE_MS, SpellCastNoticeComponent } from '../spell-cast/spell-cast-notice.component';
+import { MonsterRevealNoticeComponent } from '../monster-reveal/monster-reveal-notice.component';
+import { MonsterSpotlightCardComponent } from '../monster-reveal/monster-spotlight-card.component';
+import { MonsterDefeatNoticeComponent } from '../monster-reveal/monster-defeat-notice.component';
+import { MonsterRevealInfo } from '../game-card/monster-card';
 import { CastStageView, castRollView } from '../spell-cast/spell-cast-stage.model';
 import { SessionEventPayloadMap } from '../models/session-event.interface';
 import { ApplyRequest, ApplyTarget } from '../roll-modal/apply-target';
@@ -82,6 +95,9 @@ import { challengeRatingText, monsterSpeedText } from '../services/monster-forma
     FormsModule,
     CharacterDrawerComponent,
     SpellCastNoticeComponent,
+    MonsterRevealNoticeComponent,
+    MonsterSpotlightCardComponent,
+    MonsterDefeatNoticeComponent,
     SpellGrimoireComponent,
     AvatarDisplayComponent,
     XpBarComponent,
@@ -92,6 +108,7 @@ import { challengeRatingText, monsterSpeedText } from '../services/monster-forma
     StartFightModalComponent,
     DistributeXpModalComponent,
     RollModalComponent,
+    MonsterActionsComponent,
     AddMonsterModalComponent,
     TomAssistantComponent,
     PlayerInventoryModalComponent,
@@ -222,6 +239,7 @@ export class SessionPanelComponent implements OnDestroy {
 
   ngOnDestroy() {
     if (this.myTurnDrawerTimer) clearTimeout(this.myTurnDrawerTimer);
+    if (this.monsterTurnTimer) clearTimeout(this.monsterTurnTimer);
     this.releaseLoadingOverlay();
     this.disconnectRealtime();
     this.stopPolling();
@@ -245,11 +263,31 @@ export class SessionPanelComponent implements OnDestroy {
     this.eventsSub = this.sessionState.connectRealtime(sessionId).subscribe((event) => {
       this.sessionState.applyEvent(event);
       if (event.type === 'monster_defeated') {
-        this.showMonsterDefeatedToast(event.name, event.image_url);
+        this.showMonsterDefeatedToast({
+          name: event.name,
+          imageUrl: event.image_url,
+          monsterType: event.monster_type ?? null,
+          size: event.size ?? null,
+        });
         this.reactTom('tom-celebrating.png', `${event.name} foi derrotado! Vitória!`);
       }
       if (event.type === 'monster_revealed') {
-        this.queueMonsterAnnouncement(event.name, event.image_url);
+        this.queueMonsterAnnouncement({
+          name: event.name,
+          imageUrl: event.image_url,
+          monsterType: event.monster_type ?? null,
+          size: event.size ?? null,
+          lore: event.lore ?? null,
+        });
+      }
+      if (event.type === 'monster_action_state_updated') {
+        // Resultado do d6 de recarga fica na ficha até o próximo uso/turno desse monstro.
+        this.monsterRechargeRolls.update((all) => {
+          const next = { ...all };
+          if (event.recharge_rolls?.length) next[event.id_monster_session] = event.recharge_rolls;
+          else delete next[event.id_monster_session];
+          return next;
+        });
       }
       if (event.type === 'player_xp_granted' && event.can_level_up) {
         const player = this.sessionDetail()?.players.find(
@@ -1164,6 +1202,90 @@ export class SessionPanelComponent implements OnDestroy {
   /** ========================= DETALHE DO MONSTRO (modal) ========================= */
 
   activeMonsterDetail = signal<MonsterSession | null>(null);
+  /** Rolagem de uma ação/teste do monstro (1.11.0): a ficha fecha enquanto rola e volta depois. */
+  activeMonsterRoll = signal<{ monster: MonsterSession; config: AbilityRollConfig } | null>(null);
+  /** Erro ao gastar um uso (ex.: recarga ainda não voltou) — aparece na ficha do monstro. */
+  monsterActionError = signal<string | null>(null);
+  /** d6 de recarga do início do turno, por monstro (mostrado na ficha dele). */
+  monsterRechargeRolls = signal<Partial<Record<string, RechargeRoll[]>>>({});
+
+  /** Ação com uso limitado gasta antes de rolar (a API recusa se acabou, e a rolagem não abre). */
+  openMonsterRoll(monster: MonsterSession, request: MonsterRollRequest): void {
+    this.monsterActionError.set(null);
+    if (!request.consume) {
+      this.startMonsterRoll(monster, request.config);
+      return;
+    }
+    this.gameSessionService
+      .updateMonsterActionState(monster.id_monster_session, request.consume)
+      .subscribe({
+        next: (state) => {
+          this.setMonsterActionState(monster.id_monster_session, state);
+          this.startMonsterRoll(monster, request.config);
+        },
+        error: (err) =>
+          this.monsterActionError.set(apiErrorMessage(err, 'Não foi possível usar essa ação.')),
+      });
+  }
+
+  private startMonsterRoll(monster: MonsterSession, config: AbilityRollConfig): void {
+    this.activeMonsterDetail.set(null);
+    this.activeMonsterRoll.set({ monster, config });
+  }
+
+  /** Uso sem rolagem: habilidade só de texto, restaurar um uso, descanso, covil. */
+  applyMonsterOp(monster: MonsterSession, op: MonsterActionOp): void {
+    this.monsterActionError.set(null);
+    this.gameSessionService.updateMonsterActionState(monster.id_monster_session, op).subscribe({
+      next: (state) => this.setMonsterActionState(monster.id_monster_session, state),
+      error: (err) =>
+        this.monsterActionError.set(apiErrorMessage(err, 'Não foi possível atualizar os usos.')),
+    });
+  }
+
+  /** Aplica já (o socket ecoa o mesmo estado depois, sem refetch). */
+  private setMonsterActionState(idMonsterSession: string, state: MonsterActionState): void {
+    this.sessionState.applyEvent({
+      type: 'monster_action_state_updated',
+      id_game_session: this.sessionDetail()?.game_session.id_game_session ?? '',
+      id_monster_session: idMonsterSession,
+      action_state: state,
+    });
+  }
+
+  /** Usos atuais do monstro (a ficha aberta guarda a cópia de quando abriu). */
+  liveActionState(monster: MonsterSession): MonsterActionState | null {
+    const current = this.sessionDetail()?.monsters.find(
+      (m) => m.id_monster_session === monster.id_monster_session,
+    );
+    return current?.action_state ?? null;
+  }
+
+  /** É a vez deste monstro no combate (a ficha mostra a faixa e o FINALIZAR TURNO). */
+  isMonsterTurn(monster: MonsterSession): boolean {
+    const combat = this.combat();
+    if (combat?.encounter.status !== 'active') return false;
+    const current = combat.participants.find(
+      (p) => p.id_combat_participant === combat.encounter.current_turn_participant_id,
+    );
+    return current?.participant_type === 'monster' && current.id_monster_session === monster.id_monster_session;
+  }
+
+  closeMonsterRoll(): void {
+    const roll = this.activeMonsterRoll();
+    this.activeMonsterRoll.set(null);
+    if (!roll) return;
+    // Volta pra ficha com o estado atual (PV pode ter mudado com o dano aplicado).
+    const current = this.sessionDetail()?.monsters.find(
+      (m) => m.id_monster_session === roll.monster.id_monster_session,
+    );
+    if (current) this.activeMonsterDetail.set(current);
+  }
+
+  /** Alvos do monstro: jogadores e NPCs (com as defesas) e os outros monstros. */
+  monsterApplyTargets(monster: MonsterSession): ApplyTarget[] {
+    return this.applyTargetsFor(-1).filter((t) => t.key !== `monster:${monster.id_monster_session}`);
+  }
 
   openMonsterDetail(monster: MonsterSession) {
     this.activeMonsterDetail.set(monster);
@@ -1578,21 +1700,20 @@ export class SessionPanelComponent implements OnDestroy {
 
   /** ========================= TOAST: MONSTRO DERROTADO (broadcast) ========================= */
 
-  readonly MONSTER_DEFEATED_TOAST_MS = 6_000;
+  /** A carta treme e explode (~1,6 s) e o nome fica pra leitura (1.11.0). */
+  readonly MONSTER_DEFEATED_TOAST_MS = 8_000;
 
   /** `key` incremental — sem isso, dois monstros derrotados seguidos com o mesmo nome não
-   *  forçariam a barra de tempo a recomeçar (ver comentário no @for do template). */
-  activeMonsterDefeatedToast = signal<{ name: string; imageUrl: string | null; key: number } | null>(
-    null,
-  );
+   *  recriariam o aviso (a carta não explodiria de novo; ver o @for do template). */
+  activeMonsterDefeatedToast = signal<(MonsterRevealInfo & { key: number }) | null>(null);
   private monsterDefeatedToastTimer: ReturnType<typeof setTimeout> | null = null;
   private monsterDefeatedCounter = 0;
 
   /** Só o mestre dispara (defeatMonster), mas o evento ecoa pelo socket pra todo mundo, autor incluso. */
-  private showMonsterDefeatedToast(name: string, imageUrl: string | null): void {
+  private showMonsterDefeatedToast(info: MonsterRevealInfo): void {
     if (this.monsterDefeatedToastTimer) clearTimeout(this.monsterDefeatedToastTimer);
     this.monsterDefeatedCounter++;
-    this.activeMonsterDefeatedToast.set({ name, imageUrl, key: this.monsterDefeatedCounter });
+    this.activeMonsterDefeatedToast.set({ ...info, key: this.monsterDefeatedCounter });
     this.monsterDefeatedToastTimer = setTimeout(
       () => this.activeMonsterDefeatedToast.set(null),
       this.MONSTER_DEFEATED_TOAST_MS,
@@ -1981,14 +2102,13 @@ export class SessionPanelComponent implements OnDestroy {
 
   /** ========================= MODAL: MONSTRO REVELADO (broadcast) ========================= */
 
-  readonly MONSTER_ANNOUNCEMENT_MS = 5_000;
+  /** Tempo do aviso: a carta caindo e virando (~2,4 s) e a leitura da descrição (1.11.0). */
+  readonly MONSTER_ANNOUNCEMENT_MS = 30_000;
 
   /** `key` incremental — mesmo motivo do roll-toast/monster-defeated-toast: força o @for a
    *  recriar o painel mesmo se dois monstros seguidos tiverem o mesmo nome. */
-  activeMonsterAnnouncement = signal<{ name: string; imageUrl: string | null; key: number } | null>(
-    null,
-  );
-  private monsterAnnouncementQueue: { name: string; imageUrl: string | null }[] = [];
+  activeMonsterAnnouncement = signal<(MonsterRevealInfo & { key: number }) | null>(null);
+  private monsterAnnouncementQueue: MonsterRevealInfo[] = [];
   private monsterAnnouncementTimer: ReturnType<typeof setTimeout> | null = null;
   private monsterAnnouncementCounter = 0;
 
@@ -1998,8 +2118,8 @@ export class SessionPanelComponent implements OnDestroy {
    * combat_started) — mesmo evento de socket (`monster_revealed`) pros dois casos. Fila porque
    * um combate pode revelar vários monstros de uma vez; mostra um de cada vez.
    */
-  private queueMonsterAnnouncement(name: string, imageUrl: string | null): void {
-    this.monsterAnnouncementQueue.push({ name, imageUrl });
+  private queueMonsterAnnouncement(info: MonsterRevealInfo): void {
+    this.monsterAnnouncementQueue.push(info);
     if (!this.activeMonsterAnnouncement()) this.showNextMonsterAnnouncement();
   }
 
@@ -2134,6 +2254,17 @@ export class SessionPanelComponent implements OnDestroy {
     ) {
       this.scheduleMyTurnDrawer(next.currentId, animate ? TURN_CHANGE_TOAST_MS : 0);
     }
+    // Começou a vez de um monstro: pro mestre, a ficha dele abre sozinha (ações e FINALIZAR TURNO).
+    if (
+      this.turnStateSeen &&
+      this.isOwner() &&
+      next.currentId &&
+      next.currentId !== this.turnState.currentId &&
+      this.monsterForParticipant(next.currentId)
+    ) {
+      this.scheduleMonsterTurnSheet(next.currentId, animate ? TURN_CHANGE_TOAST_MS : 0);
+    }
+    this.checkLairCount(next);
     this.turnStateSeen = true;
     this.turnState = next;
     this.turnOffsets = snapshotTurnOffsets(list);
@@ -2183,6 +2314,64 @@ export class SessionPanelComponent implements OnDestroy {
         (pl) => pl.id_player_session === p.id_player_session && pl.user_id === user.id && pl.character,
       ) ?? null
     );
+  }
+
+  private monsterTurnTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /** Ações de covil (1.11.0): monstros no covil quando a vez passou pela contagem 20 (só o mestre). */
+  lairReminder = signal<MonsterSession[] | null>(null);
+  /** Última vez vista pra conta do covil (combate e rodada). */
+  private lairPrev: (LairPoint & { encounterId: string; currentId: string }) | null = null;
+
+  private checkLairCount(next: TurnState): void {
+    const combat = this.combat();
+    const current = combat?.participants.find((p) => p.id_combat_participant === next.currentId);
+    if (!combat || !next.encounterId || !next.currentId || !current) {
+      this.lairPrev = null;
+      return;
+    }
+    const point = {
+      encounterId: next.encounterId,
+      currentId: next.currentId,
+      initiative: current.initiative_total ?? 0,
+      round: combat.encounter.round_number,
+    };
+    const prev = this.lairPrev?.encounterId === point.encounterId ? this.lairPrev : null;
+    const changed = !prev || prev.currentId !== point.currentId || prev.round !== point.round;
+    this.lairPrev = point;
+    // Recarregar a página no meio do combate não repete o lembrete.
+    if (!changed || !this.turnStateSeen || !this.isOwner() || !crossedLairCount(prev, point)) return;
+    const inCombat = new Set(combat.participants.map((p) => p.id_monster_session));
+    const inLair = (this.sessionDetail()?.monsters ?? []).filter(
+      (m) =>
+        inCombat.has(m.id_monster_session) && m.action_state?.in_lair && !!m.data_snapshot.lair_actions,
+    );
+    if (inLair.length) this.lairReminder.set(inLair);
+  }
+
+  openLairMonster(monster: MonsterSession): void {
+    this.lairReminder.set(null);
+    this.openMonsterDetail(monster);
+  }
+
+  private monsterForParticipant(participantId: string): MonsterSession | null {
+    const p = this.combat()?.participants.find((c) => c.id_combat_participant === participantId);
+    if (!p || p.participant_type !== 'monster') return null;
+    return this.sessionDetail()?.monsters.find((m) => m.id_monster_session === p.id_monster_session) ?? null;
+  }
+
+  private scheduleMonsterTurnSheet(participantId: string, delayMs: number): void {
+    if (this.monsterTurnTimer) clearTimeout(this.monsterTurnTimer);
+    this.monsterTurnTimer = setTimeout(() => this.openMonsterTurnSheet(participantId), delayMs);
+  }
+
+  /** Abre a ficha do monstro da vez — se ainda é a vez dele e o mestre não está rolando nada. */
+  openMonsterTurnSheet(participantId: string): void {
+    this.monsterTurnTimer = null;
+    if (this.combat()?.encounter.current_turn_participant_id !== participantId) return;
+    if (this.activeMonsterRoll() || this.dmRollOpen()) return;
+    const monster = this.monsterForParticipant(participantId);
+    if (monster) this.openMonsterDetail(monster);
   }
 
   private scheduleMyTurnDrawer(participantId: string, delayMs: number): void {

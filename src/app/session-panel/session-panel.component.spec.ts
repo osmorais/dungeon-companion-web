@@ -501,6 +501,91 @@ describe('SessionPanelComponent', () => {
       ]);
     });
 
+    it('ação de monstro: alvos são jogadores, NPCs e os outros monstros (não ele mesmo)', () => {
+      const m2 = monster('m2');
+      detail.set(sessionDetail({ players: [p1, p2], npcs: [n1], monsters: [m1, m2] }));
+      expect(component.monsterApplyTargets(m1).map((t) => t.key)).toEqual([
+        'player:p1',
+        'player:p2',
+        'npc:n1',
+        'monster:m2',
+      ]);
+    });
+
+    it('covil: na contagem 20 o mestre recebe o lembrete dos monstros no covil', () => {
+      const lairBlock = {
+        name: 'Dragão',
+        lair_actions: 'Ações de covil.',
+      } as unknown as MonsterSession['data_snapshot'];
+      const inLair = {
+        uses: {},
+        recharge: [],
+        legendary_used: 0,
+        reaction_used: false,
+        in_lair: true,
+      };
+      const dragon = monster('m1', { data_snapshot: lairBlock, action_state: inLair });
+      const outside = monster('m2', {
+        data_snapshot: lairBlock,
+        action_state: { ...inLair, in_lair: false },
+      });
+      const parts = [
+        participant('c1', { id_player_session: 'p1', initiative_total: 22 }),
+        participant('c2', {
+          participant_type: 'monster',
+          id_monster_session: 'm1',
+          initiative_total: 15,
+        }),
+        participant('c3', {
+          participant_type: 'monster',
+          id_monster_session: 'm2',
+          initiative_total: 12,
+        }),
+      ];
+      const turn = (current: string) => {
+        detail.set(
+          sessionDetail({
+            players: [p1],
+            monsters: [dragon, outside],
+            combat: combat(
+              parts.map((p) => ({ ...p, is_current_turn: p.id_combat_participant === current })),
+            ),
+          }),
+        );
+        (component as any).checkLairCount({ encounterId: 'enc', currentId: current });
+        (component as any).turnStateSeen = true;
+      };
+      turn('c1'); // primeira vez vista (recarregar a página): sem lembrete
+      expect(component.lairReminder()).toBeNull();
+      turn('c2'); // 22 -> 15: passou pela contagem 20
+      expect(component.lairReminder()?.map((m) => m.id_monster_session)).toEqual(['m1']);
+      component.openLairMonster(dragon);
+      expect(component.lairReminder()).toBeNull();
+      expect(component.activeMonsterDetail()).toBe(dragon);
+      turn('c3'); // 15 -> 12: não passa de novo
+      expect(component.lairReminder()).toBeNull();
+    });
+
+    it('rolagem do monstro fecha a ficha e, ao terminar, volta pra ela com o PV atual', () => {
+      const config = {
+        mode: 'ability' as const,
+        rollType: 'attack' as const,
+        label: 'Cimitarra',
+        modifier: 4,
+      };
+      detail.set(sessionDetail({ players: [p1], monsters: [m1] }));
+      component.openMonsterDetail(m1);
+      component.openMonsterRoll(m1, { config, consume: null });
+      expect(component.activeMonsterDetail()).toBeNull();
+      expect(component.activeMonsterRoll()).toEqual({ monster: m1, config });
+
+      // Dano aplicado enquanto rolava: a ficha reabre já com o PV novo.
+      detail.set(sessionDetail({ players: [p1], monsters: [{ ...m1, hp_current: 2 }] }));
+      component.closeMonsterRoll();
+      expect(component.activeMonsterRoll()).toBeNull();
+      expect(component.activeMonsterDetail()?.hp_current).toBe(2);
+    });
+
     describe('jogador (não é o mestre)', () => {
       const asPlayer = () =>
         detail.set(
@@ -808,6 +893,34 @@ describe('SessionPanelComponent', () => {
         spellName: '5 de cura',
         saveNote: 'em Thorin',
       });
+    });
+  });
+
+  describe('aviso de monstro revelado (carta)', () => {
+    afterEach(() => vi.useRealTimers());
+
+    it('mostra um monstro por vez, com tipo, tamanho e lore; o próximo entra ao fechar', () => {
+      vi.useFakeTimers();
+      const queue = (name: string) =>
+        (component as any).queueMonsterAnnouncement({
+          name,
+          imageUrl: null,
+          monsterType: 'humanoide',
+          size: 'Pequeno',
+          lore: `Lore do ${name}.`,
+        });
+      queue('Goblin');
+      queue('Orc');
+      expect(component.activeMonsterAnnouncement()).toMatchObject({
+        name: 'Goblin',
+        monsterType: 'humanoide',
+        size: 'Pequeno',
+        lore: 'Lore do Goblin.',
+      });
+      component.closeMonsterAnnouncement();
+      expect(component.activeMonsterAnnouncement()?.name).toBe('Orc');
+      vi.advanceTimersByTime(component.MONSTER_ANNOUNCEMENT_MS);
+      expect(component.activeMonsterAnnouncement()).toBeNull();
     });
   });
 

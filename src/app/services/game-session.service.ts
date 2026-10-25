@@ -15,6 +15,8 @@ import {
   PartyRestResult,
   JoinSessionPayload,
   MonsterAbilityKey,
+  MonsterActionOp,
+  MonsterActionState,
   MonsterSession,
   PlayerSession,
   RollLogEntry,
@@ -136,6 +138,18 @@ export class GameSessionService {
     return this.http.patch<void>(
       `${this.baseUrl}/api/game-session/monster-session/${idMonsterSession}/stats`,
       stats,
+      { context: this.silentContext() },
+    );
+  }
+
+  /** Usos das ações do monstro (só o mestre): gastar, restaurar, lendária, reação, covil, descanso. */
+  updateMonsterActionState(
+    idMonsterSession: string,
+    op: MonsterActionOp,
+  ): Observable<MonsterActionState> {
+    return this.http.patch<MonsterActionState>(
+      `${this.baseUrl}/api/game-session/monster-session/${idMonsterSession}/action-state`,
+      op,
       { context: this.silentContext() },
     );
   }

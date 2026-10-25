@@ -129,6 +129,16 @@ export function applySessionEvent(
         ),
       };
 
+    case 'monster_action_state_updated':
+      return {
+        ...detail,
+        monsters: detail.monsters.map((m) =>
+          m.id_monster_session === event.id_monster_session
+            ? { ...m, action_state: event.action_state }
+            : m,
+        ),
+      };
+
     case 'monster_revealed':
       return {
         ...detail,
@@ -145,6 +155,9 @@ export function applySessionEvent(
                 id_monster_session: event.id_monster_session,
                 name: event.name,
                 image_url: event.image_url,
+                monster_type: event.monster_type ?? null,
+                size: event.size ?? null,
+                lore: event.lore ?? null,
               },
             ],
       };

@@ -1,0 +1,150 @@
+// Mesmo visual das seções da ficha do monstro (stat-section/stat-feature vêm do painel da sessão,
+// mas aqui o componente tem estilo próprio — repetido o mínimo).
+.stat-section {
+  margin-top: 6px;
+
+  h4 {
+    margin: 0 0 6px;
+    font-size: 8px;
+    color: var(--accent-color);
+  }
+}
+
+.stat-feature {
+  margin: 0 0 8px;
+  font-size: 7px;
+  line-height: 1.7;
+  color: var(--text-color);
+
+  strong {
+    color: var(--accent-color);
+  }
+}
+
+.ma-item {
+  padding: 8px 0;
+  border-top: 1px dashed var(--border-color);
+
+  &:first-of-type {
+    border-top: none;
+  }
+}
+
+.ma-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 8px;
+  color: var(--text-color);
+}
+
+.ma-tag {
+  padding: 2px 5px;
+  border: 1px solid var(--border-color);
+  font-size: 6px;
+  color: var(--label-title-color);
+}
+
+.ma-roll {
+  margin-left: auto;
+  padding: 6px 10px;
+  font-size: 7px;
+}
+
+.ma-row-label {
+  margin: 8px 0 4px;
+  font-size: 6px;
+  color: var(--label-title-color);
+}
+
+.ma-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ma-chip {
+  padding: 5px 8px;
+  background: var(--panel-bg);
+  color: var(--text-color);
+  border: 2px solid var(--border-color);
+  font-family: inherit;
+  font-size: 7px;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+  }
+}
+
+.ma-legacy {
+  margin-top: 10px;
+  font-size: 6px;
+  line-height: 1.6;
+  color: var(--label-title-color);
+}
+
+.ma-item--spent {
+  opacity: 0.6;
+}
+
+.ma-status {
+  padding: 2px 5px;
+  border: 1px solid var(--sheet-label-color);
+  font-size: 6px;
+  color: var(--sheet-label-color);
+}
+
+.ma-restore {
+  padding: 2px 6px;
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--accent-color);
+  font-family: inherit;
+  font-size: 8px;
+  cursor: pointer;
+}
+
+.ma-multi {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0;
+}
+
+.ma-chip--done {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+.ma-chip:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.ma-recharge {
+  margin-top: 8px;
+  padding: 6px 8px;
+  border: 1px dashed var(--border-color);
+}
+
+.ma-recharge-line {
+  margin: 2px 0;
+  font-size: 7px;
+  color: var(--sheet-label-color);
+
+  &--ok {
+    color: var(--accent-color);
+  }
+}
+
+.ma-footer {
+  margin-top: 12px;
+}
+
+.ma-note {
+  color: var(--label-title-color);
+}

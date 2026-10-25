@@ -101,10 +101,7 @@
         </div>
         @if (spotlightMonster(); as monster) {
           <div class="combat-bottom">
-            <div class="revealed-monster-spotlight">
-              <img class="revealed-monster-spotlight-image" [src]="monster.image_url || DEFAULT_MONSTER_IMAGE" [alt]="monster.name" />
-              <span class="revealed-monster-spotlight-name">{{ monster.name }}</span>
-            </div>
+            <app-monster-spotlight-card [monster]="monster" />
           </div>
         }
       </fieldset>
@@ -511,10 +508,7 @@
         </div>
         @if (spotlightMonster(); as monster) {
           <div class="combat-bottom">
-            <div class="revealed-monster-spotlight">
-              <img class="revealed-monster-spotlight-image" [src]="monster.image_url || DEFAULT_MONSTER_IMAGE" [alt]="monster.name" />
-              <span class="revealed-monster-spotlight-name">{{ monster.name }}</span>
-            </div>
+            <app-monster-spotlight-card [monster]="monster" />
           </div>
         }
         </div>
@@ -1190,27 +1184,28 @@
 }
 
 <!-- ===== TOAST: MONSTRO DERROTADO (broadcast pra todos na sessão) ===== -->
-@if (activeMonsterDefeatedToast(); as defeated) {
-  <div class="overlay monster-defeated-overlay" (click)="closeMonsterDefeatedToast()">
-    <!-- @for com track (key) força recriar o painel a cada monstro derrotado — mesmo motivo do
-         toast de rolagem acima; sem isso dois derrotados seguidos com o mesmo nome nem
-         recriariam o elemento. -->
-    @for (d of [defeated]; track d.key) {
-      <app-modal-burst variant="defeat" />
-      <div class="retro-panel framed-toast monster-defeated-panel" (click)="$event.stopPropagation()">
-        <button class="modal-close-btn" (click)="closeMonsterDefeatedToast()">✕</button>
-        <div class="monster-defeated-image-wrap">
-          <img class="monster-defeated-image" [src]="d.imageUrl || DEFAULT_MONSTER_IMAGE" [alt]="d.name" />
-          <img class="monster-defeated-broken-overlay" src="assets/broken.png" alt="" />
-        </div>
-        <span class="monster-defeated-name">{{ d.name }}</span>
-        <span class="monster-defeated-label">FOI DERROTADO!</span>
-        <div class="roll-toast-timer-bar">
-          <div class="roll-toast-timer-fill" [style.animation-duration.ms]="MONSTER_DEFEATED_TOAST_MS"></div>
-        </div>
-      </div>
-    }
+<!-- ===== LEMBRETE: AÇÕES DE COVIL (mestre; contagem 20 da iniciativa) ===== -->
+@if (lairReminder(); as lair) {
+  <div class="retro-panel lair-reminder" role="status">
+    <button class="modal-close-btn" (click)="lairReminder.set(null)">✕</button>
+    <span class="lair-reminder-title">CONTAGEM 20: AÇÕES DE COVIL</span>
+    <div class="lair-reminder-list">
+      @for (m of lair; track m.id_monster_session) {
+        <button class="retro-btn" (click)="openLairMonster(m)">{{ monsterDisplayName(m) }}</button>
+      }
+    </div>
   </div>
+}
+
+@if (activeMonsterDefeatedToast(); as defeated) {
+  <!-- @for com track (key) recria o aviso (e a explosão) a cada monstro derrotado. -->
+  @for (d of [defeated]; track d.key) {
+    <app-monster-defeat-notice
+      [info]="d"
+      [durationMs]="MONSTER_DEFEATED_TOAST_MS"
+      (closed)="closeMonsterDefeatedToast()"
+    />
+  }
 }
 
 <!-- ===== AVISO: LANÇAMENTO DE MAGIA (um por lançamento, cresce a cada etapa) ===== -->
@@ -1277,21 +1272,14 @@
 
 <!-- ===== MODAL: MONSTRO REVELADO (broadcast pra todos na sessão) ===== -->
 @if (activeMonsterAnnouncement(); as announcement) {
-  <div class="overlay monster-announcement-overlay" (click)="closeMonsterAnnouncement()">
-    <!-- @for com track (key) força recriar o painel — mesmo motivo do roll-toast acima. -->
-    @for (a of [announcement]; track a.key) {
-      <app-modal-burst variant="reveal" />
-      <div class="retro-panel framed-toast monster-announcement-panel" (click)="$event.stopPropagation()">
-        <button class="modal-close-btn" (click)="closeMonsterAnnouncement()">✕</button>
-        <span class="monster-announcement-label">UM MONSTRO FOI REVELADO!</span>
-        <img class="monster-announcement-image" [src]="a.imageUrl || DEFAULT_MONSTER_IMAGE" [alt]="a.name" />
-        <span class="monster-announcement-name">{{ a.name }}</span>
-        <div class="roll-toast-timer-bar">
-          <div class="roll-toast-timer-fill" [style.animation-duration.ms]="MONSTER_ANNOUNCEMENT_MS"></div>
-        </div>
-      </div>
-    }
-  </div>
+  <!-- @for com track (key) força recriar o aviso (e a carta caindo) a cada monstro. -->
+  @for (a of [announcement]; track a.key) {
+    <app-monster-reveal-notice
+      [info]="a"
+      [durationMs]="MONSTER_ANNOUNCEMENT_MS"
+      (closed)="closeMonsterAnnouncement()"
+    />
+  }
 }
 
 <!-- ===== MODAL: DETALHE DO MONSTRO ===== -->
@@ -1300,6 +1288,14 @@
     <div class="retro-panel monster-detail-modal" (click)="$event.stopPropagation()">
       <button class="modal-close-btn" (click)="closeMonsterDetail()">✕</button>
       <div class="stat-block">
+        @if (isMonsterTurn(monster)) {
+          <div class="monster-turn-banner">
+            <span>VEZ DE {{ monsterDisplayName(monster) }}</span>
+            <button class="retro-btn" (click)="endTurn(); closeMonsterDetail()" [disabled]="endingTurn()">
+              FINALIZAR TURNO
+            </button>
+          </div>
+        }
         <h3 class="stat-name">{{ monsterDisplayName(monster) }}</h3>
         @if (monster.custom_name) {
           <p class="stat-original-name">({{ monster.data_snapshot.name }})</p>
@@ -1373,25 +1369,37 @@
 
         <div class="stat-row"><span class="stat-label">ND</span><span>{{ crText(monster.data_snapshot.challenge_rating) }} ({{ monster.data_snapshot.xp }} XP)</span></div>
 
-        @if (monster.data_snapshot.special_abilities?.length) {
-          <div class="stat-section">
-            <h4>HABILIDADES</h4>
-            @for (a of monster.data_snapshot.special_abilities; track a.name) {
-              <p class="stat-feature"><strong>{{ a.name }}.</strong> {{ a.desc }}</p>
-            }
-          </div>
+        <!-- Habilidades, ações e testes: no bestiário, cada ação com número rola, com os usos
+             que restam (1.11.0). -->
+        @if (monsterActionError(); as err) {
+          <p class="monster-action-error">{{ err }}</p>
         }
-        @if (monster.data_snapshot.actions?.length) {
-          <div class="stat-section">
-            <h4>AÇÕES</h4>
-            @for (a of monster.data_snapshot.actions; track a.name) {
-              <p class="stat-feature"><strong>{{ a.name }}.</strong> {{ a.desc }}</p>
-            }
-          </div>
-        }
+        <app-monster-actions
+          [block]="monster.data_snapshot"
+          [state]="liveActionState(monster)"
+          [rechargeRolls]="monsterRechargeRolls()[monster.id_monster_session] ?? null"
+          (roll)="openMonsterRoll(monster, $event)"
+          (op)="applyMonsterOp(monster, $event)"
+        />
       </div>
     </div>
   </div>
+}
+
+<!-- ===== MODAL: ROLAGEM DO MONSTRO (mestre; oculta por padrão enquanto o monstro está escondido) ===== -->
+@if (activeMonsterRoll(); as mr) {
+  <app-roll-modal
+    [config]="mr.config"
+    [idCharacter]="null"
+    [actorName]="monsterDisplayName(mr.monster)"
+    [sessionId]="id()"
+    [canHideRoll]="true"
+    [startHidden]="!mr.monster.is_revealed"
+    [applyTargets]="monsterApplyTargets(mr.monster)"
+    backLabel="VOLTAR À FICHA"
+    (applyToTarget)="applyRollToTarget($event)"
+    (closed)="closeMonsterRoll()"
+  />
 }
 
 <!-- ===== SESSÃO APAGADA PELO MESTRE (jogadores) ===== -->

@@ -1,0 +1,311 @@
+// Mesmo padrão do aviso de revelação (monster-reveal-notice): fundo escuro, painel com a moldura
+// do tema, a carta do monstro no centro. Aqui ela treme, racha em brasa e explode.
+.mdn-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100; // aviso global, como o de rolagem avulso
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.7);
+  overflow: hidden; // os pedaços voam pra fora do painel, mas não criam rolagem
+}
+
+// Moldura do tema (.framed-toast, styles.scss): não definir border aqui.
+.mdn-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 92vw;
+  max-width: 520px;
+  min-height: 460px;
+  padding: 18px 10px 6px;
+  box-sizing: border-box;
+  background-color: var(--panel-bg);
+  text-align: center;
+  overflow: visible;
+  animation: modal-blast-in 0.5s steps(10) both;
+}
+
+.mdn-close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 6;
+  padding: 4px 8px;
+  border: none;
+  background: none;
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 11px;
+  cursor: var(--cp);
+
+  &:hover {
+    color: var(--accent-color);
+  }
+}
+
+// Palco do tamanho da carta: a carta e os pedaços se posicionam sobre ele.
+.mdn-stage {
+  position: relative;
+  width: clamp(190px, 58vw, 260px);
+  aspect-ratio: 760 / 1064;
+}
+
+// Treme mais forte com a explosão (o painel inteiro sente o impacto).
+.mdn-stage--boom {
+  animation: mdn-impact 0.4s steps(6) both;
+}
+
+.mdn-card {
+  position: absolute;
+  inset: 0;
+  animation: mdn-land 0.45s steps(5) both;
+
+  &--cracking {
+    animation: mdn-tremble 0.12s steps(2) infinite;
+    filter: drop-shadow(0 0 6px rgba(255, 70, 30, 0.8)) brightness(1.1);
+  }
+
+  &--still {
+    animation: none;
+    filter: grayscale(1) brightness(0.7);
+  }
+}
+
+.mdn-cracks {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+
+  path {
+    fill: none;
+    stroke: #ffd36b;
+    stroke-width: 3;
+    vector-effect: non-scaling-stroke;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    filter: drop-shadow(0 0 3px #ff4a1c) drop-shadow(0 0 6px rgba(255, 120, 0, 0.8));
+    animation: mdn-crack 1s steps(10) forwards;
+  }
+}
+
+.mdn-flash {
+  position: absolute;
+  inset: -60%;
+  z-index: 4;
+  background: radial-gradient(
+    circle,
+    rgba(255, 250, 220, 0.95) 0%,
+    rgba(255, 170, 60, 0.6) 25%,
+    transparent 60%
+  );
+  pointer-events: none;
+  animation: mdn-flash 0.55s steps(5) forwards;
+}
+
+// Anel de fogo que se abre a partir do centro da carta.
+.mdn-blast {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 3;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    transparent 30%,
+    rgba(255, 200, 80, 0.9) 45%,
+    rgba(255, 80, 20, 0.7) 60%,
+    transparent 72%
+  );
+  pointer-events: none;
+  animation: mdn-blast 0.8s steps(8) forwards;
+}
+
+.mdn-piece {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  filter: drop-shadow(0 0 2px #ffb347) drop-shadow(0 0 5px rgba(255, 80, 0, 0.7));
+  animation-name: mdn-fly;
+  animation-timing-function: cubic-bezier(0.15, 0.6, 0.4, 1);
+  animation-fill-mode: both;
+}
+
+.mdn-shard {
+  position: absolute;
+  inset: 0;
+}
+
+.mdn-ember {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 3;
+  background: #ffcf5a;
+  box-shadow: 0 0 6px #ff6a1c;
+  animation: mdn-ember 1.1s cubic-bezier(0.1, 0.7, 0.4, 1) both;
+}
+
+.mdn-name {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--accent-color);
+  animation: mdn-stamp 0.45s steps(5) 0.25s both;
+}
+
+.mdn-label {
+  margin: 0;
+  font-size: 13px;
+  color: var(--gold-color);
+  letter-spacing: 0.5px;
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;
+  animation: mdn-stamp 0.45s steps(5) 0.45s both;
+}
+
+.mdn-timer {
+  width: 100%;
+  height: 4px;
+  margin-top: auto;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.mdn-timer-fill {
+  height: 100%;
+  background: #ff6b6b;
+  animation: mdn-timer linear both;
+}
+
+@keyframes mdn-land {
+  from {
+    transform: translateY(-40%) scale(0.7) rotate(-6deg);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes mdn-tremble {
+  0% {
+    transform: translate(-2px, 1px) rotate(-0.8deg);
+  }
+  100% {
+    transform: translate(2px, -1px) rotate(0.8deg);
+  }
+}
+
+@keyframes mdn-crack {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes mdn-impact {
+  0%,
+  100% {
+    transform: none;
+  }
+  25% {
+    transform: translate(-8px, 4px);
+  }
+  50% {
+    transform: translate(7px, -5px);
+  }
+  75% {
+    transform: translate(-4px, 3px);
+  }
+}
+
+@keyframes mdn-flash {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes mdn-blast {
+  0% {
+    transform: scale(0.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(12);
+    opacity: 0;
+  }
+}
+
+@keyframes mdn-fly {
+  0% {
+    transform: none;
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--dx), var(--dy)) rotate(var(--r)) scale(0.6);
+    opacity: 0;
+  }
+}
+
+@keyframes mdn-ember {
+  0% {
+    transform: translate(-50%, -50%);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy)));
+    opacity: 0;
+  }
+}
+
+@keyframes mdn-stamp {
+  0% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(0.92);
+    opacity: 1;
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes mdn-timer {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mdn-panel,
+  .mdn-card,
+  .mdn-name,
+  .mdn-label {
+    animation: none;
+  }
+}
