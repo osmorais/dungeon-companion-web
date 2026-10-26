@@ -26,6 +26,10 @@
   padding: 14px 10px 6px;
   box-sizing: border-box;
   background-color: var(--panel-bg);
+  // Fundo do tema (altar no SOMBRIO), como a tela de lançamento.
+  background-image: var(--notice-bg);
+  background-size: cover;
+  background-position: center;
   text-align: center;
   animation: modal-blast-in 0.5s steps(10) both;
 }

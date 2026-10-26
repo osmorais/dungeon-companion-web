@@ -21,6 +21,7 @@ describe('monsterToCard (carta do aviso de revelação)', () => {
       stats: [],
       text: 'Pequenos e traiçoeiros.',
       tags: [],
+      variant: 'monster',
     });
   });
 
@@ -58,5 +59,7 @@ describe('monsterActionToCard (carta da ação na tela de lançamento)', () => {
     expect(card.badge).toBe('13');
     expect(card.ribbon).toBe('EFEITO COM RESISTÊNCIA');
     expect(card.art).toBe(DEFAULT_MONSTER_IMAGE);
+    // A carta da ação usa a moldura comum (medalhão com a CD), não a do monstro.
+    expect(card.variant).toBeUndefined();
   });
 });

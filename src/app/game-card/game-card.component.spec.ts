@@ -37,4 +37,26 @@ describe('GameCardComponent', () => {
     expect(monster.querySelector('.gc-expand')).toBeNull();
     expect(render([{ label: 'TEMPO', value: '1 ação' }]).querySelector('.gc-desc')).toBeNull();
   });
+
+  it('carta do monstro (variant) leva a classe da moldura própria; as outras não', () => {
+    const render = (variant?: 'monster') => {
+      const fixture = TestBed.createComponent(GameCardComponent);
+      fixture.componentInstance.card = {
+        title: 'Goblin',
+        badge: '?',
+        art: null,
+        fallbackIcon: '',
+        artBackground: null,
+        ribbon: '',
+        stats: [],
+        text: null,
+        tags: [],
+        ...(variant ? { variant } : {}),
+      };
+      fixture.detectChanges();
+      return fixture.nativeElement as HTMLElement;
+    };
+    expect(render('monster').querySelector('.gc--monster')).not.toBeNull();
+    expect(render().querySelector('.gc--monster')).toBeNull();
+  });
 });

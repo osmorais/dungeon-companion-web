@@ -93,6 +93,10 @@ export const SPELL_CAST_DONE_MS = 8000;
       padding: 8px 6px 4px;
       box-sizing: border-box;
       background-color: var(--panel-bg);
+      /* Fundo do tema (altar no SOMBRIO); propriedades separadas pra não zerar o background-clip. */
+      background-image: var(--notice-bg);
+      background-size: cover;
+      background-position: center;
       animation: modal-blast-in 0.5s steps(10) both;
     }
 

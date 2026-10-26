@@ -34,6 +34,7 @@ export function monsterToCard(info: MonsterRevealInfo): GameCardData {
     stats: [],
     text: info.lore?.trim() || null,
     tags: [],
+    variant: 'monster',
   };
 }
 

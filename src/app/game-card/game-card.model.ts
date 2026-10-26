@@ -27,6 +27,8 @@ export interface GameCardData {
   text: string | null;
   /** Etiquetas no canto da arte (ex.: "PREPARADA"). */
   tags: string[];
+  /** Carta do monstro (1.13.2): moldura própria do tema (`--monster-card-face`). */
+  variant?: 'monster';
 }
 
 /** Cor da carta no grimório: pronta pra usar, dá pra preparar, ou bloqueada (apagada). */

@@ -228,6 +228,67 @@ describe('MonsterActionsComponent', () => {
     expect(only('traits')).not.toContain('ATACAR');
   });
 
+  describe('cartas de ação (gaveta, 1.13.3)', () => {
+    function renderCards(b: MonsterStatBlock, st: MonsterActionState | null = null) {
+      const fixture = TestBed.createComponent(MonsterActionsComponent);
+      fixture.componentRef.setInput('block', b);
+      fixture.componentRef.setInput('state', st);
+      fixture.componentRef.setInput('part', 'actions');
+      fixture.componentRef.setInput('asCards', true);
+      fixture.componentRef.setInput('imageUrl', 'g.png');
+      const rolled: MonsterRollRequest[] = [];
+      const ops: MonsterActionOp[] = [];
+      fixture.componentInstance.roll.subscribe((r) => rolled.push(r));
+      fixture.componentInstance.op.subscribe((o) => ops.push(o));
+      fixture.detectChanges();
+      const el = fixture.nativeElement as HTMLElement;
+      const openHand = () => {
+        el.querySelector<HTMLButtonElement>('app-card-deck .deck')!.click();
+        fixture.detectChanges();
+      };
+      return { fixture, el, rolled, ops, openHand, comp: fixture.componentInstance };
+    }
+
+    it('ações que rolam vão pro baralho; multiataque e texto ficam na lista', () => {
+      const multi = ability({
+        name: 'Ataques Múltiplos',
+        multiattack: [{ action: 'Cimitarra', count: 2 }],
+      });
+      const { el, comp } = renderCards(block([multi, CIMITARRA, SOPRO]));
+      expect(el.querySelector('app-card-deck')?.textContent).toContain('AÇÕES · 2');
+      expect(comp.hand().map((h) => h.card.title)).toEqual(['Cimitarra', 'Sopro']);
+      expect(comp.hand()[0].card).toMatchObject({ art: 'g.png', text: CIMITARRA.desc });
+      expect(el.textContent).toContain('Ataques Múltiplos');
+      expect(el.querySelector('.ma-item .ma-roll')?.textContent).toContain('MULTIATAQUE');
+    });
+
+    it('na mão, o botão da carta da vez rola a ação com o que gastar', () => {
+      const { el, rolled, openHand } = renderCards(block([SOPRO]));
+      openHand();
+      const btn = el.querySelector<HTMLButtonElement>('.ma-hand-btn')!;
+      expect(btn.textContent?.trim()).toBe('RESISTÊNCIA');
+      btn.click();
+      expect(rolled[0]).toMatchObject({
+        consume: { op: 'use', ability: 'Sopro' },
+        card: { kind: 'save' },
+      });
+    });
+
+    it('uso esgotado: carta apagada, botão travado, ↺ devolve; contador de lendárias junto do baralho', () => {
+      const asa = ability({ ...CIMITARRA, name: 'Asa', usage: { type: 'cost', actions: 2 } });
+      const { el, ops, openHand, comp } = renderCards(
+        block([SOPRO], { legendary_count: 3, legendary_actions: [asa] }),
+        state({ recharge: ['Sopro'], legendary_used: 2 }),
+      );
+      expect(comp.hand()[0].state).toBe('locked');
+      expect(el.textContent).toContain('LENDÁRIAS: RESTAM 1 DE 3 NA RODADA');
+      openHand();
+      expect(el.querySelector<HTMLButtonElement>('.ma-hand-btn')!.disabled).toBe(true);
+      el.querySelector<HTMLButtonElement>('.ma-hand-actions .ma-restore')!.click();
+      expect(ops).toEqual([{ op: 'restore', ability: 'Sopro' }]);
+    });
+  });
+
   it('ficha antiga (dnd5eapi): só texto e o aviso pra catalogar de novo', () => {
     const { el } = render(block([{ name: 'Scimitar', desc: 'Melee Weapon Attack: +4 to hit' }]));
     expect(el.querySelector('.ma-roll')).toBeNull();

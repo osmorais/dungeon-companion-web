@@ -4,6 +4,7 @@
   [class.gc--expanded]="size === 'full' && expanded()"
   [class.gc--ready]="state === 'ready'"
   [class.gc--locked]="state === 'locked'"
+  [class.gc--monster]="card.variant === 'monster'"
 >
   <div class="gc-art" [style.background]="card.artBackground">
     @if (card.art) {

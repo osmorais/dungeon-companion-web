@@ -491,8 +491,16 @@ describe('SessionPanelComponent', () => {
     const n1 = npc('n1', { id_character: 30 });
     const m1 = monster('m1', { hp_current: 7, hp_max: 7 });
 
-    it('mestre: todos os jogadores, NPCs e monstros; só jogador aceita PV temporários', () => {
-      detail.set(sessionDetail({ players: [p1, p2], npcs: [n1], monsters: [m1] }));
+    it('mestre: todos os jogadores e NPCs e os monstros revelados; só jogador aceita PV temporários', () => {
+      // Monstro escondido não entra nem pro mestre (1.13.2): o nome iria pra mesa no "APLICOU".
+      const hidden = monster('m9', { custom_name: 'Escondido' });
+      detail.set(
+        sessionDetail({
+          players: [p1, p2],
+          npcs: [n1],
+          monsters: [{ ...m1, is_revealed: true }, hidden],
+        }),
+      );
       expect(component.applyTargetsFor(10)).toEqual([
         { key: 'player:p1', label: 'Personagem p1', allowsTempHp: true },
         { key: 'player:p2', label: 'Personagem p2', allowsTempHp: true },
@@ -502,8 +510,9 @@ describe('SessionPanelComponent', () => {
     });
 
     it('ação de monstro: alvos são jogadores, NPCs e os outros monstros (não ele mesmo)', () => {
-      const m2 = monster('m2');
-      detail.set(sessionDetail({ players: [p1, p2], npcs: [n1], monsters: [m1, m2] }));
+      const m2 = monster('m2', { is_revealed: true });
+      const hidden = monster('m3');
+      detail.set(sessionDetail({ players: [p1, p2], npcs: [n1], monsters: [m1, m2, hidden] }));
       expect(component.monsterApplyTargets(m1).map((t) => t.key)).toEqual([
         'player:p1',
         'player:p2',

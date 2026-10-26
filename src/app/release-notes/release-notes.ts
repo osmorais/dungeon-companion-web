@@ -33,6 +33,29 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.13.2',
+    date: '2026-10-26',
+    title: 'Ações do monstro em cartas',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'Na ficha do monstro, os ataques e as outras ações viram cartas num baralho que abre a mão, como as armas dos personagens: cada carta com os números e a descrição da ação, e o botão de rolar embaixo.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'No tema Sombrio, a carta do monstro ganhou uma moldura própria, de osso, chifres e presas, com uma caveira no canto.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A tela de lançamento e os avisos (rolagens, monstro revelado e derrotado, habilidades, subir de nível) ganharam um fundo próprio em cada tema: um altar à luz de velas no Sombrio e um tapete arcano no Fantasia. Personagem com foto continua com a foto.',
+      },
+      {
+        kind: 'correcao',
+        text: 'Ao aplicar dano ou cura, os monstros ainda escondidos não aparecem mais na lista de alvos.',
+      },
+    ],
+  },
+  {
     version: '1.13.1',
     date: '2026-10-26',
     title: 'NPCs e monstros com moldura',

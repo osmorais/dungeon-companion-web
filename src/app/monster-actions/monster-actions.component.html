@@ -22,6 +22,16 @@
     </div>
   }
 
+  @if (shows('actions') && asCards() && hand().length) {
+    <div class="stat-section">
+      <h4>CARTAS DE AÇÃO</h4>
+      <app-card-deck [cards]="deckCards()" label="AÇÕES" (open)="handOpen.set(true)" />
+      @for (line of deckStatus(); track line) {
+        <p class="ma-row-label ma-deck-status">{{ line }}</p>
+      }
+    </div>
+  }
+
   @for (section of shows('actions') ? sections() : []; track section.group) {
     <div class="stat-section">
       <h4>{{ section.title }}</h4>
@@ -164,6 +174,40 @@
       </button>
     </div>
   }
+
+  @if (handOpen()) {
+    <app-card-hand
+      [items]="hand()"
+      title="AÇÕES"
+      backLabel="VOLTAR À FICHA"
+      [actions]="handActions"
+      (closed)="handOpen.set(false)"
+    />
+  }
+  <!-- Botão da carta da vez na mão: rola a ação (com o que gastar), mostra os usos -->
+  <ng-template #handActions let-key>
+    @if (buttonByKey(key); as b) {
+      @let av = availability(b);
+      <div class="ma-hand-actions">
+        @if (av.status) {
+          <span class="ma-status">{{ av.status }}</span>
+        }
+        <button type="button" class="ma-hand-btn" [disabled]="!av.available" (click)="use(b)">
+          {{ buttonLabel(b) }}
+        </button>
+        @if (av.restorable) {
+          <button
+            type="button"
+            class="ma-restore"
+            title="Devolver o uso"
+            (click)="op.emit({ op: 'restore', ability: b.ability })"
+          >
+            ↺
+          </button>
+        }
+      </div>
+    }
+  </ng-template>
 } @else if (shows('actions')) {
   @if (block().special_abilities?.length) {
     <div class="stat-section">

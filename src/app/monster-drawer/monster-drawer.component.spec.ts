@@ -70,7 +70,8 @@ describe('MonsterDrawerComponent (ficha do monstro na gaveta)', () => {
     );
     expect(titles).toEqual(['MONSTRO', 'AÇÕES', 'TESTES']);
     expect(el.querySelector('app-game-card .gc-desc')?.textContent).toContain('traiçoeiros');
-    expect(el.textContent).toContain('ATACAR');
+    // Ações que rolam como cartas (1.13.3): o baralho, não um botão na lista.
+    expect(el.querySelector('app-card-deck')?.textContent).toContain('AÇÕES · 1');
     expect(el.textContent).toContain('RESISTÊNCIAS');
   });
 
@@ -84,7 +85,7 @@ describe('MonsterDrawerComponent (ficha do monstro na gaveta)', () => {
     expect(ended).toBe(1);
   });
 
-  it('DANO/CURA no PV, ATACAR e fechar avisam a sessão', () => {
+  it('DANO/CURA no PV, ATACAR (pela mão de cartas) e fechar avisam a sessão', () => {
     const { fixture, el, byText, comp } = render();
     const hp: unknown[] = [];
     const rolls: unknown[] = [];
@@ -102,6 +103,9 @@ describe('MonsterDrawerComponent (ficha do monstro na gaveta)', () => {
       { kind: 'damage', amount: 3 },
       { kind: 'heal', amount: 2 },
     ]);
+    el.querySelector<HTMLButtonElement>('app-card-deck .deck')!.click();
+    fixture.detectChanges();
+    expect(el.querySelector('app-card-hand')).not.toBeNull();
     byText('ATACAR')!.click();
     expect(rolls[0]).toMatchObject({ card: { name: 'Cimitarra', kind: 'attack' } });
     el.querySelector<HTMLButtonElement>('.bottom-drawer-bar')!.click();

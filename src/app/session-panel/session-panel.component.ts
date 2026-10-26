@@ -553,13 +553,16 @@ export class SessionPanelComponent implements OnDestroy {
         allowsTempHp: false,
         defenses: n.character!.defenses,
       }));
-    // Jogador: só monstros revelados (sem PV), e só dano. Mestre: todos.
+    // Só monstros revelados, pra todos (1.13.2): escondido não entra nem pro mestre — o nome iria
+    // pra mesa na linha "APLICOU … em …" do lançamento. Jogador: sem PV, e só dano.
     const monsters = this.isOwner()
-      ? detail.monsters.map((m) => ({
-          key: `monster:${m.id_monster_session}`,
-          label: this.monsterDisplayName(m),
-          allowsTempHp: false,
-        }))
+      ? detail.monsters
+          .filter((m) => m.is_revealed)
+          .map((m) => ({
+            key: `monster:${m.id_monster_session}`,
+            label: this.monsterDisplayName(m),
+            allowsTempHp: false,
+          }))
       : detail.revealed_monsters.map((m) => ({
           key: `monster:${m.id_monster_session}`,
           label: m.name,

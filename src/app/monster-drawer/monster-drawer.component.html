@@ -275,6 +275,8 @@
             [block]="monster.data_snapshot"
             [state]="actionState"
             [rechargeRolls]="rechargeRolls"
+            [imageUrl]="monster.image_url"
+            [asCards]="true"
             part="actions"
             (roll)="roll.emit($event)"
             (op)="op.emit($event)"

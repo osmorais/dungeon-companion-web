@@ -81,6 +81,12 @@
   --ring-ratio: 1.0702;
   /* Moldura das cartas de magia/arma (design/spell-cards/process.py) */
   --card-face: url('/assets/cards/card-frame-fantasia.webp');
+  /* Carta do monstro (1.13.2): no FANTASIA, a moldura de sempre, com o "?" no medalhão. */
+  --monster-card-face: url('/assets/cards/card-frame-fantasia.webp');
+  --monster-card-badge: flex;
+  /* Fundo da tela de lançamento e dos avisos de monstro (1.13.2): retrato no celular, quadrado no
+     desktop (ver o @media no fim do arquivo). FANTASIA: tapete carmesim com selo dourado. */
+  --notice-bg: url('/assets/frames/notice-bg-fantasia.webp');
   /* Verso das cartas (animação da carta jogada e virando no aviso de lançamento) */
   --card-back: url('/assets/cards/card-back-fantasia.webp');
   /* Sprite do dragão (carregamento e wizard): grade 4×4, virado pra direita */
@@ -150,6 +156,13 @@
   --ring-cy: 0.4596;
   --ring-ratio: 1.06;
   --card-face: url('/assets/cards/card-frame-sombrio.webp');
+  /* Carta do monstro (1.13.2): moldura própria (osso, chifres, presas); o emblema da caveira
+     ocupa o canto do medalhão, então o "?" some. */
+  --monster-card-face: url('/assets/cards/card-frame-monstro-sombrio.webp');
+  --monster-card-badge: none;
+  /* Altar de pedra visto de cima, velas e brasas nas bordas, centro escuro pro texto (retrato no
+     celular; o quadrado do desktop está no @media no fim do arquivo). */
+  --notice-bg: url('/assets/frames/notice-bg-sombrio.webp');
   --card-back: url('/assets/cards/card-back-sombrio.webp');
   /* No lugar do dragão vermelho, um dracolich (dragão morto-vivo), mesma grade 4×4 */
   --dragon-sprite: url('/dragon-sprite-sombrio.png');
@@ -1093,4 +1106,17 @@ input[type="checkbox"].retro-checkbox {
   height: calc(var(--avatar-size) * var(--ring-scale) * var(--ring-ratio));
   background: var(--avatar-ring) center / 100% 100% no-repeat;
   pointer-events: none;
+}
+
+/* Fundo da tela de lançamento e dos avisos no desktop (1.13.2): o painel é quase quadrado, e a
+   versão em retrato cortava demais. Fica no fim do arquivo pra vir depois das variáveis dos temas
+   (mesma especificidade: quem vem depois ganha). */
+@media (min-width: 768px) {
+  :root {
+    --notice-bg: url('/assets/frames/notice-bg-fantasia-quadrado.webp');
+  }
+
+  :root[data-theme='sombrio'] {
+    --notice-bg: url('/assets/frames/notice-bg-sombrio-quadrado.webp');
+  }
 }

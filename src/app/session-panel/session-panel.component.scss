@@ -1294,6 +1294,11 @@
   /* "fieldset.retro-panel" (styles.scss) só vale pra <fieldset> — como este painel é uma
      <div>, precisa repetir fundo/borda aqui. */
   background-color: var(--panel-bg);
+  /* Sem foto do personagem (e em rolagem de monstro/mestre): o fundo do tema, como na tela de
+     lançamento (1.13.2). Com foto, o style do template sobrepõe. */
+  background-image: var(--notice-bg);
+  background-size: cover;
+  background-position: center;
 
   position: relative;
   display: flex;
@@ -1397,6 +1402,11 @@
   /* "fieldset.retro-panel" (styles.scss) só vale pra <fieldset> — como este painel é uma
      <div>, precisa repetir fundo/borda aqui. */
   background-color: var(--panel-bg);
+  /* Sem foto do personagem (e em rolagem de monstro/mestre): o fundo do tema, como na tela de
+     lançamento (1.13.2). Com foto, o style do template sobrepõe. */
+  background-image: var(--notice-bg);
+  background-size: cover;
+  background-position: center;
 
   position: relative;
   display: flex;
@@ -1448,6 +1458,9 @@
 
 .level-up-eligible-panel {
   background-color: var(--panel-bg);
+  background-image: var(--notice-bg);
+  background-size: cover;
+  background-position: center;
 
   position: relative;
   display: flex;
