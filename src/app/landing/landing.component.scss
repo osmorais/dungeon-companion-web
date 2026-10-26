@@ -59,12 +59,6 @@ button {
   }
 }
 
-.lp-hide-mobile {
-  @media (max-width: 767px) {
-    display: none;
-  }
-}
-
 /* ===== Botões e textos comuns ===== */
 
 .lp-btn {
@@ -105,7 +99,8 @@ button {
   }
 
   &--small {
-    min-height: 36px;
+    // 44px: alvo de toque mínimo recomendado — é o único botão visível no topo no celular.
+    min-height: 44px;
     padding: 0 14px;
     font-size: 8px;
   }
@@ -203,6 +198,49 @@ button {
   margin-left: auto;
 }
 
+// Só aparece quando o menu horizontal (.lp-nav) não cabe mais — ver @media (max-width: 1024px),
+// onde o próprio .lp-nav vira o painel aberto por este botão.
+.lp-menu-toggle {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: transparent;
+  border: 2px solid var(--border-color);
+
+  span {
+    width: 20px;
+    height: 2px;
+    background: var(--label-title-color);
+    transition:
+      transform 0.15s,
+      opacity 0.15s;
+  }
+
+  &:hover span {
+    background: var(--accent-color);
+  }
+
+  // As três barras viram um X.
+  &.is-open {
+    span:nth-child(1) {
+      transform: translateY(7px) rotate(45deg);
+    }
+
+    span:nth-child(2) {
+      opacity: 0;
+    }
+
+    span:nth-child(3) {
+      transform: translateY(-7px) rotate(-45deg);
+    }
+  }
+}
+
 /* ===== Primeira dobra ===== */
 
 .lp-hero {
@@ -260,9 +298,15 @@ button {
   align-items: center;
 }
 
+.lp-sample-wrap {
+  position: relative;
+}
+
 .lp-sample {
   position: relative;
   width: 290px;
+  // Em telas muito estreitas o card encolhe pra caber (58px = padding 36 + borda 22 da .framed-card).
+  max-width: calc(100vw - 2 * var(--lp-gutter) - 58px);
   padding: 16px 18px 18px;
   // Propriedades separadas: o atalho `background` zeraria o background-clip da .framed-card.
   background-color: var(--panel-bg);
@@ -284,6 +328,8 @@ button {
 .lp-sample-top {
   display: flex;
   justify-content: space-between;
+  // Reserva espaço à direita pro dado "CRÍTICO!" que fica pendurado no canto do cartão.
+  padding-right: 70px;
   font-size: 7px;
   color: var(--label-title-color);
 }
@@ -350,7 +396,9 @@ button {
 
 .lp-token--die {
   top: 4%;
-  right: 6%;
+  // Preso ao card (.lp-sample-wrap tem o tamanho dele): pendurado pra fora do canto direito no
+  // desktop; no celular fica dentro do canto (ver @media 767px), sem passar da tela.
+  right: -36px;
   padding: 8px 12px 8px 8px;
   background: var(--bg-color);
   border: 2px solid var(--accent-color);
@@ -412,15 +460,11 @@ button {
 
 .lp-grid {
   display: grid;
+  // Mesma grade de 4 colunas da seção "jogadores": cheia a largura em telas largas, sem o vazio
+  // lateral que uma grade mais estreita centralizada deixava aqui.
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   margin-top: 52px;
-
-  &--extras {
-    grid-template-columns: repeat(2, 1fr);
-    max-width: 900px;
-    margin-inline: auto;
-  }
 }
 
 .lp-card,
@@ -718,12 +762,48 @@ button {
       transform: none;
     }
   }
+
+  .lp-menu-toggle span {
+    transition: none;
+  }
 }
 
 /* ===== Tablet ===== */
 @media (max-width: 1024px) {
   .lp-nav {
     display: none;
+  }
+
+  // Aberto pelo botão: o mesmo menu vira um painel abaixo da barra. Fundo sólido, sem
+  // backdrop-filter — dentro da .lp-topbar (que já desfoca) o desfoque do filho não funciona.
+  // Acima de 1024px estas regras somem e ele volta a ser a barra horizontal, aberto ou não.
+  .lp-nav.is-open {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 4px var(--lp-gutter) 12px;
+    background: var(--bg-color);
+    border-bottom: 2px solid var(--border-color);
+
+    .lp-nav-link {
+      padding: 14px 4px;
+      border-bottom: none;
+      border-top: 2px solid color-mix(in srgb, var(--border-color) 55%, transparent);
+      font-size: 9px;
+      text-align: left;
+
+      &:first-child {
+        border-top: none;
+      }
+    }
+  }
+
+  .lp-menu-toggle {
+    display: flex;
   }
 
   .lp-grid {
@@ -745,6 +825,13 @@ button {
   .lp-topbar-logo {
     width: 58px;
     height: 58px;
+  }
+
+  // Dentro do bloco de breakpoint (não num `@media` separado acima de `.lp-btn`): com a mesma
+  // especificidade, quem vem depois no CSS gerado ganha — e `.lp-btn { display: inline-flex }`
+  // vinha depois, então esse `display: none` nunca tinha efeito nenhum.
+  .lp-hide-mobile {
+    display: none;
   }
 
   .lp-hero,
@@ -770,6 +857,7 @@ button {
     min-height: 430px;
   }
 
+  // Dentro do canto do card (o espaço já reservado no topo dele), pra não passar da tela.
   .lp-token--die {
     right: 0;
   }
@@ -791,7 +879,6 @@ button {
   }
 
   .lp-grid,
-  .lp-grid--extras,
   .lp-steps,
   .lp-panel-cols {
     grid-template-columns: 1fr;

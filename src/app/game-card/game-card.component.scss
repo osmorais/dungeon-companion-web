@@ -265,3 +265,15 @@
     background: transparent;
   }
 }
+
+// Carta do monstro (1.13.2): moldura do tema pro monstro; no SOMBRIO o canto do medalhão é um
+// emblema desenhado, sem número (--monster-card-badge: none).
+.gc--monster {
+  .gc-frame {
+    background-image: var(--monster-card-face, var(--card-face));
+  }
+
+  .gc-badge {
+    display: var(--monster-card-badge, flex);
+  }
+}

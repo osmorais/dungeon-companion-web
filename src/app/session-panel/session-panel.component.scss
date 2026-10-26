@@ -249,6 +249,32 @@
   margin-top: 2px;
 }
 
+/* Linhas de NPC e monstro com o anel e a barra de vida dos cards dos personagens. */
+.row-avatar-ring {
+  --avatar-size: 52px;
+  flex-shrink: 0;
+}
+
+.mobile-row-avatar-ring {
+  --avatar-size: 44px;
+  flex-shrink: 0;
+}
+
+/* Imagem do monstro no miolo do anel (o avatar do NPC já preenche sozinho). */
+.row-monster-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.row-hp-bar {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  margin-top: 2px;
+}
+
 .avatar-tooltip {
   position: absolute;
   bottom: calc(100% + 8px);
@@ -397,6 +423,70 @@
   }
 }
 
+/* Botões das linhas de NPC e de monstro: os mesmos dos cards dos personagens (ícone + legenda),
+   maiores, aproveitando a altura do card com moldura. */
+.row-actions {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(64px, 1fr);
+  gap: 6px;
+  flex-shrink: 0;
+
+  &--mobile {
+    width: 100%;
+    grid-auto-columns: 1fr;
+  }
+}
+
+.row-action-btn {
+  min-height: 58px;
+  padding: 10px 8px;
+  font-size: 7px;
+
+  img {
+    width: 22px;
+    height: 22px;
+  }
+
+  .player-action-emoji {
+    font-size: 20px;
+  }
+
+  .row-actions--mobile & {
+    min-height: 48px;
+    padding: 8px 4px;
+    font-size: 6px;
+
+    img {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: var(--cx);
+  }
+
+  /* Monstro revelado (NA MESA). */
+  &--on {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+  }
+
+  &--danger {
+    border-color: #ff6b6b;
+    color: #ff6b6b;
+  }
+
+  /* FINALIZAR na vez dele. */
+  &--turn {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    box-shadow: 0 0 6px var(--accent-color);
+  }
+}
+
 .empty-msg {
   font-size: 9px;
   color: var(--label-title-color);
@@ -427,8 +517,12 @@
   align-items: center;
   gap: 14px;
   padding: 10px 12px 10px 40px;
-  border: 1px solid var(--border-color);
+  /* Borda = moldura (.framed-card, global), como o card dos personagens. Fundo padrão por tipo
+     (styles.scss); propriedades separadas pra não zerar o background-clip da moldura. */
   background-color: var(--bg-color);
+  background-image: var(--npc-card-bg);
+  background-size: cover;
+  background-position: center;
 }
 
 /* Botões de ação (AÇÕES/FINALIZAR TURNO/VER FICHA) quebram pra uma linha própria quando não
@@ -440,18 +534,7 @@
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
-}
-
-.npc-avatar {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 2px solid var(--border-color);
-  flex-shrink: 0;
-}
-
-.npc-info {
+}.npc-info {
   flex: 1 1 160px;
   min-width: 0;
   display: flex;
@@ -472,49 +555,7 @@
 .npc-level {
   font-size: 7px;
   color: var(--label-title-color);
-}
-
-.npc-hp-bar-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 2px;
-}
-
-.npc-hp-bar {
-  flex: 1;
-  height: 5px;
-  background-color: var(--panel-bg);
-  border: 1px solid var(--border-color);
-}
-
-.npc-hp-fill {
-  height: 100%;
-  background-color: #4caf50; /* fallback; sobrescrito pelo binding hpColor() */
-  transition: width 0.3s;
-}
-
-.npc-hp-text {
-  font-size: 7px;
-  color: var(--text-color);
-  white-space: nowrap;
-}
-
-.npc-sheet-btn {
-  float: none;
-  font-size: 7px;
-  padding: 6px 10px;
-  flex-shrink: 0;
-}
-
-.npc-actions-btn {
-  float: none;
-  font-size: 7px;
-  padding: 6px 10px;
-  flex-shrink: 0;
-}
-
-.npc-add-row {
+}.npc-add-row {
   display: flex;
   justify-content: flex-end;
   margin-top: 12px;
@@ -655,8 +696,12 @@
   align-items: center;
   gap: 14px;
   padding: 10px 12px 10px 40px;
-  border: 1px solid var(--border-color);
+  /* Borda = moldura (.framed-card, global), como o card dos personagens. Fundo padrão por tipo
+     (styles.scss); propriedades separadas pra não zerar o background-clip da moldura. */
   background-color: var(--bg-color);
+  background-image: var(--monster-card-bg);
+  background-size: cover;
+  background-position: center;
   cursor: var(--cp);
   transition: background-color 0.12s;
 
@@ -676,21 +721,6 @@
   flex-shrink: 0;
 }
 
-.monster-avatar {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 2px solid var(--border-color);
-  flex-shrink: 0;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-}
-
 .monster-info {
   flex: 1 1 160px;
   display: flex;
@@ -707,35 +737,7 @@
 .monster-meta {
   font-size: 7px;
   color: var(--label-title-color);
-}
-
-.monster-hp-bar-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 2px;
-}
-
-.monster-hp-bar {
-  flex: 1;
-  height: 6px;
-  background-color: var(--panel-bg);
-  border: 1px solid var(--border-color);
-}
-
-.monster-hp-fill {
-  height: 100%;
-  background-color: #e53935; /* fallback; sobrescrito pelo binding hpColor() */
-  transition: width 0.3s;
-}
-
-.monster-hp-text {
-  font-size: 7px;
-  color: var(--text-color);
-  white-space: nowrap;
-}
-
-/* PV de monstro costuma ser grande — aplica um delta de dano/cura de uma vez, em vez de clicar
+}/* PV de monstro costuma ser grande — aplica um delta de dano/cura de uma vez, em vez de clicar
    no +/- várias vezes. Ver SessionPanelComponent.applyMonsterHpDelta. */
 .hp-delta-controls {
   display: flex;
@@ -802,116 +804,7 @@
     background-color: #4caf50;
     color: var(--bg-color);
   }
-}
-
-.reveal-toggle-btn {
-  position: relative;
-  background-color: var(--bg-color);
-  border: 1px solid var(--border-color);
-  width: 38px;
-  height: 20px;
-  border-radius: 10px;
-  cursor: var(--cp);
-  padding: 0;
-  flex-shrink: 0;
-  transition: background-color 0.15s, border-color 0.15s;
-
-  &::after {
-    content: '';
-    position: absolute;
-    top: 1px;
-    left: 1px;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background-color: var(--text-color);
-    transition: transform 0.15s;
-  }
-
-  &:hover:not(:disabled) {
-    border-color: var(--accent-color);
-  }
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: var(--cx);
-  }
-
-  &--on {
-    border-color: var(--accent-color);
-    background-color: var(--accent-color);
-    box-shadow: 0 0 4px var(--accent-color);
-
-    &::after {
-      background-color: var(--panel-bg);
-      transform: translateX(18px);
-    }
-  }
-}
-
-.monster-defeat-btn {
-  background: none;
-  border: 1px solid var(--accent-color);
-  color: var(--accent-color);
-  font-size: 12px;
-  width: 26px;
-  height: 26px;
-  cursor: var(--cp);
-  padding: 0;
-  line-height: 1;
-  flex-shrink: 0;
-
-  &:hover:not(:disabled) {
-    background-color: var(--accent-color);
-    color: var(--bg-color);
-  }
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: var(--cx);
-  }
-}
-
-.monster-edit-btn {
-  background: none;
-  border: 1px solid var(--border-color);
-  color: var(--text-color);
-  font-size: 12px;
-  width: 26px;
-  height: 26px;
-  cursor: var(--cp);
-  padding: 0;
-  line-height: 1;
-  flex-shrink: 0;
-
-  &:hover {
-    background-color: var(--btn-color);
-  }
-}
-
-.monster-duplicate-btn {
-  background: none;
-  border: 1px solid var(--border-color);
-  color: var(--text-color);
-  font-size: 12px;
-  width: 26px;
-  height: 26px;
-  cursor: var(--cp);
-  padding: 0;
-  line-height: 1;
-  flex-shrink: 0;
-
-  &:hover:not(:disabled) {
-    background-color: var(--btn-color);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: var(--cd);
-  }
-}
-
-/* ===== MOBILE ===== */
+}/* ===== MOBILE ===== */
 
 .mobile-container {
   width: 100vw;
@@ -1080,8 +973,11 @@
   align-items: center;
   gap: 10px;
   padding: 8px 10px 8px 36px;
-  border: 1px solid var(--border-color);
+  /* Moldura (.framed-card) e fundo padrão, como nas linhas do desktop. */
   background-color: var(--bg-color);
+  background-image: var(--npc-card-bg);
+  background-size: cover;
+  background-position: center;
 }
 
 .mobile-npc-row-actions {
@@ -1089,15 +985,6 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  flex-shrink: 0;
-}
-
-.mobile-npc-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 2px solid var(--border-color);
   flex-shrink: 0;
 }
 
@@ -1120,28 +1007,7 @@
 .mobile-npc-meta {
   font-size: 6px;
   color: var(--label-title-color);
-}
-
-.mobile-npc-hp {
-  font-size: 6px;
-  color: var(--text-color);
-}
-
-.mobile-npc-btn {
-  float: none;
-  font-size: 5px;
-  padding: 5px 6px;
-  flex-shrink: 0;
-}
-
-.mobile-npc-actions-btn {
-  float: none;
-  font-size: 5px;
-  padding: 5px 6px;
-  flex-shrink: 0;
-}
-
-.mobile-npc-add-btn {
+}.mobile-npc-add-btn {
   float: none;
   width: 100%;
   text-align: center;
@@ -1165,8 +1031,11 @@
   align-items: center;
   gap: 10px;
   padding: 8px 10px 8px 36px;
-  border: 1px solid var(--border-color);
+  /* Moldura (.framed-card) e fundo padrão, como nas linhas do desktop. */
   background-color: var(--bg-color);
+  background-image: var(--monster-card-bg);
+  background-size: cover;
+  background-position: center;
   cursor: var(--cp);
 
   &:active {
@@ -1180,21 +1049,6 @@
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
-}
-
-.mobile-monster-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 2px solid var(--border-color);
-  flex-shrink: 0;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
 }
 
 .mobile-monster-info {
@@ -1216,35 +1070,7 @@
 .mobile-monster-meta {
   font-size: 6px;
   color: var(--label-title-color);
-}
-
-.mobile-monster-hp-bar-wrap {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 2px;
-}
-
-.mobile-monster-hp-bar {
-  flex: 1;
-  height: 4px;
-  background-color: var(--panel-bg);
-  border: 1px solid var(--border-color);
-}
-
-.mobile-monster-hp-fill {
-  height: 100%;
-  background-color: #e53935; /* fallback; sobrescrito pelo binding hpColor() */
-  transition: width 0.3s;
-}
-
-.mobile-monster-hp-text {
-  font-size: 6px;
-  color: var(--text-color);
-  white-space: nowrap;
-}
-
-/* ===== ROLAGENS RECENTES ===== */
+}/* ===== ROLAGENS RECENTES ===== */
 
 .roll-log-list {
   display: flex;
@@ -1447,39 +1273,7 @@
 .combat-add-participant-btn {
   color: #6bd46b;
   border-color: #6bd46b;
-}
-
-.turn-end-btn {
-  border-color: var(--accent-color);
-  color: var(--accent-color);
-  /* Sem isso o texto "FINALIZAR TURNO" ficava sem largura suficiente e quebrava
-     em duas linhas coladas (herdava o botão global, que não tem width nem
-     white-space definidos, diferente de actions-btn/sheet-btn ao lado dele). */
-  float: none;
-  width: 100%;
-  margin-top: 4px;
-  font-size: 7px;
-  padding: 7px 12px;
-  white-space: nowrap;
-
-  &:hover:not(:disabled) {
-    background-color: var(--btn-color-hover);
-  }
-}
-
-
-.npc-row .turn-end-btn,
-.mobile-npc-row .turn-end-btn,
-.monster-row .turn-end-btn,
-.mobile-monster-row .turn-end-btn {
-  width: auto;
-  margin-top: 0;
-  font-size: 7px;
-  padding: 6px 10px;
-  flex-shrink: 0;
-}
-
-.player-card--current-turn,
+}.player-card--current-turn,
 .mobile-player-card--current-turn,
 .npc-row--current-turn,
 .mobile-npc-row--current-turn,
@@ -1500,6 +1294,11 @@
   /* "fieldset.retro-panel" (styles.scss) só vale pra <fieldset> — como este painel é uma
      <div>, precisa repetir fundo/borda aqui. */
   background-color: var(--panel-bg);
+  /* Sem foto do personagem (e em rolagem de monstro/mestre): o fundo do tema, como na tela de
+     lançamento (1.13.2). Com foto, o style do template sobrepõe. */
+  background-image: var(--notice-bg);
+  background-size: cover;
+  background-position: center;
 
   position: relative;
   display: flex;
@@ -1603,6 +1402,11 @@
   /* "fieldset.retro-panel" (styles.scss) só vale pra <fieldset> — como este painel é uma
      <div>, precisa repetir fundo/borda aqui. */
   background-color: var(--panel-bg);
+  /* Sem foto do personagem (e em rolagem de monstro/mestre): o fundo do tema, como na tela de
+     lançamento (1.13.2). Com foto, o style do template sobrepõe. */
+  background-image: var(--notice-bg);
+  background-size: cover;
+  background-position: center;
 
   position: relative;
   display: flex;
@@ -1654,6 +1458,9 @@
 
 .level-up-eligible-panel {
   background-color: var(--panel-bg);
+  background-image: var(--notice-bg);
+  background-size: cover;
+  background-position: center;
 
   position: relative;
   display: flex;
@@ -1854,21 +1661,6 @@
   margin-top: 18px;
 }
 
-/* ===== MODAL: DETALHE DO MONSTRO ===== */
-
-/* Vez do monstro (1.11.0): faixa no topo da ficha com o FINALIZAR TURNO do mestre. */
-.monster-turn-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 10px;
-  padding: 6px 8px;
-  border: 2px solid var(--accent-color);
-  font-size: 8px;
-  color: var(--accent-color);
-}
-
 .lair-reminder {
   position: fixed;
   top: 72px;
@@ -1896,199 +1688,5 @@
   .retro-btn {
     padding: 6px 10px;
     font-size: 7px;
-  }
-}
-
-.monster-action-error {
-  margin: 6px 0;
-  font-size: 7px;
-  color: var(--sheet-label-color);
-}
-
-.monster-detail-modal {
-  /* "fieldset.retro-panel" (styles.scss) só vale pra <fieldset> — como este painel é uma
-     <div>, precisa repetir fundo/borda aqui. */
-  border: 2px solid var(--border-color);
-  background-color: var(--panel-bg);
-
-  position: relative;
-  width: 500px;
-  max-width: 92vw;
-  max-height: 82vh;
-  overflow-y: auto;
-  padding: 24px 20px 20px;
-}
-
-.stat-block {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.stat-name {
-  margin: 0;
-  font-size: 12px;
-  color: var(--accent-color);
-}
-
-.stat-original-name {
-  margin: -4px 0 0;
-  font-size: 7px;
-  color: var(--label-title-color);
-  font-style: italic;
-}
-
-.stat-meta {
-  margin: 0;
-  font-size: 8px;
-  color: var(--label-title-color);
-  text-transform: capitalize;
-}
-
-.stat-image-block {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 0;
-}
-
-.stat-image {
-  width: 100%;
-  max-width: 260px;
-  aspect-ratio: 1;
-  object-fit: cover;
-  border: 2px solid var(--border-color);
-  align-self: center;
-}
-
-.stat-image-upload-btn {
-  display: inline-block;
-  cursor: var(--cp);
-  font-size: 8px;
-  text-align: center;
-}
-
-.stat-image-error {
-  margin: 0;
-  font-size: 7px;
-  color: #ff6b6b;
-}
-
-.stat-row {
-  display: flex;
-  gap: 8px;
-  font-size: 8px;
-  color: var(--text-color);
-}
-
-.stat-label {
-  color: var(--label-title-color);
-  min-width: 60px;
-}
-
-.stat-edit-btn {
-  align-self: flex-start;
-  font-size: 8px;
-  margin-top: 4px;
-}
-
-.monster-stats-edit {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 8px 0;
-}
-
-.monster-stats-edit-row {
-  display: flex;
-  gap: 10px;
-}
-
-.monster-stats-edit-abilities {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-
-.monster-stats-edit-field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 7px;
-  color: var(--label-title-color);
-  flex: 1;
-
-  input {
-    background-color: var(--bg-color);
-    border: 1px solid var(--border-color);
-    color: var(--text-color);
-    font-family: 'Press Start 2P', monospace;
-    font-size: 9px;
-    padding: 6px 8px;
-
-    &:focus {
-      outline: none;
-      border-color: var(--accent-color);
-    }
-  }
-}
-
-.monster-stats-edit-actions {
-  display: flex;
-  gap: 8px;
-
-  .retro-btn {
-    flex: 1;
-    font-size: 8px;
-  }
-}
-
-.stat-save-btn {
-  border-color: var(--accent-color);
-  color: var(--accent-color);
-}
-
-.stat-abilities {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 8px;
-  margin: 6px 0;
-}
-
-.stat-ability {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 4px;
-  border: 1px solid var(--border-color);
-  font-size: 9px;
-  color: var(--text-color);
-}
-
-.stat-ability-key {
-  font-size: 6px;
-  color: var(--label-title-color);
-}
-
-.stat-section {
-  margin-top: 6px;
-
-  h4 {
-    margin: 0 0 6px;
-    font-size: 8px;
-    color: var(--accent-color);
-  }
-}
-
-.stat-feature {
-  margin: 0 0 8px;
-  font-size: 7px;
-  line-height: 1.7;
-  color: var(--text-color);
-
-  strong {
-    color: var(--accent-color);
   }
 }

@@ -236,6 +236,40 @@ describe('monsterActions', () => {
   });
 });
 
+describe('carta da ação (tela de lançamento, 1.13.0)', () => {
+  it('ataque: ATAQUE e DANO; resistência: CD, DANO, SE PASSAR e a CD pro palco', () => {
+    const [attack, save] = monsterActions(block([MORDIDA_ARANHA]));
+    expect(attack.card?.kind).toBe('attack');
+    expect(attack.card?.stats.map((s) => s.label)).toEqual(['ATAQUE', 'DANO']);
+    expect(attack.card?.stats[0].value).toBe('+5');
+    expect(save.card).toMatchObject({ kind: 'save', name: MORDIDA_ARANHA.name });
+    expect(save.card?.stats).toEqual([
+      { label: 'CD', value: '11 CON' },
+      { label: 'DANO', value: expect.stringContaining('veneno') },
+      { label: 'SE PASSAR', value: 'metade' },
+    ]);
+    expect(save.castSave).toEqual({ dc: 11, ability: 'CON' });
+  });
+
+  it('dano extra no acerto com CD (Balor): o efeito vira SE ACERTAR na carta', () => {
+    const [a] = monsterActions(block([CHICOTE_BALOR]));
+    expect(a.card?.stats.map((s) => s.label)).toEqual(['ATAQUE', 'DANO', 'SE ACERTAR']);
+    expect(a.card?.stats[1].value).toContain('fogo');
+  });
+
+  it('sopro (só CD) e dano puro também têm carta; texto e multiataque não', () => {
+    expect(monsterActions(block([SOPRO]))[0].card?.kind).toBe('save');
+    const buttons = monsterActions(
+      block([
+        { name: 'Ataques Múltiplos', desc: '', multiattack: [{ action: 'Cimitarra', count: 2 }] },
+        CIMITARRA,
+      ]),
+    );
+    expect(buttons[0].card).toBeUndefined();
+    expect(buttons[1].card?.kind).toBe('attack');
+  });
+});
+
 describe('splitAttackDamage', () => {
   it('sem cláusula de resistência, todo dano é do acerto', () => {
     const entries = [{ dice: '1d6+2', average: 5, type: 'cortante' }];

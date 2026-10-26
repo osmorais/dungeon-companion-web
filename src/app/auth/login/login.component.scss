@@ -6,12 +6,13 @@
   align-items: center;
 }
 
-/* ===== PAINEL ===== */
+/* ===== PAINEL =====
+   O quadro (cantos, sombra), o campo, a caixa de erro, o botão e os links são compartilhados com
+   o cadastro — ver styles.scss. Aqui só o que muda entre as telas: cor de fundo/borda e o `top`
+   do canto decorativo, que acompanha o tamanho da legend (ver .mobile-login-panel abaixo). */
 
 .title-panel,
 .mobile-login-panel {
-  position: relative;
-  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.45);
   border: 2px solid var(--border-color);
   background: var(--panel-bg);
 
@@ -23,29 +24,8 @@
     letter-spacing: 0.5px;
   }
 
-  /* Cantos em destaque: dão o ar de "quadro de missão" sem usar sombra suave ou gradiente. */
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    width: 10px;
-    height: 10px;
-    border: 2px solid var(--accent-color);
-    pointer-events: none;
-  }
-
   &::before {
     top: -17px;
-    left: -2px;
-    border-right: none;
-    border-bottom: none;
-  }
-
-  &::after {
-    bottom: -2px;
-    right: -2px;
-    border-left: none;
-    border-top: none;
   }
 }
 
@@ -76,34 +56,10 @@
 
 .form-group,
 .mobile-form-group {
-  display: flex;
-  flex-direction: column;
   text-align: left;
 
-  label {
-    color: var(--label-title-color);
-    margin-bottom: 4px;
-  }
-
   input {
-    background: var(--bg-color);
-    color: var(--text-color);
-    border: 1px solid var(--border-color);
-    font-family: 'Press Start 2P', monospace;
-    box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.5);
     padding: 8px;
-    width: 100%;
-    box-sizing: border-box;
-    transition: border-color 0.1s ease-out;
-
-    &:focus {
-      outline: 2px solid var(--accent-color);
-      border-color: var(--accent-color);
-    }
-
-    &::placeholder {
-      color: var(--border-color);
-    }
   }
 }
 
@@ -123,96 +79,8 @@
 
 .error-msg,
 .mobile-error-msg {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #ffb199;
-  background: rgba(255, 68, 68, 0.14);
-  border: 1px solid #ff4444;
-  padding: 8px 10px;
-  font-size: 7px;
-  line-height: 1.6;
   margin: 4px 0 12px;
   text-align: left;
-
-  &::before {
-    content: '!';
-    flex-shrink: 0;
-    width: 14px;
-    height: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #ff4444;
-    color: var(--bg-color);
-    font-weight: bold;
-  }
-}
-
-/* ===== BOTÃO PRINCIPAL ===== */
-
-.full-btn,
-.mobile-full-btn {
-  float: none;
-  width: 100%;
-  margin-top: 8px;
-  background-color: var(--accent-color);
-  color: var(--bg-color);
-  box-shadow: 4px 4px 0 var(--border-color);
-  transition:
-    transform 0.08s ease-out,
-    box-shadow 0.08s ease-out,
-    filter 0.15s ease-out;
-
-  &:hover:not(:disabled) {
-    background-color: var(--accent-color);
-    filter: brightness(1.1);
-  }
-
-  &:active:not(:disabled) {
-    transform: translate(4px, 4px);
-    box-shadow: none;
-  }
-
-  &:disabled {
-    opacity: 0.75;
-  }
-
-  &.is-loading {
-    animation: login-loading-pulse 1s ease-in-out infinite;
-  }
-}
-
-@keyframes login-loading-pulse {
-  0%,
-  100% {
-    opacity: 0.75;
-  }
-
-  50% {
-    opacity: 0.95;
-  }
-}
-
-/* ===== LINKS ===== */
-
-.auth-links,
-.mobile-auth-links {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 16px;
-
-  a {
-    color: var(--accent-color);
-    font-size: 7px;
-    cursor: var(--cp);
-    text-decoration: underline;
-
-    &:focus-visible {
-      outline: 2px solid var(--accent-color);
-      outline-offset: 2px;
-    }
-  }
 }
 
 /* ===== MOBILE LAYOUT ===== */
@@ -238,6 +106,12 @@
   legend {
     font-size: 10px;
   }
+
+  &::before {
+    /* Legend menor no celular (10px): canto mais perto da borda, senão fica solto (item 5 do
+       review do PR #7). */
+    top: -15px;
+  }
 }
 
 .mobile-logo-container {
@@ -262,38 +136,6 @@
   input {
     font-size: 8px;
   }
-}
-
-/* ===== GOOGLE BUTTON (shared) ===== */
-
-.google-separator {
-  display: flex;
-  align-items: center;
-  margin: 12px 0 8px;
-  gap: 8px;
-
-  &::before,
-  &::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border-color);
-  }
-
-  span {
-    font-size: 7px;
-    color: var(--label-title-color);
-    white-space: nowrap;
-  }
-}
-
-.google-btn-wrapper {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 4px;
-  padding: 10px;
-  border: 1px solid var(--border-color);
-  background: var(--bg-color);
 }
 
 /* ===== AVISO DE TERMOS / PRIVACIDADE ===== */

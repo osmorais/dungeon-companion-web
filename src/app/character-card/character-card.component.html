@@ -1,26 +1,37 @@
-<div
-  class="turn-card framed-card"
-  [class.turn-card--monster]="!card.character"
-  [style.background-image]="
-    card.character && card.imageUrl
-      ? 'linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(' + card.imageUrl + ')'
-      : null
-  "
->
-  @if (card.character; as ch) {
-    <div class="avatar-ring-wrap turn-card-ring">
-      <div class="turn-card-avatar"><app-avatar-display [preset]="card.avatarPreset" /></div>
-      <span class="avatar-ring" aria-hidden="true"></span>
-    </div>
-    <span class="turn-card-player">{{ ch.playerName ?? 'NPC' }}</span>
-    <span class="turn-card-name">{{ card.name }}</span>
-    <span class="turn-card-meta">{{ ch.className }} — {{ ch.race }}</span>
-    <div class="turn-card-bars">
-      <app-xp-bar [level]="ch.level" [xp]="ch.xp ?? 0" [nextLevelXp]="ch.nextLevelXp" />
-      <app-hp-bar [current]="ch.hp.current" [max]="ch.hp.max" [temp]="ch.hp.temp" />
-    </div>
-  } @else {
-    <img class="turn-card-image" [src]="card.imageUrl || 'assets/monster.png'" [alt]="card.name" />
-    <span class="turn-card-name">{{ card.name }}</span>
-  }
-</div>
+@if (card.monsterCard; as monsterCard) {
+  <!-- Monstro: a carta dele (moldura das cartas), na mesma largura do card. -->
+  <div class="turn-card-monster-card">
+    <app-game-card [card]="monsterCard" size="mini" />
+  </div>
+} @else {
+  <div
+    class="turn-card framed-card"
+    [class.turn-card--monster]="!card.character"
+    [style.background-image]="
+      card.character && card.imageUrl
+        ? 'linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(' + card.imageUrl + ')'
+        : null
+    "
+  >
+    @if (card.character; as ch) {
+      <div class="avatar-ring-wrap turn-card-ring">
+        <div class="turn-card-avatar"><app-avatar-display [preset]="card.avatarPreset" /></div>
+        <span class="avatar-ring" aria-hidden="true"></span>
+      </div>
+      <span class="turn-card-player">{{ ch.playerName ?? 'NPC' }}</span>
+      <span class="turn-card-name">{{ card.name }}</span>
+      <span class="turn-card-meta">{{ ch.className }} — {{ ch.race }}</span>
+      <div class="turn-card-bars">
+        <app-xp-bar [level]="ch.level" [xp]="ch.xp ?? 0" [nextLevelXp]="ch.nextLevelXp" />
+        <app-hp-bar [current]="ch.hp.current" [max]="ch.hp.max" [temp]="ch.hp.temp" />
+      </div>
+    } @else {
+      <img
+        class="turn-card-image"
+        [src]="card.imageUrl || 'assets/monster.png'"
+        [alt]="card.name"
+      />
+      <span class="turn-card-name">{{ card.name }}</span>
+    }
+  </div>
+}

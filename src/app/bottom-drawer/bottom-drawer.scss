@@ -156,12 +156,15 @@ $drawer-desktop-width: min(1440px, 96vw);
   padding: 16px;
 }
 
+// Termina em `none`, não em translateY(0): com `both` o valor final fica aplicado, e qualquer
+// transform faz a gaveta virar a referência dos `position: fixed` de dentro (a mão de cartas das
+// ações do monstro ficava presa na gaveta em vez de cobrir a tela).
 @keyframes bottom-drawer-slide-up {
   from {
     transform: translateY(100%);
   }
   to {
-    transform: translateY(0);
+    transform: none;
   }
 }
 

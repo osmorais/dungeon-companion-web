@@ -63,8 +63,10 @@
   &--in {
     animation: turn-card-in 0.7s steps(7) 0.35s both;
 
+    // drop-shadow segue o contorno: a carta do monstro tem cantos transparentes, e um box-shadow
+    // desenhava um quadrado em volta dela.
     app-character-card {
-      box-shadow: 0 0 18px var(--accent-color);
+      filter: drop-shadow(0 0 10px var(--accent-color));
     }
   }
 }

@@ -254,10 +254,13 @@ describe('DmBoardComponent (quadro do mestre)', () => {
       sessionDetail({
         players: [player('p1')],
         npcs: [npc('n1')],
-        monsters: [monster('m1', { custom_name: 'Chefe' })],
+        monsters: [
+          monster('m1', { custom_name: 'Chefe', is_revealed: true }),
+          monster('m2', { custom_name: 'Escondido' }),
+        ],
       });
 
-    it('lista grupo e monstros; metade arredonda pra baixo e quem ficaria com 0 sai', () => {
+    it('lista grupo e monstros revelados; metade arredonda pra baixo e quem ficaria com 0 sai', () => {
       const board = create(scene());
       expect(board.areaTargets.map((t) => t.name)).toEqual([
         'Personagem p1',

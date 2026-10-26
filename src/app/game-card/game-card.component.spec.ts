@@ -13,4 +13,50 @@ describe('GameCardComponent', () => {
     card.toggleExpanded(new Event('click'));
     expect(card.expanded()).toBe(false);
   });
+
+  it('carta pequena: sem números mostra a descrição (monstro); com números, não (magia, arma)', () => {
+    const base = {
+      title: 'X',
+      badge: '?',
+      art: null,
+      fallbackIcon: '',
+      artBackground: null,
+      ribbon: '',
+      text: 'Descrição longa.',
+      tags: [],
+    };
+    const render = (stats: { label: string; value: string }[]) => {
+      const fixture = TestBed.createComponent(GameCardComponent);
+      fixture.componentInstance.card = { ...base, stats };
+      fixture.componentInstance.size = 'mini';
+      fixture.detectChanges();
+      return fixture.nativeElement as HTMLElement;
+    };
+    const monster = render([]);
+    expect(monster.querySelector('.gc-desc')?.textContent).toContain('Descrição longa.');
+    expect(monster.querySelector('.gc-expand')).toBeNull();
+    expect(render([{ label: 'TEMPO', value: '1 ação' }]).querySelector('.gc-desc')).toBeNull();
+  });
+
+  it('carta do monstro (variant) leva a classe da moldura própria; as outras não', () => {
+    const render = (variant?: 'monster') => {
+      const fixture = TestBed.createComponent(GameCardComponent);
+      fixture.componentInstance.card = {
+        title: 'Goblin',
+        badge: '?',
+        art: null,
+        fallbackIcon: '',
+        artBackground: null,
+        ribbon: '',
+        stats: [],
+        text: null,
+        tags: [],
+        ...(variant ? { variant } : {}),
+      };
+      fixture.detectChanges();
+      return fixture.nativeElement as HTMLElement;
+    };
+    expect(render('monster').querySelector('.gc--monster')).not.toBeNull();
+    expect(render().querySelector('.gc--monster')).toBeNull();
+  });
 });

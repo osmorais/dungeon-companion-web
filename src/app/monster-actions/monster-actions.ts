@@ -4,7 +4,11 @@ import {
   MonsterAbilityAbbr,
   MonsterStatBlock,
 } from '../models/monster-catalog.interface';
-import { MonsterActionOp, MonsterActionState } from '../models/game-session.interface';
+import {
+  MonsterActionCardInfo,
+  MonsterActionOp,
+  MonsterActionState,
+} from '../models/game-session.interface';
 
 /**
  * Ações de monstro mecânicas (1.11.0, fase 1): cada habilidade estruturada da ficha do bestiário
@@ -46,6 +50,10 @@ export interface MonsterActionButton {
   consume: MonsterActionOp | null;
   /** Multiataque: cada ataque, quantas vezes e o botão dele na ficha (`null` se não achou). */
   multi?: { action: string; count: number; key: string | null }[];
+  /** Carta da ação na tela de lançamento (1.13.0): ataque, resistência ou dano. */
+  card?: MonsterActionCardInfo;
+  /** CD da resistência, pro palco ("CD 13 de Destreza") — só nas de resistência. */
+  castSave?: { dc: number; ability: 'STR' | 'DEX' | 'CON' | 'INT' | 'WIS' | 'CHA' };
 }
 
 export interface ActionAvailability {
@@ -136,6 +144,39 @@ function usageTag(usage: MonsterAbility['usage']): string | null {
 }
 
 type DamageEntry = NonNullable<MonsterAbility['damage']>[number];
+
+/** "1d6+2 cortante + 1d6 fogo" — o dano como está na ficha, pro pergaminho da carta. */
+function damageText(entries: DamageEntry[]): string {
+  return entries.map((e) => (e.type ? `${e.dice} ${e.type}` : e.dice)).join(' + ');
+}
+
+/** Números do pergaminho da carta da ação (até 4, curtos — a API recusa mais). */
+function cardStats(stats: (readonly [string, string] | null)[]): MonsterActionCardInfo['stats'] {
+  return stats
+    .filter((s): s is readonly [string, string] => !!s && !!s[1])
+    .slice(0, 4)
+    .map(([label, value]) => ({ label, value: value.slice(0, 40) }));
+}
+
+/** Pergaminho da resistência: CD, dano e o que acontece se passar. */
+function saveCard(
+  a: MonsterAbility,
+  entries: DamageEntry[],
+): Pick<MonsterActionButton, 'card' | 'castSave'> {
+  const dc = a.dc!;
+  return {
+    card: {
+      name: a.name,
+      kind: 'save',
+      stats: cardStats([
+        ['CD', `${dc.value} ${dc.ability}`],
+        ['DANO', damageText(entries)],
+        ['SE PASSAR', dc.success === 'metade' ? 'metade' : 'nada'],
+      ]),
+    },
+    castSave: { dc: dc.value, ability: abilityInfo(dc.ability).en },
+  };
+}
 
 /**
  * Junta vários danos num só do modal: o primeiro dá dado/lados, os outros entram como dados
@@ -270,6 +311,15 @@ function buttonsFor(
         ...(reminders.length ? { reminders } : {}),
       },
       tags: [signed(a.attack.bonus), ...(usage ? [usage] : [])],
+      card: {
+        name: a.name,
+        kind: 'attack',
+        stats: cardStats([
+          ['ATAQUE', signed(a.attack.bonus)],
+          ['DANO', damageText(onHit)],
+          a.dc && !onSave.length ? ['SE ACERTAR', `CD ${a.dc.value} ${a.dc.ability}`] : null,
+        ]),
+      },
     };
     if (!onSave.length) return [attack];
     const saveLabel = `${a.name} — resistência`;
@@ -284,6 +334,7 @@ function buttonsFor(
             kind: 'save',
             config: save,
             tags: [dcTag!],
+            ...saveCard(a, onSave),
           },
         ]
       : [attack];
@@ -301,6 +352,7 @@ function buttonsFor(
           kind: 'save',
           config,
           tags: [dcTag!, ...(usage ? [usage] : [])],
+          ...saveCard(a, plain),
         },
       ];
     }
@@ -325,6 +377,7 @@ function buttonsFor(
             ...(notes.length ? { reminders: notes } : {}),
           },
           tags: usage ? [usage] : [],
+          card: { name: a.name, kind: 'damage', stats: cardStats([['DANO', damageText(plain)]]) },
         },
       ];
     }

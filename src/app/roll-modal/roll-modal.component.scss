@@ -37,7 +37,11 @@
   max-width: 640px;
   padding: 8px 6px;
   box-sizing: border-box;
+  // Propriedades separadas (não o atalho `background`): o atalho zera o background-clip da moldura.
   background-color: var(--panel-bg);
+  background-image: var(--notice-bg);
+  background-size: cover;
+  background-position: center;
 }
 
 // Errou o ataque: o painel treme quando trinca e, quebrado, só os cacos aparecem (cast-shatter).

@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { LoginComponent } from './login.component';
 import { AuthService } from '../../services/auth.service';
 
@@ -55,6 +55,17 @@ describe('LoginComponent', () => {
     );
     component.submit();
     expect(component.errorMessage()).toBe('Muitas tentativas. Tente de novo em 40 minutos.');
+  });
+
+  it('ignora um segundo submit enquanto o primeiro ainda está carregando (Enter repetido)', () => {
+    const pending = new Subject<unknown>();
+    authService.login.mockReturnValue(pending);
+    component.submit();
+    component.submit();
+    expect(authService.login).toHaveBeenCalledTimes(1);
+    pending.next({});
+    pending.complete();
+    expect(navigate).toHaveBeenCalledTimes(1);
   });
 
   it('entra com Google', () => {

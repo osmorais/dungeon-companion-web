@@ -29,6 +29,7 @@ export class LoginComponent implements AfterViewInit {
 
   @ViewChild('googleBtnDesktop') googleBtnDesktop!: ElementRef<HTMLDivElement>;
   @ViewChild('googleBtnMobile') googleBtnMobile!: ElementRef<HTMLDivElement>;
+  @ViewChild('emailInput') emailInput?: ElementRef<HTMLInputElement>;
 
   isMobile = signal(typeof window !== 'undefined' && window.innerWidth < 768);
 
@@ -46,6 +47,7 @@ export class LoginComponent implements AfterViewInit {
   readonly legalRoutes = LEGAL_DOC_ROUTES;
 
   ngAfterViewInit(): void {
+    this.emailInput?.nativeElement.focus();
     if (!this.googleEnabled()) return;
     this.googleIdentity
       .load()
@@ -83,6 +85,7 @@ export class LoginComponent implements AfterViewInit {
   }
 
   submit() {
+    if (this.loading()) return;
     this.errorMessage.set('');
     this.loading.set(true);
     this.authService.login(this.email, this.password).subscribe({

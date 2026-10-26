@@ -1,0 +1,43 @@
+@if (current(); as c) {
+  <div class="mcar">
+    @if (cards().length > 1) {
+      <button type="button" class="mcar-nav" aria-label="Monstro anterior" (click)="prev()">
+        ◀
+      </button>
+    }
+    <!-- @for com track (id) recria a carta a cada troca: entra deslizando pelo lado certo. -->
+    @for (item of [c]; track item.id) {
+      <button
+        type="button"
+        class="mcar-card"
+        [class.mcar-card--prev]="direction() === 'prev'"
+        [title]="'Ver a carta de ' + item.card.title"
+        (click)="onCardClick(item.id)"
+      >
+        <app-game-card [card]="item.card" size="mini" />
+      </button>
+    }
+    @if (cards().length > 1) {
+      <button type="button" class="mcar-nav" aria-label="Próximo monstro" (click)="next()">
+        ▶
+      </button>
+    }
+  </div>
+  @if (cards().length > 1) {
+    <div class="mcar-dots" role="group" aria-label="Monstros revelados">
+      @for (item of cards(); track item.id; let i = $index) {
+        <button
+          type="button"
+          class="mcar-dot"
+          [class.mcar-dot--on]="i === index()"
+          [attr.aria-label]="item.card.title"
+          [attr.aria-current]="i === index()"
+          (click)="goTo(i)"
+        ></button>
+      }
+    </div>
+  }
+  @if (open()) {
+    <app-card-viewer [card]="c.card" (closed)="open.set(false)" />
+  }
+}

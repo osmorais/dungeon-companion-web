@@ -14,7 +14,7 @@
           id="mobile-email"
           name="email"
           type="email"
-          autocomplete="email"
+          autocomplete="username"
           inputmode="email"
           spellcheck="false"
           [(ngModel)]="email"
@@ -88,10 +88,10 @@
           id="email"
           name="email"
           type="email"
-          autocomplete="email"
+          autocomplete="username"
           inputmode="email"
           spellcheck="false"
-          autofocus
+          #emailInput
           [(ngModel)]="email"
           placeholder="heroi@aventura.com"
           (keyup.enter)="passwordInput.focus()"

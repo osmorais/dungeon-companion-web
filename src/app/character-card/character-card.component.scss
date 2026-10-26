@@ -65,3 +65,8 @@
   object-fit: cover;
   image-rendering: pixelated;
 }
+
+/* Monstro com carta: mesma largura do card, na proporção da moldura das cartas (760×1064). */
+.turn-card-monster-card {
+  width: clamp(130px, 36vw, 220px);
+}

@@ -17,7 +17,12 @@ import { ApplyKind, ApplyRequest, ApplyTarget, resistsDamage } from './apply-tar
 import { CastShatterComponent } from '../spell-cast/cast-shatter.component';
 import { CastTriumphComponent } from '../spell-cast/cast-triumph.component';
 import { SpellCastStageComponent } from '../spell-cast/spell-cast-stage.component';
-import { SpellCastContext, castStagePayload, castVerb } from '../spell-cast/spell-cast-context';
+import {
+  SpellCastContext,
+  castStagePayload,
+  castVerb,
+  monsterCastVerb,
+} from '../spell-cast/spell-cast-context';
 import { CastStageView, castRollView } from '../spell-cast/spell-cast-stage.model';
 
 /** Uma opção de espaço de magia pra gastar em Destruição Divina — ver `AbilityRollConfig.damage.smite`. */
@@ -380,7 +385,7 @@ export class RollModalComponent implements OnInit, OnDestroy {
     return {
       key: cast.castId,
       actorName: this.actorName,
-      verb: castVerb(!!cast.weapon),
+      verb: cast.monsterAction ? monsterCastVerb(cast.monsterAction) : castVerb(!!cast.weapon),
       spellName: cast.spellName,
       actor: cast.actor,
       card: cast.card,
@@ -465,7 +470,11 @@ export class RollModalComponent implements OnInit, OnDestroy {
 
   private sendCastStage(phase: 'open' | 'done' | 'cancel'): void {
     const cast = this.cast;
-    if (!cast || !this.sessionId || this.idCharacter === null || this.castDone) return;
+    if (!cast || !this.sessionId || this.castDone) return;
+    // Ação de monstro escondido: o mestre rola no palco, mas nada vai pra mesa.
+    if (cast.private) return;
+    // Sem personagem, só a ação de monstro (o mestre age pelo monstro da mesa).
+    if (this.idCharacter === null && !cast.monsterAction) return;
     if (phase !== 'open') this.castDone = true;
     const payload = castStagePayload(
       cast,

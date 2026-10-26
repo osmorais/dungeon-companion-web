@@ -33,21 +33,147 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
-    version: '1.11.1',
-    date: '2026-10-25',
-    title: 'Tela de entrada mais caprichada',
+    version: '1.13.3',
+    date: '2026-10-26',
+    title: 'Cadastro e entrada com visual renovado',
     changes: [
       {
         kind: 'melhoria',
-        text: 'A tela de entrada (login) ganhou um visual mais caprichado, no mesmo estilo da tela de criar conta.',
+        text: 'As telas de criar conta e de entrada ganharam um visual mais caprichado, com o logo da Forja Arcana, cantos estilo quadro de missão e campos com relevo, no mesmo estilo visual do resto do site.',
       },
       {
         kind: 'melhoria',
-        text: 'O botão de entrar e o aviso de erro ficaram mais visíveis, com um efeito de clique no botão.',
+        text: 'O botão de confirmar e o aviso de erro ficaram mais visíveis nas duas telas.',
       },
       {
         kind: 'melhoria',
-        text: 'Aperte Enter no campo de e-mail para ir direto pro campo de senha, sem precisar clicar.',
+        text: 'Aperte Enter no campo de e-mail da tela de entrada para ir direto pro campo de senha, sem precisar clicar.',
+      },
+      {
+        kind: 'correcao',
+        text: 'Apertar Enter várias vezes seguidas no campo de senha da tela de entrada não envia mais o formulário mais de uma vez.',
+      },
+      {
+        kind: 'correcao',
+        text: 'O gerenciador de senhas do navegador volta a preencher certinho o campo da tela de entrada.',
+      },
+    ],
+  },
+  {
+    version: '1.13.2',
+    date: '2026-10-26',
+    title: 'Ações do monstro em cartas',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'Na ficha do monstro, os ataques e as outras ações viram cartas num baralho que abre a mão, como as armas dos personagens: cada carta com os números e a descrição da ação, e o botão de rolar embaixo.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'No tema Sombrio, a carta do monstro ganhou uma moldura própria, de osso, chifres e presas, com uma caveira no canto.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A tela de lançamento e os avisos (rolagens, monstro revelado e derrotado, habilidades, subir de nível) ganharam um fundo próprio em cada tema: um altar à luz de velas no Sombrio e um tapete arcano no Fantasia. Personagem com foto continua com a foto.',
+      },
+      {
+        kind: 'correcao',
+        text: 'Ao aplicar dano ou cura, os monstros ainda escondidos não aparecem mais na lista de alvos.',
+      },
+    ],
+  },
+  {
+    version: '1.13.1',
+    date: '2026-10-26',
+    title: 'NPCs e monstros com moldura',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'Na mesa, os cards dos NPCs e dos monstros ganharam as molduras dos cards dos personagens (a moldura em volta, o anel no avatar e a barra de vida) e um fundo próprio: uma taverna para os NPCs e um covil para os monstros. Os botões desses cards ficaram maiores, com ícone e nome, como nos cards dos personagens.',
+      },
+    ],
+  },
+  {
+    version: '1.13.0',
+    date: '2026-10-25',
+    title: 'Monstros com carta no combate',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'O ataque do monstro aparece na tela de lançamento, como o dos personagens: a carta do monstro, a carta da ação (com ataque, dano e CD) e os dados rolando para a mesa toda.',
+      },
+      {
+        kind: 'novidade',
+        text: 'No painel de combate, os monstros revelados viram um carrossel de cartas, que mostra sozinho o monstro da vez.',
+      },
+      {
+        kind: 'novidade',
+        text: 'A ficha do monstro agora abre na gaveta de baixo, no mesmo estilo da gaveta dos personagens: vida, ações, testes, defesas e a carta do monstro, com revelar, esconder e derrotar. O mestre também abre a gaveta tocando na carta do monstro no combate.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'O aviso de troca de vez mostra a carta do monstro quando é o turno dele.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A carta do monstro mostra a descrição dele em todo lugar: no combate, na tela de lançamento e na troca de vez.',
+      },
+      {
+        kind: 'correcao',
+        text: 'O botão FINALIZAR TURNO dos NPCs ficou alinhado com os outros botões.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Monstro ainda escondido continua rolando em segredo: só o mestre vê a tela de lançamento dele.',
+      },
+    ],
+  },
+  {
+    version: '1.12.1',
+    date: '2026-10-25',
+    title: 'E-mail de recuperação de senha de volta',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'O e-mail para redefinir a senha (ESQUECI MINHA SENHA) voltou a ser enviado.',
+      },
+    ],
+  },
+  {
+    version: '1.12.0',
+    date: '2026-10-25',
+    title: 'Menu de seções também no celular e no tablet',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'Na tela inicial, quem acessa pelo celular ou tablet agora tem um botão de menu para ir direto a cada seção — antes isso só existia no computador.',
+      },
+      {
+        kind: 'correcao',
+        text: 'No celular, o botão CRIAR CONTA do topo (que deveria aparecer só no botão de destaque mais abaixo) estava indevidamente visível ao lado do ENTRAR.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'O botão ENTRAR do topo ficou maior, mais fácil de tocar no celular.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A seção "Para toda a companhia" aproveita melhor a largura da tela em monitores grandes.',
+      },
+      {
+        kind: 'correcao',
+        text: 'Na tela inicial, a carta da vitrine não passa mais por cima da barra do topo ao rolar a página.',
+      },
+    ],
+  },
+  {
+    version: '1.11.1',
+    date: '2026-10-25',
+    title: 'Ajustes visuais na tela inicial',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'Na tela inicial, o dado em destaque não cobre mais o "AO VIVO" do cartão de exemplo em telas menores.',
       },
     ],
   },

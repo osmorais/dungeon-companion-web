@@ -1,4 +1,7 @@
 import { Component, computed, input, output, signal } from '@angular/core';
+import { CardDeckComponent } from '../game-card/card-deck.component';
+import { CardHandComponent, HandCard } from '../game-card/card-hand.component';
+import { monsterActionToCard } from '../game-card/monster-card';
 import { MonsterStatBlock } from '../models/monster-catalog.interface';
 import {
   MonsterActionOp,
@@ -28,6 +31,10 @@ const GROUP_TITLES: Record<MonsterActionGroup, string> = {
 export interface MonsterRollRequest {
   config: AbilityRollConfig;
   consume: MonsterActionOp | null;
+  /** Ação com carta (ataque, resistência, dano): abre na tela de lançamento (1.13.0). Os testes
+   *  do monstro (resistências, atributos, perícias) vêm sem. */
+  card?: MonsterActionButton['card'];
+  castSave?: MonsterActionButton['castSave'];
 }
 
 /**
@@ -39,6 +46,7 @@ export interface MonsterRollRequest {
 @Component({
   selector: 'app-monster-actions',
   standalone: true,
+  imports: [CardDeckComponent, CardHandComponent],
   templateUrl: './monster-actions.component.html',
   styleUrls: ['./monster-actions.component.scss'],
 })
@@ -48,6 +56,13 @@ export class MonsterActionsComponent {
   readonly state = input<MonsterActionState | null>(null);
   /** d6 de recarga do início do turno dele, pra mostrar o resultado. */
   readonly rechargeRolls = input<RechargeRoll[] | null>(null);
+  /** Parte da ficha a desenhar (a gaveta do monstro põe cada uma numa coluna, 1.13.0). */
+  readonly part = input<'all' | 'actions' | 'checks' | 'traits'>('all');
+  /** Ações que rolam viram cartas num baralho que abre a mão, como as armas dos jogadores
+   *  (1.13.3, gaveta do monstro); o resto (multiataque, texto, covil) fica em lista. */
+  readonly asCards = input(false);
+  /** Imagem do monstro (arte das cartas das ações). */
+  readonly imageUrl = input<string | null>(null);
   readonly roll = output<MonsterRollRequest>();
   /** Operação de uso sem rolagem: usar (habilidade só de texto), restaurar, descanso. */
   readonly op = output<MonsterActionOp>();
@@ -60,10 +75,57 @@ export class MonsterActionsComponent {
       .map((group) => ({
         group,
         title: this.groupTitle(group),
-        items: this.buttons().filter((b) => b.group === group),
+        // Com cartas, as ações que rolam saem da lista (estão no baralho).
+        items: this.buttons().filter(
+          (b) => b.group === group && !(this.asCards() && this.isCard(b)),
+        ),
       }))
       .filter((s) => s.items.length),
   );
+
+  /** Ações do baralho: as que rolam (ataque, resistência, dano), de qualquer grupo. */
+  private readonly cardButtons = computed(() => this.buttons().filter((b) => this.isCard(b)));
+
+  /** A mão: carta da ação com a descrição; apagada quando o uso acabou. */
+  readonly hand = computed<HandCard[]>(() =>
+    this.cardButtons().map((b) => ({
+      key: b.key,
+      card: {
+        ...monsterActionToCard(b.card!, this.imageUrl()),
+        text: b.desc,
+        tags: [
+          ...(b.group === 'legendary_actions' ? ['LENDÁRIA'] : []),
+          ...(b.group === 'reactions' ? ['REAÇÃO'] : []),
+          ...b.tags.filter((t) => !t.startsWith('+') && !t.startsWith('CD')),
+        ],
+      },
+      state: this.availability(b).available ? null : 'locked',
+    })),
+  );
+  readonly deckCards = computed(() => this.hand().map((h) => h.card));
+  readonly handOpen = signal(false);
+
+  /** Contadores que no modo lista ficam nos títulos das seções (lendárias, reação). */
+  readonly deckStatus = computed(() => {
+    const state = this.state();
+    const lines: string[] = [];
+    if (this.cardButtons().some((b) => b.group === 'legendary_actions')) {
+      const total = legendaryTotal(this.block());
+      lines.push(`LENDÁRIAS: RESTAM ${total - (state?.legendary_used ?? 0)} DE ${total} NA RODADA`);
+    }
+    if (this.cardButtons().some((b) => b.group === 'reactions')) {
+      lines.push(state?.reaction_used ? 'REAÇÃO: USADA NESTA RODADA' : 'REAÇÃO: DISPONÍVEL');
+    }
+    return lines;
+  });
+
+  private isCard(b: MonsterActionButton): boolean {
+    return !!b.config && !!b.card;
+  }
+
+  buttonByKey(key: string): MonsterActionButton | null {
+    return this.buttons().find((b) => b.key === key) ?? null;
+  }
   /** Defesas, sentidos e idiomas (só os que a ficha tem), em linhas de rótulo e texto. */
   readonly traits = computed(() => {
     const b = this.block();
@@ -116,7 +178,16 @@ export class MonsterActionsComponent {
   }
 
   use(b: MonsterActionButton): void {
-    if (b.config) this.roll.emit({ config: b.config, consume: b.consume });
+    if (b.config) this.roll.emit(this.request(b));
+  }
+
+  private request(b: MonsterActionButton): MonsterRollRequest {
+    return {
+      config: b.config!,
+      consume: b.consume,
+      ...(b.card ? { card: b.card } : {}),
+      ...(b.castSave ? { castSave: b.castSave } : {}),
+    };
   }
 
   toggleMulti(b: MonsterActionButton): void {
@@ -134,7 +205,11 @@ export class MonsterActionsComponent {
     const target = this.buttons().find((b) => b.key === entry.key);
     if (!target?.config) return;
     this.multiDone.update((d) => ({ ...d, [entry.action]: (d[entry.action] ?? 0) + 1 }));
-    this.roll.emit({ config: target.config, consume: target.consume });
+    this.roll.emit(this.request(target));
+  }
+
+  shows(part: 'actions' | 'checks' | 'traits'): boolean {
+    return this.part() === 'all' || this.part() === part;
   }
 
   signed(n: number): string {

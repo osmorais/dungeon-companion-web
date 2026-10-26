@@ -2,7 +2,8 @@
   <!-- ===== TOPO ===== -->
   <header class="lp-topbar">
     <img class="lp-topbar-logo" src="forja_arcana.png" alt="Forja Arcana" width="76" height="76" />
-    <nav class="lp-nav" aria-label="Seções da página">
+    <!-- Um menu só: barra horizontal no desktop; abaixo de 1024px vira o painel aberto pelo botão. -->
+    <nav id="lp-nav" class="lp-nav" [class.is-open]="menuOpen()" aria-label="Seções da página">
       @for (s of sections; track s.id) {
         <button type="button" class="lp-nav-link" (click)="scrollTo(s.id)">{{ s.label }}</button>
       }
@@ -11,6 +12,17 @@
       <a class="lp-btn lp-btn--ghost lp-btn--small" routerLink="/login">ENTRAR</a>
       <a class="lp-btn lp-btn--small lp-hide-mobile" routerLink="/signup">CRIAR CONTA</a>
     </div>
+    <button
+      type="button"
+      class="lp-menu-toggle"
+      [class.is-open]="menuOpen()"
+      [attr.aria-expanded]="menuOpen()"
+      aria-controls="lp-nav"
+      [attr.aria-label]="menuOpen() ? 'Fechar menu' : 'Abrir menu'"
+      (click)="toggleMenu()"
+    >
+      <span></span><span></span><span></span>
+    </button>
   </header>
 
   <main>
@@ -36,29 +48,32 @@
       </div>
 
       <div class="lp-hero-visual" aria-hidden="true">
-        <div class="lp-sample framed-card">
-          <div class="lp-sample-top">
-            <span>FICHA DE AVENTUREIRO</span>
-            <span class="lp-sample-tag">AO VIVO</span>
-          </div>
-          <!-- O mesmo anel do avatar do card da sessão (classes globais de styles.scss). -->
-          <div class="avatar-ring-wrap lp-sample-ring">
-            <div class="lp-sample-avatar">
-              <app-avatar-display [preset]="sampleAvatar" [basePath]="sampleAvatarBase" />
+        <!-- O dado fica preso ao card (e não ao bloco inteiro): acompanha o card em qualquer largura. -->
+        <div class="lp-sample-wrap">
+          <div class="lp-sample framed-card">
+            <div class="lp-sample-top">
+              <span>FICHA DE AVENTUREIRO</span>
+              <span class="lp-sample-tag">AO VIVO</span>
             </div>
-            <span class="avatar-ring"></span>
+            <!-- O mesmo anel do avatar do card da sessão (classes globais de styles.scss). -->
+            <div class="avatar-ring-wrap lp-sample-ring">
+              <div class="lp-sample-avatar">
+                <app-avatar-display [preset]="sampleAvatar" [basePath]="sampleAvatarBase" />
+              </div>
+              <span class="avatar-ring"></span>
+            </div>
+            <p class="lp-sample-name">GORAK <span>Dente-Solto</span></p>
+            <p class="lp-sample-class">BÁRBARO · MEIO-ORC</p>
+            <div class="lp-sample-stats">
+              <span><b>FOR</b> 16</span><span><b>CON</b> 15</span><span><b>DES</b> 13</span>
+            </div>
+            <app-xp-bar [level]="3" [xp]="2100" [nextLevelXp]="2700" />
+            <app-hp-bar [current]="27" [max]="31" />
           </div>
-          <p class="lp-sample-name">GORAK <span>Dente-Solto</span></p>
-          <p class="lp-sample-class">BÁRBARO · MEIO-ORC</p>
-          <div class="lp-sample-stats">
-            <span><b>FOR</b> 16</span><span><b>CON</b> 15</span><span><b>DES</b> 13</span>
+          <div class="lp-token lp-token--die">
+            <img src="assets/dice/d20.png" alt="" width="40" height="40" />
+            <span>20<small>CRÍTICO!</small></span>
           </div>
-          <app-xp-bar [level]="3" [xp]="2100" [nextLevelXp]="2700" />
-          <app-hp-bar [current]="27" [max]="31" />
-        </div>
-        <div class="lp-token lp-token--die">
-          <img src="assets/dice/d20.png" alt="" width="40" height="40" />
-          <span>20<small>CRÍTICO!</small></span>
         </div>
         <div class="lp-token lp-token--tom">
           <img src="assets/tom/tom-hi.png" alt="" width="402" height="436" />
@@ -213,7 +228,7 @@
       <div class="lp-heading lp-heading--center">
         <h2 class="lp-h2">Para toda a <span>companhia.</span></h2>
       </div>
-      <div class="lp-grid lp-grid--extras">
+      <div class="lp-grid">
         @for (f of extras; track f.title) {
           <article class="lp-card lp-card--row">
             <img

@@ -197,16 +197,18 @@ export class DmBoardComponent implements OnInit, OnDestroy {
     ];
   }
 
-  /** Grupo + monstros da sessão — quem pode levar dano/cura em área. */
+  /** Grupo + monstros revelados — quem pode levar dano/cura em área (escondido não entra, 1.13.2). */
   get areaTargets(): BoardTarget[] {
     return [
       ...this.partyTargets,
-      ...this.detail.monsters.map((m) => ({
-        key: `monster:${m.id_monster_session}`,
-        type: 'monster' as const,
-        id: m.id_monster_session,
-        name: monsterDisplayName(m),
-      })),
+      ...this.detail.monsters
+        .filter((m) => m.is_revealed)
+        .map((m) => ({
+          key: `monster:${m.id_monster_session}`,
+          type: 'monster' as const,
+          id: m.id_monster_session,
+          name: monsterDisplayName(m),
+        })),
     ];
   }
 

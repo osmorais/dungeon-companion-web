@@ -3,7 +3,9 @@ import {
   CastStageRoll,
   CombatEncounterDetail,
   MonsterAbilityKey,
+  MonsterActionCardInfo,
   MonsterActionState,
+  MonsterCastInfo,
   MonsterSession,
   NpcSession,
   PlayerSession,
@@ -110,11 +112,15 @@ export interface SessionEventPayloadMap {
   spell_cast_stage: {
     cast_id: string;
     user_id: string;
-    id_character: number;
+    /** `null` na ação de monstro. */
+    id_character: number | null;
     actor_name: string;
-    /** Magia (`weapon` null) ou ataque com arma (`spell` null). A API antiga não manda `weapon`. */
+    /** Magia, ataque com arma ou ação de monstro (1.13.0): só um vem preenchido. A API antiga não
+     *  manda `weapon`, `monster_action` nem `monster`. */
     spell: SpellCardInfo | null;
     weapon?: WeaponCardInfo | null;
+    monster_action?: MonsterActionCardInfo | null;
+    monster?: MonsterCastInfo | null;
     phase: 'open' | 'done' | 'cancel';
     rolls: CastStageRoll[];
     /** O que já foi aplicado nos alvos (a API antiga não manda). */
