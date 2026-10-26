@@ -84,6 +84,17 @@ describe('MonsterActionsComponent', () => {
     expect(rolled[0].consume).toBeNull();
   });
 
+  it('ação manda a carta pra tela de lançamento; os testes do monstro vão sem carta', () => {
+    const { el, rolled, byText } = render(block([CIMITARRA, SOPRO]));
+    byText('ATACAR').click();
+    expect(rolled[0].card).toMatchObject({ name: 'Cimitarra', kind: 'attack' });
+    byText('RESISTÊNCIA').click();
+    expect(rolled[1].card?.kind).toBe('save');
+    expect(rolled[1].castSave).toEqual({ dc: 13, ability: 'DEX' });
+    el.querySelector<HTMLButtonElement>('.ma-chips .ma-chip')!.click();
+    expect(rolled[2].card).toBeUndefined();
+  });
+
   it('ação com recarga manda gastar o uso junto da rolagem', () => {
     const { rolled, byText } = render(block([SOPRO]));
     byText('RESISTÊNCIA').click();
@@ -198,6 +209,23 @@ describe('MonsterActionsComponent', () => {
     const inside = render(block([CIMITARRA], lair), state({ in_lair: true }));
     inside.byText('SAIU DO COVIL').click();
     expect(inside.ops).toEqual([{ op: 'lair', on: false }]);
+  });
+
+  it('part: a gaveta desenha só as ações, só os testes ou só as defesas', () => {
+    const b = block([CIMITARRA], { senses: 'visão no escuro 18 m' });
+    const only = (part: 'actions' | 'checks' | 'traits') => {
+      const fixture = TestBed.createComponent(MonsterActionsComponent);
+      fixture.componentRef.setInput('block', b);
+      fixture.componentRef.setInput('part', part);
+      fixture.detectChanges();
+      return (fixture.nativeElement as HTMLElement).textContent ?? '';
+    };
+    expect(only('actions')).toContain('ATACAR');
+    expect(only('actions')).not.toContain('RESISTÊNCIAS');
+    expect(only('checks')).toContain('RESISTÊNCIAS');
+    expect(only('checks')).not.toContain('ATACAR');
+    expect(only('traits')).toContain('SENTIDOS');
+    expect(only('traits')).not.toContain('ATACAR');
   });
 
   it('ficha antiga (dnd5eapi): só texto e o aviso pra catalogar de novo', () => {

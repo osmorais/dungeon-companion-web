@@ -92,8 +92,16 @@
           DESVANTAGEM
         </button>
       </div>
-      @if (canHideRoll) {
+      <!-- Na tela de lançamento a visibilidade vem de quem abriu (ação de monstro: escondido =
+           só o mestre); trocar no meio deixaria a mesa com o aviso sem as rolagens. -->
+      @if (canHideRoll && !cast) {
         <ng-container [ngTemplateOutlet]="hiddenToggle" />
+      }
+      @if (cast?.private) {
+        <p class="roll-hidden-note">
+          <img class="ui-icon" src="assets/icons/padlock.png" alt="" /> Monstro escondido: só você
+          vê esta rolagem
+        </p>
       }
     } @else if (config.mode === 'freeform') {
       <div class="roll-freeform-config">

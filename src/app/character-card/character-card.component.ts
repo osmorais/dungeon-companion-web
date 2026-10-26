@@ -3,6 +3,8 @@ import { AvatarDisplayComponent } from '../avatar-display/avatar-display.compone
 import { HpBarComponent } from '../hp-bar/hp-bar.component';
 import { XpBarComponent } from '../xp-bar/xp-bar.component';
 import { AvatarPreset } from '../models/avatar-preset.interface';
+import { GameCardComponent } from '../game-card/game-card.component';
+import { GameCardData } from '../game-card/game-card.model';
 
 /** Quem aparece num card de personagem dos avisos (troca de vez, lançamento de magia): jogador,
  *  NPC ou monstro, já com o nome que a mesa vê. */
@@ -24,6 +26,8 @@ export interface CharacterCardData {
     xp?: number;
     nextLevelXp?: number | null;
   } | null;
+  /** Monstro com carta (1.13.0): no lugar do card, a carta dele (a mesma da revelação). */
+  monsterCard?: GameCardData | null;
 }
 
 /**
@@ -34,7 +38,7 @@ export interface CharacterCardData {
 @Component({
   selector: 'app-character-card',
   standalone: true,
-  imports: [AvatarDisplayComponent, HpBarComponent, XpBarComponent],
+  imports: [AvatarDisplayComponent, HpBarComponent, XpBarComponent, GameCardComponent],
   templateUrl: './character-card.component.html',
   styleUrls: ['./character-card.component.scss'],
 })

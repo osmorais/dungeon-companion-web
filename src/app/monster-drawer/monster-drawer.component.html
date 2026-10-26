@@ -1,0 +1,303 @@
+<!-- Gaveta de baixo (bottom-drawer.scss), como a de ações dos personagens -->
+<div class="bottom-drawer-backdrop" (click)="closed.emit()"></div>
+<aside class="bottom-drawer" role="dialog" [attr.aria-label]="'Ficha de ' + name()">
+  <button
+    class="bottom-drawer-bar bottom-drawer-bar--attached bottom-drawer-bar--avatar"
+    (click)="closed.emit()"
+  >
+    <span class="bottom-drawer-avatar avatar-ring-wrap" aria-hidden="true">
+      <span class="bottom-drawer-avatar-circle">
+        <img [src]="monster.image_url || card().fallbackIcon" alt="" />
+      </span>
+      <span class="avatar-ring"></span>
+    </span>
+    <span class="bottom-drawer-bar-label">
+      <span class="bottom-drawer-arrow">▼</span>
+      <img class="ui-icon" src="assets/icons/swords.png" alt="" /> {{ name() }}
+    </span>
+    <span class="bottom-drawer-hint">TOQUE PARA FECHAR</span>
+  </button>
+
+  <div class="bottom-drawer-body pa-modal">
+    @if (actionError) {
+      <p class="pa-action-error">{{ actionError }}</p>
+    }
+
+    @if (isTurn) {
+      <div class="pa-turn-banner" role="status">
+        <span class="pa-turn-banner-title">VEZ DE {{ name() }}</span>
+        <span class="pa-turn-banner-hint">Use as ações do monstro — depois, FINALIZAR TURNO.</span>
+      </div>
+    }
+
+    <!-- Destaque: números e ações que se usam toda hora -->
+    <div class="pa-hero" [class.pa-hero--turn]="isTurn">
+      <div class="pa-hero-stats">
+        <div class="pa-stat pa-stat--hp">
+          <span class="pa-stat-label">PV</span>
+          <span class="pa-stat-value">{{ monster.hp_current }}/{{ monster.hp_max }}</span>
+        </div>
+        <div class="pa-stat">
+          <span class="pa-stat-label">CA</span>
+          <span class="pa-stat-value">{{ monster.ac }}</span>
+        </div>
+        <div class="pa-stat">
+          <span class="pa-stat-label">ND</span>
+          <span class="pa-stat-value">{{ crText(monster.data_snapshot.challenge_rating) }}</span>
+        </div>
+        <div class="pa-stat">
+          <span class="pa-stat-label">DADOS DE VIDA</span>
+          <span class="pa-stat-value">{{ monster.data_snapshot.hit_dice }}</span>
+        </div>
+        <div class="pa-stat">
+          <span class="pa-stat-label">MESA</span>
+          <span class="pa-stat-value">{{ monster.is_revealed ? 'REVELADO' : 'ESCONDIDO' }}</span>
+        </div>
+      </div>
+      <div class="pa-hp-adjust" role="group" aria-label="Dano ou cura no monstro">
+        <span class="pa-stat-label">PV</span>
+        <input
+          type="number"
+          min="0"
+          class="pa-hp-input"
+          placeholder="0"
+          aria-label="Quantidade"
+          [value]="hpAmount() || ''"
+          (input)="setHpAmount($event)"
+          (keydown.enter)="submitHp('damage')"
+        />
+        <button
+          class="pa-hp-btn pa-hp-btn--damage"
+          [disabled]="!hpAmount()"
+          (click)="submitHp('damage')"
+        >
+          DANO
+        </button>
+        <button
+          class="pa-hp-btn pa-hp-btn--heal"
+          [disabled]="!hpAmount()"
+          (click)="submitHp('heal')"
+        >
+          CURA
+        </button>
+        <button
+          class="pa-hp-btn pa-hp-btn--damage"
+          [disabled]="monster.hp_current <= 0"
+          title="Zera a vida"
+          (click)="submitHp('damage', monster.hp_current)"
+        >
+          DANO TOTAL
+        </button>
+        <button
+          class="pa-hp-btn pa-hp-btn--heal"
+          [disabled]="monster.hp_current >= monster.hp_max"
+          title="Enche a vida até o máximo"
+          (click)="submitHp('heal', monster.hp_max - monster.hp_current)"
+        >
+          CURA TOTAL
+        </button>
+      </div>
+      <div class="pa-hero-actions">
+        @if (isTurn && canEndTurn) {
+          <button
+            class="pa-freeform-btn pa-hero-btn pa-hero-btn--main"
+            [disabled]="endingTurn"
+            (click)="endTurn.emit()"
+          >
+            <img class="ui-icon" src="assets/icons/skip-turn.png" alt="" />
+            {{ endingTurn ? '...' : 'FINALIZAR TURNO' }}
+          </button>
+        }
+        <button
+          class="pa-freeform-btn pa-hero-btn"
+          [disabled]="revealing"
+          [title]="
+            monster.is_revealed
+              ? 'Esconder o monstro dos jogadores'
+              : 'Mostrar o monstro aos jogadores'
+          "
+          (click)="toggleReveal.emit($event)"
+        >
+          <img
+            class="ui-icon"
+            [src]="monster.is_revealed ? 'assets/icons/padlock.png' : 'assets/icons/picture.png'"
+            alt=""
+          />
+          {{ revealing ? '...' : monster.is_revealed ? 'ESCONDER' : 'REVELAR' }}
+        </button>
+        <button
+          class="pa-freeform-btn pa-hero-btn md-defeat"
+          [disabled]="defeating"
+          title="Marcar como derrotado (antes, a distribuição de XP)"
+          (click)="defeat.emit()"
+        >
+          <img class="ui-icon" src="assets/icons/swords.png" alt="" />
+          {{ defeating ? '...' : 'DERROTAR' }}
+        </button>
+        <button
+          class="pa-freeform-btn pa-hero-btn"
+          (click)="editing ? cancelEdit.emit() : startEdit.emit()"
+        >
+          <img class="ui-icon" src="assets/icons/sheet.png" alt="" />
+          {{ editing ? 'FECHAR EDIÇÃO' : 'EDITAR STATUS' }}
+        </button>
+      </div>
+    </div>
+
+    @if (editing && draft; as d) {
+      <div class="pa-section md-edit">
+        <h4 class="pa-section-title">EDITAR STATUS</h4>
+        <label class="md-field">
+          NOME
+          <input
+            type="text"
+            [ngModel]="d.custom_name"
+            (ngModelChange)="draftName.emit($event)"
+            [placeholder]="monster.data_snapshot.name"
+          />
+        </label>
+        <div class="md-edit-row">
+          <label class="md-field">
+            CA
+            <input
+              type="number"
+              min="0"
+              [ngModel]="d.ac"
+              (ngModelChange)="draftNumber.emit({ field: 'ac', value: $event })"
+            />
+          </label>
+          <label class="md-field">
+            PV ATUAL
+            <input
+              type="number"
+              min="0"
+              [ngModel]="d.hp_current"
+              (ngModelChange)="draftNumber.emit({ field: 'hp_current', value: $event })"
+            />
+          </label>
+          <label class="md-field">
+            PV MÁXIMO
+            <input
+              type="number"
+              min="1"
+              [ngModel]="d.hp_max"
+              (ngModelChange)="draftNumber.emit({ field: 'hp_max', value: $event })"
+            />
+          </label>
+        </div>
+        <div class="md-edit-abilities">
+          @for (field of abilityFields; track field.key) {
+            <label class="md-field">
+              {{ field.label }}
+              <input
+                type="number"
+                min="1"
+                max="30"
+                [ngModel]="d[field.key]"
+                (ngModelChange)="draftAbility.emit({ field: field.key, value: $event })"
+              />
+            </label>
+          }
+        </div>
+        @if (statsError) {
+          <p class="pa-action-error">{{ statsError }}</p>
+        }
+        <div class="pa-rest-buttons-row">
+          <button class="pa-freeform-btn" [disabled]="saving" (click)="cancelEdit.emit()">
+            CANCELAR
+          </button>
+          <button class="pa-freeform-btn md-save" [disabled]="saving" (click)="saveStats.emit()">
+            {{ saving ? 'SALVANDO...' : 'SALVAR' }}
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Colunas fixas, como na gaveta dos personagens -->
+    <div class="pa-columns">
+      <div class="pa-col">
+        <h3 class="pa-col-title">
+          <img class="ui-icon" src="assets/icons/scroll.png" alt="" /> MONSTRO
+        </h3>
+        <div class="pa-section md-card">
+          <app-game-card [card]="card()" size="full" />
+          <p class="md-meta">
+            @if (monster.custom_name) {
+              {{ monster.data_snapshot.name }} ·
+            }
+            {{ monster.data_snapshot.size }} {{ monster.data_snapshot.type }},
+            {{ monster.data_snapshot.alignment }}
+          </p>
+          <label class="pa-freeform-btn md-image-btn">
+            {{
+              uploadingImage
+                ? 'ENVIANDO...'
+                : monster.image_url
+                  ? 'TROCAR IMAGEM'
+                  : '+ ADICIONAR IMAGEM'
+            }}
+            <input
+              type="file"
+              accept="image/*"
+              hidden
+              [disabled]="uploadingImage"
+              (change)="imageSelected.emit($event)"
+            />
+          </label>
+          @if (imageError) {
+            <p class="pa-action-error">{{ imageError }}</p>
+          }
+        </div>
+        <div class="pa-section">
+          <h4 class="pa-section-title">ATRIBUTOS</h4>
+          <div class="pa-row-list pa-row-list--grid">
+            @for (field of abilityFields; track field.key) {
+              @let score = abilityScore(field.key);
+              <div class="pa-action-row pa-action-row--static">
+                <span>{{ field.label }} {{ score }}</span>
+                <span class="pa-action-value">{{ modifier(score) }}</span>
+              </div>
+            }
+          </div>
+          <p class="md-meta">DESLOCAMENTO: {{ speedText(monster.data_snapshot.speed) }}</p>
+        </div>
+        <div class="pa-section">
+          <app-monster-actions [block]="monster.data_snapshot" part="traits" />
+        </div>
+      </div>
+
+      <div class="pa-col">
+        <h3 class="pa-col-title" [class.pa-col-title--turn]="isTurn">
+          <img class="ui-icon" src="assets/icons/swords.png" alt="" /> AÇÕES
+        </h3>
+        <div class="pa-section">
+          <app-monster-actions
+            [block]="monster.data_snapshot"
+            [state]="actionState"
+            [rechargeRolls]="rechargeRolls"
+            part="actions"
+            (roll)="roll.emit($event)"
+            (op)="op.emit($event)"
+          />
+        </div>
+      </div>
+
+      <div class="pa-col">
+        <h3 class="pa-col-title">
+          <img class="ui-icon" src="assets/icons/d20.png" alt="" /> TESTES
+        </h3>
+        <div class="pa-section">
+          @if (mechanical()) {
+            <app-monster-actions
+              [block]="monster.data_snapshot"
+              part="checks"
+              (roll)="roll.emit($event)"
+            />
+          } @else {
+            <p class="md-meta">Ficha antiga: sem testes clicáveis.</p>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</aside>

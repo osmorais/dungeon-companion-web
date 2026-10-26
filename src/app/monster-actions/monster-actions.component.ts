@@ -28,6 +28,10 @@ const GROUP_TITLES: Record<MonsterActionGroup, string> = {
 export interface MonsterRollRequest {
   config: AbilityRollConfig;
   consume: MonsterActionOp | null;
+  /** Ação com carta (ataque, resistência, dano): abre na tela de lançamento (1.13.0). Os testes
+   *  do monstro (resistências, atributos, perícias) vêm sem. */
+  card?: MonsterActionButton['card'];
+  castSave?: MonsterActionButton['castSave'];
 }
 
 /**
@@ -48,6 +52,8 @@ export class MonsterActionsComponent {
   readonly state = input<MonsterActionState | null>(null);
   /** d6 de recarga do início do turno dele, pra mostrar o resultado. */
   readonly rechargeRolls = input<RechargeRoll[] | null>(null);
+  /** Parte da ficha a desenhar (a gaveta do monstro põe cada uma numa coluna, 1.13.0). */
+  readonly part = input<'all' | 'actions' | 'checks' | 'traits'>('all');
   readonly roll = output<MonsterRollRequest>();
   /** Operação de uso sem rolagem: usar (habilidade só de texto), restaurar, descanso. */
   readonly op = output<MonsterActionOp>();
@@ -116,7 +122,16 @@ export class MonsterActionsComponent {
   }
 
   use(b: MonsterActionButton): void {
-    if (b.config) this.roll.emit({ config: b.config, consume: b.consume });
+    if (b.config) this.roll.emit(this.request(b));
+  }
+
+  private request(b: MonsterActionButton): MonsterRollRequest {
+    return {
+      config: b.config!,
+      consume: b.consume,
+      ...(b.card ? { card: b.card } : {}),
+      ...(b.castSave ? { castSave: b.castSave } : {}),
+    };
   }
 
   toggleMulti(b: MonsterActionButton): void {
@@ -134,7 +149,11 @@ export class MonsterActionsComponent {
     const target = this.buttons().find((b) => b.key === entry.key);
     if (!target?.config) return;
     this.multiDone.update((d) => ({ ...d, [entry.action]: (d[entry.action] ?? 0) + 1 }));
-    this.roll.emit({ config: target.config, consume: target.consume });
+    this.roll.emit(this.request(target));
+  }
+
+  shows(part: 'actions' | 'checks' | 'traits'): boolean {
+    return this.part() === 'all' || this.part() === part;
   }
 
   signed(n: number): string {

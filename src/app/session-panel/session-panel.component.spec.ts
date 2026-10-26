@@ -566,7 +566,92 @@ describe('SessionPanelComponent', () => {
       expect(component.lairReminder()).toBeNull();
     });
 
-    it('rolagem do monstro fecha a ficha e, ao terminar, volta pra ela com o PV atual', () => {
+    it('ação com carta do monstro revelado abre na tela de lançamento (o mestre acompanha no modal)', () => {
+      const revealed = { ...m1, is_revealed: true, image_url: 'g.png' };
+      detail.set(sessionDetail({ players: [p1], monsters: [revealed] }));
+      const config = {
+        mode: 'ability' as const,
+        rollType: 'attack' as const,
+        label: 'Cimitarra',
+        modifier: 4,
+      };
+      const card = {
+        name: 'Cimitarra',
+        kind: 'attack' as const,
+        stats: [{ label: 'ATAQUE', value: '+4' }],
+      };
+      component.openMonsterRoll(revealed, { config, consume: null, card });
+      const cast = component.activeMonsterRoll()?.cast;
+      expect(cast).toMatchObject({
+        idMonsterSession: 'm1',
+        monsterAction: card,
+        private: false,
+        spellName: 'Cimitarra',
+      });
+      expect(cast?.actor.monsterCard?.title).toBe('Goblin');
+      expect(cast?.card).toMatchObject({ title: 'Cimitarra', art: 'g.png' });
+      // A etapa do próprio mestre não abre o aviso da mesa pra ele.
+      component.onSpellCastStage({
+        cast_id: cast!.castId,
+        user_id: 'dm',
+        id_character: null,
+        actor_name: 'Goblin',
+        spell: null,
+        monster_action: card,
+        monster: null,
+        phase: 'open',
+        rolls: [],
+        save_dc: null,
+        save_ability: null,
+      });
+      expect(component.activeCastId()).toBeNull();
+    });
+
+    it('ação do monstro escondido: palco só do mestre (privado); teste do monstro abre sem palco', () => {
+      detail.set(sessionDetail({ players: [p1], monsters: [m1] }));
+      const config = {
+        mode: 'ability' as const,
+        rollType: 'save' as const,
+        label: 'Destreza',
+        modifier: 2,
+      };
+      const card = { name: 'Sopro', kind: 'save' as const, stats: [] };
+      component.openMonsterRoll(m1, {
+        config,
+        consume: null,
+        card,
+        castSave: { dc: 13, ability: 'DEX' },
+      });
+      expect(component.activeMonsterRoll()?.cast).toMatchObject({
+        private: true,
+        saveDc: 13,
+        saveAbility: 'DEX',
+        saveNote: 'CD 13 de Destreza',
+      });
+      component.openMonsterRoll(m1, { config, consume: null });
+      expect(component.activeMonsterRoll()?.cast).toBeNull();
+    });
+
+    it('gaveta do monstro: mostra o monstro como está agora, abre pelo carrossel e aplica dano', () => {
+      detail.set(sessionDetail({ players: [p1], monsters: [m1] }));
+      component.openMonsterDetailById('m1');
+      expect(component.liveMonsterDetail()?.id_monster_session).toBe('m1');
+      detail.set(sessionDetail({ players: [p1], monsters: [{ ...m1, hp_current: 3 }] }));
+      expect(component.liveMonsterDetail()?.hp_current).toBe(3);
+      component.openMonsterDetailById('nao-existe');
+      expect(component.liveMonsterDetail()?.id_monster_session).toBe('m1');
+      component.closeMonsterDetail();
+      expect(component.liveMonsterDetail()).toBeNull();
+    });
+
+    it('carta do monstro pros avisos leva a descrição', () => {
+      detail.set(
+        sessionDetail({ players: [p1], monsters: [{ ...m1, lore: 'Pequenos e traiçoeiros.' }] }),
+      );
+      expect(component.monsterCardFor('m1')?.text).toBe('Pequenos e traiçoeiros.');
+    });
+
+    it('rolagem do monstro: a gaveta fica aberta por baixo e, ao terminar, mostra o PV atual', () => {
       const config = {
         mode: 'ability' as const,
         rollType: 'attack' as const,
@@ -576,14 +661,15 @@ describe('SessionPanelComponent', () => {
       detail.set(sessionDetail({ players: [p1], monsters: [m1] }));
       component.openMonsterDetail(m1);
       component.openMonsterRoll(m1, { config, consume: null });
-      expect(component.activeMonsterDetail()).toBeNull();
-      expect(component.activeMonsterRoll()).toEqual({ monster: m1, config });
+      // Desde a 1.13.0 a gaveta não fecha (o multiataque guiado guarda a contagem).
+      expect(component.liveMonsterDetail()?.id_monster_session).toBe('m1');
+      expect(component.activeMonsterRoll()).toEqual({ monster: m1, config, cast: null });
 
-      // Dano aplicado enquanto rolava: a ficha reabre já com o PV novo.
+      // Dano aplicado enquanto rolava: a gaveta já mostra o PV novo.
       detail.set(sessionDetail({ players: [p1], monsters: [{ ...m1, hp_current: 2 }] }));
       component.closeMonsterRoll();
       expect(component.activeMonsterRoll()).toBeNull();
-      expect(component.activeMonsterDetail()?.hp_current).toBe(2);
+      expect(component.liveMonsterDetail()?.hp_current).toBe(2);
     });
 
     describe('jogador (não é o mestre)', () => {
@@ -960,6 +1046,7 @@ describe('SessionPanelComponent', () => {
         name: 'Monstro misterioso',
         imageUrl: 'assets/monster.png',
         avatarPreset: null,
+        monsterCard: null,
       });
     });
 
@@ -979,6 +1066,11 @@ describe('SessionPanelComponent', () => {
     it('mestre vê o monstro com a imagem dele', () => {
       const parts = setup('dm');
       expect(component.turnCardFor(parts[2])).toMatchObject({ imageUrl: 'https://cdn/goblin.png' });
+      // Desde a 1.13.0, a carta do monstro (mesmo escondido, pro mestre).
+      expect(component.turnCardFor(parts[2]).monsterCard).toMatchObject({
+        title: 'Goblin',
+        art: 'https://cdn/goblin.png',
+      });
     });
 
     it('"É A SUA VEZ" só pra quem é dono do personagem; some sozinho', () => {
@@ -1257,6 +1349,36 @@ describe('SessionPanelComponent', () => {
       expect(component.activeCastId()).toBeNull();
       // ...mas o painel dele lê este mesmo estado (mesmo evento pra todos, ao mesmo tempo)
       expect(component.castViewFor('c1')?.key).toBe('c1');
+    });
+
+    it('ação de monstro (1.13.0): a carta do monstro age e a carta da ação aparece', () => {
+      component.onSpellCastStage(
+        stage('c9', {
+          id_character: null,
+          actor_name: 'Goblin',
+          spell: null,
+          monster_action: {
+            name: 'Cimitarra',
+            kind: 'attack',
+            stats: [{ label: 'ATAQUE', value: '+4' }],
+          },
+          monster: {
+            id_monster_session: 'm1',
+            name: 'Goblin',
+            image_url: 'g.png',
+            monster_type: 'humanoide',
+            size: 'Pequeno',
+          },
+        }),
+      );
+      const view = component.castViewFor('c9');
+      expect(view?.verb).toBe('ATACOU COM');
+      expect(view?.spellName).toBe('Cimitarra');
+      expect(view?.card).toMatchObject({ title: 'Cimitarra', badge: '+4', art: 'g.png' });
+      expect(view?.actor.monsterCard).toMatchObject({
+        title: 'Goblin',
+        ribbon: 'HUMANOIDE · PEQUENO',
+      });
     });
 
     it('sem notícia de quem lança, o aviso some sozinho depois do tempo máximo', () => {

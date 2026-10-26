@@ -442,6 +442,13 @@
   flex-shrink: 0;
 }
 
+/* O botão global (.retro-btn) tem margin-top de 10px: aqui a linha já centraliza, e o
+   FINALIZAR TURNO (sem a margem) ficava mais alto que AÇÕES e VER FICHA. */
+.npc-row-actions .retro-btn,
+.mobile-npc-row-actions .retro-btn {
+  margin-top: 0;
+}
+
 .npc-avatar {
   width: 52px;
   height: 52px;
@@ -1852,24 +1859,7 @@
   width: 100%;
   float: none;
   margin-top: 18px;
-}
-
-/* ===== MODAL: DETALHE DO MONSTRO ===== */
-
-/* Vez do monstro (1.11.0): faixa no topo da ficha com o FINALIZAR TURNO do mestre. */
-.monster-turn-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 10px;
-  padding: 6px 8px;
-  border: 2px solid var(--accent-color);
-  font-size: 8px;
-  color: var(--accent-color);
-}
-
-.lair-reminder {
+}.lair-reminder {
   position: fixed;
   top: 72px;
   left: 50%;
@@ -1896,199 +1886,5 @@
   .retro-btn {
     padding: 6px 10px;
     font-size: 7px;
-  }
-}
-
-.monster-action-error {
-  margin: 6px 0;
-  font-size: 7px;
-  color: var(--sheet-label-color);
-}
-
-.monster-detail-modal {
-  /* "fieldset.retro-panel" (styles.scss) só vale pra <fieldset> — como este painel é uma
-     <div>, precisa repetir fundo/borda aqui. */
-  border: 2px solid var(--border-color);
-  background-color: var(--panel-bg);
-
-  position: relative;
-  width: 500px;
-  max-width: 92vw;
-  max-height: 82vh;
-  overflow-y: auto;
-  padding: 24px 20px 20px;
-}
-
-.stat-block {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.stat-name {
-  margin: 0;
-  font-size: 12px;
-  color: var(--accent-color);
-}
-
-.stat-original-name {
-  margin: -4px 0 0;
-  font-size: 7px;
-  color: var(--label-title-color);
-  font-style: italic;
-}
-
-.stat-meta {
-  margin: 0;
-  font-size: 8px;
-  color: var(--label-title-color);
-  text-transform: capitalize;
-}
-
-.stat-image-block {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 0;
-}
-
-.stat-image {
-  width: 100%;
-  max-width: 260px;
-  aspect-ratio: 1;
-  object-fit: cover;
-  border: 2px solid var(--border-color);
-  align-self: center;
-}
-
-.stat-image-upload-btn {
-  display: inline-block;
-  cursor: var(--cp);
-  font-size: 8px;
-  text-align: center;
-}
-
-.stat-image-error {
-  margin: 0;
-  font-size: 7px;
-  color: #ff6b6b;
-}
-
-.stat-row {
-  display: flex;
-  gap: 8px;
-  font-size: 8px;
-  color: var(--text-color);
-}
-
-.stat-label {
-  color: var(--label-title-color);
-  min-width: 60px;
-}
-
-.stat-edit-btn {
-  align-self: flex-start;
-  font-size: 8px;
-  margin-top: 4px;
-}
-
-.monster-stats-edit {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 8px 0;
-}
-
-.monster-stats-edit-row {
-  display: flex;
-  gap: 10px;
-}
-
-.monster-stats-edit-abilities {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-
-.monster-stats-edit-field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 7px;
-  color: var(--label-title-color);
-  flex: 1;
-
-  input {
-    background-color: var(--bg-color);
-    border: 1px solid var(--border-color);
-    color: var(--text-color);
-    font-family: 'Press Start 2P', monospace;
-    font-size: 9px;
-    padding: 6px 8px;
-
-    &:focus {
-      outline: none;
-      border-color: var(--accent-color);
-    }
-  }
-}
-
-.monster-stats-edit-actions {
-  display: flex;
-  gap: 8px;
-
-  .retro-btn {
-    flex: 1;
-    font-size: 8px;
-  }
-}
-
-.stat-save-btn {
-  border-color: var(--accent-color);
-  color: var(--accent-color);
-}
-
-.stat-abilities {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 8px;
-  margin: 6px 0;
-}
-
-.stat-ability {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 4px;
-  border: 1px solid var(--border-color);
-  font-size: 9px;
-  color: var(--text-color);
-}
-
-.stat-ability-key {
-  font-size: 6px;
-  color: var(--label-title-color);
-}
-
-.stat-section {
-  margin-top: 6px;
-
-  h4 {
-    margin: 0 0 6px;
-    font-size: 8px;
-    color: var(--accent-color);
-  }
-}
-
-.stat-feature {
-  margin: 0 0 8px;
-  font-size: 7px;
-  line-height: 1.7;
-  color: var(--text-color);
-
-  strong {
-    color: var(--accent-color);
   }
 }

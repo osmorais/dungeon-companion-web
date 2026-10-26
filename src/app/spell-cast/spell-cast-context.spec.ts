@@ -1,4 +1,9 @@
-import { castStagePayload, castVerb, SpellCastContext } from './spell-cast-context';
+import {
+  castStagePayload,
+  castVerb,
+  monsterCastVerb,
+  SpellCastContext,
+} from './spell-cast-context';
 
 const base: SpellCastContext = {
   castId: 'cast-1234',
@@ -44,5 +49,36 @@ describe('castStagePayload', () => {
   it('verbo do aviso', () => {
     expect(castVerb(false)).toBe('LANÇOU');
     expect(castVerb(true)).toBe('ATACOU COM');
+  });
+});
+
+describe('ação de monstro na tela de lançamento (1.13.0)', () => {
+  const action = {
+    name: 'Cimitarra',
+    kind: 'attack' as const,
+    stats: [{ label: 'ATAQUE', value: '+4' }],
+  };
+
+  it('manda a carta da ação e o monstro, sem personagem nem magia', () => {
+    const payload = castStagePayload(
+      { ...base, idSpell: null, monsterAction: action, idMonsterSession: 'm1' },
+      null,
+      'Goblin',
+      'open',
+      [],
+    );
+    expect(payload).toMatchObject({
+      id_character: null,
+      monster_action: action,
+      id_monster_session: 'm1',
+    });
+    expect(payload).not.toHaveProperty('id_spell');
+    expect(payload).not.toHaveProperty('weapon');
+  });
+
+  it('verbo: ATACOU COM no ataque, USOU no resto', () => {
+    expect(monsterCastVerb(action)).toBe('ATACOU COM');
+    expect(monsterCastVerb({ ...action, kind: 'save' })).toBe('USOU');
+    expect(monsterCastVerb({ ...action, kind: 'damage' })).toBe('USOU');
   });
 });

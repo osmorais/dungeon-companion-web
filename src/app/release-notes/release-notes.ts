@@ -33,6 +33,41 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.13.0',
+    date: '2026-10-25',
+    title: 'Monstros com carta no combate',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'O ataque do monstro aparece na tela de lançamento, como o dos personagens: a carta do monstro, a carta da ação (com ataque, dano e CD) e os dados rolando para a mesa toda.',
+      },
+      {
+        kind: 'novidade',
+        text: 'No painel de combate, os monstros revelados viram um carrossel de cartas, que mostra sozinho o monstro da vez.',
+      },
+      {
+        kind: 'novidade',
+        text: 'A ficha do monstro agora abre na gaveta de baixo, no mesmo estilo da gaveta dos personagens: vida, ações, testes, defesas e a carta do monstro, com revelar, esconder e derrotar. O mestre também abre a gaveta tocando na carta do monstro no combate.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'O aviso de troca de vez mostra a carta do monstro quando é o turno dele.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A carta do monstro mostra a descrição dele em todo lugar: no combate, na tela de lançamento e na troca de vez.',
+      },
+      {
+        kind: 'correcao',
+        text: 'O botão FINALIZAR TURNO dos NPCs ficou alinhado com os outros botões.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Monstro ainda escondido continua rolando em segredo: só o mestre vê a tela de lançamento dele.',
+      },
+    ],
+  },
+  {
     version: '1.12.1',
     date: '2026-10-25',
     title: 'E-mail de recuperação de senha de volta',

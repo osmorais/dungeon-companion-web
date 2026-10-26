@@ -1,5 +1,5 @@
 @if (mechanical()) {
-  @if (traits().length) {
+  @if (shows('traits') && traits().length) {
     <div class="stat-section">
       <h4>DEFESAS E SENTIDOS</h4>
       @for (t of traits(); track t.label) {
@@ -10,7 +10,7 @@
     </div>
   }
 
-  @if (rechargeRolls()?.length) {
+  @if (shows('actions') && rechargeRolls()?.length) {
     <div class="ma-recharge">
       <p class="ma-row-label">RECARGA NO INÍCIO DO TURNO</p>
       @for (r of rechargeRolls(); track r.ability) {
@@ -22,7 +22,7 @@
     </div>
   }
 
-  @for (section of sections(); track section.group) {
+  @for (section of shows('actions') ? sections() : []; track section.group) {
     <div class="stat-section">
       <h4>{{ section.title }}</h4>
       @if (section.group === 'legendary_actions' && block().legendary_desc) {
@@ -95,7 +95,7 @@
     </div>
   }
 
-  @if (block().lair_actions) {
+  @if (shows('actions') && block().lair_actions) {
     <div class="stat-section">
       <h4>AÇÕES DE COVIL</h4>
       <div class="ma-head">
@@ -113,7 +113,7 @@
     </div>
   }
 
-  @if (checks(); as c) {
+  @if (shows('checks') && checks(); as c) {
     <div class="stat-section">
       <h4>TESTES</h4>
       <p class="ma-row-label">RESISTÊNCIAS</p>
@@ -157,14 +157,14 @@
     </div>
   }
 
-  @if (hasLimitedUses()) {
+  @if (shows('actions') && hasLimitedUses()) {
     <div class="ma-footer">
       <button type="button" class="ma-chip" (click)="op.emit({ op: 'rest' })">
         DESCANSO: RESTAURAR USOS
       </button>
     </div>
   }
-} @else {
+} @else if (shows('actions')) {
   @if (block().special_abilities?.length) {
     <div class="stat-section">
       <h4>HABILIDADES</h4>

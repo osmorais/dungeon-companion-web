@@ -1334,6 +1334,71 @@ describe('RollModalComponent — lançamento de magia', () => {
 
   const lastStage = () => publish.mock.calls[publish.mock.calls.length - 1][1];
 
+  describe('ação de monstro (1.13.0)', () => {
+    const action = { name: 'Cimitarra', kind: 'attack' as const, stats: [] };
+    function createMonster(isPrivate: boolean) {
+      const modal = TestBed.runInInjectionContext(() => new RollModalComponent());
+      modal.config = fireBolt;
+      modal.sessionId = 'gs';
+      modal.idCharacter = null;
+      modal.actorName = 'Goblin';
+      modal.canHideRoll = true;
+      modal.startHidden = isPrivate;
+      modal.cast = {
+        castId: 'cast-mon',
+        idSpell: null,
+        weapon: null,
+        spellName: 'Cimitarra',
+        actor: { name: 'Goblin', imageUrl: null, avatarPreset: null },
+        card: {
+          title: 'Cimitarra',
+          badge: '+4',
+          art: null,
+          fallbackIcon: '',
+          artBackground: null,
+          ribbon: '',
+          stats: [],
+          text: null,
+          tags: [],
+        },
+        saveDc: null,
+        saveAbility: null,
+        saveNote: null,
+        monsterAction: action,
+        idMonsterSession: 'm1',
+        private: isPrivate,
+      };
+      publish.mockClear();
+      modal.ngOnInit();
+      return modal;
+    }
+
+    it('monstro revelado: anuncia pra mesa sem personagem, com a carta da ação', async () => {
+      createMonster(false);
+      await flush();
+      expect(publish).toHaveBeenCalledTimes(1);
+      expect(lastStage()).toMatchObject({
+        cast_id: 'cast-mon',
+        id_character: null,
+        monster_action: action,
+        id_monster_session: 'm1',
+        phase: 'open',
+      });
+    });
+
+    it('monstro escondido: o mestre vê o palco, mas nada vai pra mesa e a rolagem é oculta', async () => {
+      const modal = createMonster(true);
+      expect(modal.castView()?.verb).toBe('ATACOU COM');
+      modal.roll();
+      vi.advanceTimersByTime(1000);
+      await flush();
+      expect(postRoll.mock.calls[0][1]).toMatchObject({ cast_id: 'cast-mon', is_hidden: true });
+      modal.ngOnDestroy();
+      await flush();
+      expect(publish).not.toHaveBeenCalled();
+    });
+  });
+
   it('ataque pendente → acertou → dano no mesmo lançamento → terminou ao fechar', async () => {
     const modal = create();
     modal.roll();

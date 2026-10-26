@@ -38,8 +38,11 @@
         </div>
       }
     </dl>
-    @if (size === 'full' && card.text) {
+    <!-- Carta pequena sem números (a do monstro, 1.13.0) mostra a descrição, rolando. -->
+    @if (card.text && (size === 'full' || !card.stats.length)) {
       <p class="gc-desc">{{ card.text }}</p>
+    }
+    @if (size === 'full' && card.text) {
       <button
         type="button"
         class="gc-expand"

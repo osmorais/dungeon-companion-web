@@ -103,6 +103,8 @@ export interface MonsterSession {
   image_url: string | null;
   /** Usos das ações (1.11.0) — nulo/ausente = nada gasto. */
   action_state?: MonsterActionState | null;
+  /** Descrição do bestiário (1.11.0; nula em ficha antiga) — vem no detalhe da sessão. */
+  lore?: string | null;
 }
 
 /**
@@ -285,13 +287,32 @@ export interface CastStageApplied {
   kind: 'damage' | 'heal' | 'temp_hp';
 }
 
+/** Carta da ação de monstro na tela de lançamento (1.13.0) — espelho da API. */
+export interface MonsterActionCardInfo {
+  name: string;
+  kind: 'attack' | 'save' | 'damage';
+  stats: { label: string; value: string }[];
+}
+
+/** Monstro que age na tela de lançamento (1.13.0): o que a mesa já vê dele. */
+export interface MonsterCastInfo {
+  id_monster_session: string;
+  name: string;
+  image_url: string | null;
+  monster_type: string | null;
+  size: string | null;
+}
+
 export interface SpellCastStagePayload {
   cast_id: string;
-  id_character: number;
+  /** `null` na ação de monstro (`id_monster_session`). */
+  id_character: number | null;
   actor_name: string;
-  /** Magia — ou `weapon` (ataque com arma), um dos dois. */
+  /** Uma das três: magia, `weapon` (ataque com arma) ou `monster_action` (ação de monstro). */
   id_spell?: number | null;
   weapon?: WeaponCardInfo | null;
+  monster_action?: MonsterActionCardInfo | null;
+  id_monster_session?: string | null;
   phase: 'open' | 'done' | 'cancel';
   rolls: CastStageRoll[];
   applied?: CastStageApplied[];

@@ -32,10 +32,7 @@ import { PlayerActionsModalComponent } from '../player-actions-modal/player-acti
 import { StartFightModalComponent } from '../start-fight-modal/start-fight-modal.component';
 import { DistributeXpModalComponent } from '../distribute-xp-modal/distribute-xp-modal.component';
 import { AbilityRollConfig, RollModalComponent } from '../roll-modal/roll-modal.component';
-import {
-  MonsterActionsComponent,
-  MonsterRollRequest,
-} from '../monster-actions/monster-actions.component';
+import { MonsterRollRequest } from '../monster-actions/monster-actions.component';
 import { AddMonsterModalComponent } from '../add-monster-modal/add-monster-modal.component';
 import { TomAssistantComponent } from '../tom-assistant/tom-assistant.component';
 import { PlayerInventoryModalComponent } from '../player-inventory-modal/player-inventory-modal.component';
@@ -70,12 +67,19 @@ import { CharacterCardData } from '../character-card/character-card.component';
 import { SpellGrimoireComponent } from '../spell-catalog-list/spell-grimoire.component';
 import { spellToCard } from '../game-card/spell-card';
 import { weaponInfoToCard } from '../game-card/weapon-card';
-import { castVerb } from '../spell-cast/spell-cast-context';
+import {
+  SpellCastContext,
+  castVerb,
+  monsterCastVerb,
+  newCastId,
+} from '../spell-cast/spell-cast-context';
 import { SPELL_CAST_DONE_MS, SpellCastNoticeComponent } from '../spell-cast/spell-cast-notice.component';
 import { MonsterRevealNoticeComponent } from '../monster-reveal/monster-reveal-notice.component';
-import { MonsterSpotlightCardComponent } from '../monster-reveal/monster-spotlight-card.component';
+import { MonsterCarouselComponent } from '../monster-reveal/monster-carousel.component';
+import { MonsterDrawerComponent } from '../monster-drawer/monster-drawer.component';
 import { MonsterDefeatNoticeComponent } from '../monster-reveal/monster-defeat-notice.component';
-import { MonsterRevealInfo } from '../game-card/monster-card';
+import { MonsterRevealInfo, monsterActionToCard, monsterToCard } from '../game-card/monster-card';
+import { GameCardData } from '../game-card/game-card.model';
 import { CastStageView, castRollView } from '../spell-cast/spell-cast-stage.model';
 import { SessionEventPayloadMap } from '../models/session-event.interface';
 import { ApplyRequest, ApplyTarget } from '../roll-modal/apply-target';
@@ -96,7 +100,8 @@ import { challengeRatingText, monsterSpeedText } from '../services/monster-forma
     CharacterDrawerComponent,
     SpellCastNoticeComponent,
     MonsterRevealNoticeComponent,
-    MonsterSpotlightCardComponent,
+    MonsterCarouselComponent,
+    MonsterDrawerComponent,
     MonsterDefeatNoticeComponent,
     SpellGrimoireComponent,
     AvatarDisplayComponent,
@@ -108,7 +113,6 @@ import { challengeRatingText, monsterSpeedText } from '../services/monster-forma
     StartFightModalComponent,
     DistributeXpModalComponent,
     RollModalComponent,
-    MonsterActionsComponent,
     AddMonsterModalComponent,
     TomAssistantComponent,
     PlayerInventoryModalComponent,
@@ -1199,11 +1203,36 @@ export class SessionPanelComponent implements OnDestroy {
     action$.pipe(finalize(() => this.revealingMonsterId.set(null))).subscribe();
   }
 
-  /** ========================= DETALHE DO MONSTRO (modal) ========================= */
+  /** ========================= FICHA DO MONSTRO (gaveta do mestre, 1.13.0) ========================= */
 
   activeMonsterDetail = signal<MonsterSession | null>(null);
+  /** O monstro da gaveta como está agora na mesa (PV, usos e imagem mudam com ela aberta). */
+  liveMonsterDetail = computed(() => {
+    const open = this.activeMonsterDetail();
+    if (!open) return null;
+    return (
+      this.sessionDetail()?.monsters.find((m) => m.id_monster_session === open.id_monster_session) ??
+      open
+    );
+  });
+
+  /** DANO/CURA no PV do monstro, pela gaveta. */
+  applyMonsterDrawerHp(monster: MonsterSession, { kind, amount }: { kind: 'damage' | 'heal'; amount: number }): void {
+    if (amount > 0) this.applyMonsterHpDelta(monster, kind === 'damage' ? -1 : 1, amount);
+  }
+
+  /** Mestre tocou na carta de um monstro (carrossel do combate): abre a gaveta dele. */
+  openMonsterDetailById(idMonsterSession: string): void {
+    const monster = this.sessionDetail()?.monsters.find((m) => m.id_monster_session === idMonsterSession);
+    if (monster) this.openMonsterDetail(monster);
+  }
   /** Rolagem de uma ação/teste do monstro (1.11.0): a ficha fecha enquanto rola e volta depois. */
-  activeMonsterRoll = signal<{ monster: MonsterSession; config: AbilityRollConfig } | null>(null);
+  activeMonsterRoll = signal<{
+    monster: MonsterSession;
+    config: AbilityRollConfig;
+    /** Ação com carta: a rolagem abre na tela de lançamento (1.13.0). */
+    cast: SpellCastContext | null;
+  } | null>(null);
   /** Erro ao gastar um uso (ex.: recarga ainda não voltou) — aparece na ficha do monstro. */
   monsterActionError = signal<string | null>(null);
   /** d6 de recarga do início do turno, por monstro (mostrado na ficha dele). */
@@ -1213,7 +1242,7 @@ export class SessionPanelComponent implements OnDestroy {
   openMonsterRoll(monster: MonsterSession, request: MonsterRollRequest): void {
     this.monsterActionError.set(null);
     if (!request.consume) {
-      this.startMonsterRoll(monster, request.config);
+      this.startMonsterRoll(monster, request);
       return;
     }
     this.gameSessionService
@@ -1221,16 +1250,47 @@ export class SessionPanelComponent implements OnDestroy {
       .subscribe({
         next: (state) => {
           this.setMonsterActionState(monster.id_monster_session, state);
-          this.startMonsterRoll(monster, request.config);
+          this.startMonsterRoll(monster, request);
         },
         error: (err) =>
           this.monsterActionError.set(apiErrorMessage(err, 'Não foi possível usar essa ação.')),
       });
   }
 
-  private startMonsterRoll(monster: MonsterSession, config: AbilityRollConfig): void {
-    this.activeMonsterDetail.set(null);
-    this.activeMonsterRoll.set({ monster, config });
+  /** A gaveta do monstro fica aberta por baixo da rolagem (camada acima): o multiataque guiado não
+   *  perde a contagem entre um ataque e outro. */
+  private startMonsterRoll(monster: MonsterSession, request: MonsterRollRequest): void {
+    const cast = request.card ? this.monsterCast(monster, request) : null;
+    if (cast && !cast.private) this.markOwnCast(cast.castId);
+    this.activeMonsterRoll.set({ monster, config: request.config, cast });
+  }
+
+  /**
+   * Ação do monstro na tela de lançamento (1.13.0): a carta do monstro age e a carta da ação vai
+   * pra mesa. Monstro escondido: o mestre vê o palco, mas nada é publicado (`private`).
+   */
+  private monsterCast(monster: MonsterSession, request: MonsterRollRequest): SpellCastContext {
+    const action = request.card!;
+    const name = this.monsterDisplayName(monster);
+    return {
+      castId: newCastId(),
+      idSpell: null,
+      weapon: null,
+      monsterAction: action,
+      idMonsterSession: monster.id_monster_session,
+      private: !monster.is_revealed,
+      spellName: action.name,
+      actor: {
+        name,
+        imageUrl: monster.image_url,
+        avatarPreset: null,
+        monsterCard: this.monsterCardFor(monster.id_monster_session),
+      },
+      card: monsterActionToCard(action, monster.image_url),
+      saveDc: request.castSave?.dc ?? null,
+      saveAbility: request.castSave?.ability ?? null,
+      saveNote: request.castSave ? saveNote(request.castSave.dc, request.castSave.ability) : null,
+    };
   }
 
   /** Uso sem rolagem: habilidade só de texto, restaurar um uso, descanso, covil. */
@@ -1763,19 +1823,38 @@ export class SessionPanelComponent implements OnDestroy {
     if (!stage) return null;
     // Magia (carta buscada pela API) ou ataque com arma (carta vinda de quem atacou, 1.6.1).
     const weapon = stage.weapon ?? null;
-    const card = weapon
-      ? weaponInfoToCard(weapon)
-      : stage.spell
-        ? spellToCard({ ...stage.spell, description: null })
-        : null;
+    const monsterAction = stage.monster_action ?? null;
+    const monster = stage.monster ?? null;
+    const card = monsterAction
+      ? monsterActionToCard(monsterAction, monster?.image_url ?? null)
+      : weapon
+        ? weaponInfoToCard(weapon)
+        : stage.spell
+          ? spellToCard({ ...stage.spell, description: null })
+          : null;
     if (!card) return null;
     const byId = new Map((this.sessionDetail()?.recent_rolls ?? []).map((r) => [r.id_roll, r]));
     return {
       key: id,
       actorName: stage.actor_name,
-      verb: castVerb(!!weapon),
-      spellName: weapon?.name ?? stage.spell?.name ?? '',
-      actor: this.characterCardFor(stage.id_character, stage.actor_name),
+      verb: monsterAction ? monsterCastVerb(monsterAction) : castVerb(!!weapon),
+      spellName: monsterAction?.name ?? weapon?.name ?? stage.spell?.name ?? '',
+      // Ação de monstro (1.13.0): quem age é a carta do monstro, com o que a mesa vê dele.
+      actor: monster
+        ? {
+            name: monster.name,
+            imageUrl: monster.image_url,
+            avatarPreset: null,
+            // A descrição não vem na etapa: sai da lista (revelados do jogador / monstros do mestre).
+            monsterCard: monsterToCard({
+              name: monster.name,
+              imageUrl: monster.image_url,
+              monsterType: monster.monster_type,
+              size: monster.size,
+              lore: this.monsterLore(monster.id_monster_session),
+            }),
+          }
+        : this.characterCardFor(stage.id_character ?? -1, stage.actor_name),
       card,
       rolls: stage.rolls.flatMap((ref) => {
         const entry = byId.get(ref.id_roll);
@@ -2289,7 +2368,9 @@ export class SessionPanelComponent implements OnDestroy {
       const image = this.isOwner()
         ? detail?.monsters.find((m) => m.id_monster_session === p.id_monster_session)?.image_url
         : detail?.revealed_monsters.find((m) => m.id_monster_session === p.id_monster_session)?.image_url;
-      return { name, imageUrl: image || this.DEFAULT_MONSTER_IMAGE, avatarPreset: null };
+      // A carta do monstro (1.13.0); escondido, pro jogador continua o "misterioso" sem carta.
+      const monsterCard = p.id_monster_session ? this.monsterCardFor(p.id_monster_session) : null;
+      return { name, imageUrl: image || this.DEFAULT_MONSTER_IMAGE, avatarPreset: null, monsterCard };
     }
     const player =
       p.participant_type === 'player'
@@ -2303,6 +2384,43 @@ export class SessionPanelComponent implements OnDestroy {
     return { ...this.characterCardFor(idCharacter, name), name };
   }
 
+
+  /**
+   * Carta do monstro pros avisos (troca de vez, tela de lançamento): o mestre vê a de qualquer
+   * monstro da mesa; o jogador, só a dos revelados (`null` = escondido).
+   */
+  monsterCardFor(idMonsterSession: string): GameCardData | null {
+    const detail = this.sessionDetail();
+    if (this.isOwner()) {
+      const m = detail?.monsters.find((x) => x.id_monster_session === idMonsterSession);
+      if (!m) return null;
+      return monsterToCard({
+        name: this.monsterDisplayName(m),
+        imageUrl: m.image_url,
+        monsterType: m.data_snapshot.type,
+        size: m.data_snapshot.size,
+        lore: m.lore,
+      });
+    }
+    const r = detail?.revealed_monsters.find((x) => x.id_monster_session === idMonsterSession);
+    if (!r) return null;
+    return monsterToCard({
+      name: r.name,
+      imageUrl: r.image_url,
+      monsterType: r.monster_type,
+      size: r.size,
+      lore: r.lore,
+    });
+  }
+
+  private monsterLore(idMonsterSession: string): string | null {
+    const detail = this.sessionDetail();
+    return (
+      detail?.revealed_monsters.find((m) => m.id_monster_session === idMonsterSession)?.lore ??
+      detail?.monsters.find((m) => m.id_monster_session === idMonsterSession)?.lore ??
+      null
+    );
+  }
 
   /** Jogador deste navegador dono do participante (só personagem de jogador). */
   private myPlayerForParticipant(participantId: string): PlayerSession | null {
