@@ -1,14 +1,14 @@
 import { Component, HostListener, OnInit, inject, signal } from '@angular/core';
 import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
+import { MonsterStatBlockComponent } from '../monster-stat-block/monster-stat-block.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MonsterCatalogService } from '../services/monster-catalog.service';
-import { MonsterCatalogEntry, MonsterStatBlock } from '../models/monster-catalog.interface';
-import { challengeRatingText, monsterSpeedText } from '../services/monster-format';
+import { MonsterCatalogEntry } from '../models/monster-catalog.interface';
 
 @Component({
   selector: 'app-monster-catalog-detail',
   standalone: true,
-  imports: [SkeletonRowsComponent],
+  imports: [SkeletonRowsComponent, MonsterStatBlockComponent],
   templateUrl: './monster-catalog-detail.component.html',
   styleUrls: ['./monster-catalog-detail.component.scss'],
 })
@@ -39,7 +39,7 @@ export class MonsterCatalogDetailComponent implements OnInit {
       return;
     }
     this.monsterCatalogService.getCatalogEntry(id).subscribe({
-      next: monster => {
+      next: (monster) => {
         this.monster.set(monster);
         this.loading.set(false);
       },
@@ -53,16 +53,6 @@ export class MonsterCatalogDetailComponent implements OnInit {
   monsterName(monster: MonsterCatalogEntry): string {
     return monster.custom_name ?? monster.data_snapshot.name;
   }
-
-  acValue(detail: MonsterStatBlock): number | null {
-    return detail.armor_class?.[0]?.value ?? null;
-  }
-
-  speedText(detail: MonsterStatBlock): string {
-    return monsterSpeedText(detail.speed);
-  }
-
-  crText = challengeRatingText;
 
   /** ========================= IMAGEM CUSTOMIZADA ========================= */
 
@@ -89,7 +79,7 @@ export class MonsterCatalogDetailComponent implements OnInit {
     this.imageUploadError.set(null);
     this.uploadingImage.set(true);
     this.monsterCatalogService.uploadImage(monster.id_monster_catalog, file).subscribe({
-      next: updated => {
+      next: (updated) => {
         this.monster.set(updated);
         this.uploadingImage.set(false);
       },

@@ -1,7 +1,6 @@
 @if (isMobile()) {
   <!-- ===== MOBILE LAYOUT ===== (formulário no padrão das telas mobile: .m-* no styles.scss) -->
   <div class="mobile-create-container">
-
     <div class="m-header">
       <button class="m-back" (click)="goBack()">&#8592;</button>
       <span class="m-title">CATALOGAR MONSTRO</span>
@@ -22,7 +21,7 @@
       @if (loadingList()) {
         <app-skeleton-rows [rows]="6" [height]="36" />
       } @else if (listError()) {
-        <p class="m-empty">ERRO AO CARREGAR O BESTIÁRIO.</p>
+        <p class="m-empty" role="alert">ERRO AO CARREGAR O BESTIÁRIO.</p>
       } @else if (filteredMonsters().length === 0) {
         <p class="m-empty">NENHUM MONSTRO ENCONTRADO.</p>
       } @else {
@@ -35,10 +34,14 @@
             >
               <span class="m-card-body">
                 <span class="m-card-title">{{ m.name }}</span>
-                <span class="m-card-desc">ND {{ crText(m.challenge_rating) }} &middot; {{ m.type }}</span>
+                <span class="m-card-desc"
+                  >ND {{ crText(m.challenge_rating) }} &middot; {{ m.type }}</span
+                >
               </span>
               @if (selectedSlug() === m.index) {
-                <span class="m-card-icon"><img class="ui-icon" src="assets/icons/check.png" alt="" /></span>
+                <span class="m-card-icon"
+                  ><img class="ui-icon" src="assets/icons/check.png" alt=""
+                /></span>
               }
             </button>
           }
@@ -50,50 +53,17 @@
       <section class="m-section">
         <h2 class="m-section-title">PRÉ-VISUALIZAÇÃO</h2>
         <div class="m-box">
-        @if (loadingDetail()) {
-          <app-skeleton-rows [rows]="5" [height]="12" />
-        } @else if (detailError()) {
-          <p class="m-empty">ERRO AO CARREGAR O MONSTRO.</p>
-        } @else if (selectedDetail(); as detail) {
-          <div class="stat-block">
-            <h3 class="stat-name">{{ detail.name }}</h3>
-            <p class="stat-meta">{{ detail.size }} {{ detail.type }}, {{ detail.alignment }}</p>
-
-            <div class="stat-row"><span class="stat-label">CA</span><span>{{ acValue(detail) }}</span></div>
-            <div class="stat-row"><span class="stat-label">PV</span><span>{{ detail.hit_points }} ({{ detail.hit_dice }})</span></div>
-            <div class="stat-row"><span class="stat-label">DESLOC.</span><span>{{ speedText(detail) }}</span></div>
-
-            <div class="stat-abilities">
-              <div class="stat-ability"><span class="stat-ability-key">FOR</span>{{ detail.strength }}</div>
-              <div class="stat-ability"><span class="stat-ability-key">DES</span>{{ detail.dexterity }}</div>
-              <div class="stat-ability"><span class="stat-ability-key">CON</span>{{ detail.constitution }}</div>
-              <div class="stat-ability"><span class="stat-ability-key">INT</span>{{ detail.intelligence }}</div>
-              <div class="stat-ability"><span class="stat-ability-key">SAB</span>{{ detail.wisdom }}</div>
-              <div class="stat-ability"><span class="stat-ability-key">CAR</span>{{ detail.charisma }}</div>
-            </div>
-
-            <div class="stat-row"><span class="stat-label">ND</span><span>{{ crText(detail.challenge_rating) }} ({{ detail.xp }} XP)</span></div>
-
-            @if (detail.special_abilities?.length) {
-              <div class="stat-section">
-                <h4>HABILIDADES</h4>
-                @for (a of detail.special_abilities; track a.name) {
-                  <p class="stat-feature"><strong>{{ a.name }}.</strong> {{ a.desc }}</p>
-                }
-              </div>
-            }
-            @if (detail.actions?.length) {
-              <div class="stat-section">
-                <h4>AÇÕES</h4>
-                @for (a of detail.actions; track a.name) {
-                  <p class="stat-feature"><strong>{{ a.name }}.</strong> {{ a.desc }}</p>
-                }
-              </div>
-            }
+          @if (loadingDetail()) {
+            <app-skeleton-rows [rows]="5" [height]="12" />
+          } @else if (detailError()) {
+            <p class="m-empty" role="alert">ERRO AO CARREGAR O MONSTRO.</p>
+          } @else if (selectedDetail(); as detail) {
+            <app-monster-stat-block [detail]="detail" />
 
             <div class="catalog-form">
-              <label class="m-label">NOME CUSTOMIZADO (OPCIONAL)</label>
+              <label class="m-label" for="custom-name-mobile">NOME CUSTOMIZADO (OPCIONAL)</label>
               <input
+                id="custom-name-mobile"
                 type="text"
                 class="m-input"
                 [placeholder]="detail.name"
@@ -101,48 +71,60 @@
                 (ngModelChange)="customName.set($event)"
               />
               @if (catalogError()) {
-                <p class="catalog-error">{{ catalogError() }}</p>
+                <p class="catalog-error" role="alert">{{ catalogError() }}</p>
               }
-              <button class="retro-btn m-submit" [disabled]="cataloging()" (click)="confirmCatalog()">
-                @if (!cataloging()) { <img class="ui-icon" src="assets/icons/book-open.png" alt="" /> }{{ cataloging() ? 'CATALOGANDO...' : 'CATALOGAR ESTE MONSTRO' }}
+              <button
+                class="retro-btn m-submit"
+                [disabled]="cataloging()"
+                (click)="confirmCatalog()"
+              >
+                <img class="ui-icon" src="assets/icons/book-open.png" alt="" />
+                {{ cataloging() ? 'CATALOGANDO...' : 'CATALOGAR ESTE MONSTRO' }}
               </button>
             </div>
-          </div>
-        }
+          }
         </div>
       </section>
     }
-
   </div>
 } @else {
   <!-- ===== DESKTOP LAYOUT ===== -->
   <div class="create-container">
-
-    <fieldset class="retro-panel title-panel">
-      <legend>CATALOGAR NOVO MONSTRO</legend>
-    </fieldset>
+    <header class="page-topbar">
+      <button class="retro-btn page-topbar-back" (click)="goBack()">← VOLTAR</button>
+      <h1 class="page-topbar-name">CATALOGAR NOVO MONSTRO</h1>
+    </header>
 
     <div class="create-layout">
-
       <fieldset class="retro-panel search-panel">
         <legend>BUSCAR NO BESTIÁRIO</legend>
         <input
           type="text"
           class="search-input"
           placeholder="Buscar monstro..."
+          aria-label="Buscar monstro"
           [ngModel]="searchText()"
           (ngModelChange)="searchText.set($event)"
         />
         @if (loadingList()) {
           <app-skeleton-rows [rows]="10" [height]="16" />
         } @else if (listError()) {
-          <p class="empty-msg">ERRO AO CARREGAR O BESTIÁRIO.</p>
+          <p class="empty-msg" role="alert">ERRO AO CARREGAR O BESTIÁRIO.</p>
         } @else {
           <ul class="bestiary-list">
             @for (m of filteredMonsters(); track m.index) {
-              <li class="bestiary-row" [class.bestiary-row--active]="selectedSlug() === m.index" (click)="selectMonster(m)">
-                {{ m.name }}
-                <span class="bestiary-row-meta">ND {{ crText(m.challenge_rating) }} &middot; {{ m.type }}</span>
+              <li>
+                <button
+                  type="button"
+                  class="bestiary-row"
+                  [class.bestiary-row--active]="selectedSlug() === m.index"
+                  (click)="selectMonster(m)"
+                >
+                  {{ m.name }}
+                  <span class="bestiary-row-meta"
+                    >ND {{ crText(m.challenge_rating) }} &middot; {{ m.type }}</span
+                  >
+                </button>
               </li>
             }
             @if (filteredMonsters().length === 0) {
@@ -159,66 +141,35 @@
         } @else if (loadingDetail()) {
           <app-skeleton-rows [rows]="7" [height]="12" />
         } @else if (detailError()) {
-          <p class="empty-msg">ERRO AO CARREGAR O MONSTRO.</p>
+          <p class="empty-msg" role="alert">ERRO AO CARREGAR O MONSTRO.</p>
         } @else if (selectedDetail(); as detail) {
-          <div class="stat-block">
-            <h3 class="stat-name">{{ detail.name }}</h3>
-            <p class="stat-meta">{{ detail.size }} {{ detail.type }}, {{ detail.alignment }}</p>
+          <app-monster-stat-block [detail]="detail" />
 
-            <div class="stat-row"><span class="stat-label">CA</span><span>{{ acValue(detail) }}</span></div>
-            <div class="stat-row"><span class="stat-label">PV</span><span>{{ detail.hit_points }} ({{ detail.hit_dice }})</span></div>
-            <div class="stat-row"><span class="stat-label">DESLOC.</span><span>{{ speedText(detail) }}</span></div>
-
-            <div class="stat-abilities">
-              <div class="stat-ability"><span class="stat-ability-key">FOR</span>{{ detail.strength }}</div>
-              <div class="stat-ability"><span class="stat-ability-key">DES</span>{{ detail.dexterity }}</div>
-              <div class="stat-ability"><span class="stat-ability-key">CON</span>{{ detail.constitution }}</div>
-              <div class="stat-ability"><span class="stat-ability-key">INT</span>{{ detail.intelligence }}</div>
-              <div class="stat-ability"><span class="stat-ability-key">SAB</span>{{ detail.wisdom }}</div>
-              <div class="stat-ability"><span class="stat-ability-key">CAR</span>{{ detail.charisma }}</div>
-            </div>
-
-            <div class="stat-row"><span class="stat-label">ND</span><span>{{ crText(detail.challenge_rating) }} ({{ detail.xp }} XP)</span></div>
-
-            @if (detail.special_abilities?.length) {
-              <div class="stat-section">
-                <h4>HABILIDADES</h4>
-                @for (a of detail.special_abilities; track a.name) {
-                  <p class="stat-feature"><strong>{{ a.name }}.</strong> {{ a.desc }}</p>
-                }
-              </div>
+          <div class="catalog-form">
+            <label class="catalog-label" for="custom-name-desktop"
+              >NOME CUSTOMIZADO (OPCIONAL)</label
+            >
+            <input
+              id="custom-name-desktop"
+              type="text"
+              [placeholder]="detail.name"
+              [ngModel]="customName()"
+              (ngModelChange)="customName.set($event)"
+            />
+            @if (catalogError()) {
+              <p class="catalog-error" role="alert">{{ catalogError() }}</p>
             }
-            @if (detail.actions?.length) {
-              <div class="stat-section">
-                <h4>AÇÕES</h4>
-                @for (a of detail.actions; track a.name) {
-                  <p class="stat-feature"><strong>{{ a.name }}.</strong> {{ a.desc }}</p>
-                }
-              </div>
-            }
-
-            <div class="catalog-form">
-              <label class="catalog-label">NOME CUSTOMIZADO (OPCIONAL)</label>
-              <input
-                type="text"
-                [placeholder]="detail.name"
-                [ngModel]="customName()"
-                (ngModelChange)="customName.set($event)"
-              />
-              @if (catalogError()) {
-                <p class="catalog-error">{{ catalogError() }}</p>
-              }
-              <button class="retro-btn catalog-confirm-btn" [disabled]="cataloging()" (click)="confirmCatalog()">
-                @if (!cataloging()) { <img class="ui-icon" src="assets/icons/book-open.png" alt="" /> }{{ cataloging() ? 'CATALOGANDO...' : 'CATALOGAR ESTE MONSTRO' }}
-              </button>
-            </div>
+            <button
+              class="retro-btn catalog-confirm-btn"
+              [disabled]="cataloging()"
+              (click)="confirmCatalog()"
+            >
+              <img class="ui-icon" src="assets/icons/book-open.png" alt="" />
+              {{ cataloging() ? 'CATALOGANDO...' : 'CATALOGAR ESTE MONSTRO' }}
+            </button>
           </div>
         }
       </fieldset>
-
     </div>
-
-    <button class="retro-btn back-btn" (click)="goBack()">← VOLTAR</button>
-
   </div>
 }

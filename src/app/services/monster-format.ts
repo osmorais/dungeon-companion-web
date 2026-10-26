@@ -21,3 +21,10 @@ export function challengeRatingText(cr: number | string | undefined | null): str
 export function normalizeSearch(text: string): string {
   return text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 }
+
+/** ND 5+ é ameaça de verdade pra um grupo iniciante — ganha destaque dourado no card/ficha. */
+export const THREAT_CHALLENGE_RATING = 5;
+
+export function isHighThreat(cr: number): boolean {
+  return cr >= THREAT_CHALLENGE_RATING;
+}

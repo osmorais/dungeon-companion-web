@@ -1,0 +1,60 @@
+<div class="stat-block">
+  <h2 class="stat-name" [class.stat-name--threat]="isThreat">{{ displayName }}</h2>
+  @if (originalName) {
+    <p class="stat-original-name">({{ originalName }})</p>
+  }
+  <p class="stat-meta">{{ detail.size }} {{ detail.type }}, {{ detail.alignment }}</p>
+
+  <div class="stat-row">
+    <span class="stat-label"><img class="ui-icon" src="assets/icons/shield.png" alt="" /> CA</span
+    ><span>{{ acValue() }}</span>
+  </div>
+  <div class="stat-row">
+    <span class="stat-label"><img class="ui-icon" src="assets/icons/heart.png" alt="" /> PV</span
+    ><span>{{ hp }} ({{ detail.hit_dice }})</span>
+  </div>
+  <div class="stat-row">
+    <span class="stat-label"
+      ><img class="ui-icon" src="assets/icons/compass.png" alt="" /> DESLOC.</span
+    ><span>{{ speed }}</span>
+  </div>
+
+  <div class="stat-abilities">
+    <div class="stat-ability"><span class="stat-ability-key">FOR</span>{{ detail.strength }}</div>
+    <div class="stat-ability"><span class="stat-ability-key">DES</span>{{ detail.dexterity }}</div>
+    <div class="stat-ability">
+      <span class="stat-ability-key">CON</span>{{ detail.constitution }}
+    </div>
+    <div class="stat-ability">
+      <span class="stat-ability-key">INT</span>{{ detail.intelligence }}
+    </div>
+    <div class="stat-ability"><span class="stat-ability-key">SAB</span>{{ detail.wisdom }}</div>
+    <div class="stat-ability"><span class="stat-ability-key">CAR</span>{{ detail.charisma }}</div>
+  </div>
+
+  <div class="stat-row">
+    <span class="stat-label"><img class="ui-icon" src="assets/icons/medal.png" alt="" /> ND</span
+    ><span>{{ crText(detail.challenge_rating) }} ({{ detail.xp }} XP)</span>
+  </div>
+
+  @if (detail.special_abilities?.length) {
+    <div class="stat-section">
+      <h3>HABILIDADES</h3>
+      @for (a of detail.special_abilities; track a.name) {
+        <p class="stat-feature">
+          <strong>{{ a.name }}.</strong> {{ a.desc }}
+        </p>
+      }
+    </div>
+  }
+  @if (detail.actions?.length) {
+    <div class="stat-section">
+      <h3>AÇÕES</h3>
+      @for (a of detail.actions; track a.name) {
+        <p class="stat-feature">
+          <strong>{{ a.name }}.</strong> {{ a.desc }}
+        </p>
+      }
+    </div>
+  }
+</div>

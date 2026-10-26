@@ -1,11 +1,12 @@
 .create-container {
   width: 1100px;
   max-width: 96vw;
-}
 
-.title-panel {
-  text-align: center;
-  margin-bottom: 20px;
+  // As legends dos fieldsets abaixo "furam" a borda de cima (padrão do navegador) — sem folga
+  // extra aqui, elas esbarram no "← VOLTAR" que fica por cima, no .page-topbar.
+  .page-topbar {
+    margin-bottom: 30px;
+  }
 }
 
 .create-layout {
@@ -41,14 +42,22 @@
 }
 
 .bestiary-row {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
   padding: 8px 10px;
+  border: none;
+  border-bottom: 1px solid var(--border-color);
+  background: none;
+  font-family: inherit;
   font-size: 8px;
   color: var(--text-color);
-  border-bottom: 1px solid var(--border-color);
+  text-align: left;
   cursor: var(--cp);
   transition: background-color 0.12s;
 
-  &:last-child {
+  li:last-child & {
     border-bottom: none;
   }
 
@@ -68,81 +77,6 @@
   text-align: center;
   padding: 10px 0;
   margin: 0;
-}
-
-.stat-block {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.stat-name {
-  margin: 0;
-  font-size: 12px;
-  color: var(--accent-color);
-}
-
-.stat-meta {
-  margin: 0;
-  font-size: 8px;
-  color: var(--label-title-color);
-  text-transform: capitalize;
-}
-
-.stat-row {
-  display: flex;
-  gap: 8px;
-  font-size: 8px;
-  color: var(--text-color);
-}
-
-.stat-label {
-  color: var(--label-title-color);
-  min-width: 60px;
-}
-
-.stat-abilities {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 8px;
-  margin: 6px 0;
-}
-
-.stat-ability {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 4px;
-  border: 1px solid var(--border-color);
-  font-size: 9px;
-  color: var(--text-color);
-}
-
-.stat-ability-key {
-  font-size: 6px;
-  color: var(--label-title-color);
-}
-
-.stat-section {
-  margin-top: 6px;
-
-  h4 {
-    margin: 0 0 6px;
-    font-size: 8px;
-    color: var(--accent-color);
-  }
-}
-
-.stat-feature {
-  margin: 0 0 8px;
-  font-size: 7px;
-  line-height: 1.7;
-  color: var(--text-color);
-
-  strong {
-    color: var(--accent-color);
-  }
 }
 
 .catalog-form {
@@ -170,16 +104,14 @@
   font-size: 8px;
   padding: 10px 14px;
 
+  .ui-icon {
+    margin-right: 6px;
+  }
+
   &:disabled {
     opacity: 0.4;
     cursor: var(--cx);
   }
-}
-
-.back-btn {
-  float: none;
-  display: block;
-  margin-top: 20px;
 }
 
 /* ===== MOBILE LAYOUT ===== */
@@ -191,6 +123,10 @@
   padding: 0 12px 24px;
   box-sizing: border-box;
   overflow-x: hidden;
+}
+
+.m-submit .ui-icon {
+  margin-right: 6px;
 }
 
 .bestiary-row-meta {

@@ -1,19 +1,16 @@
 import { Component, inject, OnInit, signal, computed, HostListener } from '@angular/core';
 import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
+import { MonsterStatBlockComponent } from '../monster-stat-block/monster-stat-block.component';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MonsterCatalogService } from '../services/monster-catalog.service';
 import { BestiaryMonsterSummary, MonsterStatBlock } from '../models/monster-catalog.interface';
-import {
-  challengeRatingText,
-  monsterSpeedText,
-  normalizeSearch,
-} from '../services/monster-format';
+import { challengeRatingText, normalizeSearch } from '../services/monster-format';
 
 @Component({
   selector: 'app-monster-catalog-create',
   standalone: true,
-  imports: [FormsModule, SkeletonRowsComponent],
+  imports: [FormsModule, SkeletonRowsComponent, MonsterStatBlockComponent],
   templateUrl: './monster-catalog-create.component.html',
   styleUrls: ['./monster-catalog-create.component.scss'],
 })
@@ -37,7 +34,7 @@ export class MonsterCatalogCreateComponent implements OnInit {
     const term = normalizeSearch(this.searchText());
     const all = this.allMonsters();
     if (!term) return all;
-    return all.filter(m => normalizeSearch(m.name).includes(term));
+    return all.filter((m) => normalizeSearch(m.name).includes(term));
   });
 
   selectedSlug = signal<string | null>(null);
@@ -51,7 +48,7 @@ export class MonsterCatalogCreateComponent implements OnInit {
 
   ngOnInit() {
     this.monsterCatalogService.listBestiary().subscribe({
-      next: monsters => {
+      next: (monsters) => {
         this.allMonsters.set(monsters);
         this.loadingList.set(false);
       },
@@ -70,7 +67,7 @@ export class MonsterCatalogCreateComponent implements OnInit {
     this.catalogError.set(null);
     this.loadingDetail.set(true);
     this.monsterCatalogService.getBestiaryMonster(monster.index).subscribe({
-      next: detail => {
+      next: (detail) => {
         this.selectedDetail.set(detail);
         this.loadingDetail.set(false);
       },
@@ -79,14 +76,6 @@ export class MonsterCatalogCreateComponent implements OnInit {
         this.loadingDetail.set(false);
       },
     });
-  }
-
-  acValue(detail: MonsterStatBlock): number | null {
-    return detail.armor_class?.[0]?.value ?? null;
-  }
-
-  speedText(detail: MonsterStatBlock): string {
-    return monsterSpeedText(detail.speed);
   }
 
   crText = challengeRatingText;

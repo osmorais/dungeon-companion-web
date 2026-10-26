@@ -33,6 +33,25 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.13.3',
+    date: '2026-10-26',
+    title: 'Bestiário com cara de carta',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'Os monstros catalogados no bestiário agora aparecem como cartas, no mesmo estilo da carta do monstro revelado em combate: nome, imagem, nível de desafio, CA e PV bem visíveis.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'As telas de detalhe do monstro e de catalogar um monstro novo ganharam o mesmo topo das outras listagens, com o botão de voltar sempre no mesmo lugar.',
+      },
+      {
+        kind: 'correcao',
+        text: 'Os cards do bestiário agora abrem e fecham direitinho pelo teclado, e o aviso de remover um monstro fecha ao apertar Esc.',
+      },
+    ],
+  },
+  {
     version: '1.13.2',
     date: '2026-10-26',
     title: 'Ações do monstro em cartas',

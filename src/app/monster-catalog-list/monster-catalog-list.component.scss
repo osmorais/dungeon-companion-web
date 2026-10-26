@@ -1,3 +1,9 @@
+// Só o botão "+ catalogar" na barra (sem busca/filtro ainda): empurra pra direita sem precisar
+// de um <span></span> vazio como marcador de posição.
+.page-toolbar {
+  justify-content: flex-end;
+}
+
 .new-btn {
   float: none;
   font-size: 8px;
@@ -71,6 +77,11 @@
   }
 }
 
+// Foco vai pro quadro inteiro (tabindex="-1" + .focus() no TS); a borda de 2px já marca o limite.
+.delete-modal:focus {
+  outline: none;
+}
+
 /* ===== MOBILE LAYOUT ===== */
 
 .mobile-catalog-container {
@@ -91,25 +102,78 @@
   margin-bottom: 16px;
 }
 
-/* ===== DESKTOP: card de monstro (grade .d-grid / .d-card do styles.scss) ===== */
-
-.monster-card-image {
-  width: 100%;
-  aspect-ratio: 1;
-  border: 1px solid var(--border-color);
-  background-color: var(--bg-color);
-  object-fit: cover;
-  image-rendering: pixelated;
+/* ===== Grade do bestiário: parecida com .card-grid (styles.scss), mas com auto-fit em vez de
+   auto-fill — com poucos monstros (menos que cabe numa linha), .card-grid deixava uma coluna
+   fantasma vazia e a fileira ficava desalinhada à esquerda. O teto no minmax (em vez de 1fr) trava
+   o tamanho do card mesmo com pouco monstro na página, e o justify-content: center centraliza a
+   fileira curta em vez de empurrá-la pra esquerda com um vão do lado. */
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 190px));
+  justify-content: center;
+  gap: 18px 14px;
 }
 
-.monster-card-stats {
-  display: flex;
-  gap: 14px;
-  font-size: 8px;
-  color: var(--label-title-color);
+@media (min-width: 768px) {
+  .catalog-grid {
+    grid-template-columns: repeat(auto-fit, minmax(190px, 230px));
+    gap: 24px 20px;
+  }
+}
 
-  strong {
-    font-weight: normal;
-    color: var(--text-color);
+/* ===== Card do bestiário: a mesma carta de game-card da revelação de monstro em combate
+   (medalhão, faixa de nome, arte, faixa de tipo/tamanho, pergaminho) — ver toCard() no
+   componente. O brilho dourado de "pronta" vira o aviso de ND alto (ameaça de verdade). */
+.catalog-card {
+  position: relative;
+  transition: transform 0.12s;
+
+  &:hover,
+  &:focus-within {
+    transform: translateY(-4px);
+  }
+}
+
+/* Link esticado (cobre a carta inteira, atrás do botão de remover): abre com Ctrl/Cmd/clique do
+   meio e funciona por teclado de graça — em vez de (click) no card. */
+.catalog-card-link {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+
+  &:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+  }
+}
+
+/* Remover: só aparece ao passar o mouse/focar o card (a carta ilustrada fica limpa por padrão) —
+   redondo, fora do canto da moldura, pra não brigar com a arte ornamentada da carta. */
+.catalog-card-delete {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 2px solid #ff6b6b;
+  border-radius: 50%;
+  background: var(--bg-color);
+  color: #ff6b6b;
+  font-family: inherit;
+  font-size: 9px;
+  line-height: 1;
+  cursor: var(--cp);
+  opacity: 0;
+  transition: opacity 0.12s;
+
+  .catalog-card:hover &,
+  .catalog-card:focus-within &,
+  &:focus-visible {
+    opacity: 1;
   }
 }

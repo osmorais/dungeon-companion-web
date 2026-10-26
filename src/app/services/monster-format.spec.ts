@@ -1,4 +1,9 @@
-import { challengeRatingText, monsterSpeedText, normalizeSearch } from './monster-format';
+import {
+  challengeRatingText,
+  isHighThreat,
+  monsterSpeedText,
+  normalizeSearch,
+} from './monster-format';
 
 describe('monster-format', () => {
   it('deslocamento: "chave: valor", e pairar vira só a palavra', () => {
@@ -21,5 +26,12 @@ describe('monster-format', () => {
 
   it('busca ignora acento e maiúsculas', () => {
     expect(normalizeSearch('  Dragão Vermelho ')).toBe('dragao vermelho');
+  });
+
+  it('ND 5 ou mais é ameaça; abaixo disso não', () => {
+    expect(isHighThreat(0.25)).toBe(false);
+    expect(isHighThreat(4)).toBe(false);
+    expect(isHighThreat(5)).toBe(true);
+    expect(isHighThreat(17)).toBe(true);
   });
 });

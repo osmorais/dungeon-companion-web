@@ -1,16 +1,17 @@
 @if (isMobile()) {
   <!-- ===== MOBILE LAYOUT ===== -->
   <div class="mobile-catalog-container">
-
     <div class="m-header">
       <button class="m-back" (click)="goBack()">&#8592;</button>
       <span class="m-title">BESTIÁRIO</span>
     </div>
 
-    <button class="retro-btn mobile-new-btn" (click)="catalogNew()">+ CATALOGAR NOVO MONSTRO</button>
+    <button class="retro-btn mobile-new-btn" (click)="catalogNew()">
+      + CATALOGAR NOVO MONSTRO
+    </button>
 
     @if (error()) {
-      <p class="m-empty">ERRO AO CARREGAR O BESTIÁRIO.</p>
+      <p class="m-empty" role="alert">ERRO AO CARREGAR O BESTIÁRIO.</p>
     } @else if (loading()) {
       <div aria-busy="true" aria-label="Carregando">
         <app-skeleton-rows [rows]="5" [height]="70" />
@@ -18,99 +19,152 @@
     } @else if (monsters().length === 0) {
       <p class="m-empty">NENHUM MONSTRO CATALOGADO AINDA.</p>
     } @else {
-      <ul class="m-card-list">
+      <div class="catalog-grid">
         @for (monster of monsters(); track monster.id_monster_catalog) {
-          <li class="m-card m-card--deletable" (click)="openDetail(monster)">
-            <button class="m-card-delete" title="Remover monstro" (click)="requestDelete(monster, $event)">✕</button>
-            <img class="m-card-thumb" [src]="monster.image_url || DEFAULT_MONSTER_IMAGE" [alt]="monsterName(monster)" />
-            <span class="m-card-body">
-              <span class="m-card-title">{{ monsterName(monster) }}</span>
-              <span class="m-card-desc">{{ monster.data_snapshot.size }} &mdash; {{ monster.data_snapshot.type }}</span>
-              <span class="m-card-desc">CA {{ monster.ac }} &middot; PV {{ monster.hp_max }} &middot; ND {{ crText(monster.data_snapshot.challenge_rating) }}</span>
-            </span>
-            <span class="m-card-arrow">&#9658;</span>
-          </li>
+          <div class="catalog-card">
+            <app-game-card [card]="toCard(monster)" [state]="cardState(monster)" />
+            <a
+              class="catalog-card-link"
+              [routerLink]="['/monster-catalog', monster.id_monster_catalog]"
+              [attr.aria-label]="'Ver detalhes de ' + monsterName(monster)"
+            ></a>
+            <button
+              class="catalog-card-delete"
+              [title]="'Remover ' + monsterName(monster)"
+              [attr.aria-label]="'Remover ' + monsterName(monster)"
+              (click)="requestDelete(monster)"
+            >
+              ✕
+            </button>
+          </div>
         }
-      </ul>
+      </div>
 
       <div class="m-pagination">
-        <button class="m-page-btn" [disabled]="!hasPrev()" (click)="prevPage()">&#9664;</button>
+        <button
+          class="m-page-btn"
+          [disabled]="!hasPrev()"
+          aria-label="Página anterior"
+          (click)="prevPage()"
+        >
+          &#9664;
+        </button>
         <span class="m-page-info">{{ page() }} / {{ totalPages() }}</span>
-        <button class="m-page-btn" [disabled]="!hasNext()" (click)="nextPage()">&#9654;</button>
+        <button
+          class="m-page-btn"
+          [disabled]="!hasNext()"
+          aria-label="Próxima página"
+          (click)="nextPage()"
+        >
+          &#9654;
+        </button>
       </div>
 
       <p class="m-total">TOTAL: {{ totalCount() }}</p>
     }
-
   </div>
 } @else {
   <!-- ===== DESKTOP LAYOUT ===== (página no tamanho da sessão: .page/.page-topbar/.d-grid no styles.scss) -->
   <div class="page">
-
     <header class="page-topbar">
       <button class="retro-btn page-topbar-back" (click)="goBack()">← VOLTAR</button>
       <h1 class="page-topbar-name">BESTIÁRIO</h1>
       @if (!loading() && !error() && totalCount() > 0) {
-        <div class="page-topbar-meta"><span>MONSTROS <strong>{{ totalCount() }}</strong></span></div>
+        <div class="page-topbar-meta">
+          <span
+            >MONSTROS <strong>{{ totalCount() }}</strong></span
+          >
+        </div>
       }
     </header>
 
     <div class="page-toolbar">
-      <span></span>
       <button class="retro-btn new-btn" (click)="catalogNew()">+ CATALOGAR NOVO MONSTRO</button>
     </div>
 
     @if (error()) {
-      <p class="m-empty">ERRO AO CARREGAR O BESTIÁRIO.</p>
+      <p class="m-empty" role="alert">ERRO AO CARREGAR O BESTIÁRIO.</p>
     } @else if (loading()) {
-      <div class="d-grid" aria-busy="true" aria-label="Carregando">
+      <div class="catalog-grid" aria-busy="true" aria-label="Carregando">
         @for (i of [1, 2, 3, 4, 5]; track i) {
-          <div class="d-card"><app-skeleton-rows [rows]="5" [height]="12" /></div>
+          <span class="skeleton card-skeleton"></span>
         }
       </div>
     } @else if (monsters().length === 0) {
       <p class="m-empty">NENHUM MONSTRO CATALOGADO AINDA.</p>
     } @else {
-      <div class="d-grid">
+      <div class="catalog-grid">
         @for (monster of monsters(); track monster.id_monster_catalog) {
-          <article class="d-card d-card--deletable" (click)="openDetail(monster)">
-            <button class="m-card-delete" title="Remover monstro" (click)="requestDelete(monster, $event)">✕</button>
-            <img class="monster-card-image" [src]="monster.image_url || DEFAULT_MONSTER_IMAGE" [alt]="monsterName(monster)" />
-            <h2 class="d-card-title">{{ monsterName(monster) }}</h2>
-            <p class="d-card-desc">{{ monster.data_snapshot.size }} &mdash; {{ monster.data_snapshot.type }}</p>
-            <div class="monster-card-stats">
-              <span>CA <strong>{{ monster.ac }}</strong></span>
-              <span>PV <strong>{{ monster.hp_max }}</strong></span>
-              <span>ND <strong>{{ crText(monster.data_snapshot.challenge_rating) }}</strong></span>
-            </div>
-          </article>
+          <div class="catalog-card">
+            <app-game-card [card]="toCard(monster)" [state]="cardState(monster)" />
+            <a
+              class="catalog-card-link"
+              [routerLink]="['/monster-catalog', monster.id_monster_catalog]"
+              [attr.aria-label]="'Ver detalhes de ' + monsterName(monster)"
+            ></a>
+            <button
+              class="catalog-card-delete"
+              [title]="'Remover ' + monsterName(monster)"
+              [attr.aria-label]="'Remover ' + monsterName(monster)"
+              (click)="requestDelete(monster)"
+            >
+              ✕
+            </button>
+          </div>
         }
       </div>
 
       <div class="m-pagination">
-        <button class="m-page-btn" [disabled]="!hasPrev()" (click)="prevPage()">&#9664;</button>
+        <button
+          class="m-page-btn"
+          [disabled]="!hasPrev()"
+          aria-label="Página anterior"
+          (click)="prevPage()"
+        >
+          &#9664;
+        </button>
         <span class="m-page-info">{{ page() }} / {{ totalPages() }}</span>
-        <button class="m-page-btn" [disabled]="!hasNext()" (click)="nextPage()">&#9654;</button>
+        <button
+          class="m-page-btn"
+          [disabled]="!hasNext()"
+          aria-label="Próxima página"
+          (click)="nextPage()"
+        >
+          &#9654;
+        </button>
       </div>
     }
-
   </div>
 }
 
 <!-- ===== MODAL: CONFIRMAR REMOÇÃO ===== -->
 @if (deleteTarget(); as target) {
   <div class="overlay modal-overlay" (click)="cancelDelete()">
-    <div class="retro-panel delete-modal" (click)="$event.stopPropagation()">
-      <h3 class="modal-title">REMOVER MONSTRO</h3>
+    <div
+      #deleteModal
+      class="retro-panel delete-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-modal-title"
+      tabindex="-1"
+      (click)="$event.stopPropagation()"
+      (keydown.escape)="cancelDelete()"
+    >
+      <h3 class="modal-title" id="delete-modal-title">REMOVER MONSTRO</h3>
       <p class="delete-modal-text">
-        Tem certeza que deseja remover <strong>{{ monsterName(target) }}</strong> do bestiário? Essa ação não pode ser desfeita.
+        Tem certeza que deseja remover <strong>{{ monsterName(target) }}</strong> do bestiário? Essa
+        ação não pode ser desfeita.
       </p>
       @if (deleteError()) {
-        <p class="delete-modal-error">{{ deleteError() }}</p>
+        <p class="delete-modal-error" role="alert">{{ deleteError() }}</p>
       }
       <div class="delete-modal-actions">
         <button class="retro-btn" [disabled]="deleting()" (click)="cancelDelete()">CANCELAR</button>
-        <button class="retro-btn delete-confirm-btn" [disabled]="deleting()" (click)="confirmDelete()">
+        <button
+          class="retro-btn delete-confirm-btn"
+          [disabled]="deleting()"
+          (click)="confirmDelete()"
+        >
           {{ deleting() ? 'REMOVENDO...' : 'REMOVER' }}
         </button>
       </div>
