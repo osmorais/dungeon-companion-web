@@ -982,6 +982,10 @@ input[type="checkbox"].retro-checkbox {
    Detalhes só nas beiradas: o centro é liso pro nome e as barras ficarem legíveis. */
 :root {
   --character-card-bg: url('/assets/frames/character-card-bg.webp');
+  /* Fundo padrão das linhas de NPC (taverna) e de monstro (covil) na sessão (1.13.1) — prompts e
+     originais: docs/dungeon-companion/procedimentos/artes-fundos-card.md. */
+  --npc-card-bg: url('/assets/frames/npc-card-bg.webp');
+  --monster-card-bg: url('/assets/frames/monster-card-bg.webp');
 }
 
 /* ===== Moldura dos cards de personagem (1.3.11) =====

@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.13.1',
+    date: '2026-10-26',
+    title: 'NPCs e monstros com moldura',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'Na mesa, os cards dos NPCs e dos monstros ganharam as molduras dos cards dos personagens (a moldura em volta, o anel no avatar e a barra de vida) e um fundo próprio: uma taverna para os NPCs e um covil para os monstros. Os botões desses cards ficaram maiores, com ícone e nome, como nos cards dos personagens.',
+      },
+    ],
+  },
+  {
     version: '1.13.0',
     date: '2026-10-25',
     title: 'Monstros com carta no combate',

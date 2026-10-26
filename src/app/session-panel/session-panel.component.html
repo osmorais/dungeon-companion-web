@@ -248,18 +248,22 @@
           @if (sessionDetail()!.npcs.length > 0) {
           <div class="mobile-npc-list">
             @for (npc of sessionDetail()!.npcs; track npc.id_npc_session) {
-              <div class="mobile-npc-row" [class.mobile-npc-row--current-turn]="isNpcCurrentTurn(npc)">
+              <div class="mobile-npc-row framed-card" [class.mobile-npc-row--current-turn]="isNpcCurrentTurn(npc)">
                 @if (isOwner()) {
                   <button class="delete-btn" title="Remover NPC" (click)="deleteNpc(npc.id_npc_session)">✕</button>
                 }
-                <div class="mobile-npc-avatar">
-                  <app-avatar-display [preset]="npc.character?.avatar_preset ?? null" />
+                <div class="avatar-ring-wrap mobile-row-avatar-ring">
+                  <div class="avatar-circle">
+                    <app-avatar-display [preset]="npc.character?.avatar_preset ?? null" />
+                  </div>
+                  <span class="avatar-ring" aria-hidden="true"></span>
                 </div>
                 <div class="mobile-npc-info">
                   @if (npc.character) {
                     <span class="mobile-npc-name">{{ npc.character.name }}</span>
                     <span class="mobile-npc-meta">{{ npc.character.class }} · {{ npc.character.race }} · NV {{ npc.character.level }}</span>
-                    <span class="mobile-npc-hp"><img class="ui-icon" src="assets/icons/heart.png" alt="" /> {{ editedNpcHp(npc) }}/{{ npc.character.max_hit_points }}</span>
+                    <app-hp-bar class="row-hp-bar" [current]="editedNpcHp(npc)"
+                      [max]="npc.character.max_hit_points" [temp]="npc.character.temporary_hit_points" />
                     @if (isOwner()) {
                       <div class="hp-delta-controls">
                         <input type="number" min="0" class="hp-delta-input" placeholder="0"
@@ -279,17 +283,23 @@
                   }
                 </div>
                 @if (isOwner()) {
-                  <div class="mobile-npc-row-actions">
-                    <button class="retro-btn mobile-npc-actions-btn" (click)="openPlayerActions(npc.id_character, npc.character?.name ?? ('NPC #' + npc.id_character))">
-                      <img class="ui-icon" src="assets/icons/d20.png" alt="" /> AÇÕES
+                  <div class="mobile-npc-row-actions row-actions row-actions--mobile">
+                    <button class="player-action-btn row-action-btn" title="Ações do NPC"
+                      (click)="openPlayerActions(npc.id_character, npc.character?.name ?? ('NPC #' + npc.id_character))">
+                      <img src="assets/icons/actions.png" alt="" />
+                      <span>AÇÕES</span>
                     </button>
                     @if (isNpcCurrentTurn(npc) && canEndCurrentTurn()) {
-                      <button class="retro-btn turn-end-btn" [disabled]="endingTurn()" (click)="endTurn()">
-                        {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
+                      <button class="player-action-btn row-action-btn row-action-btn--turn" title="Finalizar turno"
+                        [disabled]="endingTurn()" (click)="endTurn()">
+                        <img src="assets/icons/skip-turn.png" alt="" />
+                        <span>{{ endingTurn() ? '...' : 'FINALIZAR' }}</span>
                       </button>
                     }
-                    <button class="retro-btn mobile-npc-btn" (click)="viewCharacterSheet(npc.id_character)">
-                      VER FICHA
+                    <button class="player-action-btn row-action-btn" title="Ver ficha"
+                      (click)="viewCharacterSheet(npc.id_character)">
+                      <img src="assets/icons/sheet.png" alt="" />
+                      <span>FICHA</span>
                     </button>
                   </div>
                 }
@@ -312,25 +322,20 @@
           @if (sessionDetail()!.monsters.length > 0) {
           <div class="mobile-monster-list">
             @for (monster of sessionDetail()!.monsters; track monster.id_monster_session) {
-              <div class="mobile-monster-row" (click)="openMonsterDetail(monster)" [class.mobile-monster-row--current-turn]="isMonsterCurrentTurn(monster)">
+              <div class="mobile-monster-row framed-card" (click)="openMonsterDetail(monster)" [class.mobile-monster-row--current-turn]="isMonsterCurrentTurn(monster)">
                 @if (isOwner()) {
                   <button class="delete-btn" title="Remover monstro da sessão" (click)="$event.stopPropagation(); deleteMonster(monster)">✕</button>
                 }
-                <div class="mobile-monster-avatar">
-                  <img [src]="monster.image_url || DEFAULT_MONSTER_IMAGE" [alt]="monsterDisplayName(monster)" />
+                <div class="avatar-ring-wrap mobile-row-avatar-ring">
+                  <div class="avatar-circle row-monster-image">
+                    <img [src]="monster.image_url || DEFAULT_MONSTER_IMAGE" [alt]="monsterDisplayName(monster)" />
+                  </div>
+                  <span class="avatar-ring" aria-hidden="true"></span>
                 </div>
                 <div class="mobile-monster-info">
                   <span class="mobile-monster-name">{{ monsterDisplayName(monster) }}</span>
                   <span class="mobile-monster-meta">CA {{ monster.ac }}</span>
-                  <div class="mobile-monster-hp-bar-wrap">
-                    <div class="mobile-monster-hp-bar">
-                      <div class="mobile-monster-hp-fill"
-                        [style.width.%]="hpPercent(monster.hp_current, monster.hp_max)"
-                        [style.background-color]="hpColor(monster.hp_current, monster.hp_max)">
-                      </div>
-                    </div>
-                    <span class="mobile-monster-hp-text"><img class="ui-icon" src="assets/icons/heart.png" alt="" /> {{ monster.hp_current }}/{{ monster.hp_max }}</span>
-                  </div>
+                  <app-hp-bar class="row-hp-bar" [current]="monster.hp_current" [max]="monster.hp_max" />
                   @if (isOwner()) {
                     <div class="hp-delta-controls" (click)="$event.stopPropagation()">
                       <input type="number" min="0" class="hp-delta-input" placeholder="0"
@@ -345,44 +350,39 @@
                     </div>
                   }
                 </div>
-                <div class="mobile-monster-row-actions">
-                  <button
-                    class="reveal-toggle-btn"
-                    [class.reveal-toggle-btn--on]="monster.is_revealed"
+                <div class="mobile-monster-row-actions row-actions row-actions--mobile" (click)="$event.stopPropagation()">
+                  <button class="player-action-btn row-action-btn" [class.row-action-btn--on]="monster.is_revealed"
                     [disabled]="revealingMonsterId() === monster.id_monster_session"
                     [title]="monster.is_revealed ? 'Esconder monstro dos jogadores' : 'Revelar monstro aos jogadores'"
-                    (click)="toggleMonsterReveal(monster, $event)"
-                  ></button>
+                    (click)="toggleMonsterReveal(monster, $event)">
+                    <img [src]="monster.is_revealed ? 'assets/icons/picture.png' : 'assets/icons/padlock.png'" alt="" />
+                    <span>{{ monster.is_revealed ? 'NA MESA' : 'OCULTO' }}</span>
+                  </button>
                   @if (isOwner()) {
-                    <button
-                      class="monster-defeat-btn"
-                      title="Marcar monstro como derrotado"
-                      [disabled]="defeatingMonsterId() === monster.id_monster_session"
-                      (click)="$event.stopPropagation(); openDefeatMonsterXpModal(monster)"
-                    >
-                      <img class="ui-icon" src="assets/icons/swords.png" alt="" />
-                    </button>
-                    <button
-                      class="monster-edit-btn"
-                      title="Editar monstro"
-                      (click)="$event.stopPropagation(); openMonsterDetail(monster)"
-                    >
-                      ✎
-                    </button>
-                    <button
-                      class="monster-duplicate-btn"
-                      title="Duplicar monstro"
-                      [disabled]="duplicatingMonsterId() === monster.id_monster_session"
-                      (click)="duplicateMonster(monster, $event)"
-                    >
-                      ⧉
-                    </button>
                     @if (isMonsterCurrentTurn(monster) && canEndCurrentTurn()) {
-                      <button class="retro-btn turn-end-btn" [disabled]="endingTurn()"
-                        (click)="$event.stopPropagation(); endTurn()">
-                        {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
+                      <button class="player-action-btn row-action-btn row-action-btn--turn" title="Finalizar turno"
+                        [disabled]="endingTurn()" (click)="endTurn()">
+                        <img src="assets/icons/skip-turn.png" alt="" />
+                        <span>{{ endingTurn() ? '...' : 'FINALIZAR' }}</span>
                       </button>
                     }
+                    <button class="player-action-btn row-action-btn" title="Ficha do monstro"
+                      (click)="openMonsterDetail(monster)">
+                      <img src="assets/icons/sheet.png" alt="" />
+                      <span>FICHA</span>
+                    </button>
+                    <button class="player-action-btn row-action-btn row-action-btn--danger" title="Marcar monstro como derrotado"
+                      [disabled]="defeatingMonsterId() === monster.id_monster_session"
+                      (click)="openDefeatMonsterXpModal(monster)">
+                      <img src="assets/icons/swords.png" alt="" />
+                      <span>DERROTAR</span>
+                    </button>
+                    <button class="player-action-btn row-action-btn" title="Duplicar monstro"
+                      [disabled]="duplicatingMonsterId() === monster.id_monster_session"
+                      (click)="duplicateMonster(monster, $event)">
+                      <span class="player-action-emoji">⧉</span>
+                      <span>DUPLICAR</span>
+                    </button>
                   }
                 </div>
               </div>
@@ -659,27 +659,23 @@
           } @else {
           <div class="npc-list">
             @for (npc of sessionDetail()!.npcs; track npc.id_npc_session) {
-              <div class="npc-row" [class.npc-row--current-turn]="isNpcCurrentTurn(npc)">
+              <div class="npc-row framed-card" [class.npc-row--current-turn]="isNpcCurrentTurn(npc)">
                 @if (isOwner()) {
                   <button class="delete-btn" title="Remover NPC" (click)="deleteNpc(npc.id_npc_session)">✕</button>
                 }
-                <div class="npc-avatar">
-                  <app-avatar-display [preset]="npc.character?.avatar_preset ?? null" />
+                <div class="avatar-ring-wrap row-avatar-ring">
+                  <div class="avatar-circle">
+                    <app-avatar-display [preset]="npc.character?.avatar_preset ?? null" />
+                  </div>
+                  <span class="avatar-ring" aria-hidden="true"></span>
                 </div>
                 <div class="npc-info">
                   @if (npc.character) {
                     <span class="npc-name">{{ npc.character.name }}</span>
                     <span class="npc-meta">{{ npc.character.class }} &mdash; {{ npc.character.race }}</span>
                     <span class="npc-level">NÍVEL {{ npc.character.level }}</span>
-                    <div class="npc-hp-bar-wrap">
-                      <div class="npc-hp-bar">
-                        <div class="npc-hp-fill"
-                          [style.width.%]="hpPercent(editedNpcHp(npc), npc.character.max_hit_points)"
-                          [style.background-color]="hpColor(editedNpcHp(npc), npc.character.max_hit_points)">
-                        </div>
-                      </div>
-                      <span class="npc-hp-text"><img class="ui-icon" src="assets/icons/heart.png" alt="" /> {{ editedNpcHp(npc) }}/{{ npc.character.max_hit_points }}</span>
-                    </div>
+                    <app-hp-bar class="row-hp-bar" [current]="editedNpcHp(npc)"
+                      [max]="npc.character.max_hit_points" [temp]="npc.character.temporary_hit_points" />
                     @if (isOwner()) {
                       <div class="hp-delta-controls">
                         <input type="number" min="0" class="hp-delta-input" placeholder="0"
@@ -699,17 +695,23 @@
                   }
                 </div>
                 @if (isOwner()) {
-                  <div class="npc-row-actions">
-                    <button class="retro-btn npc-actions-btn" (click)="openPlayerActions(npc.id_character, npc.character?.name ?? ('NPC #' + npc.id_character))">
-                      <img class="ui-icon" src="assets/icons/d20.png" alt="" /> AÇÕES
+                  <div class="npc-row-actions row-actions">
+                    <button class="player-action-btn row-action-btn" title="Ações do NPC"
+                      (click)="openPlayerActions(npc.id_character, npc.character?.name ?? ('NPC #' + npc.id_character))">
+                      <img src="assets/icons/actions.png" alt="" />
+                      <span>AÇÕES</span>
                     </button>
                     @if (isNpcCurrentTurn(npc) && canEndCurrentTurn()) {
-                      <button class="retro-btn turn-end-btn" [disabled]="endingTurn()" (click)="endTurn()">
-                        {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
+                      <button class="player-action-btn row-action-btn row-action-btn--turn" title="Finalizar turno"
+                        [disabled]="endingTurn()" (click)="endTurn()">
+                        <img src="assets/icons/skip-turn.png" alt="" />
+                        <span>{{ endingTurn() ? '...' : 'FINALIZAR' }}</span>
                       </button>
                     }
-                    <button class="retro-btn npc-sheet-btn" (click)="viewCharacterSheet(npc.id_character)">
-                      VER FICHA ▶
+                    <button class="player-action-btn row-action-btn" title="Ver ficha"
+                      (click)="viewCharacterSheet(npc.id_character)">
+                      <img src="assets/icons/sheet.png" alt="" />
+                      <span>FICHA</span>
                     </button>
                   </div>
                 }
@@ -736,25 +738,20 @@
           } @else {
           <div class="monster-list">
             @for (monster of sessionDetail()!.monsters; track monster.id_monster_session) {
-              <div class="monster-row" (click)="openMonsterDetail(monster)" [class.monster-row--current-turn]="isMonsterCurrentTurn(monster)">
+              <div class="monster-row framed-card" (click)="openMonsterDetail(monster)" [class.monster-row--current-turn]="isMonsterCurrentTurn(monster)">
                 @if (isOwner()) {
                   <button class="delete-btn" title="Remover monstro da sessão" (click)="$event.stopPropagation(); deleteMonster(monster)">✕</button>
                 }
-                <div class="monster-avatar">
-                  <img [src]="monster.image_url || DEFAULT_MONSTER_IMAGE" [alt]="monsterDisplayName(monster)" />
+                <div class="avatar-ring-wrap row-avatar-ring">
+                  <div class="avatar-circle row-monster-image">
+                    <img [src]="monster.image_url || DEFAULT_MONSTER_IMAGE" [alt]="monsterDisplayName(monster)" />
+                  </div>
+                  <span class="avatar-ring" aria-hidden="true"></span>
                 </div>
                 <div class="monster-info">
                   <span class="monster-name">{{ monsterDisplayName(monster) }}</span>
                   <span class="monster-meta">CA {{ monster.ac }}</span>
-                  <div class="monster-hp-bar-wrap">
-                    <div class="monster-hp-bar">
-                      <div class="monster-hp-fill"
-                        [style.width.%]="hpPercent(monster.hp_current, monster.hp_max)"
-                        [style.background-color]="hpColor(monster.hp_current, monster.hp_max)">
-                      </div>
-                    </div>
-                    <span class="monster-hp-text">{{ monster.hp_current }}/{{ monster.hp_max }}</span>
-                  </div>
+                  <app-hp-bar class="row-hp-bar" [current]="monster.hp_current" [max]="monster.hp_max" />
                   @if (isOwner()) {
                     <div class="hp-delta-controls" (click)="$event.stopPropagation()">
                       <input type="number" min="0" class="hp-delta-input" placeholder="0"
@@ -769,44 +766,39 @@
                     </div>
                   }
                 </div>
-                <div class="monster-row-actions">
-                  <button
-                    class="reveal-toggle-btn"
-                    [class.reveal-toggle-btn--on]="monster.is_revealed"
+                <div class="monster-row-actions row-actions" (click)="$event.stopPropagation()">
+                  <button class="player-action-btn row-action-btn" [class.row-action-btn--on]="monster.is_revealed"
                     [disabled]="revealingMonsterId() === monster.id_monster_session"
                     [title]="monster.is_revealed ? 'Esconder monstro dos jogadores' : 'Revelar monstro aos jogadores'"
-                    (click)="toggleMonsterReveal(monster, $event)"
-                  ></button>
+                    (click)="toggleMonsterReveal(monster, $event)">
+                    <img [src]="monster.is_revealed ? 'assets/icons/picture.png' : 'assets/icons/padlock.png'" alt="" />
+                    <span>{{ monster.is_revealed ? 'NA MESA' : 'OCULTO' }}</span>
+                  </button>
                   @if (isOwner()) {
-                    <button
-                      class="monster-defeat-btn"
-                      title="Marcar monstro como derrotado"
-                      [disabled]="defeatingMonsterId() === monster.id_monster_session"
-                      (click)="$event.stopPropagation(); openDefeatMonsterXpModal(monster)"
-                    >
-                      <img class="ui-icon" src="assets/icons/swords.png" alt="" />
-                    </button>
-                    <button
-                      class="monster-edit-btn"
-                      title="Editar monstro"
-                      (click)="$event.stopPropagation(); openMonsterDetail(monster)"
-                    >
-                      ✎
-                    </button>
-                    <button
-                      class="monster-duplicate-btn"
-                      title="Duplicar monstro"
-                      [disabled]="duplicatingMonsterId() === monster.id_monster_session"
-                      (click)="duplicateMonster(monster, $event)"
-                    >
-                      ⧉
-                    </button>
                     @if (isMonsterCurrentTurn(monster) && canEndCurrentTurn()) {
-                      <button class="retro-btn turn-end-btn" [disabled]="endingTurn()"
-                        (click)="$event.stopPropagation(); endTurn()">
-                        {{ endingTurn() ? '...' : 'FINALIZAR TURNO' }}
+                      <button class="player-action-btn row-action-btn row-action-btn--turn" title="Finalizar turno"
+                        [disabled]="endingTurn()" (click)="endTurn()">
+                        <img src="assets/icons/skip-turn.png" alt="" />
+                        <span>{{ endingTurn() ? '...' : 'FINALIZAR' }}</span>
                       </button>
                     }
+                    <button class="player-action-btn row-action-btn" title="Ficha do monstro"
+                      (click)="openMonsterDetail(monster)">
+                      <img src="assets/icons/sheet.png" alt="" />
+                      <span>FICHA</span>
+                    </button>
+                    <button class="player-action-btn row-action-btn row-action-btn--danger" title="Marcar monstro como derrotado"
+                      [disabled]="defeatingMonsterId() === monster.id_monster_session"
+                      (click)="openDefeatMonsterXpModal(monster)">
+                      <img src="assets/icons/swords.png" alt="" />
+                      <span>DERROTAR</span>
+                    </button>
+                    <button class="player-action-btn row-action-btn" title="Duplicar monstro"
+                      [disabled]="duplicatingMonsterId() === monster.id_monster_session"
+                      (click)="duplicateMonster(monster, $event)">
+                      <span class="player-action-emoji">⧉</span>
+                      <span>DUPLICAR</span>
+                    </button>
                   }
                 </div>
               </div>
