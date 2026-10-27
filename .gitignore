@@ -5,6 +5,7 @@
 /tmp
 /out-tsc
 /bazel-out
+/graphify-out-web
 
 # Node
 /node_modules
@@ -38,6 +39,7 @@ yarn-error.log
 testem.log
 /typings
 __screenshots__/
+/.playwright-cli
 
 # System files
 .DS_Store

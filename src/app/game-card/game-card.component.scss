@@ -19,6 +19,12 @@
     filter: drop-shadow(0 0 6px var(--accent-color));
   }
 
+  // Monstro perigoso no bestiário (ND 5+): brilho vermelho, pra não confundir com o dourado de
+  // "pronta" das magias.
+  &--threat {
+    filter: drop-shadow(0 0 6px #ff3b2f);
+  }
+
   // Sem vaga pra preparar ou travada em combate.
   &--locked {
     filter: grayscale(0.7) brightness(0.75);
@@ -70,6 +76,36 @@
   font-size: max(6px, 2.6cqw);
 }
 
+// Selo do monstro perigoso (ND 5+, estado `threat`): carmesim como o ATACAR da mão, no canto de
+// cima da arte, por cima da moldura.
+.gc-danger {
+  position: absolute;
+  top: 17.5%;
+  right: 15.5%;
+  display: flex;
+  align-items: center;
+  gap: 1.2cqw;
+  padding: 1.4cqw 2cqw 1.2cqw;
+  border: max(1px, 0.5cqw) solid #ff8a73;
+  background: linear-gradient(180deg, #c0392b 0%, #5c120c 100%);
+  box-shadow:
+    0 max(1px, 0.6cqw) 0 #1c0b0b,
+    0 0 2cqw rgba(255, 80, 50, 0.6);
+  color: #fff8e8;
+  font-size: max(6px, 2.8cqw);
+  letter-spacing: 0.2cqw;
+  text-shadow: 0.3cqw 0.3cqw 0 #1c0b0b;
+  pointer-events: none;
+
+  &::before {
+    content: '';
+    width: max(8px, 3.6cqw);
+    height: max(8px, 3.6cqw);
+    background: url('/assets/icons/swords.png') center / contain no-repeat;
+    image-rendering: pixelated;
+  }
+}
+
 .gc-frame {
   position: absolute;
   inset: 0;
@@ -107,7 +143,8 @@
   align-items: center;
   padding-left: 2cqw;
   color: var(--text-soft);
-  font-size: max(6px, 3.8cqw);
+  // Listas do bestiário aumentam o nome e a descrição (--gc-title-size, --gc-desc-size).
+  font-size: var(--gc-title-size, max(6px, 3.8cqw));
   line-height: 1.25;
   text-shadow: 0.3cqw 0.3cqw 0 #000;
 }
@@ -255,7 +292,7 @@
   margin: 0;
   padding: 0 1.5cqw 5cqw 0; // embaixo: a última linha sobe acima do esmaecido
   overflow-y: auto;
-  font-size: max(7px, 1.9cqw);
+  font-size: var(--gc-desc-size, max(7px, 1.9cqw));
   line-height: 1.7;
   white-space: pre-line;
   // Esmaece o fim: avisa que tem mais texto pra rolar.

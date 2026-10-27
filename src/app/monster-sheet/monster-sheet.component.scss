@@ -1,0 +1,60 @@
+:host {
+  display: block;
+}
+
+.ms-panel {
+  box-sizing: border-box;
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+  padding: 16px;
+
+  @media (max-width: 767px) {
+    padding: 12px;
+  }
+}
+
+.ms-card {
+  align-items: center;
+
+  app-game-card {
+    width: min(100%, 230px);
+  }
+}
+
+@media (min-width: 768px) {
+  .ms-panel--fit {
+    // Barra global (--footer-height) + topo da página e folgas da tela (~120px).
+    height: calc(100dvh - var(--footer-height) - 120px);
+    min-height: 420px;
+
+    .pa-columns {
+      flex: 1;
+      min-height: 0;
+      grid-auto-rows: minmax(0, 1fr);
+      align-items: stretch;
+    }
+
+    .pa-col {
+      min-height: 0;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+  }
+}
+
+.ms-footer {
+  display: flex;
+  justify-content: flex-end;
+
+  &:empty {
+    display: none;
+  }
+}
+
+.ms-meta {
+  margin: 0;
+  font-size: 7px;
+  line-height: 1.7;
+  color: var(--label-title-color);
+  text-align: center;
+}

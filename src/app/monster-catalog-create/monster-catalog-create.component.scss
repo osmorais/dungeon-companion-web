@@ -1,185 +1,206 @@
 .create-container {
-  width: 1100px;
+  // Filtros à esquerda e quatro cartas por linha à direita.
+  width: 1320px;
   max-width: 96vw;
+  box-sizing: border-box;
+  padding: 20px 0 32px;
+
+  // Folga entre o topo (VOLTAR + título) e os painéis.
+  .page-topbar {
+    margin-bottom: 28px;
+  }
 }
 
-.title-panel {
-  text-align: center;
-  margin-bottom: 20px;
+.cc-panel {
+  box-sizing: border-box;
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+  padding: 16px;
 }
 
-.create-layout {
-  display: flex;
-  align-items: flex-start;
-  gap: 20px;
-}
-
-.search-panel {
-  flex: 0 0 320px;
-  display: flex;
-  flex-direction: column;
-}
-
-.preview-panel {
-  flex: 1;
-  min-width: 0;
-  max-height: 70vh;
-  overflow-y: auto;
-}
-
-.search-input {
-  margin-bottom: 10px;
-}
-
-.bestiary-list {
-  list-style: none;
+.cc-empty {
   margin: 0;
-  padding: 0;
-  max-height: 60vh;
-  overflow-y: auto;
-  border: 1px solid var(--border-color);
-}
-
-.bestiary-row {
-  padding: 8px 10px;
-  font-size: 8px;
-  color: var(--text-color);
-  border-bottom: 1px solid var(--border-color);
-  cursor: var(--cp);
-  transition: background-color 0.12s;
-
-  &:last-child {
-    border-bottom: none;
-  }
-
-  &:hover {
-    background-color: var(--btn-color);
-  }
-
-  &--active {
-    color: var(--accent-color);
-    background-color: var(--btn-color);
-  }
-}
-
-.empty-msg {
+  padding: 24px 0;
   font-size: 9px;
   color: var(--label-title-color);
   text-align: center;
-  padding: 10px 0;
-  margin: 0;
 }
 
-.stat-block {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+/* ===== Layout: filtros (app-monster-filters) | cartas ===== */
 
-.stat-name {
-  margin: 0;
-  font-size: 12px;
-  color: var(--accent-color);
-}
-
-.stat-meta {
-  margin: 0;
-  font-size: 8px;
-  color: var(--label-title-color);
-  text-transform: capitalize;
-}
-
-.stat-row {
-  display: flex;
-  gap: 8px;
-  font-size: 8px;
-  color: var(--text-color);
-}
-
-.stat-label {
-  color: var(--label-title-color);
-  min-width: 60px;
-}
-
-.stat-abilities {
+// Desktop: filtros numa coluna fixa à esquerda (acompanha a rolagem), cartas à direita.
+.cc-layout {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 8px;
-  margin: 6px 0;
+  grid-template-columns: 1fr;
+  gap: 16px;
 }
 
-.stat-ability {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 4px;
-  border: 1px solid var(--border-color);
+@media (min-width: 768px) {
+  .cc-layout {
+    grid-template-columns: 280px minmax(0, 1fr);
+    align-items: start;
+    gap: 24px;
+  }
+
+  app-monster-filters {
+    position: sticky;
+    top: 16px;
+  }
+}
+
+.cc-label {
+  font-size: 7px;
+  color: var(--label-title-color);
+}
+
+.cc-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 8px 10px;
+  background-color: var(--bg-color);
+  border: 2px solid var(--border-color);
+  color: var(--text-color);
+  font-family: 'Press Start 2P', monospace;
   font-size: 9px;
-  color: var(--text-color);
-}
 
-.stat-ability-key {
-  font-size: 6px;
-  color: var(--label-title-color);
-}
-
-.stat-section {
-  margin-top: 6px;
-
-  h4 {
-    margin: 0 0 6px;
-    font-size: 8px;
-    color: var(--accent-color);
+  &:focus {
+    outline: none;
+    border-color: var(--accent-color);
   }
 }
 
-.stat-feature {
-  margin: 0 0 8px;
-  font-size: 7px;
-  line-height: 1.7;
-  color: var(--text-color);
+/* ===== Cartas (as mesmas do bestiário do mestre) ===== */
 
-  strong {
-    color: var(--accent-color);
+.cc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 190px));
+  justify-content: center;
+  gap: 18px 14px;
+}
+
+@media (min-width: 768px) {
+  .cc-grid {
+    grid-template-columns: repeat(auto-fit, minmax(190px, 230px));
+    gap: 24px 20px;
   }
 }
 
-.catalog-form {
-  margin-top: 10px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border-color);
+.cc-card {
+  display: block;
+  padding: 0;
+  // Nome e resumo maiores que o padrão da carta pequena (igual à lista do bestiário).
+  --gc-title-size: max(10px, 5cqw);
+  --gc-desc-size: max(9px, 3.6cqw);
+  border: none;
+  background: none;
+  cursor: var(--cp);
+  transition: transform 0.12s;
+
+  &:hover,
+  &:focus-visible {
+    transform: translateY(-4px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cc-card {
+    transition: none;
+  }
+}
+
+/* ===== Catalogar (rodapé da ficha) ===== */
+
+// Canto de baixo à direita da ficha: nome customizado em cima do CATALOGAR.
+.cc-catalog-footer {
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   gap: 8px;
+  width: min(100%, 320px);
 }
 
-.catalog-label {
-  font-size: 7px;
-  color: var(--label-title-color);
-}
-
-.catalog-error {
+.cc-error {
   margin: 0;
-  font-size: 8px;
+  font-size: 7px;
   color: #ff6b6b;
 }
 
-.catalog-confirm-btn {
-  float: none;
-  font-size: 8px;
-  padding: 10px 14px;
+// Como o ATACAR da mão de armas (player-actions-modal, .pa-hand-actions): carmesim, com relevo de
+// pixel art que afunda ao apertar, brilho pulsando e ícone.
+.cc-catalog-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 200px;
+  padding: 14px 24px 12px;
+  border: 3px solid #ff8a73;
+  background: linear-gradient(180deg, #c0392b 0%, #5c120c 100%);
+  color: #fff8e8;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-shadow: 2px 2px 0 #1c0b0b;
+  box-shadow:
+    0 6px 0 #1c0b0b,
+    0 0 18px rgba(255, 80, 50, 0.55);
+  cursor: var(--cp);
+  transition:
+    transform 0.08s,
+    box-shadow 0.08s,
+    filter 0.15s;
+  animation: cc-catalog-glow 1.6s steps(4) infinite alternate;
+
+  &::before {
+    content: '';
+    width: 22px;
+    height: 22px;
+    background: url('/assets/icons/book-open.png') center / contain no-repeat;
+    image-rendering: pixelated;
+    filter: drop-shadow(2px 2px 0 #1c0b0b);
+  }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    filter: brightness(1.12);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(5px);
+    box-shadow:
+      0 1px 0 #1c0b0b,
+      0 0 10px rgba(255, 80, 50, 0.55);
+  }
 
   &:disabled {
-    opacity: 0.4;
+    filter: grayscale(0.8) brightness(0.7);
+    animation: none;
     cursor: var(--cx);
   }
 }
 
-.back-btn {
-  float: none;
-  display: block;
-  margin-top: 20px;
+@keyframes cc-catalog-glow {
+  from {
+    box-shadow:
+      0 6px 0 #1c0b0b,
+      0 0 10px rgba(255, 80, 50, 0.55);
+  }
+  to {
+    box-shadow:
+      0 6px 0 #1c0b0b,
+      0 0 24px rgba(255, 80, 50, 0.55);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cc-catalog-btn {
+    animation: none;
+  }
 }
 
 /* ===== MOBILE LAYOUT ===== */
@@ -191,11 +212,14 @@
   padding: 0 12px 24px;
   box-sizing: border-box;
   overflow-x: hidden;
-}
 
-.bestiary-row-meta {
-  display: block;
-  margin-top: 4px;
-  font-size: 7px;
-  opacity: 0.7;
+  .cc-panel {
+    padding: 12px;
+  }
+
+  .cc-catalog-btn {
+    justify-content: center;
+    min-width: 0;
+    padding: 12px 14px 10px;
+  }
 }

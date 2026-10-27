@@ -3,6 +3,7 @@
   [class.gc--full]="size === 'full'"
   [class.gc--expanded]="size === 'full' && expanded()"
   [class.gc--ready]="state === 'ready'"
+  [class.gc--threat]="state === 'threat'"
   [class.gc--locked]="state === 'locked'"
   [class.gc--monster]="card.variant === 'monster'"
 >
@@ -23,6 +24,9 @@
     }
   </div>
   <div class="gc-frame" aria-hidden="true"></div>
+  @if (state === 'threat') {
+    <span class="gc-danger">PERIGOSO</span>
+  }
 
   <span class="gc-badge">{{ card.badge }}</span>
   <span class="gc-title"

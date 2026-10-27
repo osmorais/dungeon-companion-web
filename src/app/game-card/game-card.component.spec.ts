@@ -59,4 +59,30 @@ describe('GameCardComponent', () => {
     expect(render('monster').querySelector('.gc--monster')).not.toBeNull();
     expect(render().querySelector('.gc--monster')).toBeNull();
   });
+
+  it('monstro perigoso (threat) leva o brilho e o selo PERIGOSO; os outros estados não', () => {
+    const render = (state: 'threat' | 'ready' | null) => {
+      const fixture = TestBed.createComponent(GameCardComponent);
+      fixture.componentInstance.card = {
+        title: 'Ogro',
+        badge: '2',
+        art: null,
+        fallbackIcon: '',
+        artBackground: null,
+        ribbon: '',
+        stats: [],
+        text: null,
+        tags: [],
+        variant: 'monster',
+      };
+      fixture.componentInstance.state = state;
+      fixture.detectChanges();
+      return fixture.nativeElement as HTMLElement;
+    };
+    const threat = render('threat');
+    expect(threat.querySelector('.gc--threat')).not.toBeNull();
+    expect(threat.querySelector('.gc-danger')?.textContent?.trim()).toBe('PERIGOSO');
+    expect(render('ready').querySelector('.gc-danger')).toBeNull();
+    expect(render(null).querySelector('.gc-danger')).toBeNull();
+  });
 });

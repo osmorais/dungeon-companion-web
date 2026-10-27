@@ -1,15 +1,24 @@
-/** Item da lista do bestiário (fichas do Manual dos Monstros), usado na busca antes de catalogar. */
+/** Item da lista do bestiário (fichas do Manual dos Monstros): carta e filtros da tela de
+ *  catalogar (1.13.4). */
 export interface BestiaryMonsterSummary {
   index: string;
   name: string;
   challenge_rating: number;
   size: string;
   type: string;
+  alignment: string | null;
+  hp_max: number;
+  ac: number;
+  /** Tem ações lendárias. */
+  legendary: boolean;
+  /** Tem deslocamento de voo. */
+  flies: boolean;
 }
 
 /**
- * Ficha do monstro (chaves no formato da dnd5eapi): do bestiário do livro, em português, ou das
- * fichas antigas catalogadas da dnd5eapi, em inglês. Só os campos usados nas telas.
+ * Ficha do monstro do nosso bestiário (Manual dos Monstros em português, chaves no formato da
+ * dnd5eapi). Fichas antigas da dnd5eapi, em inglês, não são mais usadas (1.13.4). Só os campos
+ * usados nas telas.
  */
 export interface MonsterStatBlock {
   index: string;
@@ -33,7 +42,7 @@ export interface MonsterStatBlock {
   xp: number;
   special_abilities?: MonsterAbility[];
   actions?: MonsterAbility[];
-  /** Campos estruturados só das fichas do bestiário (1.10.0); as antigas da dnd5eapi não têm. */
+  /** Campos estruturados do bestiário (1.10.0). */
   reactions?: MonsterAbility[];
   legendary_actions?: MonsterAbility[];
   legendary_count?: number | null;

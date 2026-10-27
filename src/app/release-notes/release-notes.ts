@@ -33,6 +33,41 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.14.0',
+    date: '2026-10-27',
+    title: 'Bestiário com cara de carta e busca com filtros',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'Os monstros catalogados no bestiário agora aparecem como cartas, no mesmo estilo da carta do monstro revelado em combate: nome, imagem, tipo e tamanho na carta, e um resumo com CA, PV e nível de desafio (no tema Fantasia o nível de desafio também fica no medalhão). Monstros perigosos, de nível de desafio 5 ou mais, brilham em vermelho e ganham o selo PERIGOSO.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'O detalhe do monstro no bestiário ficou com a cara da ficha do monstro na mesa: a carta do monstro, os números em destaque, atributos e defesas, as ações em cartas (toque no baralho para ver cada uma) e os testes, em colunas.',
+      },
+      {
+        kind: 'novidade',
+        text: 'Catalogar um monstro novo agora é escolher uma carta: o livro inteiro aparece em cartas, e tocar numa delas abre a ficha completa do monstro, com o nome customizado e o botão de catalogar embaixo da carta.',
+      },
+      {
+        kind: 'novidade',
+        text: 'A busca do livro de monstros e o seu bestiário ganharam filtros: nome, faixa de nível de desafio, tipo, tamanho, só lendários e só voadores, além de ordenar pelo nome ou pelo nível de desafio (no bestiário, também pelos mais recentes). As cartas aparecem em páginas de 8; no celular, os filtros ficam recolhidos num botão.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'As telas de detalhe do monstro e de catalogar um monstro novo ganharam o mesmo topo das outras listagens, com o botão de voltar sempre no mesmo lugar.',
+      },
+      {
+        kind: 'correcao',
+        text: 'Os cards do bestiário agora abrem e fecham direitinho pelo teclado, e o aviso de remover um monstro fecha ao apertar Esc, mantém o foco dentro dele e o devolve ao fechar.',
+      },
+      {
+        kind: 'correcao',
+        text: 'No celular, o botão de remover um monstro do bestiário aparece sempre (antes só aparecia passando o mouse).',
+      },
+    ],
+  },
+  {
     version: '1.13.3',
     date: '2026-10-27',
     title: 'Cadastro e entrada com visual renovado',

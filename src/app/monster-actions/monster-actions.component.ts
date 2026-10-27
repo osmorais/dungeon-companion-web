@@ -14,7 +14,6 @@ import {
   MonsterActionButton,
   MonsterActionGroup,
   actionAvailability,
-  isMechanicalStatBlock,
   legendaryTotal,
   monsterActions,
   monsterChecks,
@@ -40,7 +39,8 @@ export interface MonsterRollRequest {
 /**
  * Habilidades, ações e testes na ficha do monstro (só o mestre vê a ficha): no bestiário, cada
  * ação com número vira botão de rolagem, com os usos que restam (recarga, por dia, lendárias,
- * reação) e o multiataque guiado; ficha antiga da dnd5eapi fica só em texto, com aviso.
+ * reação) e o multiataque guiado. Só fichas do nosso bestiário (a antiga da dnd5eapi, só em texto,
+ * saiu de uso na 1.13.4).
  * Quem abre o modal de rolagem e grava os usos é a sessão (`roll`, `op`).
  */
 @Component({
@@ -63,12 +63,16 @@ export class MonsterActionsComponent {
   readonly asCards = input(false);
   /** Imagem do monstro (arte das cartas das ações). */
   readonly imageUrl = input<string | null>(null);
+  /** Só leitura (1.13.4, detalhe do bestiário): fora da mesa não há o que rolar nem usos a
+   *  contar — sem botões de rolar/usar/restaurar, testes como etiquetas e a mão sem botão. */
+  readonly viewOnly = input(false);
   readonly roll = output<MonsterRollRequest>();
   /** Operação de uso sem rolagem: usar (habilidade só de texto), restaurar, descanso. */
   readonly op = output<MonsterActionOp>();
 
-  readonly mechanical = computed(() => isMechanicalStatBlock(this.block()));
-  readonly checks = computed(() => (this.mechanical() ? monsterChecks(this.block()) : null));
+  // Ficha antiga da dnd5eapi fora de uso (1.13.4): toda ficha é do bestiário.
+  // readonly mechanical = computed(() => isMechanicalStatBlock(this.block()));
+  readonly checks = computed(() => monsterChecks(this.block()));
   private readonly buttons = computed(() => monsterActions(this.block()));
   readonly sections = computed(() =>
     (Object.keys(GROUP_TITLES) as MonsterActionGroup[])
@@ -109,6 +113,7 @@ export class MonsterActionsComponent {
   readonly deckStatus = computed(() => {
     const state = this.state();
     const lines: string[] = [];
+    if (this.viewOnly()) return lines;
     if (this.cardButtons().some((b) => b.group === 'legendary_actions')) {
       const total = legendaryTotal(this.block());
       lines.push(`LENDÁRIAS: RESTAM ${total - (state?.legendary_used ?? 0)} DE ${total} NA RODADA`);
@@ -139,6 +144,22 @@ export class MonsterActionsComponent {
       { label: 'IDIOMAS', text: b.languages ?? '' },
     ].filter((t) => t.text);
   });
+  /** Testes em grupos (resistências, atributos, perícias), com o texto curto de cada um. */
+  readonly checkGroups = computed(() => {
+    const c = this.checks();
+    if (!c) return [];
+    return [
+      {
+        label: 'RESISTÊNCIAS',
+        items: c.saves.map((s) => ({ ...s, text: s.label.replace('Resistência de ', '') })),
+      },
+      {
+        label: 'ATRIBUTOS',
+        items: c.abilities.map((s) => ({ ...s, text: s.label.replace('Teste de ', '') })),
+      },
+      { label: 'PERÍCIAS', items: c.skills.map((s) => ({ ...s, text: s.label })) },
+    ].filter((g) => g.items.length);
+  });
   /** Tem alguma habilidade com uso limitado (mostra o "restaurar usos"). */
   readonly hasLimitedUses = computed(() => this.buttons().some((b) => b.consume !== null));
 
@@ -150,10 +171,11 @@ export class MonsterActionsComponent {
     const state = this.state();
     if (group === 'legendary_actions') {
       const total = legendaryTotal(this.block());
+      if (this.viewOnly()) return `${GROUP_TITLES[group]} — ${total} POR RODADA`;
       const left = total - (state?.legendary_used ?? 0);
       return `${GROUP_TITLES[group]} — RESTAM ${left} DE ${total} NA RODADA`;
     }
-    if (group === 'reactions' && state?.reaction_used) {
+    if (group === 'reactions' && state?.reaction_used && !this.viewOnly()) {
       return `${GROUP_TITLES[group]} — USADA NESTA RODADA`;
     }
     return GROUP_TITLES[group];

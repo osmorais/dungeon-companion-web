@@ -13,8 +13,8 @@ import {
 /**
  * Ações de monstro mecânicas (1.11.0, fase 1): cada habilidade estruturada da ficha do bestiário
  * vira um botão que abre o mesmo modal de rolagem dos jogadores (ataque → dano, resistência com
- * CD, só dano), e a ficha ganha os testes do monstro. Fichas antigas da dnd5eapi (sem os campos
- * estruturados) continuam só em texto — ver `isMechanicalStatBlock`.
+ * CD, só dano), e a ficha ganha os testes do monstro. Só fichas do nosso bestiário (1.13.4: as
+ * fichas antigas da dnd5eapi não são mais usadas — o tratamento delas ficou comentado abaixo).
  *
  * Fase 2: usos (recarga, por dia, por descanso) gravados no monstro da mesa — cada botão sabe o que
  * gastar (`consume`) e `actionAvailability` diz se ainda dá; multiataque guiado (`multi`).
@@ -98,12 +98,14 @@ const GROUPS: MonsterActionGroup[] = [
   'legendary_actions',
 ];
 
-/** Ficha com os campos estruturados do bestiário (as antigas da dnd5eapi não têm `attack`/`dc`). */
-export function isMechanicalStatBlock(block: MonsterStatBlock): boolean {
-  return GROUPS.some((g) =>
-    (block[g] ?? []).some((a) => a && ('attack' in a || 'dc' in a || 'damage' in a)),
-  );
-}
+// Fichas antigas da dnd5eapi fora de uso (1.13.4): só o nosso bestiário. Detectava a ficha com os
+// campos estruturados pra deixar a antiga só em texto.
+// /** Ficha com os campos estruturados do bestiário (as antigas da dnd5eapi não têm `attack`/`dc`). */
+// export function isMechanicalStatBlock(block: MonsterStatBlock): boolean {
+//   return GROUPS.some((g) =>
+//     (block[g] ?? []).some((a) => a && ('attack' in a || 'dc' in a || 'damage' in a)),
+//   );
+// }
 
 /** "2d6+5" → 2, 6, +5; "1d10-1" → 1, 10, −1; "7" (dano fixo) → 0 dados, +7. */
 export function parseDice(dice: string): { count: number; sides: number; modifier: number } | null {
@@ -407,7 +409,7 @@ function consumeFor(group: MonsterActionGroup, a: MonsterAbility): MonsterAction
 
 /** Todos os botões da ficha, na ordem do livro (traços, ações, reações, lendárias). */
 export function monsterActions(block: MonsterStatBlock): MonsterActionButton[] {
-  if (!isMechanicalStatBlock(block)) return [];
+  // if (!isMechanicalStatBlock(block)) return []; // ficha antiga da dnd5eapi (fora de uso, 1.13.4)
   const buttons = GROUPS.flatMap((group) =>
     (block[group] ?? []).flatMap((a, i) =>
       // Só o primeiro botão da habilidade gasta (a parte de resistência de um ataque não).

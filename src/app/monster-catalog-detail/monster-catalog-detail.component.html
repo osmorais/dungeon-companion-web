@@ -1,152 +1,52 @@
-@if (isMobile()) {
-  <!-- ===== MOBILE LAYOUT ===== -->
-  <div class="mobile-detail-container">
-
+<div [class]="isMobile() ? 'mobile-detail-container' : 'detail-container'">
+  @if (isMobile()) {
     <div class="m-header">
       <button class="m-back" (click)="goBack()">&#8592;</button>
       <span class="m-title">DETALHE DO MONSTRO</span>
     </div>
+  } @else {
+    <header class="page-topbar">
+      <button class="retro-btn page-topbar-back" (click)="goBack()">← VOLTAR</button>
+      <h1 class="page-topbar-name">DETALHE DO MONSTRO</h1>
+    </header>
+  }
 
-    @if (loading()) {
-      <fieldset class="mobile-panel" aria-busy="true" aria-label="Carregando o monstro">
-        <span class="skeleton" style="width: 60%; height: 18px; margin: 0 auto 14px"></span>
-        <span class="skeleton" style="width: 160px; height: 160px; margin: 0 auto 14px"></span>
-        <app-skeleton-rows [rows]="6" [height]="12" />
-      </fieldset>
-    } @else if (error() || !monster()) {
-      <p class="mobile-empty-msg">ERRO AO CARREGAR O MONSTRO.</p>
-    } @else if (monster(); as m) {
-      <fieldset class="mobile-panel">
-        <legend>{{ m.data_snapshot.type }}</legend>
-        <div class="stat-block">
-          <h3 class="stat-name">{{ monsterName(m) }}</h3>
-          @if (m.custom_name) {
-            <p class="stat-original-name">({{ m.data_snapshot.name }})</p>
-          }
-          <p class="stat-meta">{{ m.data_snapshot.size }} {{ m.data_snapshot.type }}, {{ m.data_snapshot.alignment }}</p>
-
-          <div class="stat-image-block">
-            @if (m.image_url) {
-              <img class="stat-image" [src]="m.image_url" [alt]="monsterName(m)" />
-            }
-            <label class="retro-btn stat-image-upload-btn">
-              {{ uploadingImage() ? 'ENVIANDO...' : m.image_url ? 'TROCAR IMAGEM' : '+ ADICIONAR IMAGEM' }}
-              <input type="file" accept="image/*" hidden [disabled]="uploadingImage()" (change)="onImageSelected($event)" />
-            </label>
-            @if (imageUploadError()) {
-              <p class="stat-image-error">{{ imageUploadError() }}</p>
-            }
-          </div>
-
-          <div class="stat-row"><span class="stat-label">CA</span><span>{{ acValue(m.data_snapshot) }}</span></div>
-          <div class="stat-row"><span class="stat-label">PV</span><span>{{ m.hp_max }} ({{ m.data_snapshot.hit_dice }})</span></div>
-          <div class="stat-row"><span class="stat-label">DESLOC.</span><span>{{ speedText(m.data_snapshot) }}</span></div>
-
-          <div class="stat-abilities">
-            <div class="stat-ability"><span class="stat-ability-key">FOR</span>{{ m.data_snapshot.strength }}</div>
-            <div class="stat-ability"><span class="stat-ability-key">DES</span>{{ m.data_snapshot.dexterity }}</div>
-            <div class="stat-ability"><span class="stat-ability-key">CON</span>{{ m.data_snapshot.constitution }}</div>
-            <div class="stat-ability"><span class="stat-ability-key">INT</span>{{ m.data_snapshot.intelligence }}</div>
-            <div class="stat-ability"><span class="stat-ability-key">SAB</span>{{ m.data_snapshot.wisdom }}</div>
-            <div class="stat-ability"><span class="stat-ability-key">CAR</span>{{ m.data_snapshot.charisma }}</div>
-          </div>
-
-          <div class="stat-row"><span class="stat-label">ND</span><span>{{ crText(m.data_snapshot.challenge_rating) }} ({{ m.data_snapshot.xp }} XP)</span></div>
-
-          @if (m.data_snapshot.special_abilities?.length) {
-            <div class="stat-section">
-              <h4>HABILIDADES</h4>
-              @for (a of m.data_snapshot.special_abilities; track a.name) {
-                <p class="stat-feature"><strong>{{ a.name }}.</strong> {{ a.desc }}</p>
-              }
-            </div>
-          }
-          @if (m.data_snapshot.actions?.length) {
-            <div class="stat-section">
-              <h4>AÇÕES</h4>
-              @for (a of m.data_snapshot.actions; track a.name) {
-                <p class="stat-feature"><strong>{{ a.name }}.</strong> {{ a.desc }}</p>
-              }
-            </div>
-          }
-        </div>
-      </fieldset>
+  @if (loading()) {
+    <div class="cd-loading" aria-busy="true" aria-label="Carregando o monstro">
+      <span class="skeleton" style="width: 180px; height: 250px; margin: 0 auto 16px"></span>
+      <app-skeleton-rows [rows]="6" [height]="12" />
+    </div>
+  } @else if (error() || !monster()) {
+    <p class="empty-msg" role="alert">ERRO AO CARREGAR O MONSTRO.</p>
+  } @else if (monster(); as m) {
+    @if (card(); as c) {
+      <app-monster-sheet
+        [block]="m.data_snapshot"
+        [card]="c"
+        [cardState]="cardState()"
+        [hp]="m.hp_max"
+        [ac]="m.ac"
+        [imageUrl]="m.image_url"
+      >
+        @if (m.custom_name) {
+          <p class="cd-meta">({{ m.data_snapshot.name }})</p>
+        }
+        <label class="retro-btn cd-image-btn">
+          {{
+            uploadingImage() ? 'ENVIANDO...' : m.image_url ? 'TROCAR IMAGEM' : '+ ADICIONAR IMAGEM'
+          }}
+          <input
+            type="file"
+            accept="image/*"
+            hidden
+            [disabled]="uploadingImage()"
+            (change)="onImageSelected($event)"
+          />
+        </label>
+        @if (imageUploadError()) {
+          <p class="cd-error" role="alert">{{ imageUploadError() }}</p>
+        }
+      </app-monster-sheet>
     }
-
-  </div>
-} @else {
-  <!-- ===== DESKTOP LAYOUT ===== -->
-  <div class="detail-container">
-
-    @if (loading()) {
-      <fieldset class="retro-panel" aria-busy="true" aria-label="Carregando o monstro">
-        <span class="skeleton" style="width: 50%; height: 20px; margin: 0 auto 16px"></span>
-        <span class="skeleton" style="width: 200px; height: 200px; margin: 0 auto 16px"></span>
-        <app-skeleton-rows [rows]="8" [height]="12" />
-      </fieldset>
-    } @else if (error() || !monster()) {
-      <fieldset class="retro-panel">
-        <p class="empty-msg">ERRO AO CARREGAR O MONSTRO.</p>
-      </fieldset>
-    } @else if (monster(); as m) {
-      <fieldset class="retro-panel">
-        <legend>{{ monsterName(m) }}</legend>
-        <div class="stat-block">
-          <h3 class="stat-name">{{ monsterName(m) }}</h3>
-          @if (m.custom_name) {
-            <p class="stat-original-name">({{ m.data_snapshot.name }})</p>
-          }
-          <p class="stat-meta">{{ m.data_snapshot.size }} {{ m.data_snapshot.type }}, {{ m.data_snapshot.alignment }}</p>
-
-          <div class="stat-image-block">
-            @if (m.image_url) {
-              <img class="stat-image" [src]="m.image_url" [alt]="monsterName(m)" />
-            }
-            <label class="retro-btn stat-image-upload-btn">
-              {{ uploadingImage() ? 'ENVIANDO...' : m.image_url ? 'TROCAR IMAGEM' : '+ ADICIONAR IMAGEM' }}
-              <input type="file" accept="image/*" hidden [disabled]="uploadingImage()" (change)="onImageSelected($event)" />
-            </label>
-            @if (imageUploadError()) {
-              <p class="stat-image-error">{{ imageUploadError() }}</p>
-            }
-          </div>
-
-          <div class="stat-row"><span class="stat-label">CA</span><span>{{ acValue(m.data_snapshot) }}</span></div>
-          <div class="stat-row"><span class="stat-label">PV</span><span>{{ m.hp_max }} ({{ m.data_snapshot.hit_dice }})</span></div>
-          <div class="stat-row"><span class="stat-label">DESLOC.</span><span>{{ speedText(m.data_snapshot) }}</span></div>
-
-          <div class="stat-abilities">
-            <div class="stat-ability"><span class="stat-ability-key">FOR</span>{{ m.data_snapshot.strength }}</div>
-            <div class="stat-ability"><span class="stat-ability-key">DES</span>{{ m.data_snapshot.dexterity }}</div>
-            <div class="stat-ability"><span class="stat-ability-key">CON</span>{{ m.data_snapshot.constitution }}</div>
-            <div class="stat-ability"><span class="stat-ability-key">INT</span>{{ m.data_snapshot.intelligence }}</div>
-            <div class="stat-ability"><span class="stat-ability-key">SAB</span>{{ m.data_snapshot.wisdom }}</div>
-            <div class="stat-ability"><span class="stat-ability-key">CAR</span>{{ m.data_snapshot.charisma }}</div>
-          </div>
-
-          <div class="stat-row"><span class="stat-label">ND</span><span>{{ crText(m.data_snapshot.challenge_rating) }} ({{ m.data_snapshot.xp }} XP)</span></div>
-
-          @if (m.data_snapshot.special_abilities?.length) {
-            <div class="stat-section">
-              <h4>HABILIDADES</h4>
-              @for (a of m.data_snapshot.special_abilities; track a.name) {
-                <p class="stat-feature"><strong>{{ a.name }}.</strong> {{ a.desc }}</p>
-              }
-            </div>
-          }
-          @if (m.data_snapshot.actions?.length) {
-            <div class="stat-section">
-              <h4>AÇÕES</h4>
-              @for (a of m.data_snapshot.actions; track a.name) {
-                <p class="stat-feature"><strong>{{ a.name }}.</strong> {{ a.desc }}</p>
-              }
-            </div>
-          }
-        </div>
-      </fieldset>
-    }
-
-    <button class="retro-btn back-btn" (click)="goBack()">← VOLTAR</button>
-
-  </div>
-}
+  }
+</div>

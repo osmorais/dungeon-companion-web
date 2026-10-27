@@ -13,7 +13,6 @@ import {
   MonsterActionsComponent,
   MonsterRollRequest,
 } from '../monster-actions/monster-actions.component';
-import { isMechanicalStatBlock } from '../monster-actions/monster-actions';
 import { challengeRatingText, monsterSpeedText } from '../services/monster-format';
 import { monsterDisplayName } from '../session-panel/monster-display-name';
 
@@ -109,7 +108,6 @@ export class MonsterDrawerComponent {
       lore: m.lore,
     });
   });
-  readonly mechanical = computed(() => isMechanicalStatBlock(this.monsterSig()!.data_snapshot));
 
   /** Quantidade digitada pro DANO/CURA no PV do monstro. */
   readonly hpAmount = signal(0);
