@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.14.1',
+    date: '2026-10-27',
+    title: 'Avental novo do Tom',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'O Tom, o ferreiro que ajuda pelo site, ganhou um avental liso, sem o símbolo que ficava na frente, em todas as poses.',
+      },
+    ],
+  },
+  {
     version: '1.14.0',
     date: '2026-10-27',
     title: 'Bestiário com cara de carta e busca com filtros',
