@@ -7,72 +7,69 @@
   box-sizing: border-box;
 }
 
+/* ===== PAINEL =====
+   O quadro (borda, legend, cantos, sombra), o logo, o campo, a caixa de erro, o botão e os links
+   são compartilhados com o login — ver `.auth-retro` no styles.scss. Aqui só o que é desta tela. */
+
+.auth-panel,
+.mobile-signup-panel {
+  legend {
+    font-size: 12px;
+  }
+}
+
 .auth-panel {
   width: 400px;
   max-width: 90vw;
-  border: 2px solid var(--border-color);
-  background: var(--panel-bg);
   padding: 24px;
-
-  legend {
-    border: 2px solid var(--border-color);
-    background: var(--bg-color);
-    padding: 5px 10px;
-    font-size: 10px;
-    color: var(--text-color);
-  }
 }
 
+.logo-container,
+.mobile-logo-container {
+  margin-bottom: 18px;
+}
+
+.logo {
+  max-width: 200px;
+}
+
+.mobile-logo {
+  max-width: 130px;
+}
+
+/* ===== CAMPOS (COMPARTILHADO) ===== */
+
 .form-group {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 
   label {
     font-size: 8px;
-    color: var(--label-title-color);
-    margin-bottom: 4px;
   }
 
   input {
-    background: var(--bg-color);
-    color: var(--text-color);
-    border: 1px solid var(--border-color);
-    font-family: 'Press Start 2P', monospace;
     font-size: 8px;
-    padding: 8px;
-    width: 100%;
-    box-sizing: border-box;
-
-    &:focus {
-      outline: 2px solid var(--accent-color);
-    }
+    padding: 10px;
   }
 }
 
-.error-msg {
-  color: #ff4444;
-  font-size: 7px;
-  margin: 4px 0 12px;
-}
+.mobile-form-group {
+  margin-bottom: 12px;
 
-.full-btn {
-  float: none;
-  width: 100%;
-  margin-top: 8px;
-}
-
-.auth-links {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 16px;
-
-  a {
-    color: var(--accent-color);
+  label {
     font-size: 7px;
-    cursor: var(--cp);
-    text-decoration: underline;
   }
+
+  input {
+    font-size: 8px;
+    padding: 9px 8px;
+  }
+}
+
+/* ===== MENSAGEM DE ERRO (COMPARTILHADO) ===== */
+
+.error-msg,
+.mobile-error-msg {
+  margin: 4px 0 14px;
 }
 
 /* ===== MOBILE LAYOUT ===== */
@@ -92,98 +89,17 @@
 
 .mobile-signup-panel {
   width: 100%;
-  border: 2px solid var(--border-color);
-  background: var(--panel-bg);
   padding: 16px 14px;
 
   legend {
-    border: 2px solid var(--border-color);
-    background: var(--bg-color);
-    padding: 5px 10px;
-    font-size: 10px;
-    color: var(--text-color);
+    padding: 6px 10px;
   }
 }
 
-.mobile-form-group {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 10px;
-
-  label {
-    font-size: 7px;
-    color: var(--label-title-color);
-    margin-bottom: 4px;
-  }
-
-  input {
-    background: var(--bg-color);
-    color: var(--text-color);
-    border: 1px solid var(--border-color);
-    font-family: 'Press Start 2P', monospace;
-    font-size: 8px;
-    padding: 8px;
-    width: 100%;
-    box-sizing: border-box;
-
-    &:focus {
-      outline: 2px solid var(--accent-color);
-    }
-  }
-}
-
-.mobile-error-msg {
-  color: #ff4444;
-  font-size: 7px;
-  margin: 4px 0 10px;
-}
-
-.mobile-full-btn {
-  float: none;
-  width: 100%;
-  margin-top: 8px;
-}
-
-.mobile-auth-links {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 12px;
-
-  a {
-    color: var(--accent-color);
-    font-size: 7px;
-    cursor: var(--cp);
-    text-decoration: underline;
-  }
-}
-
-/* ===== GOOGLE BUTTON (shared) ===== */
-
-.google-separator {
-  display: flex;
-  align-items: center;
-  margin: 12px 0 8px;
-  gap: 8px;
-
-  &::before,
-  &::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border-color);
-  }
-
-  span {
-    font-size: 7px;
-    color: var(--label-title-color);
-    white-space: nowrap;
-  }
-}
-
-.google-btn-wrapper {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 4px;
+/* Sem o aceite, o botão do Google (iframe do próprio Google) não pode ser clicado. */
+.google-btn-wrapper--locked {
+  opacity: 0.4;
+  pointer-events: none;
 }
 
 /* ===== DECLARAÇÃO DE IDADE + ACEITE DOS TERMOS ===== */
@@ -192,26 +108,27 @@
 .mobile-terms-check {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-  margin: 4px 0 12px;
+  gap: 10px;
+  margin: 6px 0 14px;
   font-size: 7px;
-  line-height: 1.6;
+  line-height: 1.7;
   color: var(--text-color);
   cursor: var(--cp);
 
   input {
     flex-shrink: 0;
-    top: 0;
+    top: 1px;
+    width: 16px;
+    height: 16px;
   }
 
   a {
     color: var(--accent-color);
     text-decoration: underline;
-  }
-}
 
-/* Sem o aceite, o botão do Google (iframe do próprio Google) não pode ser clicado. */
-.google-btn-wrapper--locked {
-  opacity: 0.4;
-  pointer-events: none;
+    &:focus-visible {
+      outline: 2px solid var(--accent-color);
+      outline-offset: 2px;
+    }
+  }
 }

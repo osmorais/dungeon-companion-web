@@ -6,77 +6,59 @@
   align-items: center;
 }
 
+/* ===== PAINEL =====
+   O quadro (borda, legend, cantos, sombra), o logo, o campo, a caixa de erro, o botão e os links
+   são compartilhados com o cadastro — ver `.auth-retro` no styles.scss. Aqui só o que é desta tela:
+   tamanhos, espaçamentos e o canto de cima no celular (legend menor). */
+
 .title-panel {
   width: 100%;
   text-align: center;
   margin-bottom: 30px;
-  padding: 5%;
+  padding: 28px;
+
+  legend {
+    font-size: 12px;
+  }
 }
 
 .logo-container {
-  display: flex;
-  justify-content: center;
   margin-bottom: 24px;
 }
 
 .logo {
   max-width: 367px;
-  width: 100%;
-  height: auto;
+}
+
+/* ===== CAMPOS ===== */
+
+.form-group,
+.mobile-form-group {
+  text-align: left;
+
+  input {
+    padding: 8px;
+  }
 }
 
 .form-group {
-  display: flex;
-  flex-direction: column;
   margin-bottom: 16px;
-  text-align: left;
 
   label {
     font-size: 8px;
-    color: var(--label-title-color);
-    margin-bottom: 4px;
   }
 
   input {
-    background: var(--bg-color);
-    color: var(--text-color);
-    border: 1px solid var(--border-color);
-    font-family: 'Press Start 2P', monospace;
     font-size: 8px;
-    padding: 8px;
-    width: 100%;
-    box-sizing: border-box;
-
-    &:focus {
-      outline: 2px solid var(--accent-color);
-    }
   }
 }
 
-.error-msg {
-  color: #ff4444;
-  font-size: 7px;
+/* ===== MENSAGEM DE ERRO ===== */
+
+.error-msg,
+.mobile-error-msg {
   margin: 4px 0 12px;
   text-align: left;
-}
-
-.full-btn {
-  float: none;
-  width: 100%;
-  margin-top: 8px;
-}
-
-.auth-links {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 16px;
-
-  a {
-    color: var(--accent-color);
-    font-size: 7px;
-    cursor: var(--cp);
-    text-decoration: underline;
-  }
 }
 
 /* ===== MOBILE LAYOUT ===== */
@@ -97,102 +79,34 @@
 .mobile-login-panel {
   width: 100%;
   text-align: center;
-  padding: 16px 14px 14px;
+  padding: 18px 14px;
+
+  legend {
+    font-size: 10px;
+  }
+
+  /* Legend menor no celular (10px): canto mais perto da borda, senão fica solto. */
+  --auth-corner-top: -15px;
 }
 
 .mobile-logo-container {
-  display: flex;
-  justify-content: center;
   margin-bottom: 16px;
 }
 
 .mobile-logo {
   max-width: 160px;
-  width: 100%;
-  height: auto;
 }
 
 .mobile-form-group {
-  display: flex;
-  flex-direction: column;
   margin-bottom: 12px;
-  text-align: left;
 
   label {
-    font-size: 8px;
-    color: var(--label-title-color);
-    margin-bottom: 4px;
+    font-size: 7px;
   }
 
   input {
-    background: var(--bg-color);
-    color: var(--text-color);
-    border: 1px solid var(--border-color);
-    font-family: 'Press Start 2P', monospace;
     font-size: 8px;
-    padding: 8px;
-    width: 100%;
-    box-sizing: border-box;
-
-    &:focus {
-      outline: 2px solid var(--accent-color);
-    }
   }
-}
-
-.mobile-error-msg {
-  color: #ff4444;
-  font-size: 7px;
-  margin: 4px 0 10px;
-  text-align: left;
-}
-
-.mobile-full-btn {
-  float: none;
-  width: 100%;
-  margin-top: 8px;
-}
-
-.mobile-auth-links {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 14px;
-
-  a {
-    color: var(--accent-color);
-    font-size: 7px;
-    cursor: var(--cp);
-    text-decoration: underline;
-  }
-}
-
-/* ===== GOOGLE BUTTON (shared) ===== */
-
-.google-separator {
-  display: flex;
-  align-items: center;
-  margin: 12px 0 8px;
-  gap: 8px;
-
-  &::before,
-  &::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border-color);
-  }
-
-  span {
-    font-size: 7px;
-    color: var(--label-title-color);
-    white-space: nowrap;
-  }
-}
-
-.google-btn-wrapper {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 4px;
 }
 
 /* ===== AVISO DE TERMOS / PRIVACIDADE ===== */
@@ -208,5 +122,10 @@
   a {
     color: var(--accent-color);
     text-decoration: underline;
+
+    &:focus-visible {
+      outline: 2px solid var(--accent-color);
+      outline-offset: 2px;
+    }
   }
 }

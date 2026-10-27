@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { SignupComponent, TERMS_NOT_ACCEPTED_MESSAGE } from './signup.component';
 import { AuthService } from '../../services/auth.service';
 
@@ -111,5 +111,16 @@ describe('SignupComponent', () => {
     component.handleGoogleCredential('id-token');
     expect(authService.googleLogin).toHaveBeenCalledWith('id-token');
     expect(navigate).toHaveBeenCalledWith(['/']);
+  });
+
+  it('ignora um segundo envio enquanto o primeiro ainda está carregando (Enter repetido)', () => {
+    const pending = new Subject<unknown>();
+    authService.signup.mockReturnValue(pending);
+    component.acceptedTerms.set(true);
+    component.submit();
+    component.submit();
+    expect(authService.signup).toHaveBeenCalledTimes(1);
+    component.handleGoogleCredential('id-token');
+    expect(authService.googleLogin).not.toHaveBeenCalled();
   });
 });

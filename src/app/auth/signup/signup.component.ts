@@ -90,6 +90,8 @@ export class SignupComponent implements AfterViewInit {
   }
 
   handleGoogleCredential(idToken: string): void {
+    // Já tem um cadastro/entrada em andamento: não começa outro em paralelo.
+    if (this.loading()) return;
     // O botão do Google já fica travado sem o aceite (ver google-btn-wrapper--locked); isto é a
     // segunda barreira, caso o callback dispare mesmo assim (ex.: One Tap).
     if (!this.ensureTermsAccepted()) return;
@@ -105,6 +107,8 @@ export class SignupComponent implements AfterViewInit {
   }
 
   submit() {
+    // Enter repetido no último campo (o keyup não respeita o botão desabilitado): um envio só.
+    if (this.loading()) return;
     if (!this.ensureTermsAccepted()) return;
     const username = this.username().trim();
     const usernameError = username

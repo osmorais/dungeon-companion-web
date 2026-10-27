@@ -33,8 +33,8 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
-    version: '1.13.3',
-    date: '2026-10-26',
+    version: '1.13.4',
+    date: '2026-10-27',
     title: 'Bestiário com cara de carta',
     changes: [
       {
@@ -48,6 +48,33 @@ export const RELEASES: Release[] = [
       {
         kind: 'correcao',
         text: 'Os cards do bestiário agora abrem e fecham direitinho pelo teclado, e o aviso de remover um monstro fecha ao apertar Esc.',
+      },
+    ],
+  },
+  {
+    version: '1.13.3',
+    date: '2026-10-27',
+    title: 'Cadastro e entrada com visual renovado',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'As telas de criar conta e de entrada ganharam um visual mais caprichado, com o logo da Forja Arcana, cantos estilo quadro de missão e campos com relevo, no mesmo estilo visual do resto do site.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'O botão de confirmar e o aviso de erro ficaram mais visíveis nas duas telas.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Aperte Enter no campo de e-mail da tela de entrada para ir direto pro campo de senha, sem precisar clicar.',
+      },
+      {
+        kind: 'correcao',
+        text: 'Apertar Enter várias vezes seguidas na tela de entrada ou de criar conta não envia mais o formulário mais de uma vez.',
+      },
+      {
+        kind: 'correcao',
+        text: 'O gerenciador de senhas do navegador volta a preencher certinho o campo da tela de entrada.',
       },
     ],
   },
