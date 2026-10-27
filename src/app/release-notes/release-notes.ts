@@ -34,7 +34,7 @@ export interface Release {
 export const RELEASES: Release[] = [
   {
     version: '1.13.3',
-    date: '2026-10-26',
+    date: '2026-10-27',
     title: 'Cadastro e entrada com visual renovado',
     changes: [
       {
