@@ -1,3 +1,4 @@
+import { TestBed } from '@angular/core/testing';
 import { MonsterStatBlockComponent } from './monster-stat-block.component';
 import { MonsterStatBlock } from '../models/monster-catalog.interface';
 
@@ -22,23 +23,32 @@ const STAT_BLOCK: MonsterStatBlock = {
 };
 
 describe('MonsterStatBlockComponent', () => {
-  function setup(overrides: Partial<MonsterStatBlockComponent> = {}) {
-    const component = new MonsterStatBlockComponent();
-    component.detail = STAT_BLOCK;
-    Object.assign(component, overrides);
-    return component;
+  // Entradas por signal (input()): setadas pelo componentRef, como o template faria.
+  function setup(
+    inputs: Partial<{
+      detail: MonsterStatBlock;
+      nameOverride: string | null;
+      originalName: string | null;
+      hpOverride: number | null;
+    }> = {},
+  ) {
+    const fixture = TestBed.createComponent(MonsterStatBlockComponent);
+    fixture.componentRef.setInput('detail', STAT_BLOCK);
+    for (const [k, v] of Object.entries(inputs)) fixture.componentRef.setInput(k, v);
+    fixture.detectChanges();
+    return fixture.componentInstance;
   }
 
   it('usa o nome e os PV da ficha crua quando não há override', () => {
     const component = setup();
-    expect(component.displayName).toBe('Aarakocra');
-    expect(component.hp).toBe(13);
+    expect(component.displayName()).toBe('Aarakocra');
+    expect(component.hp()).toBe(13);
   });
 
   it('nome e PV customizados (monstro já catalogado) sobrescrevem a ficha crua', () => {
     const component = setup({ nameOverride: 'Pena Rubra', hpOverride: 20 });
-    expect(component.displayName).toBe('Pena Rubra');
-    expect(component.hp).toBe(20);
+    expect(component.displayName()).toBe('Pena Rubra');
+    expect(component.hp()).toBe(20);
   });
 
   it('lê a CA do primeiro item de armor_class', () => {
@@ -48,12 +58,12 @@ describe('MonsterStatBlockComponent', () => {
 
   it('formata o deslocamento e o nível de desafio como no livro', () => {
     const component = setup();
-    expect(component.speed).toBe('terrestre: 6 m, voo: 15 m');
-    expect(component.crText(component.detail.challenge_rating)).toBe('1/4');
+    expect(component.speed()).toBe('terrestre: 6 m, voo: 15 m');
+    expect(component.crText(component.detail().challenge_rating)).toBe('1/4');
   });
 
   it('ND 5+ marca o nome como ameaça (destaque dourado); abaixo disso não', () => {
-    expect(setup().isThreat).toBe(false);
-    expect(setup({ detail: { ...STAT_BLOCK, challenge_rating: 17 } }).isThreat).toBe(true);
+    expect(setup().isThreat()).toBe(false);
+    expect(setup({ detail: { ...STAT_BLOCK, challenge_rating: 17 } }).isThreat()).toBe(true);
   });
 });

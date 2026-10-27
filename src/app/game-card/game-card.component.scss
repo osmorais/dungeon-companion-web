@@ -19,6 +19,11 @@
     filter: drop-shadow(0 0 6px var(--accent-color));
   }
 
+  // Monstro perigoso no bestiário (ND 5+): brilho próprio, pra não depender do `ready` das magias.
+  &--threat {
+    filter: drop-shadow(0 0 6px var(--gold-color));
+  }
+
   // Sem vaga pra preparar ou travada em combate.
   &--locked {
     filter: grayscale(0.7) brightness(0.75);

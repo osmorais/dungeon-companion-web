@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MonsterCatalogService } from '../services/monster-catalog.service';
 import { MonsterCatalogEntry } from '../models/monster-catalog.interface';
 
+import { catalogMonsterName } from '../services/monster-format';
 @Component({
   selector: 'app-monster-catalog-detail',
   standalone: true,
@@ -50,9 +51,7 @@ export class MonsterCatalogDetailComponent implements OnInit {
     });
   }
 
-  monsterName(monster: MonsterCatalogEntry): string {
-    return monster.custom_name ?? monster.data_snapshot.name;
-  }
+  readonly monsterName = catalogMonsterName;
 
   /** ========================= IMAGEM CUSTOMIZADA ========================= */
 

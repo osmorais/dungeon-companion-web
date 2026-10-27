@@ -28,3 +28,11 @@ export const THREAT_CHALLENGE_RATING = 5;
 export function isHighThreat(cr: number): boolean {
   return cr >= THREAT_CHALLENGE_RATING;
 }
+
+/** Nome do monstro catalogado: o apelido do mestre ou o da ficha (lista e detalhe do bestiário). */
+export function catalogMonsterName(monster: {
+  custom_name?: string | null;
+  data_snapshot: { name: string };
+}): string {
+  return monster.custom_name ?? monster.data_snapshot.name;
+}

@@ -63,7 +63,7 @@ export function spellCardState(
   prepares: boolean,
   canPrepareMore: boolean,
   inCombat: boolean,
-): Exclude<GameCardState, null> {
+): Exclude<GameCardState, null | 'threat'> {
   if (spell.spellLevel === 0 || !prepares || spell.is_prepared) return 'ready';
   return !inCombat && canPrepareMore ? 'preparable' : 'locked';
 }

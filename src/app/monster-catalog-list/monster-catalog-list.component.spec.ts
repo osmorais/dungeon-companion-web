@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { MonsterCatalogListComponent } from './monster-catalog-list.component';
 import { MonsterCatalogService } from '../services/monster-catalog.service';
@@ -70,11 +70,11 @@ describe('MonsterCatalogListComponent', () => {
     expect(component.monsterName(component.monsters()[0])).toBe('Goblin');
   });
 
-  it('ND 5+ deixa a carta "pronta" (brilho dourado); abaixo disso, carta normal', () => {
+  it('ND 5+ marca a carta como ameaça (brilho próprio, não o "pronta" das magias)', () => {
     const { component } = setup([
       entry({ data_snapshot: { ...STAT_BLOCK, challenge_rating: 17 } }),
     ]);
-    expect(component.cardState(component.monsters()[0])).toBe('ready');
+    expect(component.cardState(component.monsters()[0])).toBe('threat');
   });
 
   it('ND abaixo de 5 não acende o brilho', () => {
@@ -140,5 +140,88 @@ describe('MonsterCatalogListComponent', () => {
     component.confirmDelete();
     expect(component.deleteTarget()).not.toBeNull();
     expect(component.deleteError()).toBe('Não foi possível remover o monstro. Tente novamente.');
+  });
+
+  describe('confirmação de remoção na tela (foco e teclado)', () => {
+    const flush = async () => {
+      for (let i = 0; i < 5; i++) await Promise.resolve();
+    };
+    function render() {
+      const service = {
+        getCatalog: vi.fn(() =>
+          of({ MonsterCatalogPagedList: [entry()], page: 1, pageSize: 12, total_count: 1 }),
+        ),
+        deleteCatalogEntry: vi.fn(() => of(undefined)),
+      };
+      TestBed.configureTestingModule({
+        providers: [provideRouter([]), { provide: MonsterCatalogService, useValue: service }],
+      });
+      const fixture = TestBed.createComponent(MonsterCatalogListComponent);
+      fixture.componentInstance.isMobile.set(false);
+      fixture.detectChanges();
+      const el = fixture.nativeElement as HTMLElement;
+      document.body.appendChild(el);
+      const key = (k: string, shiftKey = false) =>
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: k, shiftKey, bubbles: true }));
+      return { fixture, el, key, component: fixture.componentInstance };
+    }
+    it('Esc fecha de qualquer lugar e o foco volta pro ✕ que abriu', async () => {
+      const { fixture, el, key, component } = render();
+      try {
+        const opener = el.querySelector<HTMLButtonElement>('.catalog-card-delete')!;
+        opener.focus();
+        opener.click();
+        fixture.detectChanges();
+        await flush();
+        expect(document.activeElement?.classList.contains('delete-modal')).toBe(true);
+        (document.activeElement as HTMLElement).blur(); // foco fora da janela
+        key('Escape');
+        fixture.detectChanges();
+        await flush();
+        expect(component.deleteTarget()).toBeNull();
+        expect(document.activeElement).toBe(opener);
+      } finally {
+        el.remove();
+      }
+    });
+
+    it('Tab circula só entre os botões da janela', async () => {
+      const { fixture, el, key } = render();
+      try {
+        el.querySelector<HTMLButtonElement>('.catalog-card-delete')!.click();
+        fixture.detectChanges();
+        await flush();
+        const [cancel, confirm] = Array.from(
+          el.querySelectorAll<HTMLButtonElement>('.delete-modal-actions button'),
+        );
+        key('Tab'); // foco no quadro da janela: vai pro primeiro botão
+        expect(document.activeElement).toBe(cancel);
+        confirm.focus();
+        key('Tab'); // último → volta pro primeiro
+        expect(document.activeElement).toBe(cancel);
+        key('Tab', true); // primeiro, Shift+Tab → último
+        expect(document.activeElement).toBe(confirm);
+      } finally {
+        el.remove();
+      }
+    });
+
+    it('removeu: a carta some e o foco vai pro + CATALOGAR', async () => {
+      const { fixture, el, component } = render();
+      try {
+        const opener = el.querySelector<HTMLButtonElement>('.catalog-card-delete')!;
+        opener.focus();
+        opener.click();
+        fixture.detectChanges();
+        await flush();
+        opener.remove(); // a lista recarregada já não tem essa carta
+        component.confirmDelete();
+        fixture.detectChanges();
+        await flush();
+        expect(document.activeElement?.classList.contains('new-btn')).toBe(true);
+      } finally {
+        el.remove();
+      }
+    });
   });
 });

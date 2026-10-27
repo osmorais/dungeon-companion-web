@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { MonsterStatBlock } from '../models/monster-catalog.interface';
 import { challengeRatingText, isHighThreat, monsterSpeedText } from '../services/monster-format';
 
@@ -15,31 +15,18 @@ import { challengeRatingText, isHighThreat, monsterSpeedText } from '../services
   styleUrls: ['./monster-stat-block.component.scss'],
 })
 export class MonsterStatBlockComponent {
-  @Input({ required: true }) detail!: MonsterStatBlock;
-  @Input() nameOverride: string | null = null;
-  @Input() originalName: string | null = null;
-  @Input() hpOverride: number | null = null;
+  readonly detail = input.required<MonsterStatBlock>();
+  readonly nameOverride = input<string | null>(null);
+  readonly originalName = input<string | null>(null);
+  readonly hpOverride = input<number | null>(null);
 
   crText = challengeRatingText;
 
-  get displayName(): string {
-    return this.nameOverride ?? this.detail.name;
-  }
-
-  get hp(): number {
-    return this.hpOverride ?? this.detail.hit_points;
-  }
-
-  get speed(): string {
-    return monsterSpeedText(this.detail.speed);
-  }
-
+  // computed: recalcula só quando a entrada muda (getters rodavam a cada detecção de mudanças).
+  readonly displayName = computed(() => this.nameOverride() ?? this.detail().name);
+  readonly hp = computed(() => this.hpOverride() ?? this.detail().hit_points);
+  readonly speed = computed(() => monsterSpeedText(this.detail().speed));
   /** Mesmo corte de "ameaça" usado no card da lista: nome em dourado aqui também. */
-  get isThreat(): boolean {
-    return isHighThreat(this.detail.challenge_rating);
-  }
-
-  acValue(): number | null {
-    return this.detail.armor_class?.[0]?.value ?? null;
-  }
+  readonly isThreat = computed(() => isHighThreat(this.detail().challenge_rating));
+  readonly acValue = computed(() => this.detail().armor_class?.[0]?.value ?? null);
 }

@@ -16,7 +16,8 @@ import { GameCardData, GameCardState } from '../game-card/game-card.model';
 import { Router, RouterLink } from '@angular/router';
 import { MonsterCatalogService } from '../services/monster-catalog.service';
 import { MonsterCatalogEntry } from '../models/monster-catalog.interface';
-import { challengeRatingText, isHighThreat } from '../services/monster-format';
+import { catalogMonsterName, challengeRatingText, isHighThreat } from '../services/monster-format';
+import { monsterToCard } from '../game-card/monster-card';
 
 const PAGE_SIZE = 12;
 
@@ -60,6 +61,9 @@ export class MonsterCatalogListComponent implements OnInit {
   deleteError = signal<string | null>(null);
 
   private deleteModal = viewChild<ElementRef<HTMLElement>>('deleteModal');
+  private newButton = viewChild<ElementRef<HTMLButtonElement>>('newButton');
+  /** Quem abriu a confirmação (o ✕ da carta): o foco volta pra ele ao fechar. */
+  private deleteOpener: HTMLElement | null = null;
 
   constructor() {
     // Abriu o modal: foco vai pro quadro (role="dialog"), senão leitor de tela não percebe a troca.
@@ -103,9 +107,7 @@ export class MonsterCatalogListComponent implements OnInit {
     }
   }
 
-  monsterName(monster: MonsterCatalogEntry): string {
-    return monster.custom_name ?? monster.data_snapshot.name;
-  }
+  readonly monsterName = catalogMonsterName;
 
   /** Carta igual à de revelação de monstro em combate (game-card, variant 'monster': moldura e
    *  medalhão do próprio monstro) — só que com o ND no medalhão (lá é "?", monstro desconhecido;
@@ -114,22 +116,17 @@ export class MonsterCatalogListComponent implements OnInit {
    *  ver --monster-card-badge no styles.scss); o ND continua no resumo. */
   toCard(monster: MonsterCatalogEntry): GameCardData {
     const snapshot = monster.data_snapshot;
-    const ribbon = [snapshot.type, snapshot.size]
-      .filter((p): p is string => !!p?.trim())
-      .map((p) => p.trim().toUpperCase())
-      .join(' · ');
+    // A mesma carta da revelação (monsterToCard: faixa tipo · tamanho, moldura do monstro), com o
+    // ND no medalhão e o resumo no pergaminho.
     return {
-      title: this.monsterName(monster),
+      ...monsterToCard({
+        name: this.monsterName(monster),
+        imageUrl: monster.image_url,
+        monsterType: snapshot.type,
+        size: snapshot.size,
+        lore: this.summary(monster),
+      }),
       badge: this.crText(snapshot.challenge_rating),
-      art: monster.image_url || this.DEFAULT_MONSTER_IMAGE,
-      fallbackIcon: this.DEFAULT_MONSTER_IMAGE,
-      artBackground: null,
-      artFit: 'cover',
-      ribbon: ribbon || 'MONSTRO',
-      stats: [],
-      text: this.summary(monster),
-      tags: [],
-      variant: 'monster',
     };
   }
 
@@ -142,7 +139,7 @@ export class MonsterCatalogListComponent implements OnInit {
 
   /** ND 5+ é ameaça de verdade: destaque dourado no card (mesmo corte de monster-stat-block). */
   cardState(monster: MonsterCatalogEntry): GameCardState {
-    return isHighThreat(monster.data_snapshot.challenge_rating) ? 'ready' : null;
+    return isHighThreat(monster.data_snapshot.challenge_rating) ? 'threat' : null;
   }
 
   catalogNew() {
@@ -154,13 +151,64 @@ export class MonsterCatalogListComponent implements OnInit {
   }
 
   requestDelete(monster: MonsterCatalogEntry) {
+    this.deleteOpener =
+      typeof document !== 'undefined' ? (document.activeElement as HTMLElement | null) : null;
     this.deleteError.set(null);
     this.deleteTarget.set(monster);
   }
 
   cancelDelete() {
     if (this.deleting()) return;
+    this.closeDeleteModal();
+  }
+
+  /** Fecha a confirmação e devolve o foco pra quem abriu (ou, se a carta sumiu, pro "+ CATALOGAR"). */
+  private closeDeleteModal() {
     this.deleteTarget.set(null);
+    const opener = this.deleteOpener;
+    this.deleteOpener = null;
+    queueMicrotask(() => {
+      if (opener?.isConnected) opener.focus();
+      else this.newButton()?.nativeElement.focus();
+    });
+  }
+
+  /**
+   * Com a confirmação aberta (aria-modal): Esc fecha de onde estiver o foco, e o Tab circula só
+   * entre os botões dela, sem escapar pras cartas e pela paginação por trás.
+   */
+  @HostListener('document:keydown', ['$event'])
+  onDocumentKeydown(event: KeyboardEvent) {
+    if (!this.deleteTarget()) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      this.cancelDelete();
+      return;
+    }
+    if (event.key !== 'Tab') return;
+    const modal = this.deleteModal()?.nativeElement;
+    if (!modal) return;
+    const focusables = Array.from(
+      modal.querySelectorAll<HTMLElement>('button:not([disabled]), [href]'),
+    );
+    if (!focusables.length) {
+      event.preventDefault();
+      modal.focus();
+      return;
+    }
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    const active = document.activeElement as HTMLElement | null;
+    if (!active || !modal.contains(active) || active === modal) {
+      event.preventDefault();
+      (event.shiftKey ? last : first).focus();
+    } else if (event.shiftKey && active === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && active === last) {
+      event.preventDefault();
+      first.focus();
+    }
   }
 
   confirmDelete() {
@@ -171,7 +219,7 @@ export class MonsterCatalogListComponent implements OnInit {
     this.monsterCatalogService.deleteCatalogEntry(target.id_monster_catalog).subscribe({
       next: () => {
         this.deleting.set(false);
-        this.deleteTarget.set(null);
+        this.closeDeleteModal();
         if (this.monsters().length === 1 && this.hasPrev()) {
           this.page.update((p) => p - 1);
         }

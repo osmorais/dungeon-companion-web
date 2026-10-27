@@ -16,7 +16,7 @@
       <p class="mobile-empty-msg" role="alert">ERRO AO CARREGAR O MONSTRO.</p>
     } @else if (monster(); as m) {
       <fieldset class="mobile-panel">
-        <legend>{{ m.data_snapshot.type }}</legend>
+        <legend class="type-legend">{{ m.data_snapshot.type }}</legend>
 
         <div class="stat-image-block">
           @if (m.image_url) {
@@ -72,7 +72,7 @@
       </fieldset>
     } @else if (monster(); as m) {
       <fieldset class="retro-panel">
-        <legend>{{ m.data_snapshot.type }}</legend>
+        <legend class="type-legend">{{ m.data_snapshot.type }}</legend>
 
         <div class="stat-image-block">
           @if (m.image_url) {

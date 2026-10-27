@@ -6,7 +6,7 @@
       <span class="m-title">BESTIÁRIO</span>
     </div>
 
-    <button class="retro-btn mobile-new-btn" (click)="catalogNew()">
+    <button #newButton class="retro-btn mobile-new-btn" (click)="catalogNew()">
       + CATALOGAR NOVO MONSTRO
     </button>
 
@@ -79,7 +79,9 @@
     </header>
 
     <div class="page-toolbar">
-      <button class="retro-btn new-btn" (click)="catalogNew()">+ CATALOGAR NOVO MONSTRO</button>
+      <button #newButton class="retro-btn new-btn" (click)="catalogNew()">
+        + CATALOGAR NOVO MONSTRO
+      </button>
     </div>
 
     @if (error()) {
@@ -148,7 +150,6 @@
       aria-labelledby="delete-modal-title"
       tabindex="-1"
       (click)="$event.stopPropagation()"
-      (keydown.escape)="cancelDelete()"
     >
       <h3 class="modal-title" id="delete-modal-title">REMOVER MONSTRO</h3>
       <p class="delete-modal-text">

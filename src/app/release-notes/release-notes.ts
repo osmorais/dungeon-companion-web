@@ -39,7 +39,7 @@ export const RELEASES: Release[] = [
     changes: [
       {
         kind: 'melhoria',
-        text: 'Os monstros catalogados no bestiário agora aparecem como cartas, no mesmo estilo da carta do monstro revelado em combate: nome, imagem, nível de desafio, CA e PV bem visíveis.',
+        text: 'Os monstros catalogados no bestiário agora aparecem como cartas, no mesmo estilo da carta do monstro revelado em combate: nome, imagem, tipo e tamanho na carta, e um resumo com CA, PV e nível de desafio (no tema Fantasia o nível de desafio também fica no medalhão).',
       },
       {
         kind: 'melhoria',
@@ -47,7 +47,11 @@ export const RELEASES: Release[] = [
       },
       {
         kind: 'correcao',
-        text: 'Os cards do bestiário agora abrem e fecham direitinho pelo teclado, e o aviso de remover um monstro fecha ao apertar Esc.',
+        text: 'Os cards do bestiário agora abrem e fecham direitinho pelo teclado, e o aviso de remover um monstro fecha ao apertar Esc, mantém o foco dentro dele e o devolve ao fechar.',
+      },
+      {
+        kind: 'correcao',
+        text: 'No celular, o botão de remover um monstro do bestiário aparece sempre (antes só aparecia passando o mouse).',
       },
     ],
   },

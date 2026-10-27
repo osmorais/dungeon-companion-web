@@ -81,3 +81,9 @@
   padding: 24px 0;
   margin: 0;
 }
+
+// Título do painel = tipo do monstro, que vem em minúsculas ("humanoide"): primeira maiúscula no
+// celular e no desktop (antes só o celular capitalizava).
+.type-legend {
+  text-transform: capitalize;
+}
