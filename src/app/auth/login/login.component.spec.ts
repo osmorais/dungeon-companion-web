@@ -81,4 +81,47 @@ describe('LoginComponent', () => {
     expect(component.errorMessage()).toBe('Erro ao entrar com Google. Tente novamente.');
     expect(component.loading()).toBe(false);
   });
+
+  it('Google com uma entrada já em andamento não começa outra', () => {
+    const pending = new Subject<unknown>();
+    authService.login.mockReturnValue(pending);
+    component.submit();
+    component.handleGoogleCredential('id-token');
+    expect(authService.googleLogin).not.toHaveBeenCalled();
+  });
+
+  describe('foco no e-mail ao abrir', () => {
+    const focus = vi.fn();
+    // jsdom não tem matchMedia: define no teste e devolve o original depois.
+    const original = window.matchMedia;
+    const withPointer = (fine: boolean) => {
+      Object.defineProperty(window, 'matchMedia', {
+        configurable: true,
+        writable: true,
+        value: vi.fn(() => ({ matches: fine })),
+      });
+      component.googleEnabled.set(false);
+      component.emailInput = { nativeElement: { focus } } as never;
+    };
+    afterEach(() => {
+      Object.defineProperty(window, 'matchMedia', {
+        configurable: true,
+        writable: true,
+        value: original,
+      });
+      focus.mockClear();
+    });
+
+    it('com mouse/teclado, foca o e-mail', () => {
+      withPointer(true);
+      component.ngAfterViewInit();
+      expect(focus).toHaveBeenCalledTimes(1);
+    });
+
+    it('em tela de toque, não foca (o teclado cobriria o logo)', () => {
+      withPointer(false);
+      component.ngAfterViewInit();
+      expect(focus).not.toHaveBeenCalled();
+    });
+  });
 });

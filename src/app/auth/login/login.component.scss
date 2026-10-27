@@ -7,27 +7,9 @@
 }
 
 /* ===== PAINEL =====
-   O quadro (cantos, sombra), o campo, a caixa de erro, o botão e os links são compartilhados com
-   o cadastro — ver styles.scss. Aqui só o que muda entre as telas: cor de fundo/borda e o `top`
-   do canto decorativo, que acompanha o tamanho da legend (ver .mobile-login-panel abaixo). */
-
-.title-panel,
-.mobile-login-panel {
-  border: 2px solid var(--border-color);
-  background: var(--panel-bg);
-
-  legend {
-    border: 2px solid var(--border-color);
-    background: var(--bg-color);
-    padding: 6px 12px;
-    color: var(--text-color);
-    letter-spacing: 0.5px;
-  }
-
-  &::before {
-    top: -17px;
-  }
-}
+   O quadro (borda, legend, cantos, sombra), o logo, o campo, a caixa de erro, o botão e os links
+   são compartilhados com o cadastro — ver `.auth-retro` no styles.scss. Aqui só o que é desta tela:
+   tamanhos, espaçamentos e o canto de cima no celular (legend menor). */
 
 .title-panel {
   width: 100%;
@@ -41,15 +23,11 @@
 }
 
 .logo-container {
-  display: flex;
-  justify-content: center;
   margin-bottom: 24px;
 }
 
 .logo {
   max-width: 367px;
-  width: 100%;
-  height: auto;
 }
 
 /* ===== CAMPOS ===== */
@@ -107,23 +85,16 @@
     font-size: 10px;
   }
 
-  &::before {
-    /* Legend menor no celular (10px): canto mais perto da borda, senão fica solto (item 5 do
-       review do PR #7). */
-    top: -15px;
-  }
+  /* Legend menor no celular (10px): canto mais perto da borda, senão fica solto. */
+  --auth-corner-top: -15px;
 }
 
 .mobile-logo-container {
-  display: flex;
-  justify-content: center;
   margin-bottom: 16px;
 }
 
 .mobile-logo {
   max-width: 160px;
-  width: 100%;
-  height: auto;
 }
 
 .mobile-form-group {

@@ -51,7 +51,7 @@ export const RELEASES: Release[] = [
       },
       {
         kind: 'correcao',
-        text: 'Apertar Enter várias vezes seguidas no campo de senha da tela de entrada não envia mais o formulário mais de uma vez.',
+        text: 'Apertar Enter várias vezes seguidas na tela de entrada ou de criar conta não envia mais o formulário mais de uma vez.',
       },
       {
         kind: 'correcao',

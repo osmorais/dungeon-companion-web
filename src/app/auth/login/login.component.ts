@@ -47,7 +47,11 @@ export class LoginComponent implements AfterViewInit {
   readonly legalRoutes = LEGAL_DOC_ROUTES;
 
   ngAfterViewInit(): void {
-    this.emailInput?.nativeElement.focus();
+    // Foco no e-mail só com mouse/teclado: em tela de toque (celular, tablet) abriria o teclado por
+    // cima do logo. Vale nas duas versões da tela (as duas marcam o campo com #emailInput).
+    if (typeof window !== 'undefined' && window.matchMedia?.('(pointer: fine)').matches) {
+      this.emailInput?.nativeElement.focus();
+    }
     if (!this.googleEnabled()) return;
     this.googleIdentity
       .load()
@@ -73,6 +77,8 @@ export class LoginComponent implements AfterViewInit {
   }
 
   handleGoogleCredential(idToken: string): void {
+    // Já tem uma entrada em andamento (e-mail ou Google): não começa outra em paralelo.
+    if (this.loading()) return;
     this.errorMessage.set('');
     this.loading.set(true);
     this.authService.googleLogin(idToken).subscribe({

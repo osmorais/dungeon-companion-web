@@ -7,57 +7,34 @@
   box-sizing: border-box;
 }
 
-/* ===== PAINEL (COMPARTILHADO) =====
-   O quadro (cantos, sombra), o campo, a caixa de erro, o botão e os links são compartilhados com
-   o login — ver styles.scss. Aqui só o que muda entre as telas: cor de fundo/borda e o `top` do
-   canto decorativo, que acompanha o tamanho da legend (12px nas duas variantes aqui). */
+/* ===== PAINEL =====
+   O quadro (borda, legend, cantos, sombra), o logo, o campo, a caixa de erro, o botão e os links
+   são compartilhados com o login — ver `.auth-retro` no styles.scss. Aqui só o que é desta tela. */
 
 .auth-panel,
 .mobile-signup-panel {
   legend {
     font-size: 12px;
-    letter-spacing: 0.5px;
-  }
-
-  &::before {
-    top: -17px;
   }
 }
 
 .auth-panel {
   width: 400px;
   max-width: 90vw;
-  border: 2px solid var(--border-color);
-  background: var(--panel-bg);
   padding: 24px;
-
-  legend {
-    border: 2px solid var(--border-color);
-    background: var(--bg-color);
-    padding: 6px 12px;
-    color: var(--text-color);
-  }
 }
-
-/* ===== LOGO (COMPARTILHADO) ===== */
 
 .logo-container,
 .mobile-logo-container {
-  display: flex;
-  justify-content: center;
   margin-bottom: 18px;
 }
 
 .logo {
   max-width: 200px;
-  width: 100%;
-  height: auto;
 }
 
 .mobile-logo {
   max-width: 130px;
-  width: 100%;
-  height: auto;
 }
 
 /* ===== CAMPOS (COMPARTILHADO) ===== */
@@ -112,15 +89,10 @@
 
 .mobile-signup-panel {
   width: 100%;
-  border: 2px solid var(--border-color);
-  background: var(--panel-bg);
   padding: 16px 14px;
 
   legend {
-    border: 2px solid var(--border-color);
-    background: var(--bg-color);
     padding: 6px 10px;
-    color: var(--text-color);
   }
 }
 

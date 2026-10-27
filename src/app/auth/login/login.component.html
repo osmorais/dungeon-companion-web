@@ -1,6 +1,6 @@
 @if (isMobile()) {
   <!-- ===== MOBILE LAYOUT ===== -->
-  <div class="mobile-login-container">
+  <div class="mobile-login-container auth-retro">
     <fieldset class="mobile-login-panel">
       <legend>ENTRADA DA MASMORRA</legend>
 
@@ -17,6 +17,7 @@
           autocomplete="username"
           inputmode="email"
           spellcheck="false"
+          #emailInput
           [(ngModel)]="email"
           placeholder="heroi@aventura.com"
           (keyup.enter)="passwordInput.focus()"
@@ -74,7 +75,7 @@
   </div>
 } @else {
   <!-- ===== DESKTOP LAYOUT ===== -->
-  <div class="home-container">
+  <div class="home-container auth-retro">
     <fieldset class="title-panel">
       <legend>ENTRADA DA MASMORRA</legend>
 
