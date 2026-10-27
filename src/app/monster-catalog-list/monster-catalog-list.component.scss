@@ -1,5 +1,5 @@
-// Só o botão "+ catalogar" na barra (sem busca/filtro ainda): empurra pra direita sem precisar
-// de um <span></span> vazio como marcador de posição.
+// Só o botão "+ catalogar" na barra (a busca fica no painel de filtros): empurra pra direita sem
+// precisar de um <span></span> vazio como marcador de posição.
 .page-toolbar {
   justify-content: flex-end;
 }
@@ -8,6 +8,27 @@
   float: none;
   font-size: 8px;
   padding: 8px 14px;
+}
+
+/* ===== Layout: filtros (app-monster-filters) | cartas, como na tela de catalogar ===== */
+
+.catalog-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .catalog-layout {
+    grid-template-columns: 280px minmax(0, 1fr);
+    align-items: start;
+    gap: 24px;
+  }
+
+  app-monster-filters {
+    position: sticky;
+    top: 16px;
+  }
 }
 
 /* ===== MODAL: CONFIRMAR REMOÇÃO ===== */
@@ -123,10 +144,13 @@
 
 /* ===== Card do bestiário: a mesma carta de game-card da revelação de monstro em combate
    (medalhão, faixa de nome, arte, faixa de tipo/tamanho, pergaminho) — ver toCard() no
-   componente. O brilho dourado de "pronta" vira o aviso de ND alto (ameaça de verdade). */
+   componente. ND alto (ameaça de verdade) ganha brilho vermelho (gc--threat). */
 .catalog-card {
   position: relative;
   transition: transform 0.12s;
+  // Nome e resumo maiores que o padrão da carta pequena (game-card), pra ler na lista.
+  --gc-title-size: max(10px, 5cqw);
+  --gc-desc-size: max(9px, 3.6cqw);
 
   &:hover,
   &:focus-within {

@@ -1,7 +1,6 @@
 import { MonsterAbility, MonsterStatBlock } from '../models/monster-catalog.interface';
 import {
   actionAvailability,
-  isMechanicalStatBlock,
   legendaryTotal,
   monsterActions,
   monsterChecks,
@@ -226,13 +225,6 @@ describe('monsterActions', () => {
       ['actions', ['Descanso curto ou longo']],
       ['legendary_actions', ['Custo 2']],
     ]);
-  });
-
-  it('ficha antiga da dnd5eapi (sem campos estruturados) não vira botão', () => {
-    const legacy = block([]);
-    legacy.actions = [{ name: 'Scimitar', desc: 'Melee Weapon Attack: +4 to hit' }];
-    expect(isMechanicalStatBlock(legacy)).toBe(false);
-    expect(monsterActions(legacy)).toEqual([]);
   });
 });
 

@@ -1,0 +1,121 @@
+<aside class="mf-panel" [attr.aria-label]="label()">
+  <input
+    type="text"
+    class="mf-input mf-search"
+    placeholder="Buscar monstro pelo nome..."
+    aria-label="Buscar monstro pelo nome"
+    [ngModel]="filters().search"
+    (ngModelChange)="patch.emit({ search: $event })"
+  />
+  @if (mobile()) {
+    <button
+      type="button"
+      class="mf-toggle"
+      aria-controls="mf-body"
+      [attr.aria-expanded]="open()"
+      (click)="open.set(!open())"
+    >
+      <span>{{ open() ? '▲' : '▼' }} FILTROS</span>
+      <span class="mf-count">
+        @if (active()) {
+          {{ active() }} {{ active() === 1 ? 'LIGADO' : 'LIGADOS' }} ·
+        }
+        {{ total() }}
+        {{ total() === 1 ? 'MONSTRO' : 'MONSTROS' }}
+      </span>
+    </button>
+  }
+  @if (!mobile() || open()) {
+    <div id="mf-body" class="mf-body">
+      <div class="mf-filter-group" role="group" aria-label="Nível de desafio">
+        <span class="mf-label">ND</span>
+        <div class="mf-chips">
+          @for (tier of crTiers; track tier.label) {
+            <button
+              type="button"
+              class="mf-chip"
+              [class.mf-chip--on]="isTier(tier)"
+              [attr.aria-pressed]="isTier(tier)"
+              (click)="setTier(tier)"
+            >
+              {{ tier.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="mf-filter-row">
+        <label class="mf-field">
+          <span class="mf-label">TIPO</span>
+          <select
+            class="mf-select"
+            [ngModel]="filters().type"
+            (ngModelChange)="patch.emit({ type: $event })"
+          >
+            <option value="">TODOS</option>
+            @for (t of types(); track t) {
+              <option [value]="t">{{ t }}</option>
+            }
+          </select>
+        </label>
+        <label class="mf-field">
+          <span class="mf-label">TAMANHO</span>
+          <select
+            class="mf-select"
+            [ngModel]="filters().size"
+            (ngModelChange)="patch.emit({ size: $event })"
+          >
+            <option value="">TODOS</option>
+            @for (s of sizes(); track s) {
+              <option [value]="s">{{ s }}</option>
+            }
+          </select>
+        </label>
+        <label class="mf-field">
+          <span class="mf-label">ORDENAR</span>
+          <select
+            class="mf-select"
+            [ngModel]="filters().sort"
+            (ngModelChange)="patch.emit({ sort: $event })"
+          >
+            @for (o of sortOptions(); track o.value) {
+              <option [value]="o.value">{{ o.label }}</option>
+            }
+          </select>
+        </label>
+      </div>
+
+      <div class="mf-filter-footer">
+        <div class="mf-chips">
+          <button
+            type="button"
+            class="mf-chip"
+            [class.mf-chip--on]="filters().legendary"
+            [attr.aria-pressed]="filters().legendary"
+            (click)="patch.emit({ legendary: !filters().legendary })"
+          >
+            ★ LENDÁRIOS
+          </button>
+          <button
+            type="button"
+            class="mf-chip"
+            [class.mf-chip--on]="filters().flies"
+            [attr.aria-pressed]="filters().flies"
+            (click)="patch.emit({ flies: !filters().flies })"
+          >
+            VOADORES
+          </button>
+        </div>
+        <span class="mf-count" aria-live="polite">
+          {{ total() }}
+          {{ total() === 1 ? 'MONSTRO' : 'MONSTROS' }}
+        </span>
+        @if (active()) {
+          <button type="button" class="mf-clear" (click)="cleared.emit()">
+            LIMPAR FILTROS ({{ active() }})
+          </button>
+        }
+      </div>
+    </div>
+  }
+</aside>

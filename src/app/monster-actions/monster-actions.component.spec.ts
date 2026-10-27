@@ -289,10 +289,67 @@ describe('MonsterActionsComponent', () => {
     });
   });
 
-  it('ficha antiga (dnd5eapi): só texto e o aviso pra catalogar de novo', () => {
-    const { el } = render(block([{ name: 'Scimitar', desc: 'Melee Weapon Attack: +4 to hit' }]));
-    expect(el.querySelector('.ma-roll')).toBeNull();
-    expect(el.textContent).toContain('Scimitar');
-    expect(el.querySelector('.ma-legacy')).not.toBeNull();
+  describe('só leitura (detalhe do bestiário, 1.13.4)', () => {
+    function renderView(b: MonsterStatBlock, part: 'actions' | 'checks') {
+      const fixture = TestBed.createComponent(MonsterActionsComponent);
+      fixture.componentRef.setInput('block', b);
+      fixture.componentRef.setInput('part', part);
+      fixture.componentRef.setInput('asCards', true);
+      fixture.componentRef.setInput('viewOnly', true);
+      const rolled: MonsterRollRequest[] = [];
+      fixture.componentInstance.roll.subscribe((r) => rolled.push(r));
+      fixture.detectChanges();
+      return { fixture, el: fixture.nativeElement as HTMLElement, rolled };
+    }
+
+    it('ações: baralho sem contadores; lista, covil e descanso sem botões; mão sem botão', () => {
+      const multi = ability({
+        name: 'Ataques Múltiplos',
+        multiattack: [{ action: 'Cimitarra', count: 2 }],
+      });
+      const asa = ability({ ...CIMITARRA, name: 'Asa', usage: { type: 'cost', actions: 2 } });
+      const { fixture, el } = renderView(
+        block([multi, CIMITARRA, SOPRO], {
+          legendary_count: 3,
+          legendary_actions: [asa],
+          reactions: [ability({ name: 'Aparar', desc: 'Soma 2 na CA.' })],
+          lair_actions: 'O teto desaba.',
+        }),
+        'actions',
+      );
+      expect(el.querySelector('app-card-deck')).not.toBeNull();
+      expect(el.querySelector('.ma-deck-status')).toBeNull();
+      expect(el.textContent).toContain('Ataques Múltiplos');
+      expect(el.textContent).toContain('O teto desaba.');
+      expect(el.textContent).not.toContain('FORA DO COVIL');
+      expect(el.querySelector('.ma-item button')).toBeNull();
+      expect(el.textContent).not.toContain('DESCANSO');
+      el.querySelector<HTMLButtonElement>('app-card-deck .deck')!.click();
+      fixture.detectChanges();
+      expect(el.querySelector('app-card-hand')).not.toBeNull();
+      expect(el.querySelector('.ma-hand-btn')).toBeNull();
+    });
+
+    it('lendárias na lista dizem quantas por rodada, sem contar uso', () => {
+      const grito = ability({ name: 'Grito', desc: 'Assusta.' });
+      const { el } = renderView(
+        block([CIMITARRA], { legendary_count: 3, legendary_actions: [grito] }),
+        'actions',
+      );
+      expect(el.textContent).toContain('AÇÕES LENDÁRIAS — 3 POR RODADA');
+      expect(el.textContent).not.toContain('RESTAM');
+    });
+
+    it('testes viram etiquetas que não rolam', () => {
+      const { el, rolled } = renderView(
+        block([CIMITARRA], { saving_throws: [{ ability: 'DES', bonus: 6 }] }),
+        'checks',
+      );
+      expect(el.querySelector('.ma-chips button')).toBeNull();
+      const chips = Array.from(el.querySelectorAll<HTMLElement>('.ma-chip--static'));
+      expect(chips[1].textContent?.trim()).toBe('Destreza +6');
+      chips[1].click();
+      expect(rolled).toEqual([]);
+    });
   });
 });

@@ -1,111 +1,52 @@
-@if (isMobile()) {
-  <!-- ===== MOBILE LAYOUT ===== -->
-  <div class="mobile-detail-container">
+<div [class]="isMobile() ? 'mobile-detail-container' : 'detail-container'">
+  @if (isMobile()) {
     <div class="m-header">
       <button class="m-back" (click)="goBack()">&#8592;</button>
       <span class="m-title">DETALHE DO MONSTRO</span>
     </div>
-
-    @if (loading()) {
-      <fieldset class="mobile-panel" aria-busy="true" aria-label="Carregando o monstro">
-        <span class="skeleton" style="width: 60%; height: 18px; margin: 0 auto 14px"></span>
-        <span class="skeleton" style="width: 160px; height: 160px; margin: 0 auto 14px"></span>
-        <app-skeleton-rows [rows]="6" [height]="12" />
-      </fieldset>
-    } @else if (error() || !monster()) {
-      <p class="mobile-empty-msg" role="alert">ERRO AO CARREGAR O MONSTRO.</p>
-    } @else if (monster(); as m) {
-      <fieldset class="mobile-panel">
-        <legend class="type-legend">{{ m.data_snapshot.type }}</legend>
-
-        <div class="stat-image-block">
-          @if (m.image_url) {
-            <img class="stat-image" [src]="m.image_url" [alt]="monsterName(m)" />
-          }
-          <label class="retro-btn stat-image-upload-btn">
-            {{
-              uploadingImage()
-                ? 'ENVIANDO...'
-                : m.image_url
-                  ? 'TROCAR IMAGEM'
-                  : '+ ADICIONAR IMAGEM'
-            }}
-            <input
-              type="file"
-              accept="image/*"
-              hidden
-              [disabled]="uploadingImage()"
-              (change)="onImageSelected($event)"
-            />
-          </label>
-          @if (imageUploadError()) {
-            <p class="stat-image-error" role="alert">{{ imageUploadError() }}</p>
-          }
-        </div>
-
-        <app-monster-stat-block
-          [detail]="m.data_snapshot"
-          [nameOverride]="m.custom_name"
-          [originalName]="m.custom_name ? m.data_snapshot.name : null"
-          [hpOverride]="m.hp_max"
-        />
-      </fieldset>
-    }
-  </div>
-} @else {
-  <!-- ===== DESKTOP LAYOUT ===== -->
-  <div class="detail-container">
+  } @else {
     <header class="page-topbar">
       <button class="retro-btn page-topbar-back" (click)="goBack()">← VOLTAR</button>
       <h1 class="page-topbar-name">DETALHE DO MONSTRO</h1>
     </header>
+  }
 
-    @if (loading()) {
-      <fieldset class="retro-panel" aria-busy="true" aria-label="Carregando o monstro">
-        <span class="skeleton" style="width: 50%; height: 20px; margin: 0 auto 16px"></span>
-        <span class="skeleton" style="width: 200px; height: 200px; margin: 0 auto 16px"></span>
-        <app-skeleton-rows [rows]="8" [height]="12" />
-      </fieldset>
-    } @else if (error() || !monster()) {
-      <fieldset class="retro-panel">
-        <p class="empty-msg" role="alert">ERRO AO CARREGAR O MONSTRO.</p>
-      </fieldset>
-    } @else if (monster(); as m) {
-      <fieldset class="retro-panel">
-        <legend class="type-legend">{{ m.data_snapshot.type }}</legend>
-
-        <div class="stat-image-block">
-          @if (m.image_url) {
-            <img class="stat-image" [src]="m.image_url" [alt]="monsterName(m)" />
-          }
-          <label class="retro-btn stat-image-upload-btn">
-            {{
-              uploadingImage()
-                ? 'ENVIANDO...'
-                : m.image_url
-                  ? 'TROCAR IMAGEM'
-                  : '+ ADICIONAR IMAGEM'
-            }}
-            <input
-              type="file"
-              accept="image/*"
-              hidden
-              [disabled]="uploadingImage()"
-              (change)="onImageSelected($event)"
-            />
-          </label>
-          @if (imageUploadError()) {
-            <p class="stat-image-error" role="alert">{{ imageUploadError() }}</p>
-          }
-        </div>
-
-        <app-monster-stat-block
-          [detail]="m.data_snapshot"
-          [nameOverride]="m.custom_name"
-          [originalName]="m.custom_name ? m.data_snapshot.name : null"
-          [hpOverride]="m.hp_max"
-        />
-      </fieldset>
+  @if (loading()) {
+    <div class="cd-loading" aria-busy="true" aria-label="Carregando o monstro">
+      <span class="skeleton" style="width: 180px; height: 250px; margin: 0 auto 16px"></span>
+      <app-skeleton-rows [rows]="6" [height]="12" />
+    </div>
+  } @else if (error() || !monster()) {
+    <p class="empty-msg" role="alert">ERRO AO CARREGAR O MONSTRO.</p>
+  } @else if (monster(); as m) {
+    @if (card(); as c) {
+      <app-monster-sheet
+        [block]="m.data_snapshot"
+        [card]="c"
+        [cardState]="cardState()"
+        [hp]="m.hp_max"
+        [ac]="m.ac"
+        [imageUrl]="m.image_url"
+      >
+        @if (m.custom_name) {
+          <p class="cd-meta">({{ m.data_snapshot.name }})</p>
+        }
+        <label class="retro-btn cd-image-btn">
+          {{
+            uploadingImage() ? 'ENVIANDO...' : m.image_url ? 'TROCAR IMAGEM' : '+ ADICIONAR IMAGEM'
+          }}
+          <input
+            type="file"
+            accept="image/*"
+            hidden
+            [disabled]="uploadingImage()"
+            (change)="onImageSelected($event)"
+          />
+        </label>
+        @if (imageUploadError()) {
+          <p class="cd-error" role="alert">{{ imageUploadError() }}</p>
+        }
+      </app-monster-sheet>
     }
-  </div>
-}
+  }
+</div>

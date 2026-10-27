@@ -80,12 +80,13 @@
   }
 }
 
-.ma-legacy {
-  margin-top: 10px;
-  font-size: 6px;
-  line-height: 1.6;
-  color: var(--label-title-color);
-}
+// Aviso da ficha antiga da dnd5eapi (fora de uso, 1.13.4).
+// .ma-legacy {
+//   margin-top: 10px;
+//   font-size: 6px;
+//   line-height: 1.6;
+//   color: var(--label-title-color);
+// }
 
 .ma-item--spent {
   opacity: 0.6;
@@ -113,6 +114,16 @@
   flex-wrap: wrap;
   gap: 6px;
   margin: 6px 0;
+}
+
+// Só leitura (detalhe do bestiário): etiqueta, sem cara de botão.
+.ma-chip--static {
+  cursor: default;
+
+  &:hover {
+    border-color: var(--border-color);
+    color: var(--text-color);
+  }
 }
 
 .ma-chip--done {

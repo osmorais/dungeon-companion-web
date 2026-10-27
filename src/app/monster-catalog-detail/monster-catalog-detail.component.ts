@@ -1,15 +1,20 @@
-import { Component, HostListener, OnInit, inject, signal } from '@angular/core';
+import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
 import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
-import { MonsterStatBlockComponent } from '../monster-stat-block/monster-stat-block.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MonsterCatalogService } from '../services/monster-catalog.service';
 import { MonsterCatalogEntry } from '../models/monster-catalog.interface';
-
+import { catalogMonsterCard, catalogMonsterCardState } from '../game-card/monster-card';
+import { MonsterSheetComponent } from '../monster-sheet/monster-sheet.component';
 import { catalogMonsterName } from '../services/monster-format';
+
+/**
+ * Detalhe do monstro no bestiário (1.13.4): a ficha com a cara da gaveta do monstro na mesa
+ * (app-monster-sheet, com a carta da listagem), mais o trocar imagem embaixo da carta.
+ */
 @Component({
   selector: 'app-monster-catalog-detail',
   standalone: true,
-  imports: [SkeletonRowsComponent, MonsterStatBlockComponent],
+  imports: [SkeletonRowsComponent, MonsterSheetComponent],
   templateUrl: './monster-catalog-detail.component.html',
   styleUrls: ['./monster-catalog-detail.component.scss'],
 })
@@ -52,6 +57,15 @@ export class MonsterCatalogDetailComponent implements OnInit {
   }
 
   readonly monsterName = catalogMonsterName;
+
+  readonly card = computed(() => {
+    const m = this.monster();
+    return m ? catalogMonsterCard(m) : null;
+  });
+  readonly cardState = computed(() => {
+    const m = this.monster();
+    return m ? catalogMonsterCardState(m) : null;
+  });
 
   /** ========================= IMAGEM CUSTOMIZADA ========================= */
 

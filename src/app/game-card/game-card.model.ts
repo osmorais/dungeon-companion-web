@@ -32,5 +32,6 @@ export interface GameCardData {
 }
 
 /** Cor da carta no grimório: pronta pra usar, dá pra preparar, ou bloqueada (apagada). */
-/** `threat`: monstro perigoso no bestiário (ND 5+) — brilho próprio, separado do `ready` das magias. */
+/** `threat`: monstro perigoso no bestiário (ND 5+) — brilho vermelho e selo PERIGOSO, separado do
+ *  `ready` das magias. */
 export type GameCardState = 'ready' | 'preparable' | 'locked' | 'threat' | null;

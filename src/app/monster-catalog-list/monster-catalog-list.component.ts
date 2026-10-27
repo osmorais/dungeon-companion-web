@@ -9,30 +9,56 @@ import {
   viewChild,
   HostListener,
 } from '@angular/core';
-import { finalize } from 'rxjs';
+import { Observable, finalize, forkJoin, map, of, switchMap } from 'rxjs';
 import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { GameCardComponent } from '../game-card/game-card.component';
-import { GameCardData, GameCardState } from '../game-card/game-card.model';
 import { Router, RouterLink } from '@angular/router';
 import { MonsterCatalogService } from '../services/monster-catalog.service';
 import { MonsterCatalogEntry } from '../models/monster-catalog.interface';
-import { catalogMonsterName, challengeRatingText, isHighThreat } from '../services/monster-format';
-import { monsterToCard } from '../game-card/monster-card';
+import { catalogMonsterName } from '../services/monster-format';
+import { catalogMonsterCard, catalogMonsterCardState } from '../game-card/monster-card';
+import { MonsterFiltersComponent } from '../monster-filters/monster-filters.component';
+import {
+  EMPTY_MONSTER_FILTERS,
+  FilterableMonster,
+  MonsterFilters,
+  MonsterSort,
+  filterMonsters,
+  monsterFilterOptions,
+} from '../monster-filters/monster-filters';
 
-const PAGE_SIZE = 12;
+/** Cartas por página (como na tela de catalogar). */
+const PAGE_SIZE = 8;
+/** Teto de itens por página da api (`MAX_PAGE_SIZE`): o bestiário inteiro vem em lotes desse tamanho. */
+const FETCH_SIZE = 50;
+
+/** Monstro do bestiário com o que os filtros olham (o nome que o mestre deu e o original). */
+type CatalogItem = FilterableMonster & { entry: MonsterCatalogEntry };
+
+function toItem(entry: MonsterCatalogEntry): CatalogItem {
+  const s = entry.data_snapshot;
+  return {
+    entry,
+    name: catalogMonsterName(entry),
+    altName: entry.custom_name ? s.name : null,
+    challenge_rating: s.challenge_rating,
+    type: s.type,
+    size: s.size,
+    legendary: !!s.legendary_actions?.length,
+    flies: !!s.speed?.['voo'],
+  };
+}
 
 @Component({
   selector: 'app-monster-catalog-list',
   standalone: true,
-  imports: [SkeletonRowsComponent, RouterLink, GameCardComponent],
+  imports: [SkeletonRowsComponent, RouterLink, GameCardComponent, MonsterFiltersComponent],
   templateUrl: './monster-catalog-list.component.html',
   styleUrls: ['./monster-catalog-list.component.scss'],
 })
 export class MonsterCatalogListComponent implements OnInit {
   private router = inject(Router);
   private monsterCatalogService = inject(MonsterCatalogService);
-
-  crText = challengeRatingText;
 
   /** Miniatura padrão pra monstros catalogados sem image_url. */
   readonly DEFAULT_MONSTER_IMAGE = 'assets/monster.png';
@@ -44,15 +70,31 @@ export class MonsterCatalogListComponent implements OnInit {
     this.isMobile.set(window.innerWidth < 768);
   }
 
+  /** O bestiário inteiro do mestre (filtros e páginas são feitos aqui, 1.14.0). */
   monsters = signal<MonsterCatalogEntry[]>([]);
   error = signal(false);
-  /** Buscando a página — mostra skeleton em vez de "nenhum encontrado". */
+  /** Buscando o bestiário — mostra skeleton em vez de "nenhum encontrado". */
   loading = signal(true);
   page = signal(1);
-  totalCount = signal(0);
   pageSize = PAGE_SIZE;
+  totalCount = computed(() => this.monsters().length);
 
-  totalPages = computed(() => Math.ceil(this.totalCount() / this.pageSize) || 1);
+  readonly sortOptions: { value: MonsterSort; label: string }[] = [
+    { value: 'recent', label: 'MAIS RECENTES' },
+    { value: 'name', label: 'NOME' },
+    { value: 'cr', label: 'ND (MENOR PRIMEIRO)' },
+  ];
+  readonly filters = signal<MonsterFilters>({ ...EMPTY_MONSTER_FILTERS, sort: 'recent' });
+  private readonly items = computed(() => this.monsters().map(toItem));
+  readonly filterOptions = computed(() => monsterFilterOptions(this.items()));
+  readonly filteredMonsters = computed(() =>
+    filterMonsters(this.items(), this.filters()).map((i) => i.entry),
+  );
+  readonly pageMonsters = computed(() =>
+    this.filteredMonsters().slice((this.page() - 1) * PAGE_SIZE, this.page() * PAGE_SIZE),
+  );
+
+  totalPages = computed(() => Math.ceil(this.filteredMonsters().length / this.pageSize) || 1);
   hasPrev = computed(() => this.page() > 1);
   hasNext = computed(() => this.page() < this.totalPages());
 
@@ -75,72 +117,66 @@ export class MonsterCatalogListComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.loadPage();
+    this.loadAll();
   }
 
-  loadPage() {
+  /** Busca o bestiário inteiro (primeiro lote e, se passar do teto da api, o resto junto). */
+  loadAll() {
     this.error.set(false);
     this.loading.set(true);
-    this.monsterCatalogService
-      .getCatalog(this.page(), this.pageSize)
+    this.fetchAll()
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
-        next: (res) => {
-          this.monsters.set(res.MonsterCatalogPagedList);
-          this.totalCount.set(res.total_count);
+        next: (all) => {
+          this.monsters.set(all);
+          // Removeu o último da última página: volta uma.
+          this.page.update((p) => Math.min(p, this.totalPages()));
         },
         error: () => this.error.set(true),
       });
   }
 
+  private fetchAll(): Observable<MonsterCatalogEntry[]> {
+    return this.monsterCatalogService.getCatalog(1, FETCH_SIZE).pipe(
+      switchMap((first) => {
+        const pages = Math.ceil(first.total_count / FETCH_SIZE);
+        if (pages <= 1) return of(first.MonsterCatalogPagedList);
+        const rest = Array.from({ length: pages - 1 }, (_, i) =>
+          this.monsterCatalogService.getCatalog(i + 2, FETCH_SIZE),
+        );
+        return forkJoin(rest).pipe(
+          map((more) => [
+            ...first.MonsterCatalogPagedList,
+            ...more.flatMap((r) => r.MonsterCatalogPagedList),
+          ]),
+        );
+      }),
+    );
+  }
+
+  /** Muda filtros; a lista volta pra primeira página. */
+  patchFilters(patch: Partial<MonsterFilters>) {
+    this.filters.update((f) => ({ ...f, ...patch }));
+    this.page.set(1);
+  }
+
+  clearFilters() {
+    this.patchFilters({ ...EMPTY_MONSTER_FILTERS, sort: this.filters().sort });
+  }
+
   prevPage() {
-    if (this.hasPrev()) {
-      this.page.update((p) => p - 1);
-      this.loadPage();
-    }
+    if (this.hasPrev()) this.page.update((p) => p - 1);
   }
 
   nextPage() {
-    if (this.hasNext()) {
-      this.page.update((p) => p + 1);
-      this.loadPage();
-    }
+    if (this.hasNext()) this.page.update((p) => p + 1);
   }
 
   readonly monsterName = catalogMonsterName;
 
-  /** Carta igual à de revelação de monstro em combate (game-card, variant 'monster': moldura e
-   *  medalhão do próprio monstro) — só que com o ND no medalhão (lá é "?", monstro desconhecido;
-   *  aqui já é catalogado) e um resumo no lugar da descrição (não há texto de lore por entrada do
-   *  bestiário). No tema sombrio o medalhão vira o emblema do monstro (sem número, de propósito —
-   *  ver --monster-card-badge no styles.scss); o ND continua no resumo. */
-  toCard(monster: MonsterCatalogEntry): GameCardData {
-    const snapshot = monster.data_snapshot;
-    // A mesma carta da revelação (monsterToCard: faixa tipo · tamanho, moldura do monstro), com o
-    // ND no medalhão e o resumo no pergaminho.
-    return {
-      ...monsterToCard({
-        name: this.monsterName(monster),
-        imageUrl: monster.image_url,
-        monsterType: snapshot.type,
-        size: snapshot.size,
-        lore: this.summary(monster),
-      }),
-      badge: this.crText(snapshot.challenge_rating),
-    };
-  }
-
-  private summary(monster: MonsterCatalogEntry): string {
-    const s = monster.data_snapshot;
-    const meta = [s.size, s.type].filter((p): p is string => !!p?.trim()).join(' ');
-    const alignment = s.alignment ? `, ${s.alignment}` : '';
-    return `${meta}${alignment}.\nCA ${monster.ac} · PV ${monster.hp_max} · ND ${this.crText(s.challenge_rating)}.`;
-  }
-
-  /** ND 5+ é ameaça de verdade: destaque dourado no card (mesmo corte de monster-stat-block). */
-  cardState(monster: MonsterCatalogEntry): GameCardState {
-    return isHighThreat(monster.data_snapshot.challenge_rating) ? 'threat' : null;
-  }
+  // Carta e destaque compartilhados com o detalhe (game-card/monster-card.ts).
+  readonly toCard = catalogMonsterCard;
+  readonly cardState = catalogMonsterCardState;
 
   catalogNew() {
     this.router.navigate(['/monster-catalog/new']);
@@ -220,10 +256,7 @@ export class MonsterCatalogListComponent implements OnInit {
       next: () => {
         this.deleting.set(false);
         this.closeDeleteModal();
-        if (this.monsters().length === 1 && this.hasPrev()) {
-          this.page.update((p) => p - 1);
-        }
-        this.loadPage();
+        this.loadAll();
       },
       error: () => {
         this.deleting.set(false);

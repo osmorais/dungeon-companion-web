@@ -225,3 +225,100 @@ describe('MonsterCatalogListComponent', () => {
     });
   });
 });
+
+describe('MonsterCatalogListComponent: filtros e páginas (1.14.0)', () => {
+  const many = (n: number) =>
+    Array.from({ length: n }, (_, i) =>
+      entry({ id_monster_catalog: `m${i}`, custom_name: `Monstro ${i}` }),
+    );
+
+  function setup(all: MonsterCatalogEntry[]) {
+    const service = {
+      getCatalog: vi.fn((page: number, pageSize: number) =>
+        of({
+          MonsterCatalogPagedList: all.slice((page - 1) * pageSize, page * pageSize),
+          page,
+          pageSize,
+          total_count: all.length,
+        }),
+      ),
+      deleteCatalogEntry: vi.fn(() => of(undefined)),
+    };
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: MonsterCatalogService, useValue: service },
+        { provide: Router, useValue: { navigate: vi.fn() } },
+      ],
+    });
+    const component = TestBed.runInInjectionContext(() => new MonsterCatalogListComponent());
+    component.ngOnInit();
+    return { component, service };
+  }
+
+  it('busca o bestiário inteiro em lotes de 50 e mostra 8 cartas por página', () => {
+    const { component, service } = setup(many(60));
+    expect(service.getCatalog.mock.calls).toEqual([
+      [1, 50],
+      [2, 50],
+    ]);
+    expect(component.totalCount()).toBe(60);
+    expect(component.totalPages()).toBe(8);
+    expect(component.pageMonsters().map((m) => m.id_monster_catalog)).toEqual(
+      many(8).map((m) => m.id_monster_catalog),
+    );
+    component.nextPage();
+    expect(component.pageMonsters()[0].id_monster_catalog).toBe('m8');
+  });
+
+  it('a busca acha o nome dado pelo mestre e o original; filtrar volta pra página 1', () => {
+    const ogro = entry({
+      id_monster_catalog: 'ogro-1',
+      custom_name: 'Brutus',
+      data_snapshot: { ...STAT_BLOCK, name: 'Ogro', type: 'gigante', challenge_rating: 2 },
+    });
+    const { component } = setup([...many(10), ogro]);
+    component.nextPage();
+    component.patchFilters({ search: 'ogro' });
+    expect(component.page()).toBe(1);
+    expect(component.filteredMonsters().map((m) => m.id_monster_catalog)).toEqual(['ogro-1']);
+    component.patchFilters({ search: 'brutus' });
+    expect(component.filteredMonsters().length).toBe(1);
+    component.patchFilters({ search: '', type: 'gigante' });
+    expect(component.filteredMonsters().map((m) => m.id_monster_catalog)).toEqual(['ogro-1']);
+    expect(component.filterOptions().types).toEqual(['gigante', 'humanoide']);
+  });
+
+  it('ordem padrão é a da api (mais recentes); dá pra ordenar por nome e por ND', () => {
+    const a = entry({ id_monster_catalog: 'z', custom_name: 'Zumbi' });
+    const b = entry({
+      id_monster_catalog: 'a',
+      custom_name: 'Aranha',
+      data_snapshot: { ...STAT_BLOCK, challenge_rating: 1 },
+    });
+    const { component } = setup([a, b]);
+    expect(component.filters().sort).toBe('recent');
+    expect(component.filteredMonsters().map((m) => m.id_monster_catalog)).toEqual(['z', 'a']);
+    component.patchFilters({ sort: 'name' });
+    expect(component.filteredMonsters().map((m) => m.id_monster_catalog)).toEqual(['a', 'z']);
+    component.patchFilters({ sort: 'cr' });
+    expect(component.filteredMonsters().map((m) => m.id_monster_catalog)).toEqual(['z', 'a']);
+  });
+
+  it('remover o único da última página volta uma página', () => {
+    const { component, service } = setup(many(9));
+    component.nextPage();
+    expect(component.page()).toBe(2);
+    service.getCatalog.mockImplementation((page: number, pageSize: number) =>
+      of({
+        MonsterCatalogPagedList: many(8).slice((page - 1) * pageSize, page * pageSize),
+        page,
+        pageSize,
+        total_count: 8,
+      }),
+    );
+    component.requestDelete(component.pageMonsters()[0]);
+    component.confirmDelete();
+    expect(service.deleteCatalogEntry).toHaveBeenCalledWith('m8');
+    expect(component.page()).toBe(1);
+  });
+});

@@ -1,54 +1,54 @@
-@if (mechanical()) {
-  @if (shows('traits') && traits().length) {
-    <div class="stat-section">
-      <h4>DEFESAS E SENTIDOS</h4>
-      @for (t of traits(); track t.label) {
-        <p class="stat-feature">
-          <strong>{{ t.label }}:</strong> {{ t.text }}
-        </p>
-      }
-    </div>
-  }
+@if (shows('traits') && traits().length) {
+  <div class="stat-section">
+    <h4>DEFESAS E SENTIDOS</h4>
+    @for (t of traits(); track t.label) {
+      <p class="stat-feature">
+        <strong>{{ t.label }}:</strong> {{ t.text }}
+      </p>
+    }
+  </div>
+}
 
-  @if (shows('actions') && rechargeRolls()?.length) {
-    <div class="ma-recharge">
-      <p class="ma-row-label">RECARGA NO INÍCIO DO TURNO</p>
-      @for (r of rechargeRolls(); track r.ability) {
-        <p class="ma-recharge-line" [class.ma-recharge-line--ok]="r.recharged">
-          {{ r.ability }}: d6 = {{ r.roll }} (precisa {{ r.min }}+) —
-          {{ r.recharged ? 'RECARREGOU' : 'AINDA NÃO' }}
-        </p>
-      }
-    </div>
-  }
+@if (shows('actions') && rechargeRolls()?.length) {
+  <div class="ma-recharge">
+    <p class="ma-row-label">RECARGA NO INÍCIO DO TURNO</p>
+    @for (r of rechargeRolls(); track r.ability) {
+      <p class="ma-recharge-line" [class.ma-recharge-line--ok]="r.recharged">
+        {{ r.ability }}: d6 = {{ r.roll }} (precisa {{ r.min }}+) —
+        {{ r.recharged ? 'RECARREGOU' : 'AINDA NÃO' }}
+      </p>
+    }
+  </div>
+}
 
-  @if (shows('actions') && asCards() && hand().length) {
-    <div class="stat-section">
-      <h4>CARTAS DE AÇÃO</h4>
-      <app-card-deck [cards]="deckCards()" label="AÇÕES" (open)="handOpen.set(true)" />
-      @for (line of deckStatus(); track line) {
-        <p class="ma-row-label ma-deck-status">{{ line }}</p>
-      }
-    </div>
-  }
+@if (shows('actions') && asCards() && hand().length) {
+  <div class="stat-section">
+    <h4>CARTAS DE AÇÃO</h4>
+    <app-card-deck [cards]="deckCards()" label="AÇÕES" (open)="handOpen.set(true)" />
+    @for (line of deckStatus(); track line) {
+      <p class="ma-row-label ma-deck-status">{{ line }}</p>
+    }
+  </div>
+}
 
-  @for (section of shows('actions') ? sections() : []; track section.group) {
-    <div class="stat-section">
-      <h4>{{ section.title }}</h4>
-      @if (section.group === 'legendary_actions' && block().legendary_desc) {
-        <p class="stat-feature ma-note">{{ block().legendary_desc }}</p>
-      }
-      @for (a of section.items; track a.key) {
-        @let av = availability(a);
-        <div class="ma-item" [class.ma-item--spent]="!av.available">
-          <div class="ma-head">
-            <strong>{{ a.name }}</strong>
-            @for (tag of a.tags; track tag) {
-              <span class="ma-tag">{{ tag }}</span>
-            }
-            @if (av.status) {
-              <span class="ma-status">{{ av.status }}</span>
-            }
+@for (section of shows('actions') ? sections() : []; track section.group) {
+  <div class="stat-section">
+    <h4>{{ section.title }}</h4>
+    @if (section.group === 'legendary_actions' && block().legendary_desc) {
+      <p class="stat-feature ma-note">{{ block().legendary_desc }}</p>
+    }
+    @for (a of section.items; track a.key) {
+      @let av = availability(a);
+      <div class="ma-item" [class.ma-item--spent]="!av.available">
+        <div class="ma-head">
+          <strong>{{ a.name }}</strong>
+          @for (tag of a.tags; track tag) {
+            <span class="ma-tag">{{ tag }}</span>
+          }
+          @if (av.status && !viewOnly()) {
+            <span class="ma-status">{{ av.status }}</span>
+          }
+          @if (!viewOnly()) {
             @if (av.restorable) {
               <button
                 type="button"
@@ -82,32 +82,34 @@
                 USAR
               </button>
             }
-          </div>
-          @if (a.kind === 'multi' && openMulti() === a.key) {
-            <div class="ma-multi">
-              @for (m of a.multi; track m.action) {
-                @let done = multiDone()[m.action] ?? 0;
-                <button
-                  type="button"
-                  class="ma-chip"
-                  [class.ma-chip--done]="done >= m.count"
-                  [disabled]="!m.key"
-                  (click)="multiAttack(m)"
-                >
-                  {{ m.action }} {{ done }}/{{ m.count }}
-                </button>
-              }
-            </div>
           }
-          <p class="stat-feature">{{ a.desc }}</p>
         </div>
-      }
-    </div>
-  }
+        @if (a.kind === 'multi' && openMulti() === a.key) {
+          <div class="ma-multi">
+            @for (m of a.multi; track m.action) {
+              @let done = multiDone()[m.action] ?? 0;
+              <button
+                type="button"
+                class="ma-chip"
+                [class.ma-chip--done]="done >= m.count"
+                [disabled]="!m.key"
+                (click)="multiAttack(m)"
+              >
+                {{ m.action }} {{ done }}/{{ m.count }}
+              </button>
+            }
+          </div>
+        }
+        <p class="stat-feature">{{ a.desc }}</p>
+      </div>
+    }
+  </div>
+}
 
-  @if (shows('actions') && block().lair_actions) {
-    <div class="stat-section">
-      <h4>AÇÕES DE COVIL</h4>
+@if (shows('actions') && block().lair_actions) {
+  <div class="stat-section">
+    <h4>AÇÕES DE COVIL</h4>
+    @if (!viewOnly()) {
       <div class="ma-head">
         <span class="ma-status">{{ state()?.in_lair ? 'LUTANDO NO COVIL' : 'FORA DO COVIL' }}</span>
         <button
@@ -119,118 +121,102 @@
           {{ state()?.in_lair ? 'SAIU DO COVIL' : 'NO COVIL' }}
         </button>
       </div>
-      <p class="stat-feature">{{ block().lair_actions }}</p>
-    </div>
-  }
+    }
+    <p class="stat-feature">{{ block().lair_actions }}</p>
+  </div>
+}
 
-  @if (shows('checks') && checks(); as c) {
-    <div class="stat-section">
-      <h4>TESTES</h4>
-      <p class="ma-row-label">RESISTÊNCIAS</p>
+@if (shows('checks') && checkGroups().length) {
+  <div class="stat-section">
+    <h4>TESTES</h4>
+    @for (g of checkGroups(); track g.label) {
+      <p class="ma-row-label">{{ g.label }}</p>
       <div class="ma-chips">
-        @for (s of c.saves; track s.key) {
-          <button
-            type="button"
-            class="ma-chip"
-            (click)="roll.emit({ config: s.config, consume: null })"
-          >
-            {{ s.label.replace('Resistência de ', '') }} {{ signed(s.modifier) }}
-          </button>
-        }
-      </div>
-      <p class="ma-row-label">ATRIBUTOS</p>
-      <div class="ma-chips">
-        @for (s of c.abilities; track s.key) {
-          <button
-            type="button"
-            class="ma-chip"
-            (click)="roll.emit({ config: s.config, consume: null })"
-          >
-            {{ s.label.replace('Teste de ', '') }} {{ signed(s.modifier) }}
-          </button>
-        }
-      </div>
-      @if (c.skills.length) {
-        <p class="ma-row-label">PERÍCIAS</p>
-        <div class="ma-chips">
-          @for (s of c.skills; track s.key) {
+        @for (s of g.items; track s.key) {
+          @if (viewOnly()) {
+            <span class="ma-chip ma-chip--static">{{ s.text }} {{ signed(s.modifier) }}</span>
+          } @else {
             <button
               type="button"
               class="ma-chip"
               (click)="roll.emit({ config: s.config, consume: null })"
             >
-              {{ s.label }} {{ signed(s.modifier) }}
+              {{ s.text }} {{ signed(s.modifier) }}
             </button>
           }
-        </div>
-      }
-    </div>
-  }
-
-  @if (shows('actions') && hasLimitedUses()) {
-    <div class="ma-footer">
-      <button type="button" class="ma-chip" (click)="op.emit({ op: 'rest' })">
-        DESCANSO: RESTAURAR USOS
-      </button>
-    </div>
-  }
-
-  @if (handOpen()) {
-    <app-card-hand
-      [items]="hand()"
-      title="AÇÕES"
-      backLabel="VOLTAR À FICHA"
-      [actions]="handActions"
-      (closed)="handOpen.set(false)"
-    />
-  }
-  <!-- Botão da carta da vez na mão: rola a ação (com o que gastar), mostra os usos -->
-  <ng-template #handActions let-key>
-    @if (buttonByKey(key); as b) {
-      @let av = availability(b);
-      <div class="ma-hand-actions">
-        @if (av.status) {
-          <span class="ma-status">{{ av.status }}</span>
-        }
-        <button type="button" class="ma-hand-btn" [disabled]="!av.available" (click)="use(b)">
-          {{ buttonLabel(b) }}
-        </button>
-        @if (av.restorable) {
-          <button
-            type="button"
-            class="ma-restore"
-            title="Devolver o uso"
-            (click)="op.emit({ op: 'restore', ability: b.ability })"
-          >
-            ↺
-          </button>
         }
       </div>
     }
-  </ng-template>
-} @else if (shows('actions')) {
-  @if (block().special_abilities?.length) {
-    <div class="stat-section">
-      <h4>HABILIDADES</h4>
-      @for (a of block().special_abilities; track $index) {
-        <p class="stat-feature">
-          <strong>{{ a.name }}.</strong> {{ a.desc }}
-        </p>
-      }
-    </div>
-  }
-  @if (block().actions?.length) {
-    <div class="stat-section">
-      <h4>AÇÕES</h4>
-      @for (a of block().actions; track $index) {
-        <p class="stat-feature">
-          <strong>{{ a.name }}.</strong> {{ a.desc }}
-        </p>
-      }
-    </div>
-  }
-  <p class="ma-legacy">
-    Ficha antiga (catalogada antes do bestiário): as ações ficam só em texto. Catalogue de novo pelo
-    bestiário pra rolar ataques e testes daqui.
-  </p>
+  </div>
 }
+
+@if (shows('actions') && hasLimitedUses() && !viewOnly()) {
+  <div class="ma-footer">
+    <button type="button" class="ma-chip" (click)="op.emit({ op: 'rest' })">
+      DESCANSO: RESTAURAR USOS
+    </button>
+  </div>
+}
+
+@if (handOpen()) {
+  <app-card-hand
+    [items]="hand()"
+    title="AÇÕES"
+    backLabel="VOLTAR À FICHA"
+    [actions]="viewOnly() ? null : handActions"
+    (closed)="handOpen.set(false)"
+  />
+}
+<!-- Botão da carta da vez na mão: rola a ação (com o que gastar), mostra os usos -->
+<ng-template #handActions let-key>
+  @if (buttonByKey(key); as b) {
+    @let av = availability(b);
+    <div class="ma-hand-actions">
+      @if (av.status) {
+        <span class="ma-status">{{ av.status }}</span>
+      }
+      <button type="button" class="ma-hand-btn" [disabled]="!av.available" (click)="use(b)">
+        {{ buttonLabel(b) }}
+      </button>
+      @if (av.restorable) {
+        <button
+          type="button"
+          class="ma-restore"
+          title="Devolver o uso"
+          (click)="op.emit({ op: 'restore', ability: b.ability })"
+        >
+          ↺
+        </button>
+      }
+    </div>
+  }
+</ng-template>
+
+<!--
+  Ficha antiga da dnd5eapi (fora de uso desde a 1.13.4: só o nosso bestiário). Ficava só em texto:
+
+@if (block().special_abilities?.length) {
+  <div class="stat-section">
+    <h4>HABILIDADES</h4>
+    @for (a of block().special_abilities; track $index) {
+      <p class="stat-feature">
+        <strong>{{ a.name }}.</strong> {{ a.desc }}
+      </p>
+    }
+  </div>
+}
+@if (block().actions?.length) {
+  <div class="stat-section">
+    <h4>AÇÕES</h4>
+    @for (a of block().actions; track $index) {
+      <p class="stat-feature">
+        <strong>{{ a.name }}.</strong> {{ a.desc }}
+      </p>
+    }
+  </div>
+}
+<p class="ma-legacy">
+  Ficha antiga (catalogada antes do bestiário): as ações ficam só em texto. Catalogue de novo pelo
+  bestiário pra rolar ataques e testes daqui.
+</p>
+-->

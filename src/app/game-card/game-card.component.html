@@ -24,6 +24,9 @@
     }
   </div>
   <div class="gc-frame" aria-hidden="true"></div>
+  @if (state === 'threat') {
+    <span class="gc-danger">PERIGOSO</span>
+  }
 
   <span class="gc-badge">{{ card.badge }}</span>
   <span class="gc-title"

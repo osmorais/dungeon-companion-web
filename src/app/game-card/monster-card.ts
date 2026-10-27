@@ -1,5 +1,7 @@
-import { GameCardData } from './game-card.model';
+import { GameCardData, GameCardState } from './game-card.model';
 import { MonsterActionCardInfo } from '../models/game-session.interface';
+import { BestiaryMonsterSummary, MonsterCatalogEntry } from '../models/monster-catalog.interface';
+import { catalogMonsterName, challengeRatingText, isHighThreat } from '../services/monster-format';
 
 /** Imagem de monstro quando o mestre não enviou uma (a mesma das listas e da ficha). */
 export const DEFAULT_MONSTER_IMAGE = 'assets/monster.png';
@@ -36,6 +38,77 @@ export function monsterToCard(info: MonsterRevealInfo): GameCardData {
     tags: [],
     variant: 'monster',
   };
+}
+
+/**
+ * Carta do monstro no bestiário (1.13.4, lista e detalhe): a mesma da revelação (faixa tipo ·
+ * tamanho, moldura do monstro), com o ND no medalhão (lá é "?", monstro desconhecido) e um resumo
+ * no pergaminho (não há lore por entrada do bestiário). No tema sombrio o medalhão vira o emblema
+ * do monstro, sem número (--monster-card-badge no styles.scss); o ND continua no resumo.
+ */
+export function catalogMonsterCard(monster: MonsterCatalogEntry): GameCardData {
+  const s = monster.data_snapshot;
+  return summaryCard({
+    name: catalogMonsterName(monster),
+    imageUrl: monster.image_url,
+    type: s.type,
+    size: s.size,
+    alignment: s.alignment,
+    ac: monster.ac,
+    hp: monster.hp_max,
+    challengeRating: s.challenge_rating,
+  });
+}
+
+/** A mesma carta pra um monstro do livro ainda não catalogado (tela de catalogar, 1.13.4). */
+export function bestiaryMonsterCard(
+  monster: BestiaryMonsterSummary,
+  customName?: string | null,
+): GameCardData {
+  return summaryCard({
+    name: customName?.trim() || monster.name,
+    imageUrl: null,
+    type: monster.type,
+    size: monster.size,
+    alignment: monster.alignment,
+    ac: monster.ac,
+    hp: monster.hp_max,
+    challengeRating: monster.challenge_rating,
+  });
+}
+
+function summaryCard(info: {
+  name: string;
+  imageUrl: string | null;
+  type: string;
+  size: string;
+  alignment: string | null;
+  ac: number;
+  hp: number;
+  challengeRating: number;
+}): GameCardData {
+  const cr = challengeRatingText(info.challengeRating);
+  const meta = [info.size, info.type].filter((p): p is string => !!p?.trim()).join(' ');
+  const alignment = info.alignment ? `, ${info.alignment}` : '';
+  return {
+    ...monsterToCard({
+      name: info.name,
+      imageUrl: info.imageUrl,
+      monsterType: info.type,
+      size: info.size,
+      lore: `${meta}${alignment}.\nCA ${info.ac} · PV ${info.hp} · ND ${cr}.`,
+    }),
+    badge: cr,
+  };
+}
+
+/** Brilho vermelho na carta dos monstros de ND alto (ND 5+, `THREAT_CHALLENGE_RATING`). */
+export function monsterCardState(challengeRating: number): GameCardState {
+  return isHighThreat(challengeRating) ? 'threat' : null;
+}
+
+export function catalogMonsterCardState(monster: MonsterCatalogEntry): GameCardState {
+  return monsterCardState(monster.data_snapshot.challenge_rating);
 }
 
 const ACTION_RIBBON: Record<MonsterActionCardInfo['kind'], string> = {

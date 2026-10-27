@@ -289,15 +289,11 @@
           <img class="ui-icon" src="assets/icons/d20.png" alt="" /> TESTES
         </h3>
         <div class="pa-section">
-          @if (mechanical()) {
-            <app-monster-actions
-              [block]="monster.data_snapshot"
-              part="checks"
-              (roll)="roll.emit($event)"
-            />
-          } @else {
-            <p class="md-meta">Ficha antiga: sem testes clicáveis.</p>
-          }
+          <app-monster-actions
+            [block]="monster.data_snapshot"
+            part="checks"
+            (roll)="roll.emit($event)"
+          />
         </div>
       </div>
     </div>

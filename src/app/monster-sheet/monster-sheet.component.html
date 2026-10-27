@@ -1,0 +1,79 @@
+<div class="ms-panel pa-modal" [class.ms-panel--fit]="fit()">
+  <div class="pa-hero">
+    <div class="pa-hero-stats">
+      <div class="pa-stat pa-stat--hp">
+        <span class="pa-stat-label">PV</span>
+        <span class="pa-stat-value">{{ hp() }}</span>
+      </div>
+      <div class="pa-stat">
+        <span class="pa-stat-label">CA</span>
+        <span class="pa-stat-value">{{ ac() }}</span>
+      </div>
+      <div class="pa-stat">
+        <span class="pa-stat-label">ND</span>
+        <span class="pa-stat-value"
+          >{{ crText(block().challenge_rating) }} <small>{{ block().xp }} XP</small></span
+        >
+      </div>
+      <div class="pa-stat">
+        <span class="pa-stat-label">DADOS DE VIDA</span>
+        <span class="pa-stat-value">{{ block().hit_dice }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="pa-columns">
+    <div class="pa-col">
+      <h3 class="pa-col-title">
+        <img class="ui-icon" src="assets/icons/scroll.png" alt="" /> MONSTRO
+      </h3>
+      <div class="pa-section ms-card">
+        <app-game-card [card]="card()" [state]="cardState()" size="full" />
+        <ng-content />
+      </div>
+      <div class="pa-section">
+        <h4 class="pa-section-title">ATRIBUTOS</h4>
+        <div class="pa-row-list pa-row-list--grid">
+          @for (field of abilityFields; track field.key) {
+            @let score = block()[field.key];
+            <div class="pa-action-row pa-action-row--static">
+              <span>{{ field.label }} {{ score }}</span>
+              <span class="pa-action-value">{{ modifier(score) }}</span>
+            </div>
+          }
+        </div>
+        <p class="ms-meta">DESLOCAMENTO: {{ speedText(block().speed) }}</p>
+      </div>
+      <div class="pa-section">
+        <app-monster-actions [block]="block()" part="traits" />
+      </div>
+    </div>
+
+    <div class="pa-col">
+      <h3 class="pa-col-title">
+        <img class="ui-icon" src="assets/icons/swords.png" alt="" /> AÇÕES
+      </h3>
+      <div class="pa-section">
+        <app-monster-actions
+          [block]="block()"
+          [imageUrl]="imageUrl()"
+          [asCards]="true"
+          [viewOnly]="true"
+          part="actions"
+        />
+      </div>
+    </div>
+
+    <div class="pa-col">
+      <h3 class="pa-col-title"><img class="ui-icon" src="assets/icons/d20.png" alt="" /> TESTES</h3>
+      <div class="pa-section">
+        <app-monster-actions [block]="block()" part="checks" [viewOnly]="true" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Ação principal da tela (ex.: CATALOGAR), no canto de baixo à direita -->
+  <div class="ms-footer">
+    <ng-content select="[sheetFooter]" />
+  </div>
+</div>

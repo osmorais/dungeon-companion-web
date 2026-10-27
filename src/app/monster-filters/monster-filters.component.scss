@@ -1,0 +1,161 @@
+:host {
+  display: block;
+}
+
+.mf-panel {
+  box-sizing: border-box;
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+  padding: 16px;
+
+  @media (max-width: 767px) {
+    padding: 12px;
+  }
+}
+
+.mf-panel,
+.mf-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+// Celular: os filtros recolhem atrás deste botão (com quantos estão ligados e o total).
+.mf-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--bg-color);
+  border: 2px solid var(--border-color);
+  color: var(--accent-color);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  cursor: var(--cp);
+
+  .mf-count {
+    font-size: 7px;
+    text-align: right;
+  }
+}
+
+.mf-label {
+  font-size: 7px;
+  color: var(--label-title-color);
+}
+
+.mf-input,
+.mf-select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 8px 10px;
+  background-color: var(--bg-color);
+  border: 2px solid var(--border-color);
+  color: var(--text-color);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+
+  &:focus {
+    outline: none;
+    border-color: var(--accent-color);
+  }
+}
+
+.mf-select {
+  cursor: var(--cp);
+  text-transform: capitalize;
+}
+
+.mf-search {
+  font-size: 10px;
+  padding: 10px 12px;
+}
+
+.mf-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+// Tipo e tamanho lado a lado; a ordenação na linha de baixo, inteira.
+.mf-filter-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 10px;
+
+  .mf-field:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+.mf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.mf-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+// Etiquetas de filtro: ligada fica com a cor de destaque (como os chips da ficha do monstro).
+.mf-chip {
+  padding: 6px 8px;
+  background: var(--bg-color);
+  color: var(--text-color);
+  border: 2px solid var(--border-color);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  cursor: var(--cp);
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--accent-color);
+  }
+
+  &--on {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    background: rgba(255, 170, 0, 0.12);
+  }
+}
+
+.mf-filter-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+
+  .mf-chips {
+    flex-basis: 100%;
+  }
+}
+
+.mf-count {
+  font-size: 8px;
+  color: var(--accent-color);
+}
+
+.mf-clear {
+  padding: 6px 8px;
+  background: none;
+  border: 1px dashed var(--border-color);
+  color: var(--label-title-color);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  cursor: var(--cp);
+
+  &:hover,
+  &:focus-visible {
+    border-color: #ff6b6b;
+    color: #ff6b6b;
+  }
+}

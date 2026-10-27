@@ -1,71 +1,15 @@
-@if (isMobile()) {
-  <!-- ===== MOBILE LAYOUT ===== -->
-  <div class="mobile-catalog-container">
+<!-- Mesmo layout da tela de catalogar: filtros (app-monster-filters) à esquerda no desktop e
+     recolhíveis no celular; cartas em páginas de 8. Desktop no tamanho da sessão (.page no styles.scss). -->
+<div [class]="isMobile() ? 'mobile-catalog-container' : 'page'">
+  @if (isMobile()) {
     <div class="m-header">
       <button class="m-back" (click)="goBack()">&#8592;</button>
       <span class="m-title">BESTIÁRIO</span>
     </div>
-
     <button #newButton class="retro-btn mobile-new-btn" (click)="catalogNew()">
       + CATALOGAR NOVO MONSTRO
     </button>
-
-    @if (error()) {
-      <p class="m-empty" role="alert">ERRO AO CARREGAR O BESTIÁRIO.</p>
-    } @else if (loading()) {
-      <div aria-busy="true" aria-label="Carregando">
-        <app-skeleton-rows [rows]="5" [height]="70" />
-      </div>
-    } @else if (monsters().length === 0) {
-      <p class="m-empty">NENHUM MONSTRO CATALOGADO AINDA.</p>
-    } @else {
-      <div class="catalog-grid">
-        @for (monster of monsters(); track monster.id_monster_catalog) {
-          <div class="catalog-card">
-            <app-game-card [card]="toCard(monster)" [state]="cardState(monster)" />
-            <a
-              class="catalog-card-link"
-              [routerLink]="['/monster-catalog', monster.id_monster_catalog]"
-              [attr.aria-label]="'Ver detalhes de ' + monsterName(monster)"
-            ></a>
-            <button
-              class="catalog-card-delete"
-              [title]="'Remover ' + monsterName(monster)"
-              [attr.aria-label]="'Remover ' + monsterName(monster)"
-              (click)="requestDelete(monster)"
-            >
-              ✕
-            </button>
-          </div>
-        }
-      </div>
-
-      <div class="m-pagination">
-        <button
-          class="m-page-btn"
-          [disabled]="!hasPrev()"
-          aria-label="Página anterior"
-          (click)="prevPage()"
-        >
-          &#9664;
-        </button>
-        <span class="m-page-info">{{ page() }} / {{ totalPages() }}</span>
-        <button
-          class="m-page-btn"
-          [disabled]="!hasNext()"
-          aria-label="Próxima página"
-          (click)="nextPage()"
-        >
-          &#9654;
-        </button>
-      </div>
-
-      <p class="m-total">TOTAL: {{ totalCount() }}</p>
-    }
-  </div>
-} @else {
-  <!-- ===== DESKTOP LAYOUT ===== (página no tamanho da sessão: .page/.page-topbar/.d-grid no styles.scss) -->
-  <div class="page">
+  } @else {
     <header class="page-topbar">
       <button class="retro-btn page-topbar-back" (click)="goBack()">← VOLTAR</button>
       <h1 class="page-topbar-name">BESTIÁRIO</h1>
@@ -77,67 +21,91 @@
         </div>
       }
     </header>
-
     <div class="page-toolbar">
       <button #newButton class="retro-btn new-btn" (click)="catalogNew()">
         + CATALOGAR NOVO MONSTRO
       </button>
     </div>
+  }
 
-    @if (error()) {
-      <p class="m-empty" role="alert">ERRO AO CARREGAR O BESTIÁRIO.</p>
-    } @else if (loading()) {
-      <div class="catalog-grid" aria-busy="true" aria-label="Carregando">
-        @for (i of [1, 2, 3, 4, 5]; track i) {
-          <span class="skeleton card-skeleton"></span>
-        }
-      </div>
-    } @else if (monsters().length === 0) {
-      <p class="m-empty">NENHUM MONSTRO CATALOGADO AINDA.</p>
-    } @else {
-      <div class="catalog-grid">
-        @for (monster of monsters(); track monster.id_monster_catalog) {
-          <div class="catalog-card">
-            <app-game-card [card]="toCard(monster)" [state]="cardState(monster)" />
-            <a
-              class="catalog-card-link"
-              [routerLink]="['/monster-catalog', monster.id_monster_catalog]"
-              [attr.aria-label]="'Ver detalhes de ' + monsterName(monster)"
-            ></a>
-            <button
-              class="catalog-card-delete"
-              [title]="'Remover ' + monsterName(monster)"
-              [attr.aria-label]="'Remover ' + monsterName(monster)"
-              (click)="requestDelete(monster)"
-            >
-              ✕
-            </button>
+  @if (error()) {
+    <p class="m-empty" role="alert">ERRO AO CARREGAR O BESTIÁRIO.</p>
+  } @else if (loading()) {
+    <div class="catalog-grid" aria-busy="true" aria-label="Carregando">
+      @for (i of [1, 2, 3, 4]; track i) {
+        <span class="skeleton card-skeleton"></span>
+      }
+    </div>
+  } @else if (monsters().length === 0) {
+    <p class="m-empty">NENHUM MONSTRO CATALOGADO AINDA.</p>
+  } @else {
+    <div class="catalog-layout">
+      <app-monster-filters
+        label="Buscar no bestiário"
+        [filters]="filters()"
+        [types]="filterOptions().types"
+        [sizes]="filterOptions().sizes"
+        [total]="filteredMonsters().length"
+        [sortOptions]="sortOptions"
+        [mobile]="isMobile()"
+        (patch)="patchFilters($event)"
+        (cleared)="clearFilters()"
+      />
+
+      <section class="catalog-results" aria-label="Monstros catalogados">
+        @if (filteredMonsters().length === 0) {
+          <p class="m-empty">NENHUM MONSTRO COM ESSES FILTROS.</p>
+        } @else {
+          <div class="catalog-grid">
+            @for (monster of pageMonsters(); track monster.id_monster_catalog) {
+              <div class="catalog-card">
+                <app-game-card [card]="toCard(monster)" [state]="cardState(monster)" />
+                <a
+                  class="catalog-card-link"
+                  [routerLink]="['/monster-catalog', monster.id_monster_catalog]"
+                  [attr.aria-label]="'Ver detalhes de ' + monsterName(monster)"
+                ></a>
+                <button
+                  class="catalog-card-delete"
+                  [title]="'Remover ' + monsterName(monster)"
+                  [attr.aria-label]="'Remover ' + monsterName(monster)"
+                  (click)="requestDelete(monster)"
+                >
+                  ✕
+                </button>
+              </div>
+            }
           </div>
-        }
-      </div>
 
-      <div class="m-pagination">
-        <button
-          class="m-page-btn"
-          [disabled]="!hasPrev()"
-          aria-label="Página anterior"
-          (click)="prevPage()"
-        >
-          &#9664;
-        </button>
-        <span class="m-page-info">{{ page() }} / {{ totalPages() }}</span>
-        <button
-          class="m-page-btn"
-          [disabled]="!hasNext()"
-          aria-label="Próxima página"
-          (click)="nextPage()"
-        >
-          &#9654;
-        </button>
-      </div>
-    }
-  </div>
-}
+          @if (totalPages() > 1) {
+            <div class="m-pagination">
+              <button
+                class="m-page-btn"
+                [disabled]="!hasPrev()"
+                aria-label="Página anterior"
+                (click)="prevPage()"
+              >
+                &#9664;
+              </button>
+              <span class="m-page-info">{{ page() }} / {{ totalPages() }}</span>
+              <button
+                class="m-page-btn"
+                [disabled]="!hasNext()"
+                aria-label="Próxima página"
+                (click)="nextPage()"
+              >
+                &#9654;
+              </button>
+            </div>
+          }
+        }
+        @if (isMobile()) {
+          <p class="m-total">TOTAL: {{ totalCount() }}</p>
+        }
+      </section>
+    </div>
+  }
+</div>
 
 <!-- ===== MODAL: CONFIRMAR REMOÇÃO ===== -->
 @if (deleteTarget(); as target) {

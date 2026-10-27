@@ -1,175 +1,119 @@
-@if (isMobile()) {
-  <!-- ===== MOBILE LAYOUT ===== (formulário no padrão das telas mobile: .m-* no styles.scss) -->
-  <div class="mobile-create-container">
+<div [class]="isMobile() ? 'mobile-create-container' : 'create-container'">
+  @if (isMobile()) {
     <div class="m-header">
       <button class="m-back" (click)="goBack()">&#8592;</button>
       <span class="m-title">CATALOGAR MONSTRO</span>
     </div>
-
-    <section class="m-section">
-      <h2 class="m-section-title">BUSCAR NO BESTIÁRIO</h2>
-      <div class="m-field">
-        <input
-          type="text"
-          class="m-input"
-          placeholder="Buscar monstro..."
-          aria-label="Buscar monstro"
-          [ngModel]="searchText()"
-          (ngModelChange)="searchText.set($event)"
-        />
-      </div>
-      @if (loadingList()) {
-        <app-skeleton-rows [rows]="6" [height]="36" />
-      } @else if (listError()) {
-        <p class="m-empty" role="alert">ERRO AO CARREGAR O BESTIÁRIO.</p>
-      } @else if (filteredMonsters().length === 0) {
-        <p class="m-empty">NENHUM MONSTRO ENCONTRADO.</p>
-      } @else {
-        <div class="m-card-list m-scroll">
-          @for (m of filteredMonsters(); track m.index) {
-            <button
-              class="m-card m-card--compact"
-              [class.m-card--selected]="selectedSlug() === m.index"
-              (click)="selectMonster(m)"
-            >
-              <span class="m-card-body">
-                <span class="m-card-title">{{ m.name }}</span>
-                <span class="m-card-desc"
-                  >ND {{ crText(m.challenge_rating) }} &middot; {{ m.type }}</span
-                >
-              </span>
-              @if (selectedSlug() === m.index) {
-                <span class="m-card-icon"
-                  ><img class="ui-icon" src="assets/icons/check.png" alt=""
-                /></span>
-              }
-            </button>
-          }
-        </div>
-      }
-    </section>
-
-    @if (selectedSlug()) {
-      <section class="m-section">
-        <h2 class="m-section-title">PRÉ-VISUALIZAÇÃO</h2>
-        <div class="m-box">
-          @if (loadingDetail()) {
-            <app-skeleton-rows [rows]="5" [height]="12" />
-          } @else if (detailError()) {
-            <p class="m-empty" role="alert">ERRO AO CARREGAR O MONSTRO.</p>
-          } @else if (selectedDetail(); as detail) {
-            <app-monster-stat-block [detail]="detail" />
-
-            <div class="catalog-form">
-              <label class="m-label" for="custom-name-mobile">NOME CUSTOMIZADO (OPCIONAL)</label>
-              <input
-                id="custom-name-mobile"
-                type="text"
-                class="m-input"
-                [placeholder]="detail.name"
-                [ngModel]="customName()"
-                (ngModelChange)="customName.set($event)"
-              />
-              @if (catalogError()) {
-                <p class="catalog-error" role="alert">{{ catalogError() }}</p>
-              }
-              <button
-                class="retro-btn m-submit"
-                [disabled]="cataloging()"
-                (click)="confirmCatalog()"
-              >
-                <img class="ui-icon" src="assets/icons/book-open.png" alt="" />
-                {{ cataloging() ? 'CATALOGANDO...' : 'CATALOGAR ESTE MONSTRO' }}
-              </button>
-            </div>
-          }
-        </div>
-      </section>
-    }
-  </div>
-} @else {
-  <!-- ===== DESKTOP LAYOUT ===== -->
-  <div class="create-container">
+  } @else {
     <header class="page-topbar">
-      <button class="retro-btn page-topbar-back" (click)="goBack()">← VOLTAR</button>
+      <button class="retro-btn page-topbar-back" (click)="goBack()">
+        {{ selected() ? '← VOLTAR ÀS CARTAS' : '← VOLTAR' }}
+      </button>
       <h1 class="page-topbar-name">CATALOGAR NOVO MONSTRO</h1>
     </header>
+  }
 
-    <div class="create-layout">
-      <fieldset class="retro-panel search-panel">
-        <legend>BUSCAR NO BESTIÁRIO</legend>
-        <input
-          type="text"
-          class="search-input"
-          placeholder="Buscar monstro..."
-          aria-label="Buscar monstro"
-          [ngModel]="searchText()"
-          (ngModelChange)="searchText.set($event)"
-        />
-        @if (loadingList()) {
-          <app-skeleton-rows [rows]="10" [height]="16" />
-        } @else if (listError()) {
-          <p class="empty-msg" role="alert">ERRO AO CARREGAR O BESTIÁRIO.</p>
-        } @else {
-          <ul class="bestiary-list">
-            @for (m of filteredMonsters(); track m.index) {
-              <li>
-                <button
-                  type="button"
-                  class="bestiary-row"
-                  [class.bestiary-row--active]="selectedSlug() === m.index"
-                  (click)="selectMonster(m)"
-                >
-                  {{ m.name }}
-                  <span class="bestiary-row-meta"
-                    >ND {{ crText(m.challenge_rating) }} &middot; {{ m.type }}</span
-                  >
-                </button>
-              </li>
-            }
-            @if (filteredMonsters().length === 0) {
-              <p class="empty-msg">NENHUM MONSTRO ENCONTRADO.</p>
-            }
-          </ul>
-        }
-      </fieldset>
-
-      <fieldset class="retro-panel preview-panel">
-        <legend>PRÉ-VISUALIZAÇÃO</legend>
-        @if (!selectedSlug()) {
-          <p class="empty-msg">SELECIONE UM MONSTRO NA LISTA AO LADO.</p>
-        } @else if (loadingDetail()) {
-          <app-skeleton-rows [rows]="7" [height]="12" />
-        } @else if (detailError()) {
-          <p class="empty-msg" role="alert">ERRO AO CARREGAR O MONSTRO.</p>
-        } @else if (selectedDetail(); as detail) {
-          <app-monster-stat-block [detail]="detail" />
-
-          <div class="catalog-form">
-            <label class="catalog-label" for="custom-name-desktop"
-              >NOME CUSTOMIZADO (OPCIONAL)</label
-            >
+  @if (selected(); as sel) {
+    <!-- A carta aberta: a ficha com a cara do detalhe, com o CATALOGAR embaixo da carta -->
+    @if (loadingDetail()) {
+      <div class="cc-panel" aria-busy="true" aria-label="Carregando o monstro">
+        <span class="skeleton" style="width: 180px; height: 250px; margin: 0 auto 16px"></span>
+        <app-skeleton-rows [rows]="6" [height]="12" />
+      </div>
+    } @else if (detailError()) {
+      <p class="cc-empty" role="alert">ERRO AO CARREGAR O MONSTRO.</p>
+    } @else if (selectedDetail(); as detail) {
+      @if (previewCard(); as card) {
+        <app-monster-sheet
+          [block]="detail"
+          [card]="card"
+          [cardState]="cardState(sel)"
+          [hp]="sel.hp_max"
+          [ac]="sel.ac"
+          [fit]="true"
+        >
+          <div sheetFooter class="cc-catalog-footer">
+            <label class="cc-label" for="custom-name">NOME CUSTOMIZADO (OPCIONAL)</label>
             <input
-              id="custom-name-desktop"
+              id="custom-name"
               type="text"
-              [placeholder]="detail.name"
+              class="cc-input"
+              maxlength="100"
+              [placeholder]="sel.name"
               [ngModel]="customName()"
               (ngModelChange)="customName.set($event)"
+              (keydown.enter)="confirmCatalog()"
             />
             @if (catalogError()) {
-              <p class="catalog-error" role="alert">{{ catalogError() }}</p>
+              <p class="cc-error" role="alert">{{ catalogError() }}</p>
             }
-            <button
-              class="retro-btn catalog-confirm-btn"
-              [disabled]="cataloging()"
-              (click)="confirmCatalog()"
-            >
-              <img class="ui-icon" src="assets/icons/book-open.png" alt="" />
+            <button class="cc-catalog-btn" [disabled]="cataloging()" (click)="confirmCatalog()">
               {{ cataloging() ? 'CATALOGANDO...' : 'CATALOGAR ESTE MONSTRO' }}
             </button>
           </div>
+        </app-monster-sheet>
+      }
+    }
+  } @else {
+    <!-- Busca e filtros (app-monster-filters): coluna da esquerda no desktop; no celular, recolhem -->
+    <div class="cc-layout">
+      <app-monster-filters
+        label="Buscar no livro de monstros"
+        [filters]="filters()"
+        [types]="filterOptions().types"
+        [sizes]="filterOptions().sizes"
+        [total]="filteredMonsters().length"
+        [sortOptions]="sortOptions"
+        [mobile]="isMobile()"
+        (patch)="patchFilters($event)"
+        (cleared)="clearFilters()"
+      />
+
+      <section class="cc-results" aria-label="Monstros do livro">
+        @if (loadingList()) {
+          <div class="cc-panel" aria-busy="true" aria-label="Carregando o bestiário">
+            <app-skeleton-rows [rows]="6" [height]="40" />
+          </div>
+        } @else if (listError()) {
+          <p class="cc-empty" role="alert">ERRO AO CARREGAR O BESTIÁRIO.</p>
+        } @else if (filteredMonsters().length === 0) {
+          <p class="cc-empty">NENHUM MONSTRO COM ESSES FILTROS.</p>
+        } @else {
+          <div class="cc-grid">
+            @for (item of visibleCards(); track item.monster.index) {
+              <button
+                type="button"
+                class="cc-card"
+                [attr.aria-label]="'Ver a ficha de ' + item.monster.name"
+                (click)="selectMonster(item.monster)"
+              >
+                <app-game-card [card]="item.card" [state]="item.state" />
+              </button>
+            }
+          </div>
+          @if (totalPages() > 1) {
+            <div class="m-pagination">
+              <button
+                class="m-page-btn"
+                [disabled]="page() === 1"
+                aria-label="Página anterior"
+                (click)="prevPage()"
+              >
+                &#9664;
+              </button>
+              <span class="m-page-info">{{ page() }} / {{ totalPages() }}</span>
+              <button
+                class="m-page-btn"
+                [disabled]="page() === totalPages()"
+                aria-label="Próxima página"
+                (click)="nextPage()"
+              >
+                &#9654;
+              </button>
+            </div>
+          }
         }
-      </fieldset>
+      </section>
     </div>
-  </div>
-}
+  }
+</div>

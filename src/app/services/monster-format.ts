@@ -1,4 +1,4 @@
-/** Formatação dos campos da ficha de monstro (bestiário do livro e fichas antigas da dnd5eapi). */
+/** Formatação dos campos da ficha de monstro (bestiário do livro). */
 
 /** "terrestre: 6 m, voo: 15 m, pairar" — `pairar: true` vira só a palavra. */
 export function monsterSpeedText(speed: Record<string, string | boolean> | undefined): string {
@@ -22,7 +22,7 @@ export function normalizeSearch(text: string): string {
   return text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 }
 
-/** ND 5+ é ameaça de verdade pra um grupo iniciante — ganha destaque dourado no card/ficha. */
+/** ND 5+ é ameaça de verdade pra um grupo iniciante — ganha brilho vermelho na carta. */
 export const THREAT_CHALLENGE_RATING = 5;
 
 export function isHighThreat(cr: number): boolean {
