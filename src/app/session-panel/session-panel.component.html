@@ -55,7 +55,7 @@
           @if (c.encounter.status === 'rolling_initiative') {
             <p class="combat-status-label">AGUARDANDO ROLAGENS DE INICIATIVA...</p>
           } @else if (c.encounter.status === 'active') {
-            <p class="combat-status-label">RONDA {{ c.encounter.round_number }}</p>
+            <p class="combat-status-label">RONDA {{ c.encounter.round_number }}@if (isOwner() && c.encounter.defeated_xp) { · <span class="combat-xp" title="XP dos monstros derrotados neste combate — distribuído (se você quiser) ao encerrar">XP ACUMULADO {{ c.encounter.defeated_xp }}</span> }</p>
             @if (currentTurnParticipant(); as current) {
               @let banner = turnBanner(current);
               <p class="combat-turn-banner">@if (banner.action) { <img class="ui-icon" src="assets/icons/d20.png" alt="" /> }{{ banner.text }}</p>
@@ -373,7 +373,7 @@
                     </button>
                     <button class="player-action-btn row-action-btn row-action-btn--danger" title="Marcar monstro como derrotado"
                       [disabled]="defeatingMonsterId() === monster.id_monster_session"
-                      (click)="openDefeatMonsterXpModal(monster)">
+                      (click)="requestDefeat(monster)">
                       <img src="assets/icons/swords.png" alt="" />
                       <span>DERROTAR</span>
                     </button>
@@ -466,7 +466,7 @@
           @if (c.encounter.status === 'rolling_initiative') {
             <p class="combat-status-label">AGUARDANDO ROLAGENS DE INICIATIVA...</p>
           } @else if (c.encounter.status === 'active') {
-            <p class="combat-status-label">RONDA {{ c.encounter.round_number }}</p>
+            <p class="combat-status-label">RONDA {{ c.encounter.round_number }}@if (isOwner() && c.encounter.defeated_xp) { · <span class="combat-xp" title="XP dos monstros derrotados neste combate — distribuído (se você quiser) ao encerrar">XP ACUMULADO {{ c.encounter.defeated_xp }}</span> }</p>
             @if (currentTurnParticipant(); as current) {
               @let banner = turnBanner(current);
               <p class="combat-turn-banner">@if (banner.action) { <img class="ui-icon" src="assets/icons/d20.png" alt="" /> }{{ banner.text }}</p>
@@ -789,7 +789,7 @@
                     </button>
                     <button class="player-action-btn row-action-btn row-action-btn--danger" title="Marcar monstro como derrotado"
                       [disabled]="defeatingMonsterId() === monster.id_monster_session"
-                      (click)="openDefeatMonsterXpModal(monster)">
+                      (click)="requestDefeat(monster)">
                       <img src="assets/icons/swords.png" alt="" />
                       <span>DERROTAR</span>
                     </button>
@@ -960,14 +960,42 @@
   }
 }
 
-<!-- ===== CONFIRMAÇÃO: MONSTROS DO COMBATE FORAM DERROTADOS? ===== -->
-@if (showEndCombatConfirm()) {
-  <div class="overlay end-combat-confirm-overlay" (click)="declineMonstersDefeated()">
-    <div class="retro-panel end-combat-confirm-panel" (click)="$event.stopPropagation()">
-      <p class="end-combat-confirm-question">OS MONSTROS DESTE COMBATE FORAM DERROTADOS?</p>
+<!-- ===== ENCERRAR COMBATE: XP ACUMULADO, DISTRIBUIR É OPCIONAL (1.15.0) ===== -->
+@if (showEndCombatConfirm() && combat(); as c) {
+  <div class="overlay end-combat-confirm-overlay" (click)="cancelEndCombat()">
+    <div class="retro-panel end-combat-confirm-panel" role="dialog" aria-modal="true" aria-labelledby="end-combat-title" (click)="$event.stopPropagation()">
+      <p class="end-combat-confirm-question" id="end-combat-title">ENCERRAR O COMBATE</p>
+      <p class="end-combat-confirm-detail">
+        XP DOS MONSTROS DERROTADOS NESTE COMBATE: <strong>{{ c.encounter.defeated_xp }}</strong>
+      </p>
+      <p class="end-combat-confirm-detail">Quer distribuir esse XP entre os jogadores?</p>
       <div class="end-combat-confirm-actions">
-        <button class="retro-btn" (click)="confirmMonstersDefeated()">SIM</button>
-        <button class="retro-btn end-combat-confirm-no" (click)="declineMonstersDefeated()">NÃO</button>
+        <button class="retro-btn" [disabled]="endingCombat()" (click)="distributeCombatXp()">DISTRIBUIR XP</button>
+        <button class="retro-btn end-combat-confirm-no" [disabled]="endingCombat()" (click)="endCombatWithoutXp()">ENCERRAR SEM XP</button>
+      </div>
+      <button type="button" class="end-combat-confirm-back" (click)="cancelEndCombat()">VOLTAR AO COMBATE</button>
+    </div>
+  </div>
+}
+
+<!-- ===== MONSTRO DERROTADO? (chegou a 0 PV, ou DERROTAR) — só o mestre ===== -->
+@if (defeatPrompt(); as prompt) {
+  <div class="overlay end-combat-confirm-overlay" (click)="declineDefeat()">
+    <div class="retro-panel end-combat-confirm-panel" role="dialog" aria-modal="true" aria-labelledby="defeat-prompt-title" (click)="$event.stopPropagation()">
+      <img class="defeat-prompt-img" [src]="prompt.monster.image_url || 'assets/monster.png'" alt="" />
+      <p class="end-combat-confirm-question" id="defeat-prompt-title">
+        @if (prompt.reason === 'zero_hp') {
+          {{ monsterDisplayName(prompt.monster) }} CHEGOU A 0 PONTOS DE VIDA.
+        } @else {
+          DERROTAR {{ monsterDisplayName(prompt.monster) }}?
+        }
+      </p>
+      <p class="end-combat-confirm-detail">
+        Marcar como derrotado tira o monstro da mesa@if (combat()) {, e o XP dele ({{ prompt.monster.data_snapshot.xp }}) soma no XP do combate}.
+      </p>
+      <div class="end-combat-confirm-actions">
+        <button class="retro-btn" [disabled]="!!defeatingMonsterId()" (click)="confirmDefeat()">DERROTADO</button>
+        <button class="retro-btn end-combat-confirm-no" (click)="declineDefeat()">AINDA NÃO</button>
       </div>
     </div>
   </div>
@@ -1305,7 +1333,7 @@
     (closed)="closeMonsterDetail()"
     (endTurn)="endTurn(); closeMonsterDetail()"
     (toggleReveal)="toggleMonsterReveal(monster, $event)"
-    (defeat)="closeMonsterDetail(); openDefeatMonsterXpModal(monster)"
+    (defeat)="closeMonsterDetail(); requestDefeat(monster)"
     (roll)="openMonsterRoll(monster, $event)"
     (op)="applyMonsterOp(monster, $event)"
     (hp)="applyMonsterDrawerHp(monster, $event)"

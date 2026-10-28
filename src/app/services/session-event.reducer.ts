@@ -34,14 +34,24 @@ export function applySessionEvent(
       return { ...detail, monsters: [...detail.monsters, event.monster] };
 
     case 'monster_removed':
-    case 'monster_defeated':
-      return {
+    case 'monster_defeated': {
+      const next = {
         ...detail,
         monsters: detail.monsters.filter((m) => m.id_monster_session !== event.id_monster_session),
         revealed_monsters: detail.revealed_monsters.filter(
           (r) => r.id_monster_session !== event.id_monster_session,
         ),
       };
+      // Derrotado no combate em andamento: o XP acumulado do combate (1.15.0).
+      const xp = event.type === 'monster_defeated' ? event.combat_xp : null;
+      if (xp && detail.combat?.encounter.id_combat_encounter === xp.id_combat_encounter) {
+        next.combat = {
+          ...detail.combat,
+          encounter: { ...detail.combat.encounter, defeated_xp: xp.defeated_xp },
+        };
+      }
+      return next;
+    }
 
     case 'player_hp_updated':
       return {

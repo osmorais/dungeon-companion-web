@@ -186,6 +186,8 @@ export interface CombatEncounter {
   round_number: number;
   current_turn_participant_id: string | null;
   created_at: string;
+  /** XP somado dos monstros derrotados neste combate (1.15.0): sugerido ao encerrar. */
+  defeated_xp: number;
 }
 
 export interface CombatEncounterDetail {

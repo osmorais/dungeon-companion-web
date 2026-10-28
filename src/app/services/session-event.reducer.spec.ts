@@ -207,6 +207,21 @@ describe('applySessionEvent', () => {
         expect(detail.revealed_monsters).toEqual([]);
       },
     );
+
+    it('monster_defeated no combate em andamento atualiza o XP acumulado (1.15.0)', () => {
+      const event = (id: string) =>
+        ({
+          type: 'monster_defeated',
+          id_monster_session: 'm1',
+          name: 'Goblin',
+          image_url: null,
+          combat_xp: { id_combat_encounter: id, defeated_xp: 150 },
+        }) as const;
+      const base = sessionDetail({ monsters: [monster('m1')], combat: combat([]) });
+      expect(apply(base, event('enc')).combat?.encounter.defeated_xp).toBe(150);
+      // Outro combate (evento atrasado de um encontro já encerrado): não mexe no atual.
+      expect(apply(base, event('outro')).combat?.encounter.defeated_xp).toBe(0);
+    });
   });
 
   describe('rolagens', () => {

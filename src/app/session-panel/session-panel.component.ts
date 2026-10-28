@@ -231,6 +231,14 @@ export class SessionPanelComponent implements OnDestroy {
       });
     });
 
+    /** Monstro chegou a 0 PV (dano pela gaveta, pela rolagem aplicada ou em área): o mestre
+     *  confirma se ele foi derrotado (1.15.0) — ver watchMonstersAtZeroHp. */
+    effect(() => {
+      const detail = this.sessionDetail();
+      const owner = this.isOwner();
+      untracked(() => this.watchMonstersAtZeroHp(detail?.monsters ?? null, owner));
+    });
+
     /** Antes de pedir a rolagem de iniciativa, personagens que preparam magia (Clérigo/Druida/
      *  Paladino/Mago) têm a chance de revisar o que está preparado — ver checkBattlePrepareSpells. */
     effect(() => {
@@ -1072,7 +1080,76 @@ export class SessionPanelComponent implements OnDestroy {
 
   defeatingMonsterId = signal<string | null>(null);
 
-  /** Marca o monstro como derrotado depois de conceder XP (sempre passa pelo modal de distribuição primeiro). */
+  /** ========================= DERROTAR (com confirmação) ========================= */
+
+  /** Monstros esperando o "foi derrotado?" do mestre: chegou a 0 PV (`zero_hp`) ou o mestre
+   *  apertou DERROTAR (`button`). Um de cada vez, na ordem. */
+  private defeatPrompts = signal<{ id: string; reason: 'zero_hp' | 'button' }[]>([]);
+  /** A pergunta da vez — só se o monstro ainda está na sessão (e, no 0 PV, ainda em 0). */
+  readonly defeatPrompt = computed(() => {
+    const monsters = this.sessionDetail()?.monsters ?? [];
+    for (const prompt of this.defeatPrompts()) {
+      const monster = monsters.find((m) => m.id_monster_session === prompt.id);
+      if (monster && (prompt.reason === 'button' || monster.hp_current <= 0)) {
+        return { monster, reason: prompt.reason };
+      }
+    }
+    return null;
+  });
+  /** PV de cada monstro na última vez que a sessão mudou (pra ver quem acabou de chegar a 0). */
+  private lastMonsterHp: Map<string, number> | null = null;
+
+  /** Só o mestre. Na primeira carga não pergunta (quem já estava em 0 continua como estava). */
+  private watchMonstersAtZeroHp(monsters: MonsterSession[] | null, owner: boolean): void {
+    if (!monsters || !owner) {
+      this.lastMonsterHp = null;
+      return;
+    }
+    const previous = this.lastMonsterHp;
+    this.lastMonsterHp = new Map(monsters.map((m) => [m.id_monster_session, m.hp_current]));
+    if (!previous) return;
+    const reachedZero = monsters.filter((m) => {
+      const before = previous.get(m.id_monster_session);
+      return m.hp_current <= 0 && before !== undefined && before > 0;
+    });
+    if (!reachedZero.length) return;
+    this.defeatPrompts.update((queue) => [
+      ...queue,
+      ...reachedZero
+        .filter((m) => !queue.some((q) => q.id === m.id_monster_session))
+        .map((m) => ({ id: m.id_monster_session, reason: 'zero_hp' as const })),
+    ]);
+  }
+
+  /** DERROTAR da linha e da gaveta: pergunta antes (derrotar tira o monstro da mesa). */
+  requestDefeat(monster: MonsterSession): void {
+    const id = monster.id_monster_session;
+    this.defeatPrompts.update((queue) => [
+      { id, reason: 'button' },
+      ...queue.filter((q) => q.id !== id),
+    ]);
+  }
+
+  /** "Derrotar" na pergunta: marca como derrotado (o XP dele soma no combate, se houver). */
+  confirmDefeat(): void {
+    const prompt = this.defeatPrompt();
+    if (!prompt) return;
+    this.dropDefeatPrompt(prompt.monster.id_monster_session);
+    this.defeatMonster(prompt.monster);
+  }
+
+  /** "Ainda não": fecha a pergunta; o monstro continua na mesa. */
+  declineDefeat(): void {
+    const prompt = this.defeatPrompt();
+    if (prompt) this.dropDefeatPrompt(prompt.monster.id_monster_session);
+  }
+
+  private dropDefeatPrompt(id: string): void {
+    this.defeatPrompts.update((queue) => queue.filter((q) => q.id !== id));
+  }
+
+  /** Marca o monstro como derrotado. Dentro de um combate, o XP dele vai pro acumulado do combate
+   *  (servidor), distribuído — se o mestre quiser — ao encerrar (1.15.0). */
   private defeatMonster(monster: MonsterSession) {
     if (this.defeatingMonsterId()) return;
     this.defeatingMonsterId.set(monster.id_monster_session);
@@ -1088,46 +1165,28 @@ export class SessionPanelComponent implements OnDestroy {
   showDistributeXpModal = signal(false);
   xpModalSuggestedAmount = signal<number | null>(null);
   xpModalPreselected = signal<string[]>([]);
-  /** Monstros a marcar como derrotados quando o XP for concedido — um só (botão "derrotar") ou
-   *  vários (todos os monstros do combate, ao encerrá-lo). Vazio no fluxo avulso (sem monstro). */
-  private xpModalPendingMonsters = signal<MonsterSession[]>([]);
-  /** Só setado no fluxo de encerrar combate — depois de derrotar os monstros, também finaliza o encontro. */
+  /** Só no fluxo de encerrar combate: depois de conceder o XP, finaliza o encontro. */
   private xpModalEndsCombat = signal<string | null>(null);
 
   /** Botão avulso "DISTRIBUIR XP" — sem sugestão de valor nem destinatários pré-marcados. */
   openDistributeXpModal(): void {
     this.xpModalSuggestedAmount.set(null);
     this.xpModalPreselected.set([]);
-    this.xpModalPendingMonsters.set([]);
     this.xpModalEndsCombat.set(null);
     this.showDistributeXpModal.set(true);
   }
 
-  /** Antes de marcar um monstro como derrotado, sempre pergunta a distribuição de XP — sugere o
-   *  XP do monstro e pré-marca os jogadores do combate ativo (ambos ajustáveis pelo mestre). */
-  openDefeatMonsterXpModal(monster: MonsterSession): void {
-    if (this.defeatingMonsterId()) return;
-    this.xpModalSuggestedAmount.set(monster.data_snapshot?.xp ?? null);
-    this.xpModalPreselected.set(this.currentCombatPlayerSessionIds());
-    this.xpModalPendingMonsters.set([monster]);
-    this.xpModalEndsCombat.set(null);
-    this.showDistributeXpModal.set(true);
-  }
-
+  /** Fechar sem conceder: nada muda (no fluxo de encerrar, o combate continua). */
   closeDistributeXpModal(): void {
     this.showDistributeXpModal.set(false);
-    this.xpModalPendingMonsters.set([]);
     this.xpModalEndsCombat.set(null);
   }
 
-  /** Só marca o(s) monstro(s) como derrotado(s) — e encerra o combate, se for o caso — depois que o XP foi concedido com sucesso. */
+  /** XP concedido; no fluxo de encerrar combate, finaliza o encontro em seguida. */
   onXpGranted(): void {
-    const monsters = this.xpModalPendingMonsters();
     const idCombatEncounter = this.xpModalEndsCombat();
     this.showDistributeXpModal.set(false);
-    this.xpModalPendingMonsters.set([]);
     this.xpModalEndsCombat.set(null);
-    for (const monster of monsters) this.defeatMonster(monster);
     if (idCombatEncounter) this.finishEncounter(idCombatEncounter);
   }
 
@@ -1137,17 +1196,6 @@ export class SessionPanelComponent implements OnDestroy {
     return combat.participants
       .filter((p): p is typeof p & { id_player_session: string } => p.participant_type === 'player' && !!p.id_player_session)
       .map(p => p.id_player_session);
-  }
-
-  private currentCombatMonsters(): MonsterSession[] {
-    const combat = this.combat();
-    if (!combat) return [];
-    const monsterIds = new Set(
-      combat.participants
-        .filter((p): p is typeof p & { id_monster_session: string } => p.participant_type === 'monster' && !!p.id_monster_session)
-        .map(p => p.id_monster_session),
-    );
-    return (this.sessionDetail()?.monsters ?? []).filter(m => monsterIds.has(m.id_monster_session));
   }
 
   private removeMonsterFromState(idMonsterSession: string): void {
@@ -3007,12 +3055,12 @@ export class SessionPanelComponent implements OnDestroy {
       .subscribe();
   }
 
-  /** Se o combate tem monstros, pergunta antes se foram derrotados (pra passar pelo fluxo de
-   *  XP); senão encerra direto — igual ao comportamento de hoje. */
+  /** Com XP de monstros derrotados no combate, mostra o acumulado e pergunta se distribui
+   *  (opcional, 1.15.0); sem XP, encerra direto. */
   endCombat(): void {
     const combat = this.combat();
     if (!combat || this.endingCombat()) return;
-    if (this.currentCombatMonsters().length > 0) {
+    if ((combat.encounter.defeated_xp ?? 0) > 0) {
       this.showEndCombatConfirm.set(true);
       return;
     }
@@ -3029,31 +3077,31 @@ export class SessionPanelComponent implements OnDestroy {
       .subscribe();
   }
 
-  /** ========================= ENCERRAR COMBATE: MONSTROS FORAM DERROTADOS? ========================= */
+  /** ========================= ENCERRAR COMBATE: DISTRIBUIR O XP ACUMULADO? ========================= */
 
   showEndCombatConfirm = signal(false);
 
-  /** "Sim" — abre a distribuição de XP (soma o XP de todos os monstros do combate); só derrota
-   *  os monstros e encerra o combate depois que o XP for concedido (ver onXpGranted). */
-  confirmMonstersDefeated(): void {
+  /** "Distribuir XP": abre a distribuição com o XP acumulado e os jogadores do combate marcados
+   *  (ajustáveis); o combate só encerra depois que o XP for concedido (ver onXpGranted). */
+  distributeCombatXp(): void {
     const combat = this.combat();
     this.showEndCombatConfirm.set(false);
     if (!combat) return;
-
-    const monsters = this.currentCombatMonsters();
-    const totalXp = monsters.reduce((sum, m) => sum + (m.data_snapshot?.xp ?? 0), 0);
-
-    this.xpModalSuggestedAmount.set(totalXp || null);
+    this.xpModalSuggestedAmount.set(combat.encounter.defeated_xp || null);
     this.xpModalPreselected.set(this.currentCombatPlayerSessionIds());
-    this.xpModalPendingMonsters.set(monsters);
     this.xpModalEndsCombat.set(combat.encounter.id_combat_encounter);
     this.showDistributeXpModal.set(true);
   }
 
-  /** "Não" — encerra o combate normalmente, sem conceder XP nem derrotar ninguém. */
-  declineMonstersDefeated(): void {
+  /** "Encerrar sem XP": a distribuição é opcional. */
+  endCombatWithoutXp(): void {
     const combat = this.combat();
     this.showEndCombatConfirm.set(false);
     if (combat) this.finishEncounter(combat.encounter.id_combat_encounter);
+  }
+
+  /** "Voltar ao combate": não encerra. */
+  cancelEndCombat(): void {
+    this.showEndCombatConfirm.set(false);
   }
 }

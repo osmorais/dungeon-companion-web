@@ -76,7 +76,7 @@ export class MonsterDrawerComponent {
   @Output() closed = new EventEmitter<void>();
   @Output() endTurn = new EventEmitter<void>();
   @Output() toggleReveal = new EventEmitter<Event>();
-  /** DERROTAR: a sessão abre a distribuição de XP e só então tira o monstro. */
+  /** DERROTAR: a sessão pergunta antes e tira o monstro (o XP soma no combate, 1.15.0). */
   @Output() defeat = new EventEmitter<void>();
   @Output() roll = new EventEmitter<MonsterRollRequest>();
   @Output() op = new EventEmitter<MonsterActionOp>();

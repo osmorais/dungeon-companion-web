@@ -100,6 +100,7 @@ export function combat(
       id_game_session: 'gs',
       status,
       round_number: 1,
+      defeated_xp: 0,
       current_turn_participant_id:
         participants.find((p) => p.is_current_turn)?.id_combat_participant ?? null,
       created_at: '2026-01-01T00:00:00Z',

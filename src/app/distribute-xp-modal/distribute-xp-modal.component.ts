@@ -6,8 +6,8 @@ import { AvatarDisplayComponent } from '../avatar-display/avatar-display.compone
 
 /**
  * Usado em dois pontos do session-panel: um botão avulso "DISTRIBUIR XP" (sem sugestão de
- * valor/destinatários) e o fluxo de derrotar monstro (sugere o XP do monstro e pré-marca os
- * jogadores do combate ativo). Cada jogador/NPC selecionado recebe o valor cheio de XP
+ * valor/destinatários) e o encerrar combate (1.15.0: sugere o XP acumulado dos monstros
+ * derrotados no combate e pré-marca os jogadores dele). Cada jogador/NPC selecionado recebe o valor cheio de XP
  * informado — não é dividido entre eles.
  */
 @Component({

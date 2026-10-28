@@ -33,6 +33,25 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.15.0',
+    date: '2026-10-28',
+    title: 'XP do combate no fim da luta',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'O XP dos monstros derrotados num combate vai se somando e aparece para o mestre ao lado da rodada. Ao encerrar o combate, o mestre vê o total e escolhe se distribui entre os jogadores, que já vêm marcados, ou se encerra sem dar XP.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Derrotar um monstro não abre mais a distribuição de XP: o mestre só confirma, e o monstro sai da mesa.',
+      },
+      {
+        kind: 'novidade',
+        text: 'Quando um monstro chega a 0 pontos de vida, o mestre recebe um aviso perguntando se quer marcá-lo como derrotado.',
+      },
+    ],
+  },
+  {
     version: '1.14.1',
     date: '2026-10-27',
     title: 'Avental novo do Tom',

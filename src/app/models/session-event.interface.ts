@@ -35,6 +35,8 @@ export interface SessionEventPayloadMap {
     image_url: string | null;
     monster_type?: string | null;
     size?: string | null;
+    /** Derrotado num combate em andamento: o XP acumulado do combate (1.15.0). */
+    combat_xp?: { id_combat_encounter: string; defeated_xp: number } | null;
   };
   /** Mestre apagou a sessão — quem está nela vê o aviso e volta pro início. */
   session_deleted: Record<never, never>;

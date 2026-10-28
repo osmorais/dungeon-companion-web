@@ -1531,6 +1531,43 @@
   color: var(--label-title-color);
 }
 
+// XP acumulado no encerrar (1.15.0) e o texto da pergunta de derrota.
+.end-combat-confirm-detail {
+  margin: 0;
+  font-size: 8px;
+  line-height: 1.7;
+  color: var(--label-title-color);
+
+  strong {
+    color: var(--accent-color);
+    font-size: 11px;
+  }
+}
+
+.end-combat-confirm-back {
+  padding: 4px;
+  background: none;
+  border: none;
+  color: var(--label-title-color);
+  font-family: inherit;
+  font-size: 7px;
+  text-decoration: underline;
+  cursor: var(--cp);
+}
+
+.defeat-prompt-img {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border: 2px solid var(--border-color);
+  image-rendering: pixelated;
+}
+
+// XP dos monstros derrotados no combate, ao lado da RONDA (só o mestre).
+.combat-xp {
+  color: var(--accent-color);
+}
+
 .temp-hp-confirm-overlay {
   z-index: 1100;
 }

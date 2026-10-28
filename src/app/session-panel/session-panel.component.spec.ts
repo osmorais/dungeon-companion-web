@@ -1444,4 +1444,117 @@ describe('SessionPanelComponent', () => {
       component.ngOnDestroy();
     });
   });
+
+  describe('derrota e XP do combate (1.15.0)', () => {
+    let defeatMonster: ReturnType<typeof vi.fn>;
+    let endEncounter: ReturnType<typeof vi.fn>;
+
+    beforeEach(() => {
+      defeatMonster = vi.fn(() => of(undefined));
+      endEncounter = vi.fn(() => of({}));
+      Object.assign(gameSessionService, { defeatMonster, endEncounter });
+    });
+
+    function withCombat(defeatedXp: number) {
+      const c = combat([
+        participant('pp', { participant_type: 'player', id_player_session: 'p1' }),
+      ]);
+      c.encounter.defeated_xp = defeatedXp;
+      detail.set(sessionDetail({ players: [player('p1')], combat: c }));
+    }
+
+    it('monstro chegando a 0 PV pergunta ao mestre; quem já estava em 0 ao carregar, não', () => {
+      detail.set(sessionDetail({ monsters: [monster('m1', { hp_current: 0 }), monster('m2')] }));
+      TestBed.tick();
+      expect(component.defeatPrompt()).toBeNull();
+
+      detail.update((d) => ({
+        ...d!,
+        monsters: d!.monsters.map((m) =>
+          m.id_monster_session === 'm2' ? { ...m, hp_current: 0 } : m,
+        ),
+      }));
+      TestBed.tick();
+      expect(component.defeatPrompt()).toMatchObject({
+        reason: 'zero_hp',
+        monster: { id_monster_session: 'm2' },
+      });
+
+      component.declineDefeat();
+      expect(component.defeatPrompt()).toBeNull();
+      expect(defeatMonster).not.toHaveBeenCalled();
+    });
+
+    it('curado antes de responder: a pergunta some sozinha', () => {
+      detail.set(sessionDetail({ monsters: [monster('m1')] }));
+      TestBed.tick();
+      detail.update((d) => ({ ...d!, monsters: [monster('m1', { hp_current: 0 })] }));
+      TestBed.tick();
+      expect(component.defeatPrompt()).not.toBeNull();
+      detail.update((d) => ({ ...d!, monsters: [monster('m1', { hp_current: 3 })] }));
+      expect(component.defeatPrompt()).toBeNull();
+    });
+
+    it('jogador não recebe a pergunta (só o mestre)', () => {
+      const asPlayer = (monsters: MonsterSession[]) =>
+        sessionDetail({
+          monsters,
+          game_session: { ...sessionDetail().game_session, user_id: 'outro' },
+        });
+      detail.set(asPlayer([monster('m1')]));
+      TestBed.tick();
+      detail.set(asPlayer([monster('m1', { hp_current: 0 })]));
+      TestBed.tick();
+      expect(component.defeatPrompt()).toBeNull();
+    });
+
+    it('DERROTAR pergunta antes e, confirmado, derrota direto (sem abrir o XP)', () => {
+      const m = monster('m1');
+      detail.set(sessionDetail({ monsters: [m] }));
+      component.requestDefeat(m);
+      expect(component.defeatPrompt()).toMatchObject({ reason: 'button' });
+      component.confirmDefeat();
+      expect(defeatMonster).toHaveBeenCalledWith('m1');
+      expect(component.showDistributeXpModal()).toBe(false);
+      expect(component.defeatPrompt()).toBeNull();
+    });
+
+    it('encerrar com XP acumulado: mostra o total; distribuir abre o XP e só depois encerra', () => {
+      withCombat(450);
+      component.endCombat();
+      expect(component.showEndCombatConfirm()).toBe(true);
+      expect(endEncounter).not.toHaveBeenCalled();
+
+      component.distributeCombatXp();
+      expect(component.showDistributeXpModal()).toBe(true);
+      expect(component.xpModalSuggestedAmount()).toBe(450);
+      expect(component.xpModalPreselected()).toEqual(['p1']);
+      expect(endEncounter).not.toHaveBeenCalled();
+
+      component.onXpGranted();
+      expect(endEncounter).toHaveBeenCalledWith('enc');
+    });
+
+    it('distribuir é opcional: ENCERRAR SEM XP encerra; VOLTAR e fechar o XP não encerram', () => {
+      withCombat(450);
+      component.endCombat();
+      component.cancelEndCombat();
+      expect(component.showEndCombatConfirm()).toBe(false);
+      component.endCombat();
+      component.distributeCombatXp();
+      component.closeDistributeXpModal();
+      expect(endEncounter).not.toHaveBeenCalled();
+
+      component.endCombat();
+      component.endCombatWithoutXp();
+      expect(endEncounter).toHaveBeenCalledWith('enc');
+    });
+
+    it('sem monstro derrotado no combate, encerra direto', () => {
+      withCombat(0);
+      component.endCombat();
+      expect(component.showEndCombatConfirm()).toBe(false);
+      expect(endEncounter).toHaveBeenCalledWith('enc');
+    });
+  });
 });
