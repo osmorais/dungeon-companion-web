@@ -71,6 +71,7 @@ import {
   SpellCastContext,
   castVerb,
   monsterCastVerb,
+  monsterSequenceStamp,
   newCastId,
 } from '../spell-cast/spell-cast-context';
 import { SPELL_CAST_DONE_MS, SpellCastNoticeComponent } from '../spell-cast/spell-cast-notice.component';
@@ -79,6 +80,7 @@ import { MonsterCarouselComponent } from '../monster-reveal/monster-carousel.com
 import { MonsterDrawerComponent } from '../monster-drawer/monster-drawer.component';
 import { MonsterDefeatNoticeComponent } from '../monster-reveal/monster-defeat-notice.component';
 import { MonsterRevealInfo, monsterActionToCard, monsterToCard } from '../game-card/monster-card';
+import { GameCardComponent } from '../game-card/game-card.component';
 import { GameCardData } from '../game-card/game-card.model';
 import { CastStageView, castRollView } from '../spell-cast/spell-cast-stage.model';
 import { SessionEventPayloadMap } from '../models/session-event.interface';
@@ -98,6 +100,7 @@ import { challengeRatingText, monsterSpeedText } from '../services/monster-forma
   imports: [
     FormsModule,
     CharacterDrawerComponent,
+    GameCardComponent,
     SpellCastNoticeComponent,
     MonsterRevealNoticeComponent,
     MonsterCarouselComponent,
@@ -1082,20 +1085,36 @@ export class SessionPanelComponent implements OnDestroy {
 
   /** ========================= DERROTAR (com confirmação) ========================= */
 
-  /** Monstros esperando o "foi derrotado?" do mestre: chegou a 0 PV (`zero_hp`) ou o mestre
-   *  apertou DERROTAR (`button`). Um de cada vez, na ordem. */
-  private defeatPrompts = signal<{ id: string; reason: 'zero_hp' | 'button' }[]>([]);
+  /** Monstros esperando o "foi derrotado?" do mestre: chegou a 0 PV (`zero_hp`), o mestre
+   *  apertou DERROTAR (`button`) ou encerrou o combate com ele ainda no combate (`end_combat`,
+   *  1.15.1). Um de cada vez, na ordem. */
+  private defeatPrompts = signal<{ id: string; reason: 'zero_hp' | 'button' | 'end_combat' }[]>(
+    [],
+  );
   /** A pergunta da vez — só se o monstro ainda está na sessão (e, no 0 PV, ainda em 0). */
   readonly defeatPrompt = computed(() => {
     const monsters = this.sessionDetail()?.monsters ?? [];
-    for (const prompt of this.defeatPrompts()) {
+    const prompts = this.defeatPrompts();
+    for (const prompt of prompts) {
       const monster = monsters.find((m) => m.id_monster_session === prompt.id);
-      if (monster && (prompt.reason === 'button' || monster.hp_current <= 0)) {
-        return { monster, reason: prompt.reason };
+      if (monster && (prompt.reason !== 'zero_hp' || monster.hp_current <= 0)) {
+        // No encerrar com vários monstros: "MONSTRO 2 DE 3".
+        const left = prompts.filter((p) => p.reason === 'end_combat').length;
+        const total = this.endCombatPromptTotal();
+        return {
+          monster,
+          // A carta do monstro (a mesma dos avisos e da gaveta), com a descrição.
+          card: this.monsterCardFor(monster.id_monster_session),
+          reason: prompt.reason,
+          step: prompt.reason === 'end_combat' && total > 1 ? `${total - left + 1} DE ${total}` : null,
+        };
       }
     }
     return null;
   });
+  /** Encerrar combate esperando as perguntas (e as derrotas) dos monstros que sobraram. */
+  private endCombatPending = signal(false);
+  private endCombatPromptTotal = signal(0);
   /** PV de cada monstro na última vez que a sessão mudou (pra ver quem acabou de chegar a 0). */
   private lastMonsterHp: Map<string, number> | null = null;
 
@@ -1133,7 +1152,7 @@ export class SessionPanelComponent implements OnDestroy {
   /** "Derrotar" na pergunta: marca como derrotado (o XP dele soma no combate, se houver). */
   confirmDefeat(): void {
     const prompt = this.defeatPrompt();
-    if (!prompt) return;
+    if (!prompt || this.defeatingMonsterId()) return;
     this.dropDefeatPrompt(prompt.monster.id_monster_session);
     this.defeatMonster(prompt.monster);
   }
@@ -1142,6 +1161,14 @@ export class SessionPanelComponent implements OnDestroy {
   declineDefeat(): void {
     const prompt = this.defeatPrompt();
     if (prompt) this.dropDefeatPrompt(prompt.monster.id_monster_session);
+    this.continueEndCombat();
+  }
+
+  /** "Voltar ao combate" no meio das perguntas do encerrar: desiste de encerrar (quem já foi
+   *  derrotado continua derrotado). */
+  cancelEndCombatPrompts(): void {
+    this.defeatPrompts.update((queue) => queue.filter((q) => q.reason !== 'end_combat'));
+    this.endCombatPending.set(false);
   }
 
   private dropDefeatPrompt(id: string): void {
@@ -1154,9 +1181,29 @@ export class SessionPanelComponent implements OnDestroy {
     if (this.defeatingMonsterId()) return;
     this.defeatingMonsterId.set(monster.id_monster_session);
     this.gameSessionService.defeatMonster(monster.id_monster_session).pipe(
-      finalize(() => this.defeatingMonsterId.set(null)),
+      finalize(() => {
+        this.defeatingMonsterId.set(null);
+        this.continueEndCombat();
+      }),
     ).subscribe({
-      next: () => this.removeMonsterFromState(monster.id_monster_session),
+      next: (res) => {
+        this.removeMonsterFromState(monster.id_monster_session);
+        // O acumulado já vem na resposta (o socket traz o mesmo número depois).
+        const xp = res?.combat_xp;
+        if (xp) {
+          this.sessionState.patch((detail) =>
+            detail.combat?.encounter.id_combat_encounter === xp.id_combat_encounter
+              ? {
+                  ...detail,
+                  combat: {
+                    ...detail.combat,
+                    encounter: { ...detail.combat.encounter, defeated_xp: xp.defeated_xp },
+                  },
+                }
+              : detail,
+          );
+        }
+      },
     });
   }
 
@@ -1283,7 +1330,17 @@ export class SessionPanelComponent implements OnDestroy {
     config: AbilityRollConfig;
     /** Ação com carta: a rolagem abre na tela de lançamento (1.13.0). */
     cast: SpellCastContext | null;
+    /** Multiataque (1.15.1): as próximas rolagens, abertas uma a uma quando esta termina. */
+    followUps?: MonsterRollRequest[];
+    /** Cada rolagem monta um modal novo (o seguinte do multiataque não herda o estado). */
+    key?: number;
   } | null>(null);
+  private monsterRollCounter = 0;
+  /** O modal da rolagem em lista com `track key`: troca de rolagem = modal novo. */
+  readonly monsterRollView = computed(() => {
+    const roll = this.activeMonsterRoll();
+    return roll ? [roll] : [];
+  });
   /** Erro ao gastar um uso (ex.: recarga ainda não voltou) — aparece na ficha do monstro. */
   monsterActionError = signal<string | null>(null);
   /** d6 de recarga do início do turno, por monstro (mostrado na ficha dele). */
@@ -1308,12 +1365,18 @@ export class SessionPanelComponent implements OnDestroy {
       });
   }
 
-  /** A gaveta do monstro fica aberta por baixo da rolagem (camada acima): o multiataque guiado não
-   *  perde a contagem entre um ataque e outro. */
+  /** A gaveta do monstro fica aberta por baixo da rolagem (camada acima): VOLTAR À FICHA antes de
+   *  rolar volta pra ela; terminada a rolagem, ela fecha (finishMonsterRoll, 1.15.1). */
   private startMonsterRoll(monster: MonsterSession, request: MonsterRollRequest): void {
     const cast = request.card ? this.monsterCast(monster, request) : null;
     if (cast && !cast.private) this.markOwnCast(cast.castId);
-    this.activeMonsterRoll.set({ monster, config: request.config, cast });
+    this.activeMonsterRoll.set({
+      monster,
+      config: request.config,
+      cast,
+      ...(request.followUps?.length ? { followUps: request.followUps } : {}),
+      key: ++this.monsterRollCounter,
+    });
   }
 
   /**
@@ -1382,6 +1445,26 @@ export class SessionPanelComponent implements OnDestroy {
     return current?.participant_type === 'monster' && current.id_monster_session === monster.id_monster_session;
   }
 
+  /** Rolou (teste, ataque, dano): fecha a rolagem e a gaveta do monstro, como a dos jogadores.
+   *  No multiataque, abre o próximo ataque na tela de lançamento; a gaveta fecha no último. */
+  finishMonsterRoll(): void {
+    const roll = this.activeMonsterRoll();
+    this.activeMonsterRoll.set(null);
+    const [next, ...rest] = roll?.followUps ?? [];
+    // Estado atual do monstro (PV/usos podem ter mudado); se saiu da mesa, a sequência para.
+    const monster = roll
+      ? this.sessionDetail()?.monsters.find(
+          (m) => m.id_monster_session === roll.monster.id_monster_session,
+        )
+      : undefined;
+    if (next && monster) {
+      this.openMonsterRoll(monster, { ...next, followUps: rest });
+      return;
+    }
+    this.closeMonsterDetail();
+  }
+
+  /** Saiu sem rolar (VOLTAR À FICHA): volta pra gaveta. */
   closeMonsterRoll(): void {
     const roll = this.activeMonsterRoll();
     this.activeMonsterRoll.set(null);
@@ -1912,6 +1995,7 @@ export class SessionPanelComponent implements OnDestroy {
         return entry ? [castRollView(ref, entry)] : [];
       }),
       saveNote: stage.save_dc && stage.save_ability ? saveNote(stage.save_dc, stage.save_ability) : null,
+      stamp: monsterSequenceStamp(monsterAction),
       applied: stage.applied ?? [],
       done: stage.phase === 'done',
     };
@@ -3055,9 +3139,45 @@ export class SessionPanelComponent implements OnDestroy {
       .subscribe();
   }
 
+  /** Monstros que ainda estão no combate: antes, pergunta de cada um se foi derrotado (1.15.1);
+   *  depois (ou se não sobrou nenhum), o XP acumulado (askCombatXp). */
+  endCombat(): void {
+    const combat = this.combat();
+    if (!combat || this.endingCombat()) return;
+    // Já perguntando (ou a pergunta da vez sumiu porque o monstro saiu por outro caminho): segue.
+    if (this.endCombatPending()) {
+      this.continueEndCombat();
+      return;
+    }
+    const remaining = this.monstersStillInCombat();
+    if (!remaining.length) {
+      this.askCombatXp();
+      return;
+    }
+    const ids = new Set(remaining.map((m) => m.id_monster_session));
+    this.endCombatPending.set(true);
+    this.endCombatPromptTotal.set(remaining.length);
+    this.defeatPrompts.update((queue) => [
+      ...queue.filter((q) => !ids.has(q.id)),
+      ...remaining.map((m) => ({ id: m.id_monster_session, reason: 'end_combat' as const })),
+    ]);
+  }
+
+  /** Respondidas as perguntas do encerrar e terminadas as derrotas, segue pro XP. */
+  private continueEndCombat(): void {
+    if (!this.endCombatPending() || this.defeatingMonsterId()) return;
+    const monsters = this.sessionDetail()?.monsters ?? [];
+    const waiting = this.defeatPrompts().some(
+      (q) => q.reason === 'end_combat' && monsters.some((m) => m.id_monster_session === q.id),
+    );
+    if (waiting) return;
+    this.cancelEndCombatPrompts();
+    this.askCombatXp();
+  }
+
   /** Com XP de monstros derrotados no combate, mostra o acumulado e pergunta se distribui
    *  (opcional, 1.15.0); sem XP, encerra direto. */
-  endCombat(): void {
+  private askCombatXp(): void {
     const combat = this.combat();
     if (!combat || this.endingCombat()) return;
     if ((combat.encounter.defeated_xp ?? 0) > 0) {
@@ -3065,6 +3185,15 @@ export class SessionPanelComponent implements OnDestroy {
       return;
     }
     this.finishEncounter(combat.encounter.id_combat_encounter);
+  }
+
+  /** Monstros da sessão que participam do combate, na ordem do combate. */
+  private monstersStillInCombat(): MonsterSession[] {
+    const monsters = this.sessionDetail()?.monsters ?? [];
+    return (this.combat()?.participants ?? [])
+      .filter((p) => p.participant_type === 'monster' && !!p.id_monster_session)
+      .map((p) => monsters.find((m) => m.id_monster_session === p.id_monster_session))
+      .filter((m): m is MonsterSession => !!m);
   }
 
   /** Sem refetch — o socket ecoa `combat_ended` de volta (ver addNpc acima). */

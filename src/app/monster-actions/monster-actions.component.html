@@ -60,7 +60,12 @@
               </button>
             }
             @if (a.kind === 'multi') {
-              <button type="button" class="retro-btn ma-roll" (click)="toggleMulti(a)">
+              <button
+                type="button"
+                class="retro-btn ma-roll"
+                [disabled]="!av.available || !multiSteps(a).length"
+                (click)="startMultiattack(a)"
+              >
                 {{ buttonLabel(a) }}
               </button>
             } @else if (a.config) {
@@ -84,22 +89,6 @@
             }
           }
         </div>
-        @if (a.kind === 'multi' && openMulti() === a.key) {
-          <div class="ma-multi">
-            @for (m of a.multi; track m.action) {
-              @let done = multiDone()[m.action] ?? 0;
-              <button
-                type="button"
-                class="ma-chip"
-                [class.ma-chip--done]="done >= m.count"
-                [disabled]="!m.key"
-                (click)="multiAttack(m)"
-              >
-                {{ m.action }} {{ done }}/{{ m.count }}
-              </button>
-            }
-          </div>
-        }
         <p class="stat-feature">{{ a.desc }}</p>
       </div>
     }

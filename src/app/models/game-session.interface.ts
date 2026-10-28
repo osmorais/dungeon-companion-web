@@ -294,6 +294,8 @@ export interface MonsterActionCardInfo {
   name: string;
   kind: 'attack' | 'save' | 'damage';
   stats: { label: string; value: string }[];
+  /** Ataque k de N de um multiataque (1.15.1): a mesa vê "MULTIATAQUE k/N". */
+  sequence?: { index: number; total: number } | null;
 }
 
 /** Monstro que age na tela de lançamento (1.13.0): o que a mesa já vê dele. */

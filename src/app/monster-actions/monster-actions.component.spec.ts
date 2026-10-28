@@ -126,18 +126,27 @@ describe('MonsterActionsComponent', () => {
     expect(spent.byText('USAR').disabled).toBe(true);
   });
 
-  it('multiataque: lista os ataques, rola pelo botão de cada um e conta', () => {
+  it('multiataque: rola os ataques em sequência, cada um com "k de N" na carta (1.15.1)', () => {
     const multi = ability({
       name: 'Ataques Múltiplos',
       multiattack: [{ action: 'Cimitarra', count: 2 }],
     });
-    const { fixture, el, rolled, byText } = render(block([multi, CIMITARRA]));
+    const { rolled, byText } = render(block([multi, CIMITARRA]));
     byText('MULTIATAQUE').click();
-    fixture.detectChanges();
-    byText('Cimitarra 0/2').click();
-    fixture.detectChanges();
+    expect(rolled).toHaveLength(1);
     expect(rolled[0].config).toMatchObject({ label: 'Cimitarra' });
-    expect(el.textContent).toContain('Cimitarra 1/2');
+    expect(rolled[0].card).toMatchObject({ name: 'Cimitarra', sequence: { index: 1, total: 2 } });
+    expect(rolled[0].followUps).toHaveLength(1);
+    expect(rolled[0].followUps![0].card?.sequence).toEqual({ index: 2, total: 2 });
+  });
+
+  it('multiataque sem ataque com botão na ficha fica travado', () => {
+    const multi = ability({
+      name: 'Ataques Múltiplos',
+      multiattack: [{ action: 'Olhar', count: 1 }],
+    });
+    const { byText } = render(block([multi, CIMITARRA]));
+    expect(byText('MULTIATAQUE').disabled).toBe(true);
   });
 
   it('lendárias: mostra quantas restam e trava o que custa mais que o resto', () => {

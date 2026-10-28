@@ -33,6 +33,8 @@ export interface CastStageView {
   rolls: CastStageRollView[];
   /** Magia de resistência: "CD 14 de Destreza". */
   saveNote: string | null;
+  /** Selo de impacto desde o começo (multiataque do monstro: "MULTIATAQUE 1/2", 1.15.1). */
+  stamp?: string | null;
   /** Dano/cura já aplicado nos alvos (no lugar do aviso avulso "APLICOU"). */
   applied: CastStageApplied[];
   /** Quem lança terminou: o aviso da mesa some sozinho depois de alguns segundos. */

@@ -978,16 +978,21 @@
   </div>
 }
 
-<!-- ===== MONSTRO DERROTADO? (chegou a 0 PV, ou DERROTAR) — só o mestre ===== -->
+<!-- ===== MONSTRO DERROTADO? (chegou a 0 PV, DERROTAR ou ainda no combate ao encerrar) — só o mestre ===== -->
 @if (defeatPrompt(); as prompt) {
-  <div class="overlay end-combat-confirm-overlay" (click)="declineDefeat()">
+  <div class="overlay end-combat-confirm-overlay" (click)="prompt.reason === 'end_combat' ? cancelEndCombatPrompts() : declineDefeat()">
     <div class="retro-panel end-combat-confirm-panel" role="dialog" aria-modal="true" aria-labelledby="defeat-prompt-title" (click)="$event.stopPropagation()">
-      <img class="defeat-prompt-img" [src]="prompt.monster.image_url || 'assets/monster.png'" alt="" />
+      @if (prompt.step) {
+        <p class="end-combat-confirm-detail">ENCERRANDO O COMBATE · MONSTRO {{ prompt.step }}</p>
+      }
+      @if (prompt.card; as card) {
+        <app-game-card class="defeat-prompt-card" [card]="card" />
+      }
       <p class="end-combat-confirm-question" id="defeat-prompt-title">
-        @if (prompt.reason === 'zero_hp') {
-          {{ monsterDisplayName(prompt.monster) }} CHEGOU A 0 PONTOS DE VIDA.
-        } @else {
-          DERROTAR {{ monsterDisplayName(prompt.monster) }}?
+        @switch (prompt.reason) {
+          @case ('zero_hp') { {{ monsterDisplayName(prompt.monster) }} CHEGOU A 0 PONTOS DE VIDA. }
+          @case ('end_combat') { {{ monsterDisplayName(prompt.monster) }} AINDA ESTÁ NO COMBATE. FOI DERROTADO? }
+          @default { DERROTAR {{ monsterDisplayName(prompt.monster) }}? }
         }
       </p>
       <p class="end-combat-confirm-detail">
@@ -995,8 +1000,11 @@
       </p>
       <div class="end-combat-confirm-actions">
         <button class="retro-btn" [disabled]="!!defeatingMonsterId()" (click)="confirmDefeat()">DERROTADO</button>
-        <button class="retro-btn end-combat-confirm-no" (click)="declineDefeat()">AINDA NÃO</button>
+        <button class="retro-btn end-combat-confirm-no" (click)="declineDefeat()">{{ prompt.reason === 'end_combat' ? 'NÃO' : 'AINDA NÃO' }}</button>
       </div>
+      @if (prompt.reason === 'end_combat') {
+        <button type="button" class="end-combat-confirm-back" (click)="cancelEndCombatPrompts()">VOLTAR AO COMBATE</button>
+      }
     </div>
   </div>
 }
@@ -1348,7 +1356,7 @@
 }
 
 <!-- ===== MODAL: ROLAGEM DO MONSTRO (mestre; oculta por padrão enquanto o monstro está escondido) ===== -->
-@if (activeMonsterRoll(); as mr) {
+@for (mr of monsterRollView(); track mr.key) {
   <app-roll-modal
     [config]="mr.config"
     [idCharacter]="null"
@@ -1361,7 +1369,7 @@
     [applyTargets]="monsterApplyTargets(mr.monster)"
     backLabel="VOLTAR À FICHA"
     (applyToTarget)="applyRollToTarget($event)"
-    (rolled)="closeMonsterRoll()"
+    (rolled)="finishMonsterRoll()"
     (closed)="closeMonsterRoll()"
   />
 }

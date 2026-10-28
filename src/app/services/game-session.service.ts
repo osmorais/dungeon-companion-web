@@ -281,8 +281,13 @@ export class GameSessionService {
     );
   }
 
-  defeatMonster(idMonsterSession: string): Observable<void> {
-    return this.http.post<void>(
+  /** Devolve o XP acumulado do combate em andamento em que o monstro estava (1.15.1). */
+  defeatMonster(idMonsterSession: string): Observable<{
+    combat_xp: { id_combat_encounter: string; defeated_xp: number } | null;
+  }> {
+    return this.http.post<{
+      combat_xp: { id_combat_encounter: string; defeated_xp: number } | null;
+    }>(
       `${this.baseUrl}/api/game-session/monster-session/${idMonsterSession}/defeat`,
       {},
       { context: this.silentContext() },

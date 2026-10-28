@@ -109,13 +109,6 @@
   cursor: pointer;
 }
 
-.ma-multi {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin: 6px 0;
-}
-
 // Só leitura (detalhe do bestiário): etiqueta, sem cara de botão.
 .ma-chip--static {
   cursor: default;
@@ -124,11 +117,6 @@
     border-color: var(--border-color);
     color: var(--text-color);
   }
-}
-
-.ma-chip--done {
-  border-color: var(--accent-color);
-  color: var(--accent-color);
 }
 
 .ma-chip:disabled {

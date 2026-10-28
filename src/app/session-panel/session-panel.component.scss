@@ -1555,12 +1555,8 @@
   cursor: var(--cp);
 }
 
-.defeat-prompt-img {
-  width: 72px;
-  height: 72px;
-  object-fit: cover;
-  border: 2px solid var(--border-color);
-  image-rendering: pixelated;
+.defeat-prompt-card {
+  width: min(70vw, 200px);
 }
 
 // XP dos monstros derrotados no combate, ao lado da RONDA (só o mestre).

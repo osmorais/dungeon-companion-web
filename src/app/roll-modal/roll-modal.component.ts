@@ -22,6 +22,7 @@ import {
   castStagePayload,
   castVerb,
   monsterCastVerb,
+  monsterSequenceStamp,
 } from '../spell-cast/spell-cast-context';
 import { CastStageView, castRollView } from '../spell-cast/spell-cast-stage.model';
 
@@ -391,6 +392,7 @@ export class RollModalComponent implements OnInit, OnDestroy {
       card: cast.card,
       rolls: this.castRolls().map(({ ref, entry }) => castRollView(ref, entry)),
       saveNote: cast.saveNote,
+      stamp: monsterSequenceStamp(cast.monsterAction),
       applied: this.applied(),
       done: false,
     };

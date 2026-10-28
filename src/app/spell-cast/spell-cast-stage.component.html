@@ -17,6 +17,11 @@
   @if (view.saveNote) {
     <p class="cs-save">{{ view.saveNote }}</p>
   }
+  @if (view.stamp) {
+    <p class="cs-sequence">
+      <span class="cs-stamp cs-stamp--sequence">{{ view.stamp }}</span>
+    </p>
+  }
 
   @if (visibleRolls().length > 0) {
     <div class="cs-rolls">

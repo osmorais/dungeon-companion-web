@@ -34,6 +34,9 @@ export interface MonsterRollRequest {
    *  do monstro (resistências, atributos, perícias) vêm sem. */
   card?: MonsterActionButton['card'];
   castSave?: MonsterActionButton['castSave'];
+  /** Multiataque (1.15.1): as próximas rolagens da sequência — a sessão abre a próxima quando
+   *  esta termina. */
+  followUps?: MonsterRollRequest[];
 }
 
 /**
@@ -163,10 +166,6 @@ export class MonsterActionsComponent {
   /** Tem alguma habilidade com uso limitado (mostra o "restaurar usos"). */
   readonly hasLimitedUses = computed(() => this.buttons().some((b) => b.consume !== null));
 
-  /** Multiataque aberto e quantas vezes cada ataque dele já foi feito neste uso. */
-  readonly openMulti = signal<string | null>(null);
-  readonly multiDone = signal<Partial<Record<string, number>>>({});
-
   private groupTitle(group: MonsterActionGroup): string {
     const state = this.state();
     if (group === 'legendary_actions') {
@@ -193,7 +192,7 @@ export class MonsterActionsComponent {
       case 'save':
         return 'RESISTÊNCIA';
       case 'multi':
-        return this.openMulti() === action.key ? 'FECHAR' : 'MULTIATAQUE';
+        return 'MULTIATAQUE';
       default:
         return 'ROLAR DANO';
     }
@@ -212,22 +211,31 @@ export class MonsterActionsComponent {
     };
   }
 
-  toggleMulti(b: MonsterActionButton): void {
-    const opening = this.openMulti() !== b.key;
-    this.openMulti.set(opening ? b.key : null);
-    if (opening) {
-      this.multiDone.set({});
-      // O multiataque em si pode ter limite (raro): gasta ao começar.
-      if (b.consume) this.op.emit(b.consume);
-    }
+  /** Os ataques do multiataque na ordem, cada um repetido quantas vezes o livro diz (só os que
+   *  têm botão de rolagem na ficha). */
+  multiSteps(b: MonsterActionButton): MonsterActionButton[] {
+    return (b.multi ?? []).flatMap((m) => {
+      const target = this.buttons().find((x) => x.key === m.key);
+      return target?.config ? Array.from({ length: m.count }, () => target) : [];
+    });
   }
 
-  /** Um ataque do multiataque: rola pelo botão do ataque e conta mais um. */
-  multiAttack(entry: { action: string; key: string | null }): void {
-    const target = this.buttons().find((b) => b.key === entry.key);
-    if (!target?.config) return;
-    this.multiDone.update((d) => ({ ...d, [entry.action]: (d[entry.action] ?? 0) + 1 }));
-    this.roll.emit(this.request(target));
+  /**
+   * Multiataque (1.15.1): os ataques em sequência na tela de lançamento, cada um com o selo
+   * "MULTIATAQUE k/N" (vai pra mesa na carta da ação); a primeira rolagem leva as outras em
+   * `followUps` e a sessão abre a próxima quando uma termina.
+   */
+  startMultiattack(b: MonsterActionButton): void {
+    const steps = this.multiSteps(b);
+    if (!steps.length) return;
+    // O multiataque em si pode ter limite (raro): gasta ao começar.
+    if (b.consume) this.op.emit(b.consume);
+    const total = steps.length;
+    const requests = steps.map((target, i) => {
+      const req = this.request(target);
+      return req.card ? { ...req, card: { ...req.card, sequence: { index: i + 1, total } } } : req;
+    });
+    this.roll.emit({ ...requests[0], followUps: requests.slice(1) });
   }
 
   shows(part: 'actions' | 'checks' | 'traits'): boolean {

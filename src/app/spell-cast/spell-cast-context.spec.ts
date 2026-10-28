@@ -2,6 +2,7 @@ import {
   castStagePayload,
   castVerb,
   monsterCastVerb,
+  monsterSequenceStamp,
   SpellCastContext,
 } from './spell-cast-context';
 
@@ -80,5 +81,13 @@ describe('ação de monstro na tela de lançamento (1.13.0)', () => {
     expect(monsterCastVerb(action)).toBe('ATACOU COM');
     expect(monsterCastVerb({ ...action, kind: 'save' })).toBe('USOU');
     expect(monsterCastVerb({ ...action, kind: 'damage' })).toBe('USOU');
+  });
+
+  it('multiataque: selo "MULTIATAQUE k/N" só com a sequência (1.15.1)', () => {
+    expect(monsterSequenceStamp({ ...action, sequence: { index: 1, total: 2 } })).toBe(
+      'MULTIATAQUE 1/2',
+    );
+    expect(monsterSequenceStamp(action)).toBeNull();
+    expect(monsterSequenceStamp(null)).toBeNull();
   });
 });

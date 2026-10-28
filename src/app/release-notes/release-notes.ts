@@ -33,6 +33,29 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.15.1',
+    date: '2026-10-28',
+    title: 'Encerrar combate pergunta pelos monstros que sobraram',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'Ao encerrar um combate com monstros ainda na luta, o mestre responde, um por um, se cada monstro foi derrotado. Os derrotados saem da mesa e somam o XP do combate; depois vem a pergunta de sempre sobre distribuir o XP.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'O aviso de monstro com 0 pontos de vida (e a confirmação de derrota) mostra a carta do monstro.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Depois de rolar um teste ou um ataque pela ficha do monstro, a ficha fecha, como já acontece com a gaveta de ações dos jogadores.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Multiataque do monstro em sequência: cada ataque abre a tela de lançamento com o selo "MULTIATAQUE 1/2", depois "2/2", para toda a mesa; a ficha fecha no último ataque.',
+      },
+    ],
+  },
+  {
     version: '1.15.0',
     date: '2026-10-28',
     title: 'XP do combate no fim da luta',

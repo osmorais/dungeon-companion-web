@@ -122,6 +122,18 @@ describe('PlayerActionsModalComponent — habilidades', () => {
     expect(modal.fullHealAmount).toBe(0); // vida cheia: CURA TOTAL desabilita
   });
 
+  it('terminada a rolagem (teste ou ataque), a gaveta fecha; voltar sem rolar não fecha', () => {
+    create([]);
+    modal.openFreeformRoll();
+    modal.closeRoll();
+    expect(modal.activeRoll()).toBeNull();
+    expect(closed).not.toHaveBeenCalled();
+    modal.openFreeformRoll();
+    modal.onRolled();
+    expect(modal.activeRoll()).toBeNull();
+    expect(closed).toHaveBeenCalledTimes(1);
+  });
+
   it('habilidade com rolagem: gasta, anuncia "USOU" e abre a cura', () => {
     const second = ability('Retomar o Fôlego', {
       roll: roll({

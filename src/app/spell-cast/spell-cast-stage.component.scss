@@ -281,6 +281,20 @@
   }
 }
 
+// Multiataque do monstro (1.15.1): carimbo carmesim desde o começo, "MULTIATAQUE 1/2".
+.cs-sequence {
+  display: flex;
+  justify-content: center;
+  margin: 4px 0 0;
+}
+
+.cs-stamp--sequence {
+  color: #ff6b5a;
+  font-size: 12px;
+  text-shadow: 2px 2px 0 #1c0b0b;
+  box-shadow: 0 0 12px rgba(255, 80, 50, 0.45);
+}
+
 @keyframes cs-stamp {
   0% {
     transform: rotate(-12deg) scale(2.6);

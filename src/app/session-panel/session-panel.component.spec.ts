@@ -660,7 +660,7 @@ describe('SessionPanelComponent', () => {
       expect(component.monsterCardFor('m1')?.text).toBe('Pequenos e traiçoeiros.');
     });
 
-    it('rolagem do monstro: a gaveta fica aberta por baixo e, ao terminar, mostra o PV atual', () => {
+    it('rolagem do monstro: a gaveta fica aberta por baixo e, ao voltar sem rolar, mostra o PV atual', () => {
       const config = {
         mode: 'ability' as const,
         rollType: 'attack' as const,
@@ -672,13 +672,85 @@ describe('SessionPanelComponent', () => {
       component.openMonsterRoll(m1, { config, consume: null });
       // Desde a 1.13.0 a gaveta não fecha (o multiataque guiado guarda a contagem).
       expect(component.liveMonsterDetail()?.id_monster_session).toBe('m1');
-      expect(component.activeMonsterRoll()).toEqual({ monster: m1, config, cast: null });
+      expect(component.activeMonsterRoll()).toMatchObject({ monster: m1, config, cast: null });
 
       // Dano aplicado enquanto rolava: a gaveta já mostra o PV novo.
       detail.set(sessionDetail({ players: [p1], monsters: [{ ...m1, hp_current: 2 }] }));
       component.closeMonsterRoll();
       expect(component.activeMonsterRoll()).toBeNull();
       expect(component.liveMonsterDetail()?.hp_current).toBe(2);
+    });
+
+    it('multiataque: cada rolagem que termina abre a próxima (modal novo); a gaveta fecha no fim', () => {
+      const config = {
+        mode: 'ability' as const,
+        rollType: 'attack' as const,
+        label: 'Cimitarra',
+        modifier: 4,
+      };
+      const card = (index: number) => ({
+        name: 'Cimitarra',
+        kind: 'attack' as const,
+        stats: [{ label: 'ATAQUE', value: '+4' }],
+        sequence: { index, total: 2 },
+      });
+      detail.set(sessionDetail({ players: [p1], monsters: [m1] }));
+      component.openMonsterDetail(m1);
+      component.openMonsterRoll(m1, {
+        config,
+        consume: null,
+        card: card(1),
+        followUps: [{ config, consume: null, card: card(2) }],
+      });
+      const first = component.activeMonsterRoll();
+      expect(first?.cast?.monsterAction?.sequence).toEqual({ index: 1, total: 2 });
+
+      component.finishMonsterRoll();
+      const second = component.activeMonsterRoll();
+      expect(second?.cast?.monsterAction?.sequence).toEqual({ index: 2, total: 2 });
+      expect(second?.key).not.toBe(first?.key);
+      expect(second?.cast?.castId).not.toBe(first?.cast?.castId);
+      expect(component.liveMonsterDetail()?.id_monster_session).toBe('m1');
+
+      component.finishMonsterRoll();
+      expect(component.activeMonsterRoll()).toBeNull();
+      expect(component.liveMonsterDetail()).toBeNull();
+    });
+
+    it('multiataque: voltar sem rolar ou o monstro sair da mesa interrompe a sequência', () => {
+      const config = {
+        mode: 'ability' as const,
+        rollType: 'attack' as const,
+        label: 'Cimitarra',
+        modifier: 4,
+      };
+      const followUps = [{ config, consume: null }];
+      detail.set(sessionDetail({ players: [p1], monsters: [m1] }));
+      component.openMonsterDetail(m1);
+      component.openMonsterRoll(m1, { config, consume: null, followUps });
+      component.closeMonsterRoll();
+      expect(component.activeMonsterRoll()).toBeNull();
+      expect(component.liveMonsterDetail()?.id_monster_session).toBe('m1');
+
+      component.openMonsterRoll(m1, { config, consume: null, followUps });
+      detail.set(sessionDetail({ players: [p1], monsters: [] }));
+      component.finishMonsterRoll();
+      expect(component.activeMonsterRoll()).toBeNull();
+    });
+
+    it('terminada a rolagem do monstro (teste ou ataque), a gaveta fecha (1.15.1)', () => {
+      const config = {
+        mode: 'ability' as const,
+        rollType: 'save' as const,
+        label: 'Resistência de Destreza',
+        modifier: 2,
+      };
+      detail.set(sessionDetail({ players: [p1], monsters: [m1] }));
+      component.openMonsterDetail(m1);
+      component.openMonsterRoll(m1, { config, consume: null });
+      component.finishMonsterRoll();
+      expect(component.activeMonsterRoll()).toBeNull();
+      expect(component.liveMonsterDetail()).toBeNull();
     });
 
     describe('jogador (não é o mestre)', () => {
@@ -1478,6 +1550,8 @@ describe('SessionPanelComponent', () => {
       expect(component.defeatPrompt()).toMatchObject({
         reason: 'zero_hp',
         monster: { id_monster_session: 'm2' },
+        // A carta do monstro no aviso.
+        card: { title: 'Goblin', variant: 'monster' },
       });
 
       component.declineDefeat();
@@ -1548,6 +1622,67 @@ describe('SessionPanelComponent', () => {
       component.endCombat();
       component.endCombatWithoutXp();
       expect(endEncounter).toHaveBeenCalledWith('enc');
+    });
+
+    function withMonstersInCombat() {
+      const c = combat([
+        participant('pp', { participant_type: 'player', id_player_session: 'p1' }),
+        participant('pm1', { participant_type: 'monster', id_monster_session: 'm1' }),
+        participant('pm2', { participant_type: 'monster', id_monster_session: 'm2' }),
+      ]);
+      detail.set(
+        sessionDetail({
+          players: [player('p1')],
+          monsters: [monster('m1'), monster('m2')],
+          combat: c,
+        }),
+      );
+    }
+
+    it('encerrar com monstros no combate: pergunta de cada um; derrotado soma o XP e segue pro XP', () => {
+      defeatMonster.mockReturnValue(
+        of({ combat_xp: { id_combat_encounter: 'enc', defeated_xp: 100 } }),
+      );
+      withMonstersInCombat();
+      component.endCombat();
+      expect(component.defeatPrompt()).toMatchObject({
+        reason: 'end_combat',
+        step: '1 DE 2',
+        monster: { id_monster_session: 'm1' },
+      });
+
+      component.confirmDefeat();
+      expect(defeatMonster).toHaveBeenCalledWith('m1');
+      expect(component.combat()?.encounter.defeated_xp).toBe(100);
+      expect(component.defeatPrompt()).toMatchObject({
+        step: '2 DE 2',
+        monster: { id_monster_session: 'm2' },
+      });
+      expect(component.showEndCombatConfirm()).toBe(false);
+
+      component.declineDefeat();
+      expect(component.defeatPrompt()).toBeNull();
+      expect(component.showEndCombatConfirm()).toBe(true);
+      expect(endEncounter).not.toHaveBeenCalled();
+    });
+
+    it('nenhum derrotado e sem XP no combate: encerra direto depois das perguntas', () => {
+      withMonstersInCombat();
+      component.endCombat();
+      component.declineDefeat();
+      component.declineDefeat();
+      expect(defeatMonster).not.toHaveBeenCalled();
+      expect(endEncounter).toHaveBeenCalledWith('enc');
+    });
+
+    it('VOLTAR AO COMBATE no meio das perguntas desiste de encerrar', () => {
+      withMonstersInCombat();
+      component.endCombat();
+      component.cancelEndCombatPrompts();
+      expect(component.defeatPrompt()).toBeNull();
+      expect(endEncounter).not.toHaveBeenCalled();
+      component.endCombat();
+      expect(component.defeatPrompt()).toMatchObject({ reason: 'end_combat', step: '1 DE 2' });
     });
 
     it('sem monstro derrotado no combate, encerra direto', () => {

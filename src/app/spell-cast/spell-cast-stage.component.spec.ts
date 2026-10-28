@@ -62,6 +62,15 @@ describe('SpellCastStageComponent — carta virada e rolagens com impacto', () =
     stage.ngOnChanges();
   }
 
+  it('selo de impacto (multiataque) aparece desde o começo, antes das rolagens', () => {
+    const fixture = TestBed.createComponent(SpellCastStageComponent);
+    fixture.componentInstance.view = { ...view([]), stamp: 'MULTIATAQUE 1/2' };
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('.cs-stamp--sequence')?.textContent?.trim()).toBe('MULTIATAQUE 1/2');
+    fixture.componentInstance.ngOnDestroy();
+  });
+
   it('enquanto a carta cai virada e vira, nenhuma rolagem aparece', () => {
     stage.view = view([roll('atk', 'attack')]);
     stage.ngOnInit();

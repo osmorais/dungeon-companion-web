@@ -71,3 +71,11 @@ export function castVerb(isWeapon: boolean): string {
 export function monsterCastVerb(action: MonsterActionCardInfo): string {
   return action.kind === 'attack' ? 'ATACOU COM' : 'USOU';
 }
+
+/** Selo do palco no multiataque (1.15.1): "MULTIATAQUE 1/2". */
+export function monsterSequenceStamp(
+  action: MonsterActionCardInfo | null | undefined,
+): string | null {
+  const seq = action?.sequence;
+  return seq ? `MULTIATAQUE ${seq.index}/${seq.total}` : null;
+}
