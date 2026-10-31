@@ -6,7 +6,7 @@ export const LEGAL_CONTROLLER_NAME = 'Osmar de Morais Junior';
 export const LEGAL_CONTACT_EMAIL = 'mensageiro@forjaarcana.com';
 export const LEGAL_SITE_NAME = 'Forja Arcana';
 export const LEGAL_SITE_URL = 'https://forjaarcana.com';
-export const LEGAL_LAST_UPDATED = '24 de outubro de 2026';
+export const LEGAL_LAST_UPDATED = '31 de outubro de 2026';
 export const LEGAL_MINIMUM_AGE = 18;
 
 export type LegalDoc = 'privacy' | 'terms';

@@ -33,6 +33,25 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.17.1',
+    date: '2026-10-31',
+    title: 'Servidor sempre ligado e descrições completas de três magias',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'Barreira de Lâminas, Muralha de Vento e Conjurar Rajada mostravam um resumo sem o dano; agora trazem o texto completo do livro.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'O servidor mudou de casa e fica sempre ligado: acabou a espera para ele "acordar" no primeiro acesso.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A Política de Privacidade foi atualizada com o novo prestador que hospeda o servidor.',
+      },
+    ],
+  },
+  {
     version: '1.17.0',
     date: '2026-10-31',
     title: 'Dano da magia na carta',
