@@ -14,7 +14,8 @@ export type ShowcaseDeck = 'spells' | 'weapons';
 
 /**
  * Magias de exemplo — cópia de linhas do catálogo (`dungeon-companion-api/docs/database/
- * database_inserts.sql`, tabela Spell), uma por escola com arte, pra mostrar a variedade.
+ * database_inserts.sql`, tabela Spell), uma por escola com arte, pra mostrar a variedade. O
+ * `card_damage` (selo de dano) é o que a API calcula pra elas (`spell-card-damage.ts`).
  */
 const SAMPLE_SPELLS: Spell[] = [
   {
@@ -31,6 +32,7 @@ const SAMPLE_SPELLS: Spell[] = [
     spellLevel: 3,
     school: 'Evocação',
     is_prepared: true,
+    card_damage: { dice: '8d6', type: 'fogo', kind: 'damage' },
   },
   {
     id_spell: 145,
@@ -60,6 +62,7 @@ const SAMPLE_SPELLS: Spell[] = [
     is_material: false,
     spellLevel: 0,
     school: 'Necromancia',
+    card_damage: { dice: '1d8', type: 'necrótico', kind: 'damage' },
   },
   {
     id_spell: 188,

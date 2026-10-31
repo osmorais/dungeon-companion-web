@@ -1,4 +1,5 @@
 import { MonsterStatBlock } from './monster-catalog.interface';
+import { SpellCardDamage } from './character-options.interface';
 
 export interface NpcRef {
   id_character: number;
@@ -256,6 +257,8 @@ export interface SpellCardInfo {
   is_material: boolean;
   spellLevel: number;
   school: string | null;
+  /** Dano/cura base pro selo da carta (1.17.0). */
+  card_damage?: SpellCardDamage | null;
 }
 
 /** Rolagem que faz parte de um lançamento (o id é o da rolagem já registrada). */

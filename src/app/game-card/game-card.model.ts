@@ -29,6 +29,14 @@ export interface GameCardData {
   tags: string[];
   /** Carta do monstro (1.13.2): moldura própria do tema (`--monster-card-face`). */
   variant?: 'monster';
+  /** Selo de dano/cura no canto de baixo da arte (magias, 1.17.0): valor ("8d6") e tipo ("FOGO"). */
+  seal?: GameCardSeal | null;
+}
+
+export interface GameCardSeal {
+  value: string;
+  label: string;
+  kind: 'damage' | 'heal';
 }
 
 /** Cor da carta no grimório: pronta pra usar, dá pra preparar, ou bloqueada (apagada). */

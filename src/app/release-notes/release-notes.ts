@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.17.0',
+    date: '2026-10-31',
+    title: 'Dano da magia na carta',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'As cartas de magia ganharam um selo com o dano e o tipo (ex.: "8d6 FOGO"), ou a cura, no canto da ilustração. Na ficha e na mesa, o selo mostra o valor do seu personagem: truques já crescem com o nível e a cura soma o seu modificador. No grimório e na criação de ficha, aparece o valor do livro.',
+      },
+    ],
+  },
+  {
     version: '1.16.2',
     date: '2026-10-30',
     title: 'Cartas do grimório mais fáceis de ler',

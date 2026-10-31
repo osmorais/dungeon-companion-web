@@ -106,4 +106,37 @@ describe('GameCardComponent', () => {
     fixture.detectChanges();
     expect(el.querySelectorAll('.gc-stat')).toHaveLength(4);
   });
+
+  it('selo de dano/cura no canto da arte; sem selo, nada', () => {
+    const fixture = TestBed.createComponent(GameCardComponent);
+    const base = {
+      title: 'X',
+      badge: '3',
+      art: null,
+      fallbackIcon: '',
+      artBackground: null,
+      ribbon: '',
+      text: null,
+      tags: [],
+      stats: [],
+    };
+    fixture.componentInstance.card = {
+      ...base,
+      seal: { value: '8d6', label: 'FOGO', kind: 'damage' },
+    };
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('.gc-seal-value')?.textContent).toBe('8d6');
+    expect(el.querySelector('.gc-seal-label')?.textContent).toBe('FOGO');
+    expect(el.querySelector('.gc-seal--heal')).toBeNull();
+    fixture.componentRef.setInput('card', {
+      ...base,
+      seal: { value: '1d8+3', label: 'CURA', kind: 'heal' },
+    });
+    fixture.detectChanges();
+    expect(el.querySelector('.gc-seal--heal')).not.toBeNull();
+    fixture.componentRef.setInput('card', base);
+    fixture.detectChanges();
+    expect(el.querySelector('.gc-seal')).toBeNull();
+  });
 });

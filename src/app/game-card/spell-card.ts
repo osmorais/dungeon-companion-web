@@ -1,5 +1,5 @@
-import { Spell } from '../models/character-options.interface';
-import { GameCardData, GameCardState } from './game-card.model';
+import { Spell, SpellRoll } from '../models/character-options.interface';
+import { GameCardData, GameCardSeal, GameCardState } from './game-card.model';
 
 /** Escolas com ilustração em assets/cards/spell-school-<slug>.webp (design/spell-cards/). */
 export const SPELL_SCHOOLS = [
@@ -41,6 +41,39 @@ export function spellRangeLabel(distance: number | null): string {
   return `${distance} m`;
 }
 
+type SlotRoll = SpellRoll['by_slot'][string];
+
+/** "3× 1d4+1", "2d8 + 4d6" — o mesmo formato da API (`formatSpellDice`). */
+export function formatSpellDice(entry: SlotRoll, rider = false): string {
+  let text = `${entry.dice_count}d${entry.dice_sides}`;
+  if (entry.modifier) text += entry.modifier > 0 ? `+${entry.modifier}` : `${entry.modifier}`;
+  for (const extra of entry.extra_dice) text += ` + ${extra.count}d${extra.sides}`;
+  if (entry.instances > 1) text = `${entry.instances}× ${text}`;
+  return rider ? `+${text}` : text;
+}
+
+const healLabel = (kind: 'heal' | 'hp' | 'temp_hp') => (kind === 'temp_hp' ? 'PV TEMP.' : 'CURA');
+
+/**
+ * Selo de dano/cura da carta: na ficha, o valor do personagem no círculo da magia (truque já
+ * escalado pelo nível, cura com o modificador somado), lido do `roll`; fora dela (ou sem
+ * mecânica), o valor base do livro (`card_damage`). Sem dano nem cura: sem selo.
+ */
+export function spellSeal(spell: Spell): GameCardSeal | null {
+  const roll = spell.roll;
+  const slot = roll?.by_slot[String(spell.spellLevel)];
+  if (roll && slot) {
+    const value = formatSpellDice(slot, roll.kind === 'rider');
+    if (roll.heal) return { value, label: healLabel(roll.heal), kind: 'heal' };
+    return { value, label: (roll.damage_type ?? 'dano').toUpperCase(), kind: 'damage' };
+  }
+  const base = spell.card_damage;
+  if (!base) return null;
+  if (base.kind !== 'damage')
+    return { value: base.dice, label: healLabel(base.kind), kind: 'heal' };
+  return { value: base.dice, label: (base.type ?? 'dano').toUpperCase(), kind: 'damage' };
+}
+
 export function spellToCard(spell: Spell): GameCardData {
   const slug = schoolSlug(spell.school);
   return {
@@ -58,6 +91,7 @@ export function spellToCard(spell: Spell): GameCardData {
     ],
     text: spell.description,
     tags: spell.spellLevel > 0 && spell.is_prepared ? ['PREPARADA'] : [],
+    seal: spellSeal(spell),
   };
 }
 

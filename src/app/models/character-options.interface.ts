@@ -120,6 +120,17 @@ export interface Spell {
   /** Rolagem ao lançar, já calculada pro personagem — só pras magias com mecânica cadastrada
    *  na API (`spell-mechanics.ts`). */
   roll?: SpellRoll;
+  /** Dano/cura base pro selo da carta (1.17.0) — espelho de `SpellCardDamage` da API. */
+  card_damage?: SpellCardDamage | null;
+}
+
+/** Dano (ou cura) base da magia, no círculo dela (truque: nível 1) — `spell-card-damage.ts` na API. */
+export interface SpellCardDamage {
+  /** Ex.: "8d6", "3× 1d4+1", "+2d6" (soma no ataque), "1d8 + mod", "20", "MORTE". */
+  dice: string;
+  /** Tipo de dano como no livro ("fogo", "à escolha"); `null` na cura. */
+  type: string | null;
+  kind: 'damage' | 'heal' | 'temp_hp';
 }
 
 /** Espelho de `SpellRoll` da API. */

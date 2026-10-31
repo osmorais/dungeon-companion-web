@@ -1,5 +1,12 @@
-import { Spell } from '../models/character-options.interface';
-import { schoolSlug, spellCardState, spellRangeLabel, spellToCard } from './spell-card';
+import { Spell, SpellRoll } from '../models/character-options.interface';
+import {
+  formatSpellDice,
+  schoolSlug,
+  spellCardState,
+  spellRangeLabel,
+  spellSeal,
+  spellToCard,
+} from './spell-card';
 
 const spell = (extra: Partial<Spell> = {}): Spell => ({
   id_spell: 1,
@@ -96,5 +103,84 @@ describe('spellRangeLabel', () => {
     expect(spellRangeLabel(2)).toBe('2 m');
     expect(spellRangeLabel(36)).toBe('36 m');
     expect(spellRangeLabel(null)).toBe('—');
+  });
+});
+
+describe('selo de dano da carta', () => {
+  const roll = (
+    extra: Partial<SpellRoll>,
+    slot: string,
+    entry: Partial<SpellRoll['by_slot'][string]>,
+  ): SpellRoll => ({
+    kind: 'save',
+    attack_type: null,
+    attack_bonus: null,
+    damage_type: 'fogo',
+    save_ability: 'DEX',
+    save_dc: 13,
+    save_on_success: 'half',
+    heal: null,
+    maximize: false,
+    rider_trigger: null,
+    rider_attack: null,
+    instance_label: null,
+    variant: null,
+    by_slot: {
+      [slot]: { instances: 1, dice_count: 8, dice_sides: 6, modifier: 0, extra_dice: [], ...entry },
+    },
+    ...extra,
+  });
+
+  it('fora da ficha: o dano base que a API manda', () => {
+    const card = spellToCard(spell({ card_damage: { dice: '8d6', type: 'fogo', kind: 'damage' } }));
+    expect(card.seal).toEqual({ value: '8d6', label: 'FOGO', kind: 'damage' });
+  });
+
+  it('na ficha: o valor do personagem, lido da rolagem no círculo da magia', () => {
+    // Truque no nível 11: 3d10, mesmo com o base 1d10 vindo junto.
+    const cantrip = spell({
+      spellLevel: 0,
+      card_damage: { dice: '1d10', type: 'fogo', kind: 'damage' },
+      roll: roll({ kind: 'attack' }, '0', { dice_count: 3, dice_sides: 10 }),
+    });
+    expect(spellSeal(cantrip)).toEqual({ value: '3d10', label: 'FOGO', kind: 'damage' });
+  });
+
+  it('cura com o modificador somado, PV temporários e "+" no que soma ao ataque', () => {
+    const cure = spell({
+      spellLevel: 1,
+      roll: roll({ kind: 'heal', heal: 'hp', damage_type: null }, '1', {
+        dice_count: 1,
+        dice_sides: 8,
+        modifier: 3,
+      }),
+    });
+    expect(spellSeal(cure)).toEqual({ value: '1d8+3', label: 'CURA', kind: 'heal' });
+    const temp = spell({ card_damage: { dice: '1d4+4', type: null, kind: 'temp_hp' } });
+    expect(spellSeal(temp)).toEqual({ value: '1d4+4', label: 'PV TEMP.', kind: 'heal' });
+    const hex = spell({
+      spellLevel: 1,
+      roll: roll({ kind: 'rider', damage_type: 'necrótico' }, '1', { dice_count: 1 }),
+    });
+    expect(spellSeal(hex)?.value).toBe('+1d6');
+  });
+
+  it('sem dano nem cura: sem selo', () => {
+    expect(spellToCard(spell()).seal).toBeNull();
+    expect(spellSeal(spell({ card_damage: null }))).toBeNull();
+  });
+
+  it('formatSpellDice: várias rolagens, bônus negativo e dados extras', () => {
+    const entry = { instances: 3, dice_count: 1, dice_sides: 4, modifier: 1, extra_dice: [] };
+    expect(formatSpellDice(entry)).toBe('3× 1d4+1');
+    expect(formatSpellDice({ ...entry, instances: 1, modifier: -1 })).toBe('1d4-1');
+    expect(
+      formatSpellDice({
+        ...entry,
+        instances: 1,
+        modifier: 0,
+        extra_dice: [{ count: 4, sides: 6 }],
+      }),
+    ).toBe('1d4 + 4d6');
   });
 });

@@ -27,6 +27,12 @@
   @if (state === 'threat') {
     <span class="gc-danger">PERIGOSO</span>
   }
+  @if (card.seal; as seal) {
+    <span class="gc-seal" [class.gc-seal--heal]="seal.kind === 'heal'">
+      <span class="gc-seal-value">{{ seal.value }}</span>
+      <span class="gc-seal-label">{{ seal.label }}</span>
+    </span>
+  }
 
   <span class="gc-badge">{{ card.badge }}</span>
   <span class="gc-title"
