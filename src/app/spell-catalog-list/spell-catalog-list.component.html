@@ -47,7 +47,7 @@
               [attr.aria-label]="'Ver a carta de ' + item.spell.name"
               (click)="openDetail(item.spell)"
             >
-              <app-game-card [card]="item.card" />
+              <app-game-card [card]="item.card" [miniStats]="4" />
             </button>
           }
         </div>

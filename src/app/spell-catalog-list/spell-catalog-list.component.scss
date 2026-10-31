@@ -69,6 +69,9 @@
   // Nome e resumo maiores que o padrão da carta pequena (igual ao catalogar monstros).
   --gc-title-size: max(10px, 5cqw);
   --gc-desc-size: max(9px, 3.6cqw);
+  // Os 4 números da magia no pergaminho, legíveis.
+  --gc-stat-label-size: max(8px, 3.6cqw);
+  --gc-stat-value-size: max(9px, 4.2cqw);
   border: none;
   background: none;
   cursor: var(--cp);

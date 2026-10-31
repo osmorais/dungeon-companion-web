@@ -33,6 +33,21 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.16.2',
+    date: '2026-10-30',
+    title: 'Cartas do grimório mais fáceis de ler',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'Nas cartas dos grimórios (o de magias e o do mestre), o pergaminho mostra tempo, alcance, duração e componentes com letra maior; antes vinham só dois deles, pequenos demais para ler.',
+      },
+      {
+        kind: 'correcao',
+        text: 'O alcance das magias aparece como "Pessoal" e "Toque" em vez de "0 m" e "1 m".',
+      },
+    ],
+  },
+  {
     version: '1.16.1',
     date: '2026-10-30',
     title: 'Filtros também no grimório do mestre',

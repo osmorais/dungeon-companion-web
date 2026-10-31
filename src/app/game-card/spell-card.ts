@@ -33,6 +33,14 @@ export function spellCircleLabel(level: number): string {
   return level === 0 ? 'TRUQUE' : `${level}º CÍRCULO`;
 }
 
+/** Alcance na carta: no banco, 0 = pessoal e 1 = toque; o resto é em metros. */
+export function spellRangeLabel(distance: number | null): string {
+  if (distance === null) return '—';
+  if (distance === 0) return 'Pessoal';
+  if (distance === 1) return 'Toque';
+  return `${distance} m`;
+}
+
 export function spellToCard(spell: Spell): GameCardData {
   const slug = schoolSlug(spell.school);
   return {
@@ -44,7 +52,7 @@ export function spellToCard(spell: Spell): GameCardData {
     ribbon: `${(spell.school ?? 'MAGIA').toUpperCase()} · ${spellCircleLabel(spell.spellLevel)}`,
     stats: [
       { label: 'TEMPO', value: spell.casting_time ?? '—' },
-      { label: 'ALCANCE', value: spell.range_distance != null ? `${spell.range_distance} m` : '—' },
+      { label: 'ALCANCE', value: spellRangeLabel(spell.range_distance) },
       { label: 'DURAÇÃO', value: spell.duration ?? '—' },
       { label: 'COMP.', value: spellComponentsLabel(spell) },
     ],

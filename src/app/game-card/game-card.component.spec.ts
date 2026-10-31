@@ -85,4 +85,25 @@ describe('GameCardComponent', () => {
     expect(render('ready').querySelector('.gc-danger')).toBeNull();
     expect(render(null).querySelector('.gc-danger')).toBeNull();
   });
+
+  it('carta pequena mostra 2 números, ou quantos pedir o miniStats', () => {
+    const fixture = TestBed.createComponent(GameCardComponent);
+    fixture.componentInstance.card = {
+      title: 'X',
+      badge: '1',
+      art: null,
+      fallbackIcon: '',
+      artBackground: null,
+      ribbon: '',
+      text: null,
+      tags: [],
+      stats: ['TEMPO', 'ALCANCE', 'DURAÇÃO', 'COMP.'].map((label) => ({ label, value: '—' })),
+    };
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelectorAll('.gc-stat')).toHaveLength(2);
+    fixture.componentRef.setInput('miniStats', 4);
+    fixture.detectChanges();
+    expect(el.querySelectorAll('.gc-stat')).toHaveLength(4);
+  });
 });

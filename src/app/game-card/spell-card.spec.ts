@@ -1,5 +1,5 @@
 import { Spell } from '../models/character-options.interface';
-import { schoolSlug, spellCardState, spellToCard } from './spell-card';
+import { schoolSlug, spellCardState, spellRangeLabel, spellToCard } from './spell-card';
 
 const spell = (extra: Partial<Spell> = {}): Spell => ({
   id_spell: 1,
@@ -86,5 +86,15 @@ describe('spellCardState', () => {
     expect(spellCardState(spell(), true, true, false)).toBe('preparable');
     expect(spellCardState(spell(), true, false, false)).toBe('locked');
     expect(spellCardState(spell(), true, true, true)).toBe('locked');
+  });
+});
+
+describe('spellRangeLabel', () => {
+  it('0 é pessoal, 1 é toque, o resto em metros, sem alcance vira traço', () => {
+    expect(spellRangeLabel(0)).toBe('Pessoal');
+    expect(spellRangeLabel(1)).toBe('Toque');
+    expect(spellRangeLabel(2)).toBe('2 m');
+    expect(spellRangeLabel(36)).toBe('36 m');
+    expect(spellRangeLabel(null)).toBe('—');
   });
 });

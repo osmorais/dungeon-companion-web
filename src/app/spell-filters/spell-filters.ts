@@ -58,7 +58,7 @@ export const SPELL_RANGES: { label: string; value: SpellRange | null }[] = [
 export function spellRange(distance: number | null): SpellRange | null {
   if (distance === null) return null;
   if (distance === 0) return 'self';
-  if (distance <= 2) return 'touch';
+  if (distance === 1) return 'touch';
   return distance < 18 ? 'short' : 'long';
 }
 

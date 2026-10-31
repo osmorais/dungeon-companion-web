@@ -202,16 +202,17 @@
   gap: 2cqw;
   min-width: 0;
 
+  // Listas do grimório aumentam os números (--gc-stat-label-size, --gc-stat-value-size).
   dt {
     flex-shrink: 0;
     color: #7a3b14;
-    font-size: max(5px, 2.7cqw);
+    font-size: var(--gc-stat-label-size, max(5px, 2.7cqw));
   }
 
   dd {
     margin: 0;
     overflow: hidden;
-    font-size: max(6px, 3.2cqw);
+    font-size: var(--gc-stat-value-size, max(6px, 3.2cqw));
     text-align: right;
     white-space: nowrap;
     text-overflow: ellipsis;

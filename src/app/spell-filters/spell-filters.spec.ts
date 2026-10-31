@@ -161,6 +161,7 @@ describe('elemento, função e alcance', () => {
   it('faixas de alcance: 0 pessoal, 1 toque, até 9 m e 18 m ou mais', () => {
     expect(spellRange(0)).toBe('self');
     expect(spellRange(1)).toBe('touch');
+    expect(spellRange(2)).toBe('short');
     expect(spellRange(9)).toBe('short');
     expect(spellRange(18)).toBe('long');
     expect(spellRange(null)).toBeNull();

@@ -96,6 +96,13 @@
   min-height: 0;
   overflow-y: auto;
   padding: 4px 4px 8px;
+
+  // Os 4 números da magia no pergaminho, legíveis (igual ao Grimório de Magias).
+  app-game-card {
+    --gc-title-size: max(10px, 5cqw);
+    --gc-stat-label-size: max(8px, 3.6cqw);
+    --gc-stat-value-size: max(9px, 4.2cqw);
+  }
 }
 
 .m-pagination {
