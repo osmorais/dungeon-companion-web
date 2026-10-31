@@ -33,6 +33,25 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.16.0',
+    date: '2026-10-30',
+    title: 'Grimório de magias com filtros',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'O grimório de magias ganhou a cara do catálogo de monstros: filtros numa coluna ao lado das cartas, por círculo, escola e classe, além de concentração, ação bônus e reação. Dá para ordenar por círculo ou por nome, e a busca ignora acentos.',
+      },
+      {
+        kind: 'novidade',
+        text: 'Filtro pelo efeito da magia: função (dano em alvo único ou em área, atordoar, controlar mente, prender, enfraquecer, fortalecer, proteger, curar, invocar, mover, furtividade, detectar e utilidade), elemento (fogo, frio, elétrico, trovão, ácido, veneno, necrótico, radiante, energia, psíquico e físico) e alcance (pessoal, toque, até 9 m e 18 m ou mais).',
+      },
+      {
+        kind: 'correcao',
+        text: 'A magia Vidência mostrava a descrição de Vínculo Protetor; agora traz o texto certo do livro.',
+      },
+    ],
+  },
+  {
     version: '1.15.1',
     date: '2026-10-28',
     title: 'Encerrar combate pergunta pelos monstros que sobraram',

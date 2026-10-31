@@ -1,116 +1,87 @@
-@if (isMobile()) {
-  <!-- ===== MOBILE LAYOUT ===== -->
-  <div class="mobile-catalog-container">
-
+<div [class]="isMobile() ? 'mobile-catalog-container' : 'catalog-container'">
+  @if (isMobile()) {
     <div class="m-header">
       <button class="m-back" (click)="goBack()">&#8592;</button>
       <span class="m-title">GRIMÓRIO DE MAGIAS</span>
     </div>
-
-    <input
-      class="mobile-search-input"
-      type="text"
-      placeholder="Buscar magia pelo nome..."
-      [ngModel]="searchTerm()"
-      (ngModelChange)="onSearchChange($event)"
-    />
-
-    @if (loading()) {
-      <div aria-busy="true" aria-label="Carregando as magias">
-        <div class="card-grid">
-          @for (i of [1, 2, 3, 4]; track i) {
-            <span class="skeleton card-skeleton"></span>
-          }
-        </div>
-      </div>
-    } @else if (error()) {
-      <p class="m-empty">ERRO AO CARREGAR AS MAGIAS.</p>
-    } @else if (spells().length === 0) {
-      <p class="m-empty">NENHUMA MAGIA ENCONTRADA.</p>
-    } @else {
-      <div class="card-grid">
-        @for (item of cards(); track item.spell.id_spell) {
-          <app-game-card
-            class="card-clickable"
-            [card]="item.card"
-            role="button"
-            tabindex="0"
-            [attr.aria-label]="'Ver a carta de ' + item.spell.name"
-            (click)="openDetail(item.spell)"
-            (keydown.enter)="openDetail(item.spell)"
-          />
-        }
-      </div>
-
-      <div class="m-pagination">
-        <button class="m-page-btn" [disabled]="!hasPrev()" (click)="prevPage()">&#9664;</button>
-        <span class="m-page-info">{{ page() }} / {{ totalPages() }}</span>
-        <button class="m-page-btn" [disabled]="!hasNext()" (click)="nextPage()">&#9654;</button>
-      </div>
-
-      <p class="m-total">TOTAL: {{ totalCount() }}</p>
-    }
-
-  </div>
-} @else {
-  <!-- ===== DESKTOP LAYOUT ===== (página no tamanho da sessão: .page/.page-topbar/.d-grid no styles.scss) -->
-  <div class="page">
-
+  } @else {
     <header class="page-topbar">
       <button class="retro-btn page-topbar-back" (click)="goBack()">← VOLTAR</button>
       <h1 class="page-topbar-name">GRIMÓRIO DE MAGIAS</h1>
-      @if (!loading() && !error() && totalCount() > 0) {
-        <div class="page-topbar-meta"><span>MAGIAS <strong>{{ totalCount() }}</strong></span></div>
+      @if (!loading() && !error()) {
+        <div class="page-topbar-meta">
+          <span>
+            MAGIAS <strong>{{ allSpells().length }}</strong>
+          </span>
+        </div>
       }
     </header>
+  }
 
-    <div class="page-toolbar">
-      <input
-        class="m-input spell-search"
-        type="text"
-        placeholder="Buscar magia pelo nome..."
-        aria-label="Buscar magia pelo nome"
-        [ngModel]="searchTerm()"
-        (ngModelChange)="onSearchChange($event)"
-      />
-    </div>
+  <!-- Busca e filtros (app-spell-filters): coluna da esquerda no desktop; no celular, recolhem -->
+  <div class="sc-layout">
+    <app-spell-filters
+      [filters]="filters()"
+      [schools]="schools()"
+      [total]="filteredSpells().length"
+      [mobile]="isMobile()"
+      (patch)="patchFilters($event)"
+      (cleared)="clearFilters()"
+    />
 
-    @if (loading()) {
-      <div class="card-grid" aria-busy="true" aria-label="Carregando">
-        @for (i of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track i) {
-          <span class="skeleton card-skeleton"></span>
+    <section class="sc-results" aria-label="Magias">
+      @if (loading()) {
+        <div class="sc-panel" aria-busy="true" aria-label="Carregando as magias">
+          <app-skeleton-rows [rows]="6" [height]="40" />
+        </div>
+      } @else if (error()) {
+        <p class="sc-empty" role="alert">ERRO AO CARREGAR AS MAGIAS.</p>
+      } @else if (filteredSpells().length === 0) {
+        <p class="sc-empty">NENHUMA MAGIA COM ESSES FILTROS.</p>
+      } @else {
+        <div class="sc-grid">
+          @for (item of visibleCards(); track item.spell.id_spell) {
+            <button
+              type="button"
+              class="sc-card"
+              [attr.aria-label]="'Ver a carta de ' + item.spell.name"
+              (click)="openDetail(item.spell)"
+            >
+              <app-game-card [card]="item.card" />
+            </button>
+          }
+        </div>
+        @if (totalPages() > 1) {
+          <div class="m-pagination">
+            <button
+              class="m-page-btn"
+              [disabled]="page() === 1"
+              aria-label="Página anterior"
+              (click)="prevPage()"
+            >
+              &#9664;
+            </button>
+            <span class="m-page-info">{{ page() }} / {{ totalPages() }}</span>
+            <button
+              class="m-page-btn"
+              [disabled]="page() === totalPages()"
+              aria-label="Próxima página"
+              (click)="nextPage()"
+            >
+              &#9654;
+            </button>
+          </div>
         }
-      </div>
-    } @else if (error()) {
-      <p class="m-empty">ERRO AO CARREGAR AS MAGIAS.</p>
-    } @else if (spells().length === 0) {
-      <p class="m-empty">NENHUMA MAGIA ENCONTRADA.</p>
-    } @else {
-      <div class="card-grid">
-        @for (item of cards(); track item.spell.id_spell) {
-          <app-game-card
-            class="card-clickable"
-            [card]="item.card"
-            role="button"
-            tabindex="0"
-            [attr.aria-label]="'Ver a carta de ' + item.spell.name"
-            (click)="openDetail(item.spell)"
-            (keydown.enter)="openDetail(item.spell)"
-          />
-        }
-      </div>
-
-      <div class="m-pagination">
-        <button class="m-page-btn" [disabled]="!hasPrev()" (click)="prevPage()">&#9664;</button>
-        <span class="m-page-info">{{ page() }} / {{ totalPages() }}</span>
-        <button class="m-page-btn" [disabled]="!hasNext()" (click)="nextPage()">&#9654;</button>
-      </div>
-    }
-
+      }
+    </section>
   </div>
-}
+</div>
 
-<!-- ===== CARTA EM TELA CHEIA (substituiu o modal de detalhe) ===== -->
+<!-- ===== CARTA EM TELA CHEIA ===== -->
 @if (selectedSpell(); as spell) {
-  <app-card-viewer [card]="spellToCard(spell)" backLabel="VOLTAR AO GRIMÓRIO" (closed)="closeDetail()" />
+  <app-card-viewer
+    [card]="spellToCard(spell)"
+    backLabel="VOLTAR AO GRIMÓRIO"
+    (closed)="closeDetail()"
+  />
 }

@@ -1,26 +1,37 @@
-import { Component, inject, OnInit, OnDestroy, signal, computed, HostListener } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, inject, OnInit, signal, computed, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { SpellCatalogService } from '../services/spell-catalog.service';
 import { SpellCatalogEntry } from '../models/spell-catalog.interface';
 import { GameCardComponent } from '../game-card/game-card.component';
 import { CardViewerComponent } from '../game-card/card-viewer.component';
 import { spellToCard } from '../game-card/spell-card';
+import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
+import { SpellFiltersComponent } from '../spell-filters/spell-filters.component';
+import {
+  EMPTY_SPELL_FILTERS,
+  SpellFilters,
+  filterSpells,
+  spellSchoolOptions,
+} from '../spell-filters/spell-filters';
 
-const PAGE_SIZE = 20;
-const SEARCH_DEBOUNCE_MS = 350;
+/** Cartas por página (igual ao catalogar monstros). */
+const PAGE_SIZE = 8;
 
+/**
+ * Grimório de magias, com a cara do catalogar monstros: busca e filtros (círculo, escola, classe,
+ * concentração, ação bônus, reação) numa coluna à esquerda e as cartas em páginas de 8. Carrega o
+ * catálogo inteiro e filtra no navegador; a carta abre em tela cheia.
+ */
 @Component({
   selector: 'app-spell-catalog-list',
   standalone: true,
-  imports: [FormsModule, GameCardComponent, CardViewerComponent],
+  imports: [GameCardComponent, CardViewerComponent, SkeletonRowsComponent, SpellFiltersComponent],
   templateUrl: './spell-catalog-list.component.html',
   styleUrls: ['./spell-catalog-list.component.scss'],
 })
-export class SpellCatalogListComponent implements OnInit, OnDestroy {
+export class SpellCatalogListComponent implements OnInit {
   private router = inject(Router);
   private spellCatalogService = inject(SpellCatalogService);
-  private searchDebounceHandle: ReturnType<typeof setTimeout> | null = null;
 
   isMobile = signal(typeof window !== 'undefined' && window.innerWidth < 768);
 
@@ -29,38 +40,31 @@ export class SpellCatalogListComponent implements OnInit, OnDestroy {
     this.isMobile.set(window.innerWidth < 768);
   }
 
-  spells = signal<SpellCatalogEntry[]>([]);
-  loading = signal(false);
+  loading = signal(true);
   error = signal(false);
-  page = signal(1);
-  totalCount = signal(0);
-  pageSize = PAGE_SIZE;
-  searchTerm = signal('');
+  allSpells = signal<SpellCatalogEntry[]>([]);
 
-  totalPages = computed(() => Math.ceil(this.totalCount() / this.pageSize) || 1);
-  hasPrev = computed(() => this.page() > 1);
-  hasNext = computed(() => this.page() < this.totalPages());
+  readonly filters = signal<SpellFilters>(EMPTY_SPELL_FILTERS);
+  readonly schools = computed(() => spellSchoolOptions(this.allSpells()));
+  readonly filteredSpells = computed(() => filterSpells(this.allSpells(), this.filters()));
+
+  readonly page = signal(1);
+  readonly totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.filteredSpells().length / PAGE_SIZE)),
+  );
+  readonly visibleCards = computed(() =>
+    this.filteredSpells()
+      .slice((this.page() - 1) * PAGE_SIZE, this.page() * PAGE_SIZE)
+      .map((spell) => ({ spell, card: spellToCard(spell) })),
+  );
 
   selectedSpell = signal<SpellCatalogEntry | null>(null);
-  /** Carta de cada magia da página (recalculada só quando a página muda). */
-  cards = computed(() => this.spells().map((spell) => ({ spell, card: spellToCard(spell) })));
   readonly spellToCard = spellToCard;
 
   ngOnInit() {
-    this.loadPage();
-  }
-
-  ngOnDestroy() {
-    if (this.searchDebounceHandle) clearTimeout(this.searchDebounceHandle);
-  }
-
-  loadPage() {
-    this.loading.set(true);
-    this.error.set(false);
-    this.spellCatalogService.getCatalog(this.page(), this.pageSize, this.searchTerm() || null).subscribe({
-      next: res => {
-        this.spells.set(res.SpellCatalogPagedList);
-        this.totalCount.set(res.total_count);
+    this.spellCatalogService.getAll().subscribe({
+      next: (spells) => {
+        this.allSpells.set(spells);
         this.loading.set(false);
       },
       error: () => {
@@ -70,27 +74,22 @@ export class SpellCatalogListComponent implements OnInit, OnDestroy {
     });
   }
 
-  onSearchChange(value: string) {
-    this.searchTerm.set(value);
-    if (this.searchDebounceHandle) clearTimeout(this.searchDebounceHandle);
-    this.searchDebounceHandle = setTimeout(() => {
-      this.page.set(1);
-      this.loadPage();
-    }, SEARCH_DEBOUNCE_MS);
+  /** Muda filtros; a lista volta pra primeira página. */
+  patchFilters(patch: Partial<SpellFilters>) {
+    this.filters.update((f) => ({ ...f, ...patch }));
+    this.page.set(1);
+  }
+
+  clearFilters() {
+    this.patchFilters({ ...EMPTY_SPELL_FILTERS, sort: this.filters().sort });
   }
 
   prevPage() {
-    if (this.hasPrev()) {
-      this.page.update(p => p - 1);
-      this.loadPage();
-    }
+    if (this.page() > 1) this.page.update((p) => p - 1);
   }
 
   nextPage() {
-    if (this.hasNext()) {
-      this.page.update(p => p + 1);
-      this.loadPage();
-    }
+    if (this.page() < this.totalPages()) this.page.update((p) => p + 1);
   }
 
   openDetail(spell: SpellCatalogEntry) {
@@ -99,14 +98,6 @@ export class SpellCatalogListComponent implements OnInit, OnDestroy {
 
   closeDetail() {
     this.selectedSpell.set(null);
-  }
-
-  components(spell: SpellCatalogEntry): string {
-    const parts: string[] = [];
-    if (spell.is_verbal) parts.push('V');
-    if (spell.is_somatic) parts.push('S');
-    if (spell.is_material) parts.push('M');
-    return parts.join(', ') || '—';
   }
 
   goBack() {

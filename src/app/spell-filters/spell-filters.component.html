@@ -1,0 +1,173 @@
+<aside class="mf-panel" aria-label="Buscar magias">
+  <input
+    type="text"
+    class="mf-input mf-search"
+    placeholder="Buscar magia pelo nome..."
+    aria-label="Buscar magia pelo nome"
+    [ngModel]="filters().search"
+    (ngModelChange)="patch.emit({ search: $event })"
+  />
+  @if (mobile()) {
+    <button
+      type="button"
+      class="mf-toggle"
+      aria-controls="sf-body"
+      [attr.aria-expanded]="open()"
+      (click)="open.set(!open())"
+    >
+      <span>{{ open() ? '▲' : '▼' }} FILTROS</span>
+      <span class="mf-count">
+        @if (active()) {
+          {{ active() }} {{ active() === 1 ? 'LIGADO' : 'LIGADOS' }} ·
+        }
+        {{ total() }}
+        {{ total() === 1 ? 'MAGIA' : 'MAGIAS' }}
+      </span>
+    </button>
+  }
+  @if (!mobile() || open()) {
+    <div id="sf-body" class="mf-body">
+      <div class="mf-filter-group" role="group" aria-label="Círculo da magia">
+        <span class="mf-label">CÍRCULO</span>
+        <div class="mf-chips">
+          @for (lvl of levels; track lvl.label) {
+            <button
+              type="button"
+              class="mf-chip"
+              [class.mf-chip--on]="filters().level === lvl.value"
+              [attr.aria-pressed]="filters().level === lvl.value"
+              (click)="patch.emit({ level: lvl.value })"
+            >
+              {{ lvl.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="mf-filter-group" role="group" aria-label="Alcance da magia">
+        <span class="mf-label">ALCANCE</span>
+        <div class="mf-chips">
+          @for (r of ranges; track r.label) {
+            <button
+              type="button"
+              class="mf-chip"
+              [class.mf-chip--on]="filters().range === r.value"
+              [attr.aria-pressed]="filters().range === r.value"
+              (click)="patch.emit({ range: r.value })"
+            >
+              {{ r.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="mf-filter-row">
+        <label class="mf-field">
+          <span class="mf-label">ESCOLA</span>
+          <select
+            class="mf-select"
+            [ngModel]="filters().school"
+            (ngModelChange)="patch.emit({ school: $event })"
+          >
+            <option value="">TODAS</option>
+            @for (s of schools(); track s) {
+              <option [value]="s">{{ s }}</option>
+            }
+          </select>
+        </label>
+        <label class="mf-field">
+          <span class="mf-label">CLASSE</span>
+          <select
+            class="mf-select"
+            [ngModel]="filters().classId ?? ''"
+            (ngModelChange)="setClass($event)"
+          >
+            <option value="">TODAS</option>
+            @for (c of classes; track c.id) {
+              <option [value]="c.id">{{ c.label }}</option>
+            }
+          </select>
+        </label>
+        <label class="mf-field">
+          <span class="mf-label">FUNÇÃO</span>
+          <select
+            class="mf-select"
+            [ngModel]="filters().role"
+            (ngModelChange)="patch.emit({ role: $event })"
+          >
+            <option value="">TODAS</option>
+            @for (r of roles; track r.value) {
+              <option [value]="r.value">{{ r.label }}</option>
+            }
+          </select>
+        </label>
+        <label class="mf-field">
+          <span class="mf-label">ELEMENTO</span>
+          <select
+            class="mf-select"
+            [ngModel]="filters().element"
+            (ngModelChange)="patch.emit({ element: $event })"
+          >
+            <option value="">TODOS</option>
+            @for (e of elements; track e.value) {
+              <option [value]="e.value">{{ e.label }}</option>
+            }
+          </select>
+        </label>
+        <label class="mf-field">
+          <span class="mf-label">ORDENAR</span>
+          <select
+            class="mf-select"
+            [ngModel]="filters().sort"
+            (ngModelChange)="patch.emit({ sort: $event })"
+          >
+            @for (o of sortOptions; track o.value) {
+              <option [value]="o.value">{{ o.label }}</option>
+            }
+          </select>
+        </label>
+      </div>
+
+      <div class="mf-filter-footer">
+        <div class="mf-chips">
+          <button
+            type="button"
+            class="mf-chip"
+            [class.mf-chip--on]="filters().concentration"
+            [attr.aria-pressed]="filters().concentration"
+            (click)="patch.emit({ concentration: !filters().concentration })"
+          >
+            CONCENTRAÇÃO
+          </button>
+          <button
+            type="button"
+            class="mf-chip"
+            [class.mf-chip--on]="filters().bonusAction"
+            [attr.aria-pressed]="filters().bonusAction"
+            (click)="patch.emit({ bonusAction: !filters().bonusAction })"
+          >
+            AÇÃO BÔNUS
+          </button>
+          <button
+            type="button"
+            class="mf-chip"
+            [class.mf-chip--on]="filters().reaction"
+            [attr.aria-pressed]="filters().reaction"
+            (click)="patch.emit({ reaction: !filters().reaction })"
+          >
+            REAÇÃO
+          </button>
+        </div>
+        <span class="mf-count" aria-live="polite">
+          {{ total() }}
+          {{ total() === 1 ? 'MAGIA' : 'MAGIAS' }}
+        </span>
+        @if (active()) {
+          <button type="button" class="mf-clear" (click)="cleared.emit()">
+            LIMPAR FILTROS ({{ active() }})
+          </button>
+        }
+      </div>
+    </div>
+  }
+</aside>

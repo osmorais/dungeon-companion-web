@@ -1,3 +1,96 @@
+// Mesmo layout do catalogar monstros (monster-catalog-create): filtros à esquerda, cartas à direita.
+.catalog-container {
+  width: 1320px;
+  max-width: 96vw;
+  box-sizing: border-box;
+  padding: 20px 0 32px;
+
+  // Folga entre o topo (VOLTAR + título) e os painéis.
+  .page-topbar {
+    margin-bottom: 28px;
+  }
+}
+
+.sc-panel {
+  box-sizing: border-box;
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+  padding: 16px;
+}
+
+.sc-empty {
+  margin: 0;
+  padding: 24px 0;
+  font-size: 9px;
+  color: var(--label-title-color);
+  text-align: center;
+}
+
+/* ===== Layout: filtros (app-spell-filters) | cartas ===== */
+
+.sc-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .sc-layout {
+    grid-template-columns: 280px minmax(0, 1fr);
+    align-items: start;
+    gap: 24px;
+  }
+
+  app-spell-filters {
+    position: sticky;
+    top: 16px;
+  }
+}
+
+/* ===== Cartas ===== */
+
+.sc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 190px));
+  justify-content: center;
+  gap: 18px 14px;
+}
+
+@media (min-width: 768px) {
+  .sc-grid {
+    grid-template-columns: repeat(auto-fit, minmax(190px, 230px));
+    gap: 24px 20px;
+  }
+}
+
+.sc-card {
+  display: block;
+  padding: 0;
+  // Nome e resumo maiores que o padrão da carta pequena (igual ao catalogar monstros).
+  --gc-title-size: max(10px, 5cqw);
+  --gc-desc-size: max(9px, 3.6cqw);
+  border: none;
+  background: none;
+  cursor: var(--cp);
+  transition: transform 0.12s;
+
+  &:hover,
+  &:focus-visible {
+    transform: translateY(-4px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-card {
+    transition: none;
+  }
+}
+
 /* ===== MOBILE LAYOUT ===== */
 
 .mobile-catalog-container {
@@ -7,16 +100,8 @@
   padding: 0 12px 24px;
   box-sizing: border-box;
   overflow-x: hidden;
-}
 
-.mobile-search-input {
-  width: 100%;
-  box-sizing: border-box;
-  margin-bottom: 16px;
-}
-
-/* ===== DESKTOP: busca na linha de ações (.page-toolbar) ===== */
-
-.spell-search {
-  max-width: 420px;
+  .sc-panel {
+    padding: 12px;
+  }
 }
