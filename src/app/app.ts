@@ -3,14 +3,13 @@ import { RouterOutlet, Router, NavigationStart, NavigationEnd, NavigationCancel,
 import { LoadingOverlayComponent } from './loading-overlay/loading-overlay.component';
 import { LoadingOverlayService } from './loading-overlay/loading-overlay.service';
 import { BackgroundService } from './services/background.service';
-import { ServerWakeupComponent } from './server-wakeup/server-wakeup.component';
 import { AuthService } from './services/auth.service';
 import { ThemeService } from './services/theme.service';
 import { TomService } from './tom-assistant/tom.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, LoadingOverlayComponent, ServerWakeupComponent],
+  imports: [RouterOutlet, LoadingOverlayComponent],
   template: `
     <div class="app-bg"
       [style.background-image]="'url(' + bg.currentImage() + ')'"
@@ -38,7 +37,7 @@ import { TomService } from './tom-assistant/tom.service';
         <button class="retro-btn global-footer__logout" (click)="logout()">SAIR</button>
       </footer>
     }
-    <router-outlet /><app-loading-overlay /><app-server-wakeup />
+    <router-outlet /><app-loading-overlay />
   `,
   styles: [`
     .global-footer {

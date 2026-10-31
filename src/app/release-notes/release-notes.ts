@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.17.2',
+    date: '2026-10-31',
+    title: 'Sem a tela de espera ao abrir o site',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'A tela "despertando o servidor" saiu: como o servidor agora fica sempre ligado, o site abre direto.',
+      },
+    ],
+  },
+  {
     version: '1.17.1',
     date: '2026-10-31',
     title: 'Servidor sempre ligado e descrições completas de três magias',
