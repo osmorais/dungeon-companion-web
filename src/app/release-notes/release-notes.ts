@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.16.1',
+    date: '2026-10-30',
+    title: 'Filtros também no grimório do mestre',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'O grimório que o mestre abre na mesa ganhou os mesmos filtros do Grimório de Magias: círculo, escola, classe, função, elemento, alcance, concentração, ação bônus e reação.',
+      },
+    ],
+  },
+  {
     version: '1.16.0',
     date: '2026-10-30',
     title: 'Grimório de magias com filtros',

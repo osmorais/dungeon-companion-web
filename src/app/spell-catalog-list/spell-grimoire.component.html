@@ -6,58 +6,68 @@
         <img class="ui-icon" src="assets/icons/spellbook.png" alt="" /> {{ title }}
       </h2>
       @if (!loading() && !error()) {
-        <span class="sg-total">{{ totalCount() }} MAGIA(S)</span>
+        <span class="sg-total">{{ allSpells().length }} MAGIA(S)</span>
       }
     </header>
 
-    <input
-      class="m-input sg-search"
-      type="search"
-      placeholder="Buscar magia pelo nome..."
-      aria-label="Buscar magia pelo nome"
-      [ngModel]="searchTerm()"
-      (ngModelChange)="onSearch($event)"
-    />
+    <!-- Filtros (app-spell-filters) à esquerda no desktop; no celular, recolhem em cima da grade -->
+    <div class="sg-body">
+      <app-spell-filters
+        class="sg-filters"
+        [filters]="filters()"
+        [schools]="schools()"
+        [total]="filteredSpells().length"
+        [mobile]="isMobile()"
+        (patch)="patchFilters($event)"
+        (cleared)="clearFilters()"
+      />
 
-    <div class="sg-list">
-      @if (loading()) {
-        <div class="card-grid" aria-busy="true" aria-label="Carregando as magias">
-          @for (i of [1, 2, 3, 4, 5, 6, 7, 8]; track i) {
-            <span class="skeleton card-skeleton"></span>
+      <div class="sg-results">
+        <div class="sg-list">
+          @if (loading()) {
+            <div class="card-grid" aria-busy="true" aria-label="Carregando as magias">
+              @for (i of [1, 2, 3, 4, 5, 6, 7, 8]; track i) {
+                <span class="skeleton card-skeleton"></span>
+              }
+            </div>
+          } @else if (error()) {
+            <p class="m-empty">ERRO AO CARREGAR AS MAGIAS.</p>
+          } @else if (cards().length === 0) {
+            <p class="m-empty">NENHUMA MAGIA COM ESSES FILTROS.</p>
+          } @else {
+            <div class="card-grid">
+              @for (item of cards(); track item.spell.id_spell) {
+                <app-game-card
+                  class="card-clickable"
+                  [card]="item.card"
+                  role="button"
+                  tabindex="0"
+                  [attr.aria-label]="'Ver a carta de ' + item.spell.name"
+                  (click)="openCard(item.spell)"
+                  (keydown.enter)="openCard(item.spell)"
+                />
+              }
+            </div>
           }
         </div>
-      } @else if (error()) {
-        <p class="m-empty">ERRO AO CARREGAR AS MAGIAS.</p>
-      } @else if (cards().length === 0) {
-        <p class="m-empty">NENHUMA MAGIA ENCONTRADA.</p>
-      } @else {
-        <div class="card-grid">
-          @for (item of cards(); track item.spell.id_spell) {
-            <app-game-card
-              class="card-clickable"
-              [card]="item.card"
-              role="button"
-              tabindex="0"
-              [attr.aria-label]="'Ver a carta de ' + item.spell.name"
-              (click)="openCard(item.spell)"
-              (keydown.enter)="openCard(item.spell)"
-            />
-          }
-        </div>
-      }
-    </div>
 
-    @if (!loading() && !error() && totalPages() > 1) {
-      <div class="m-pagination">
-        <button class="m-page-btn" [disabled]="page() === 1" (click)="goTo(page() - 1)">
-          &#9664;
-        </button>
-        <span class="m-page-info">{{ page() }} / {{ totalPages() }}</span>
-        <button class="m-page-btn" [disabled]="page() >= totalPages()" (click)="goTo(page() + 1)">
-          &#9654;
-        </button>
+        @if (!loading() && !error() && totalPages() > 1) {
+          <div class="m-pagination">
+            <button class="m-page-btn" [disabled]="page() === 1" (click)="goTo(page() - 1)">
+              &#9664;
+            </button>
+            <span class="m-page-info">{{ page() }} / {{ totalPages() }}</span>
+            <button
+              class="m-page-btn"
+              [disabled]="page() >= totalPages()"
+              (click)="goTo(page() + 1)"
+            >
+              &#9654;
+            </button>
+          </div>
+        }
       </div>
-    }
+    </div>
   </div>
 </div>
 

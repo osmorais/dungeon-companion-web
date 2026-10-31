@@ -69,6 +69,28 @@
   color: var(--label-title-color);
 }
 
+// Filtros | cartas. No desktop cada coluna rola por dentro; no celular, uma coluna só que rola
+// inteira (os filtros ficam recolhidos em ▼ FILTROS em cima da grade).
+.sg-body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 16px;
+}
+
+.sg-filters {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.sg-results {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
 .sg-list {
   flex: 1;
   min-height: 0;
@@ -94,6 +116,19 @@
   .sg-total {
     margin-left: 0;
     width: 100%;
+  }
+
+  .sg-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+  }
+
+  .sg-filters,
+  .sg-list {
+    flex: none;
+    overflow: visible;
   }
 }
 
