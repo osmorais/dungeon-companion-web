@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.17.3',
+    date: '2026-11-02',
+    title: 'Ajustes no e-mail de recuperação de senha',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'Ajustes no envio do e-mail de recuperação de senha.',
+      },
+    ],
+  },
+  {
     version: '1.17.2',
     date: '2026-10-31',
     title: 'Sem a tela de espera ao abrir o site',
