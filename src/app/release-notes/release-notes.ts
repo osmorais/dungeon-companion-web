@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.17.8',
+    date: '2026-11-02',
+    title: 'Política de Privacidade atualizada',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'O site passa a guardar a data e a hora do seu último acesso, para sabermos quantas pessoas usam o serviço. A Política de Privacidade foi atualizada com isso.',
+      },
+    ],
+  },
+  {
     version: '1.17.7',
     date: '2026-11-02',
     title: 'Ajustes de segurança no site',
