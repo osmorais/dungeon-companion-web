@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.17.4',
+    date: '2026-11-02',
+    title: 'E-mail de recuperação de senha com a cara do site',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'O e-mail de recuperação de senha ganhou as cores do site, chama você pelo seu nome de usuário e não fica mais com o fundo claro no modo escuro do celular.',
+      },
+    ],
+  },
+  {
     version: '1.17.3',
     date: '2026-11-02',
     title: 'Ajustes no e-mail de recuperação de senha',
