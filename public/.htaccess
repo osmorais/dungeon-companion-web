@@ -1,0 +1,34 @@
+# Vai pro ar junto com o build (o Angular copia o que está em public/) e SUBSTITUI o .htaccess
+# que a Hostinger criou no public_html. Por isso as regras de rota dela estão aqui também — sem
+# elas, link direto (/conta, link do e-mail de redefinição) dá 404. Ver procedimentos/servidor-api.md
+# e gotchas.md nos docs.
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Pasta de build do deploy da Hostinger: nunca servir (regra que estava no .htaccess dela;
+  # aqui vem antes da regra de "arquivo existe", senão ela nunca seria alcançada).
+  RewriteRule ^\.builds - [F,L]
+
+  # Se o arquivo ou diretório solicitado existir, usa ele diretamente
+  RewriteCond %{REQUEST_FILENAME} -s [OR]
+  RewriteCond %{REQUEST_FILENAME} -l [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^.*$ - [NC,L]
+
+  # Se não existir, redireciona tudo para o index.html (o Angular assume o controle)
+  RewriteRule ^(.*) /index.html [NC,L]
+</IfModule>
+
+# Headers de segurança (1.17.7).
+<IfModule mod_headers.c>
+  # Só HTTPS com o site por 1 ano.
+  Header always set Strict-Transport-Security "max-age=31536000"
+  # Nenhum outro site exibe o Forja Arcana dentro de um quadro (clickjacking).
+  Header always set X-Frame-Options "DENY"
+  Header always set Content-Security-Policy "frame-ancestors 'none'; upgrade-insecure-requests"
+  # O endereço completo (com o token do link de redefinição) não vai pra outros sites.
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+</IfModule>
