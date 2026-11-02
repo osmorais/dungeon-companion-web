@@ -93,6 +93,7 @@ import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { monsterDisplayName } from './monster-display-name';
 import { hpColor, hpPercent } from './hp-display';
 import { challengeRatingText, monsterSpeedText } from '../services/monster-format';
+import { IMAGE_TYPE_ERROR, isAcceptedImageFile } from '../constants/image-upload';
 
 @Component({
   selector: 'app-session-panel',
@@ -1635,8 +1636,8 @@ export class SessionPanelComponent implements OnDestroy {
     const monster = this.activeMonsterDetail();
     if (!monster || this.uploadingMonsterImage()) return;
 
-    if (!file.type.startsWith('image/')) {
-      this.monsterImageUploadError.set('O arquivo precisa ser uma imagem.');
+    if (!isAcceptedImageFile(file)) {
+      this.monsterImageUploadError.set(IMAGE_TYPE_ERROR);
       return;
     }
     if (file.size > SessionPanelComponent.MAX_MONSTER_IMAGE_BYTES) {

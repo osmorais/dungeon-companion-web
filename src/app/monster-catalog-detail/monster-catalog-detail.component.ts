@@ -6,6 +6,7 @@ import { MonsterCatalogEntry } from '../models/monster-catalog.interface';
 import { catalogMonsterCard, catalogMonsterCardState } from '../game-card/monster-card';
 import { MonsterSheetComponent } from '../monster-sheet/monster-sheet.component';
 import { catalogMonsterName } from '../services/monster-format';
+import { IMAGE_TYPE_ERROR, isAcceptedImageFile } from '../constants/image-upload';
 
 /**
  * Detalhe do monstro no bestiário (1.13.4): a ficha com a cara da gaveta do monstro na mesa
@@ -80,8 +81,8 @@ export class MonsterCatalogDetailComponent implements OnInit {
     const monster = this.monster();
     if (!monster || this.uploadingImage()) return;
 
-    if (!file.type.startsWith('image/')) {
-      this.imageUploadError.set('O arquivo precisa ser uma imagem.');
+    if (!isAcceptedImageFile(file)) {
+      this.imageUploadError.set(IMAGE_TYPE_ERROR);
       return;
     }
     if (file.size > MonsterCatalogDetailComponent.MAX_IMAGE_BYTES) {

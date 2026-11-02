@@ -20,6 +20,7 @@ import { GameCardComponent } from '../game-card/game-card.component';
 import { CardViewerComponent } from '../game-card/card-viewer.component';
 import { spellCardState, spellToCard } from '../game-card/spell-card';
 import { weaponToCard } from '../game-card/weapon-card';
+import { IMAGE_TYPE_ERROR, isAcceptedImageFile } from '../constants/image-upload';
 
 type MobileTab = 'combat' | 'attrs' | 'skills' | 'traits' | 'equipment' | 'spells' | 'notes';
 type DesktopPage = 'sheet' | 'notes';
@@ -731,8 +732,8 @@ export class CharacterSheetComponent {
     const id = this.sheetData()?.character_sheet.id_character;
     if (!id || this.uploadingImage()) return;
 
-    if (!file.type.startsWith('image/')) {
-      this.imageUploadError.set('O arquivo precisa ser uma imagem.');
+    if (!isAcceptedImageFile(file)) {
+      this.imageUploadError.set(IMAGE_TYPE_ERROR);
       return;
     }
     if (file.size > CharacterSheetComponent.MAX_IMAGE_BYTES) {

@@ -30,6 +30,13 @@ describe('referenceImageFileError', () => {
     );
     expect(referenceImageFileError(file('image/jpeg', REFERENCE_IMAGE_MAX_BYTES))).toBeNull();
   });
+
+  it('só PNG, JPEG, WebP e GIF (SVG e HEIC não)', () => {
+    for (const type of ['image/png', 'image/jpeg', 'image/webp', 'image/gif'])
+      expect(referenceImageFileError(file(type))).toBeNull();
+    for (const type of ['image/svg+xml', 'image/heic', 'image/bmp'])
+      expect(referenceImageFileError(file(type))).toMatch(/PNG, JPEG, WebP ou GIF/);
+  });
 });
 
 describe('ReferenceImagesModalComponent', () => {

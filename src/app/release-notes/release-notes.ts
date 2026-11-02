@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.17.6',
+    date: '2026-11-02',
+    title: 'Envio de imagens mais seguro',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'O envio de imagens (personagem, monstro e imagens de referência) aceita PNG, JPEG, WebP e GIF, e avisa na hora quando o arquivo está em outro formato.',
+      },
+    ],
+  },
+  {
     version: '1.17.5',
     date: '2026-11-02',
     title: 'Ajustes de segurança',

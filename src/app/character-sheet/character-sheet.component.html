@@ -71,7 +71,7 @@
 
         <label class="mobile-image-upload" [class.mobile-image-upload--busy]="uploadingImage()">
           {{ uploadingImage() ? 'ENVIANDO...' : data.character_sheet.image_url ? 'TROCAR IMAGEM DE FUNDO' : 'ENVIAR IMAGEM DE FUNDO' }}
-          <input type="file" accept="image/*" hidden [disabled]="uploadingImage()" (change)="onImageSelected($event)" />
+          <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden [disabled]="uploadingImage()" (change)="onImageSelected($event)" />
         </label>
         @if (imageUploadError()) {
           <p class="m-error mobile-hero-error">{{ imageUploadError() }}</p>
@@ -488,7 +488,7 @@
           </div>
           <label class="sheet-image-upload" [class.sheet-image-upload--busy]="uploadingImage()">
             {{ uploadingImage() ? 'ENVIANDO...' : data.character_sheet.image_url ? 'TROCAR IMAGEM DE FUNDO' : 'ENVIAR IMAGEM DE FUNDO' }}
-            <input type="file" accept="image/*" hidden [disabled]="uploadingImage()" (change)="onImageSelected($event)" />
+            <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden [disabled]="uploadingImage()" (change)="onImageSelected($event)" />
           </label>
           @if (imageUploadError()) {
             <p class="image-upload-error">{{ imageUploadError() }}</p>

@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, OnInit, Output, inject, signal } from '
 import { GameSessionService } from '../services/game-session.service';
 import { ReferenceImage } from '../models/game-session.interface';
 import { apiErrorMessage } from '../auth/auth-errors';
+import { IMAGE_TYPE_ERROR, isAcceptedImageFile } from '../constants/image-upload';
 
 /** Mesmo limite do upload na API (`IMAGE_UPLOAD_MAX_BYTES`). */
 export const REFERENCE_IMAGE_MAX_BYTES = 10 * 1024 * 1024;
@@ -10,7 +11,7 @@ export const REFERENCE_IMAGE_TITLE_MAX = 120;
 /** Erro de validação do arquivo antes de enviar, ou `null` se pode enviar. */
 export function referenceImageFileError(file: File | null): string | null {
   if (!file) return 'Escolha uma imagem.';
-  if (!file.type.startsWith('image/')) return 'O arquivo precisa ser uma imagem.';
+  if (!isAcceptedImageFile(file)) return IMAGE_TYPE_ERROR;
   if (file.size > REFERENCE_IMAGE_MAX_BYTES) return 'A imagem pode ter até 10 MB.';
   return null;
 }
