@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.17.12',
+    date: '2026-11-06',
+    title: 'Ilustração do Humano na criação de personagem',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'O Humano ganhou sua ilustração na escolha de raça, como as outras raças.',
+      },
+    ],
+  },
+  {
     version: '1.17.11',
     date: '2026-11-06',
     title: 'Raças com ilustração na criação de personagem',

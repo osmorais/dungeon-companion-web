@@ -129,7 +129,7 @@ describe('CharacterWizardComponent — perícias do antecedente', () => {
     wizard.selectRace(wizard.availableRaces[1]);
     expect(wizard.characterData.core_build.race).toBe('Humano');
     expect(wizard.characterData.core_build.subrace).toBeUndefined();
-    expect(wizard.raceImage(wizard.availableRaces[1])).toBeNull();
+    expect(wizard.raceImage(wizard.availableRaces[1])).toBe('assets/races/race-9.webp');
   });
 
   it('sugestão de atributos segue a classe escolhida (id do select vem como texto)', () => {

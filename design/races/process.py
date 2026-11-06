@@ -2,9 +2,9 @@
 Uso: python process.py [pasta-dos-originais]  (precisa de Pillow).
 
 Os PNGs originais ficam no repositório de docs: ~/projects/docs/dungeon-companion/artes/races/,
-com o nome "<id_race><nome>.png" (1anao.png … 8tiefling.png). O número no começo é o id da
+com o nome "<id_race><nome>.png" (1anao.png … 9humano.png). O número no começo é o id da
 tabela `race` no banco; grava src/assets/races/race-<id>.webp em 512x512.
-O Humano (id 9) ainda não tem arte — a tela mostra a inicial no lugar.
+Raça sem arte (id fora de race-images.ts) aparece com a inicial do nome.
 """
 import os
 import re
