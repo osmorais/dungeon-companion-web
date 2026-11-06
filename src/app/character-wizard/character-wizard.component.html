@@ -1,6 +1,18 @@
 <app-dragon-animation [trigger]="dragonTrigger" />
 <app-tom-assistant [image]="tomImage" [message]="tomMessage" (tripleClick)="onTomTripleClick()" />
 
+<!-- Selo de prioridade do atributo (sugestão pela classe): 1º = maior valor, 2º = o seguinte. -->
+<ng-template #priorityBadge let-stat>
+  @let rank = attributeRank(stat);
+  @if (rank) {
+    <span
+      class="attr-priority-badge attr-priority-badge--{{ rank }}"
+      [attr.title]="rank === 1 ? 'Sugestão: maior valor' : 'Sugestão: segundo maior valor'"
+      >{{ rank }}º</span
+    >
+  }
+</ng-template>
+
 <!-- Explicação de uma escolha (raça/sub-raça/classe/subclasse/antecedente) — reaproveitado em
      todos os seletores do Passo 1, mobile e desktop. -->
 <ng-template #choiceInfo let-meta="meta" let-traits="traits">
@@ -204,6 +216,19 @@
             </select>
           </label>
 
+          @if (attributePriority; as priority) {
+            <div class="attr-priority-hint">
+              <p>
+                Sugestão para {{ selectedClass?.name }}: maior valor em
+                <strong>{{ priority.primary.join(' ou ') }}</strong>, depois
+                <strong>{{ priority.secondary.join(' ou ') }}</strong>.
+              </p>
+              @if (priority.note) {
+                <p class="attr-priority-note">{{ priority.note }}</p>
+              }
+            </div>
+          }
+
           @if (characterData.attributes.generation_method === 'standard_array') {
             <p class="mobile-tap-hint">
               @if (mobileSelectedValue !== null) {
@@ -229,7 +254,7 @@
                        [class.mobile-stat-selected]="mobileSelectedFromStat === stat"
                        [class.mobile-stat-droppable]="mobileSelectedValue !== null && mobileSelectedFromStat !== stat"
                        (click)="mobileTapStat(stat)">
-                    <span class="mobile-stat-label">{{ stat }}</span>
+                    <span class="mobile-stat-label">{{ stat }}<ng-container *ngTemplateOutlet="priorityBadge; context: { $implicit: stat }" /></span>
                     @if (characterData.attributes.base_values[stat] !== 0) {
                       <span class="mobile-stat-value">{{ characterData.attributes.base_values[stat] }}</span>
                     } @else {
@@ -299,7 +324,7 @@
                        [class.mobile-stat-selected]="mobileSelectedFromStat === stat"
                        [class.mobile-stat-droppable]="mobileSelectedValue !== null && mobileSelectedFromStat !== stat"
                        (click)="mobileTapStat(stat)">
-                    <span class="mobile-stat-label">{{ stat }}</span>
+                    <span class="mobile-stat-label">{{ stat }}<ng-container *ngTemplateOutlet="priorityBadge; context: { $implicit: stat }" /></span>
                     @if (characterData.attributes.base_values[stat] !== 0) {
                       <span class="mobile-stat-value">{{ characterData.attributes.base_values[stat] }}</span>
                       @let assigned = breakdownFor(characterData.attributes.base_values[stat]);
@@ -325,7 +350,7 @@
             <div class="mobile-point-buy-list">
               @for (stat of attributesList; track stat) {
                 <div class="mobile-point-row">
-                  <span class="mobile-stat-label">{{ stat }}</span>
+                  <span class="mobile-stat-label">{{ stat }}<ng-container *ngTemplateOutlet="priorityBadge; context: { $implicit: stat }" /></span>
                   <div class="mobile-point-controls">
                     <button (click)="decreaseStat(stat)">−</button>
                     <span>{{ characterData.attributes.base_values[stat] }}</span>
@@ -342,7 +367,7 @@
             <div class="mobile-point-buy-list">
               @for (stat of attributesList; track stat) {
                 <div class="mobile-point-row">
-                  <span class="mobile-stat-label">{{ stat }}</span>
+                  <span class="mobile-stat-label">{{ stat }}<ng-container *ngTemplateOutlet="priorityBadge; context: { $implicit: stat }" /></span>
                   <span>{{ characterData.attributes.base_values[stat] }}</span>
                 </div>
               }
@@ -818,6 +843,19 @@
             </select>
           </label>
 
+          @if (attributePriority; as priority) {
+            <div class="attr-priority-hint">
+              <p>
+                Sugestão para {{ selectedClass?.name }}: maior valor em
+                <strong>{{ priority.primary.join(' ou ') }}</strong>, depois
+                <strong>{{ priority.secondary.join(' ou ') }}</strong>.
+              </p>
+              @if (priority.note) {
+                <p class="attr-priority-note">{{ priority.note }}</p>
+              }
+            </div>
+          }
+
           <!-- ================= MATRIZ PADRÃO (DRAG) ================= -->
           @if (characterData.attributes.generation_method === 'standard_array') {
 
@@ -839,7 +877,7 @@
               @for (stat of attributesList; track stat) {
               <div class="stat-box" (dragover)="allowDrop($event)" (drop)="onDrop(stat)">
 
-                <label>{{ stat }}</label>
+                <label>{{ stat }}<ng-container *ngTemplateOutlet="priorityBadge; context: { $implicit: stat }" /></label>
 
                 @if (characterData.attributes.base_values[stat] !== 0) {
                 <div class="drag-item" draggable="true" (dragstart)="onDragFromStat(stat)">
@@ -911,7 +949,7 @@
               @for (stat of attributesList; track stat) {
               <div class="stat-box stat-box--dice" (dragover)="allowDrop($event)" (drop)="onDrop(stat)">
 
-                <label>{{ stat }}</label>
+                <label>{{ stat }}<ng-container *ngTemplateOutlet="priorityBadge; context: { $implicit: stat }" /></label>
 
                 @if (characterData.attributes.base_values[stat] !== 0) {
                 <div class="drag-item" draggable="true" (dragstart)="onDragFromStat(stat)">
@@ -942,7 +980,7 @@
           <div class="stats-grid">
             @for (stat of attributesList; track stat) {
             <div class="stat-box">
-              <label>{{ stat }}</label>
+              <label>{{ stat }}<ng-container *ngTemplateOutlet="priorityBadge; context: { $implicit: stat }" /></label>
 
               <div class="point-controls">
                 <button (click)="decreaseStat(stat)">-</button>
@@ -961,7 +999,7 @@
           <div class="stats-grid">
             @for (stat of attributesList; track stat) {
             <div class="stat-box">
-              <label>{{ stat }}</label>
+              <label>{{ stat }}<ng-container *ngTemplateOutlet="priorityBadge; context: { $implicit: stat }" /></label>
               <span>{{ characterData.attributes.base_values[stat] }}</span>
             </div>
             }

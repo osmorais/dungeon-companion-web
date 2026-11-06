@@ -978,3 +978,39 @@
   }
 }
 
+
+/* ===== SUGESTÃO DE ATRIBUTOS PELA CLASSE ===== */
+
+.attr-priority-hint {
+  margin-top: 12px;
+  padding: 8px 10px;
+  border: 1px dashed var(--border-color);
+  font-size: 8px;
+  line-height: 1.6;
+  color: var(--label-title-color);
+
+  p { margin: 0; }
+  strong { color: var(--accent-color); }
+}
+
+.attr-priority-note {
+  margin-top: 4px !important;
+  opacity: 0.8;
+}
+
+.attr-priority-badge,
+.stats-grid .stat-box .attr-priority-badge {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 3px;
+  margin-bottom: 0;
+  font-size: 6px;
+  line-height: 1;
+  vertical-align: middle;
+  border: 1px solid var(--accent-color);
+  color: var(--accent-color);
+}
+
+.attr-priority-badge--2 {
+  opacity: 0.6;
+}

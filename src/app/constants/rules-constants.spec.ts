@@ -10,6 +10,7 @@ import { CLASS_ARMOUR_RULES, SUBCLASS_HEAVY_ARMOUR, SUBRACE_ARMOUR_TYPES } from 
 import { CLASS_SKILL_RULES, RACE_ABILITY_BONUS_CHOICE, RACE_SKILL_RULES } from './skill-rules';
 import { RACE_FREE_CANTRIP, SUBRACE_FREE_CANTRIP } from './racial-cantrips';
 import { LEVEL1_SUBCLASS_OPTIONS } from './level1-subclass-options';
+import { CLASS_ATTRIBUTE_PRIORITY, attributePriorityRank } from './attribute-priority';
 
 /**
  * Várias dessas tabelas são cópias manuais do backend (`character-sheet/rules.ts` e
@@ -196,5 +197,52 @@ describe('listas de magia por classe iguais às da API (class-spell-lists.ts)', 
       11: [55, 8461],
       12: [45, 7674],
     });
+  });
+});
+
+describe('attribute-priority (Construção Rápida do Livro do Jogador)', () => {
+  it('toda classe tem principal e secundário, sem repetir atributo; nota só com escolha', () => {
+    for (const id of CLASS_IDS) {
+      const rule = CLASS_ATTRIBUTE_PRIORITY[id];
+      expect(rule, `classe ${id}`).toBeDefined();
+      expect(rule.primary.length).toBeGreaterThan(0);
+      expect(rule.secondary.length).toBeGreaterThan(0);
+      expect(rule.primary.some((a) => rule.secondary.includes(a))).toBe(false);
+      const hasChoice = rule.primary.length > 1 || rule.secondary.length > 1;
+      expect(!!rule.note, `nota da classe ${id}`).toBe(hasChoice);
+    }
+  });
+
+  it('valores do livro', () => {
+    const summary = Object.fromEntries(
+      CLASS_IDS.map((id) => [
+        id,
+        [CLASS_ATTRIBUTE_PRIORITY[id].primary, CLASS_ATTRIBUTE_PRIORITY[id].secondary],
+      ]),
+    );
+    expect(summary).toEqual({
+      1: [['FOR'], ['CON']],
+      2: [['CAR'], ['DES']],
+      3: [['CAR'], ['CON']],
+      4: [['SAB'], ['FOR', 'CON']],
+      5: [['SAB'], ['CON']],
+      6: [['CAR'], ['CON']],
+      7: [['FOR', 'DES'], ['CON']],
+      8: [['DES'], ['CAR', 'INT']],
+      9: [['INT'], ['CON', 'DES']],
+      10: [['DES'], ['SAB']],
+      11: [['FOR'], ['CAR']],
+      12: [['DES'], ['SAB']],
+    });
+  });
+
+  it('rank: 1 principal, 2 secundário, null resto; classe ausente ou desconhecida → null', () => {
+    expect(attributePriorityRank(7, 'FOR')).toBe(1);
+    expect(attributePriorityRank(7, 'DES')).toBe(1);
+    expect(attributePriorityRank(7, 'CON')).toBe(2);
+    expect(attributePriorityRank(7, 'CAR')).toBeNull();
+    expect(attributePriorityRank(null, 'FOR')).toBeNull();
+    expect(attributePriorityRank(undefined, 'FOR')).toBeNull();
+    expect(attributePriorityRank(99, 'FOR')).toBeNull();
   });
 });

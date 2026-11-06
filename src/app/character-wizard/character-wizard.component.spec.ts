@@ -3,7 +3,12 @@ import { provideRouter } from '@angular/router';
 import { CharacterWizardComponent } from './character-wizard.component';
 import { CharacterService } from '../services/character.service';
 import { LoadingOverlayService } from '../loading-overlay/loading-overlay.service';
-import { Background, CharacterOptions, Skill } from '../models/character-options.interface';
+import {
+  Background,
+  CharacterClass,
+  CharacterOptions,
+  Skill,
+} from '../models/character-options.interface';
 
 const SKILL_NAMES = [
   'Atletismo',
@@ -98,6 +103,25 @@ describe('CharacterWizardComponent — perícias do antecedente', () => {
     expect(wizard.isSkillGranted(skills[0])).toBe(true);
     expect(wizard.isSkillCheckboxDisabled(skills[0])).toBe(true);
     expect(wizard.grantedSkillSource(skills[0])).toBe('Antecedente');
+  });
+
+  it('sugestão de atributos segue a classe escolhida (id do select vem como texto)', () => {
+    wizard.availableClasses = [
+      { id_class: 7, name: 'Guerreiro' },
+      { id_class: 9, name: 'Mago' },
+    ] as CharacterClass[];
+    expect(wizard.attributePriority?.primary).toEqual(['FOR', 'DES']);
+    expect(wizard.attributeRank('FOR')).toBe(1);
+    expect(wizard.attributeRank('CON')).toBe(2);
+    expect(wizard.attributeRank('INT')).toBeNull();
+
+    (wizard.characterData.core_build as { id_class: unknown }).id_class = '9';
+    expect(wizard.attributeRank('INT')).toBe(1);
+    expect(wizard.attributeRank('FOR')).toBeNull();
+
+    wizard.availableClasses = [];
+    expect(wizard.attributePriority).toBeUndefined();
+    expect(wizard.attributeRank('INT')).toBeNull();
   });
 
   it('não contam na escolha da classe e não podem ser escolhidas de novo', () => {

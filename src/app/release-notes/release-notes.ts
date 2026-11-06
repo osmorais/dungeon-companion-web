@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.17.10',
+    date: '2026-11-06',
+    title: 'Sugestão de atributos pela classe',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'Na criação de personagem, o passo de atributos agora sugere onde colocar os valores mais altos de acordo com a classe escolhida, com os atributos marcados como 1º e 2º.',
+      },
+    ],
+  },
+  {
     version: '1.17.9',
     date: '2026-11-06',
     title: 'Dano das armas na criação de personagem',

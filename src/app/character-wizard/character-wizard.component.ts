@@ -27,6 +27,7 @@ import {
   SpellLimits,
   WIZARD_CLASS_ID,
 } from '../constants/spell-rules';
+import { AttributePriority, CLASS_ATTRIBUTE_PRIORITY, attributePriorityRank } from '../constants/attribute-priority';
 import { CLASS_ARMOUR_RULES, SUBCLASS_HEAVY_ARMOUR, SUBRACE_ARMOUR_TYPES } from '../constants/armour-rules';
 import { LEVEL1_SUBCLASS_OPTIONS, Level1SubclassOption } from '../constants/level1-subclass-options';
 import { RACE_FREE_CANTRIP, SUBRACE_FREE_CANTRIP, RacialCantripGrant } from '../constants/racial-cantrips';
@@ -204,6 +205,17 @@ export class CharacterWizardComponent implements OnInit {
 
   get selectedClass(): CharacterClass | undefined {
     return this.availableClasses.find(c => +c.id_class === +this.characterData.core_build.id_class);
+  }
+
+  /** Sugestão de onde pôr os valores mais altos, pela classe escolhida no passo 1. */
+  get attributePriority(): AttributePriority | undefined {
+    const id = this.selectedClass?.id_class;
+    return id != null ? CLASS_ATTRIBUTE_PRIORITY[+id] : undefined;
+  }
+
+  /** 1 = maior valor, 2 = segundo maior, null = sem prioridade. */
+  attributeRank(stat: AttributeKey): 1 | 2 | null {
+    return attributePriorityRank(this.selectedClass?.id_class, stat);
   }
 
   get selectedLevel1Subclass(): Level1SubclassOption | undefined {
