@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.17.9',
+    date: '2026-11-06',
+    title: 'Dano das armas na criação de personagem',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'As cartas das armas na criação de personagem mostravam o dano com um texto estranho no final (como "1d4undefined"). Agora aparece só o dado da arma.',
+      },
+    ],
+  },
+  {
     version: '1.17.8',
     date: '2026-11-02',
     title: 'Política de Privacidade atualizada',

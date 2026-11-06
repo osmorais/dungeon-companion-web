@@ -50,14 +50,18 @@ export function damageBackground(damageType: string | null | undefined): string 
   return (damageType && DAMAGE_BACKGROUND[normalize(damageType)]) || NEUTRAL_BACKGROUND;
 }
 
-function signed(value: number): string {
+function signed(value: number | null | undefined): string {
+  value = value ?? 0;
   return value >= 0 ? `+${value}` : `${value}`;
 }
 
-/** "1d8" + 3 → "1d8+3"; sem dado → "—". */
-function damageLabel(die: string | null, modifier: number): string {
+/**
+ * "1d8" + 3 → "1d8+3"; sem dado → "—". Sem modificador (arma do catálogo na criação, que ainda
+ * não tem FOR/DES aplicada) → só o dado.
+ */
+function damageLabel(die: string | null, modifier: number | null | undefined): string {
   if (!die) return '—';
-  return modifier === 0 ? die : `${die}${signed(modifier)}`;
+  return !modifier ? die : `${die}${signed(modifier)}`;
 }
 
 function capitalize(value: string | null): string {
