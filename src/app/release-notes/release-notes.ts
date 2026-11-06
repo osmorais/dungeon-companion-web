@@ -33,6 +33,25 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.17.11',
+    date: '2026-11-06',
+    title: 'Raças com ilustração na criação de personagem',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'A raça agora é escolhida por miniaturas com a ilustração de cada uma, e a escolhida aparece em tamanho maior.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A primeira etapa da criação começa pelos detalhes do personagem (nome, idade e alinhamento) e não mostra mais o nível, que é sempre 1.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'As listas de escolha mostram "Selecione..." enquanto nada foi escolhido, em vez de aparecerem vazias.',
+      },
+    ],
+  },
+  {
     version: '1.17.10',
     date: '2026-11-06',
     title: 'Sugestão de atributos pela classe',

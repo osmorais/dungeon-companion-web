@@ -13,6 +13,45 @@
   }
 </ng-template>
 
+<!-- Raça por miniaturas (Passo 1, mobile e desktop): grade com a arte de cada raça e, depois de
+     escolher, a arte grande da escolhida. O resto da escolha (traços, sub-raça…) vem logo abaixo. -->
+<ng-template #racePicker>
+  <div class="race-picker full-width">
+    <span class="race-picker-label">RAÇA</span>
+    <div class="race-grid" role="radiogroup" aria-label="Raça">
+      @for (race of availableRaces; track race.id_race) {
+        @let img = raceImage(race);
+        <button
+          type="button"
+          class="race-thumb"
+          role="radio"
+          [class.selected]="+race.id_race === +characterData.core_build.id_race"
+          [attr.aria-checked]="+race.id_race === +characterData.core_build.id_race"
+          (click)="selectRace(race)"
+        >
+          @if (img) {
+            <img [src]="img" alt="" loading="lazy" />
+          } @else {
+            <span class="race-thumb-initial" aria-hidden="true">{{ race.name.charAt(0) }}</span>
+          }
+          <span class="race-thumb-name">{{ race.name }}</span>
+        </button>
+      }
+    </div>
+    @if (selectedRace; as race) {
+      @let bigImg = raceImage(race);
+      <div class="race-hero">
+        @if (bigImg) {
+          <img [src]="bigImg" [alt]="race.name" />
+        } @else {
+          <span class="race-hero-initial" aria-hidden="true">{{ race.name.charAt(0) }}</span>
+        }
+        <span class="race-hero-name">{{ race.name }}</span>
+      </div>
+    }
+  </div>
+</ng-template>
+
 <!-- Explicação de uma escolha (raça/sub-raça/classe/subclasse/antecedente) — reaproveitado em
      todos os seletores do Passo 1, mobile e desktop. -->
 <ng-template #choiceInfo let-meta="meta" let-traits="traits">
@@ -51,16 +90,28 @@
 
       @case (1) {
         <section class="m-section wizard-section">
-          <h3 class="m-section-title">CONSTRUÇÃO BÁSICA</h3>
+          <h3 class="m-section-title">DETALHES DO PERSONAGEM</h3>
           <div class="mobile-form-stack">
-            <label>NÍVEL <input type="number" [(ngModel)]="characterData.core_build.level" min="1" max="1" disabled title="Criação de personagem limitada ao nível 1 por enquanto"></label>
-            <label>RAÇA
-              <select [(ngModel)]="characterData.core_build.id_race" (ngModelChange)="onRaceChange()">
-                @for (race of availableRaces; track race.id_race) {
-                  <option [value]="race.id_race">{{ race.name }}</option>
+            <label>NOME <input type="text" [(ngModel)]="characterData.character_details.name"></label>
+            <label>IDADE <input type="number" [(ngModel)]="characterData.character_details.age"></label>
+            <label>ALINHAMENTO
+              <select [(ngModel)]="characterData.character_details.id_alignment">
+                <option [value]="0" disabled>Selecione...</option>
+                @for (alignment of availableAlignments; track alignment.id_alignment) {
+                  <option [value]="alignment.id_alignment">{{ alignment.name }}</option>
                 }
               </select>
             </label>
+            @if (selectedAlignment) {
+              <p class="choice-info-meta">{{ selectedAlignment.description }}</p>
+            }
+          </div>
+        </section>
+
+        <section class="m-section wizard-section">
+          <h3 class="m-section-title">CONSTRUÇÃO BÁSICA</h3>
+          <div class="mobile-form-stack">
+            <ng-container *ngTemplateOutlet="racePicker"></ng-container>
             @if (selectedRace) {
               <ng-container
                 *ngTemplateOutlet="choiceInfo; context: { meta: selectedRaceMeta, traits: selectedRace.traits }"
@@ -127,6 +178,7 @@
             }
             <label>CLASSE
               <select [(ngModel)]="characterData.core_build.id_class" (ngModelChange)="onClassChange()">
+                <option [value]="0" disabled>Selecione...</option>
                 @for (cls of availableClasses; track cls.id_class) {
                   <option [value]="cls.id_class">{{ cls.name }}</option>
                 }
@@ -164,6 +216,7 @@
             }
             <label>ANTECEDENTE
               <select [(ngModel)]="characterData.core_build.id_background">
+                <option [value]="0" disabled>Selecione...</option>
                 @for (bg of availableBackgrounds; track bg.id_background) {
                   <option [value]="bg.id_background">{{ bg.name }}</option>
                 }
@@ -173,24 +226,6 @@
               <ng-container
                 *ngTemplateOutlet="choiceInfo; context: { meta: selectedBackgroundMeta, traits: selectedBackgroundTraits }"
               ></ng-container>
-            }
-          </div>
-        </section>
-
-        <section class="m-section wizard-section">
-          <h3 class="m-section-title">DETALHES DO PERSONAGEM</h3>
-          <div class="mobile-form-stack">
-            <label>NOME <input type="text" [(ngModel)]="characterData.character_details.name"></label>
-            <label>IDADE <input type="number" [(ngModel)]="characterData.character_details.age"></label>
-            <label>ALINHAMENTO
-              <select [(ngModel)]="characterData.character_details.id_alignment">
-                @for (alignment of availableAlignments; track alignment.id_alignment) {
-                  <option [value]="alignment.id_alignment">{{ alignment.name }}</option>
-                }
-              </select>
-            </label>
-            @if (selectedAlignment) {
-              <p class="choice-info-meta">{{ selectedAlignment.description }}</p>
             }
           </div>
         </section>
@@ -681,16 +716,28 @@
 
       @case (1) {
         <fieldset class="retro-panel">
-          <legend>CONSTRUÇÃO BÁSICA</legend>
+          <legend>DETALHES DO PERSONAGEM</legend>
           <div class="grid-2-col">
-            <label>NÍVEL <input type="number" [(ngModel)]="characterData.core_build.level" min="1" max="1" disabled title="Criação de personagem limitada ao nível 1 por enquanto"></label>
-            <label>RAÇA
-              <select [(ngModel)]="characterData.core_build.id_race" (ngModelChange)="onRaceChange()">
-                @for (race of availableRaces; track race.id_race) {
-                  <option [value]="race.id_race">{{ race.name }}</option>
+            <label>NOME <input type="text" [(ngModel)]="characterData.character_details.name"></label>
+            <label>IDADE <input type="number" [(ngModel)]="characterData.character_details.age"></label>
+            <label class="full-width">ALINHAMENTO
+              <select [(ngModel)]="characterData.character_details.id_alignment">
+                <option [value]="0" disabled>Selecione...</option>
+                @for (alignment of availableAlignments; track alignment.id_alignment) {
+                  <option [value]="alignment.id_alignment">{{ alignment.name }}</option>
                 }
               </select>
             </label>
+            @if (selectedAlignment) {
+              <p class="choice-info-meta full-width">{{ selectedAlignment.description }}</p>
+            }
+          </div>
+        </fieldset>
+
+        <fieldset class="retro-panel">
+          <legend>CONSTRUÇÃO BÁSICA</legend>
+          <div class="grid-2-col">
+            <ng-container *ngTemplateOutlet="racePicker"></ng-container>
             @if (selectedRace) {
               <ng-container
                 *ngTemplateOutlet="choiceInfo; context: { meta: selectedRaceMeta, traits: selectedRace.traits }"
@@ -757,6 +804,7 @@
             }
             <label>CLASSE
               <select [(ngModel)]="characterData.core_build.id_class" (ngModelChange)="onClassChange()">
+                <option [value]="0" disabled>Selecione...</option>
                 @for (cls of availableClasses; track cls.id_class) {
                   <option [value]="cls.id_class">{{ cls.name }}</option>
                 }
@@ -794,6 +842,7 @@
             }
             <label>ANTECEDENTE
               <select [(ngModel)]="characterData.core_build.id_background">
+                <option [value]="0" disabled>Selecione...</option>
                 @for (bg of availableBackgrounds; track bg.id_background) {
                   <option [value]="bg.id_background">{{ bg.name }}</option>
                 }
@@ -803,24 +852,6 @@
               <ng-container
                 *ngTemplateOutlet="choiceInfo; context: { meta: selectedBackgroundMeta, traits: selectedBackgroundTraits }"
               ></ng-container>
-            }
-          </div>
-        </fieldset>
-
-        <fieldset class="retro-panel">
-          <legend>DETALHES DO PERSONAGEM</legend>
-          <div class="grid-2-col">
-            <label>NOME <input type="text" [(ngModel)]="characterData.character_details.name"></label>
-            <label>IDADE <input type="number" [(ngModel)]="characterData.character_details.age"></label>
-            <label class="full-width">ALINHAMENTO
-              <select [(ngModel)]="characterData.character_details.id_alignment">
-                @for (alignment of availableAlignments; track alignment.id_alignment) {
-                  <option [value]="alignment.id_alignment">{{ alignment.name }}</option>
-                }
-              </select>
-            </label>
-            @if (selectedAlignment) {
-              <p class="choice-info-meta full-width">{{ selectedAlignment.description }}</p>
             }
           </div>
         </fieldset>

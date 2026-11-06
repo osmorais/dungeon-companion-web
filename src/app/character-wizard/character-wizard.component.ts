@@ -27,6 +27,7 @@ import {
   SpellLimits,
   WIZARD_CLASS_ID,
 } from '../constants/spell-rules';
+import { raceImage } from '../constants/race-images';
 import { AttributePriority, CLASS_ATTRIBUTE_PRIORITY, attributePriorityRank } from '../constants/attribute-priority';
 import { CLASS_ARMOUR_RULES, SUBCLASS_HEAVY_ARMOUR, SUBRACE_ARMOUR_TYPES } from '../constants/armour-rules';
 import { LEVEL1_SUBCLASS_OPTIONS, Level1SubclassOption } from '../constants/level1-subclass-options';
@@ -489,6 +490,18 @@ export class CharacterWizardComponent implements OnInit {
       const raceKey = RACE_NAME_TO_AVATAR[this.characterData.core_build.race] ?? 'human';
       this.characterData.avatar_preset = { ...this.characterData.avatar_preset, race: raceKey };
     }
+  }
+
+  /** Escolha da raça pelas miniaturas (no lugar do select); clicar na já escolhida não faz nada. */
+  selectRace(race: Race): void {
+    if (+race.id_race === +this.characterData.core_build.id_race) return;
+    this.characterData.core_build.id_race = race.id_race;
+    this.onRaceChange();
+  }
+
+  /** Arte da raça (null = sem arte; a tela mostra a inicial). */
+  raceImage(race: Race): string | null {
+    return raceImage(race.id_race);
   }
 
   /** Sub-raça não muda a classe nem as escolhas de magia/perícia já feitas — só troca o truque racial. */

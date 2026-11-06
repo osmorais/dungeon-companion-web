@@ -7,6 +7,7 @@ import {
   Background,
   CharacterClass,
   CharacterOptions,
+  Race,
   Skill,
 } from '../models/character-options.interface';
 
@@ -103,6 +104,32 @@ describe('CharacterWizardComponent — perícias do antecedente', () => {
     expect(wizard.isSkillGranted(skills[0])).toBe(true);
     expect(wizard.isSkillCheckboxDisabled(skills[0])).toBe(true);
     expect(wizard.grantedSkillSource(skills[0])).toBe('Antecedente');
+  });
+
+  it('escolher a raça pela miniatura grava id e nome e zera as escolhas da raça; repetir não faz nada', () => {
+    const anao = {
+      id_race: 1,
+      name: 'Anão',
+      subraces: [{ key: 'colina', name: 'Anão da Colina' }],
+      traits: [],
+    };
+    const humano = { id_race: 9, name: 'Humano', subraces: [], traits: [] };
+    wizard.availableRaces = [anao, humano] as unknown as Race[];
+
+    wizard.selectRace(wizard.availableRaces[0]);
+    expect(wizard.characterData.core_build.id_race).toBe(1);
+    expect(wizard.characterData.core_build.race).toBe('Anão');
+    expect(wizard.characterData.core_build.subrace).toBe('');
+    expect(wizard.raceImage(wizard.availableRaces[0])).toBe('assets/races/race-1.webp');
+
+    wizard.characterData.core_build.subrace = 'colina';
+    wizard.selectRace(wizard.availableRaces[0]);
+    expect(wizard.characterData.core_build.subrace).toBe('colina');
+
+    wizard.selectRace(wizard.availableRaces[1]);
+    expect(wizard.characterData.core_build.race).toBe('Humano');
+    expect(wizard.characterData.core_build.subrace).toBeUndefined();
+    expect(wizard.raceImage(wizard.availableRaces[1])).toBeNull();
   });
 
   it('sugestão de atributos segue a classe escolhida (id do select vem como texto)', () => {
