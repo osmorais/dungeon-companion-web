@@ -43,6 +43,23 @@
             no ranking) e demais informações de jogo.
           </li>
           <li>
+            <strong>Amigos:</strong> as solicitações de amizade que você envia e recebe (e se foram
+            aceitas, recusadas ou canceladas), suas amizades e os jogadores que você bloqueou, além
+            das suas preferências de aparecer na busca de jogadores e de receber solicitações.
+          </li>
+          <li>
+            <strong>Presença e notificações:</strong> enquanto você está com o site aberto, sabemos
+            que está conectado e o status que você escolheu (online, ausente, ocupado e se quer
+            jogar). Essa informação fica só na memória do servidor e não é gravada. Guardamos as
+            notificações que você recebe (por exemplo, "fulano quer ser seu amigo") e se já foram
+            lidas.
+          </li>
+          <li>
+            <strong>Convites para mesas:</strong> quando um mestre convida um amigo para uma sessão,
+            guardamos a sessão, quem convidou, quem foi convidado, o recado opcional, a validade (7
+            dias) e se o convite foi aceito, recusado, cancelado ou expirou.
+          </li>
+          <li>
             <strong>Imagens que você envia:</strong> imagens de personagens, de monstros e imagens
             de referência que o mestre sobe numa sessão para mostrar aos jogadores, com legenda
             opcional.
@@ -69,6 +86,13 @@
           <li>
             <strong>Montar o ranking</strong> dos maiores feitos das mesas — legítimo interesse
             (art. 7º, IX). Você pode sair do ranking a qualquer momento em Minha Conta.
+          </li>
+          <li>
+            <strong>Oferecer a lista de amigos</strong> (busca de jogadores, solicitações, amizades e
+            bloqueios, presença, notificações e convites para mesas) — execução do contrato (art. 7º,
+            V). Você controla em
+            Minha Conta se aparece na busca, se recebe solicitações, se seus amigos veem quando você
+            está online e se veem quando você acessou pela última vez.
           </li>
           <li>
             <strong>Enviar e-mails de serviço</strong>, como o de redefinição de senha — execução do
@@ -107,6 +131,19 @@
           de usuário, o nome da sessão e o número do feito (por exemplo, dano
           causado ou 20 naturais). Por padrão seus personagens aparecem; para sair, desmarque a
           opção na página <a routerLink="/conta">Minha Conta</a>.
+        </p>
+        <p>
+          <strong>Outros usuários (amigos).</strong> Na busca de jogadores, qualquer usuário logado
+          pode encontrar você pelo seu nome de usuário — só o nome de usuário aparece, nunca o
+          e-mail. Se você desmarcar "Aparecer na busca de jogadores" em
+          <a routerLink="/conta">Minha Conta</a>, só será encontrado por quem digitar o seu nome
+          exato. Quem recebe sua solicitação e seus amigos veem o seu nome de usuário. Quem você
+          bloquear não consegue mais encontrar você na busca nem enviar solicitações, e não é avisado
+          do bloqueio. Seus amigos veem se você está online, ausente ou ocupado e se quer jogar — a
+          menos que você desmarque essa opção em Minha Conta. A data do seu último acesso só aparece
+          para eles se você marcar essa opção (vem desmarcada). Quando um mestre convida você para
+          uma mesa, você vê o nome da sessão, o nome de usuário do mestre e o recado dele; o mestre
+          fica sabendo se você aceitou ou recusou.
         </p>
         <p>
           <strong>Imagens enviadas</strong> ficam armazenadas num endereço público: qualquer pessoa
@@ -162,7 +199,8 @@
           Seus dados ficam guardados enquanto sua conta existir. Ao excluir sua conta (na página
           <a routerLink="/conta">Minha Conta</a>), apagamos na hora os dados de conta, personagens,
           sessões que você criou, participações em sessões, rolagens, estatísticas do ranking,
-          monstros catalogados e imagens enviadas. Cópias de segurança mantidas pelos provedores podem levar algum tempo para serem
+          monstros catalogados, imagens enviadas e suas amizades, solicitações de amizade,
+          bloqueios, notificações e convites para mesas. Cópias de segurança mantidas pelos provedores podem levar algum tempo para serem
           sobrescritas, e alguns dados podem ser mantidos pelo período necessário para cumprir
           obrigação legal.
         </p>
@@ -184,7 +222,8 @@
         </ul>
         <p>
           Na página <a routerLink="/conta">Minha Conta</a> você pode, a qualquer momento, trocar
-          seu nome de usuário, sair do ranking, baixar uma cópia dos seus dados (arquivo JSON) e excluir sua
+          seu nome de usuário, sair do ranking, escolher se aparece na busca de jogadores e se recebe
+          solicitações de amizade, baixar uma cópia dos seus dados (arquivo JSON) e excluir sua
           conta. Para os
           demais direitos, ou para trocar o e-mail da conta, envie um e-mail para
           <a [href]="'mailto:' + contactEmail">{{ contactEmail }}</a> a partir do e-mail cadastrado

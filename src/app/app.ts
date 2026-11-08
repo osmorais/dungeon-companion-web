@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { RouterOutlet, Router, NavigationStart, NavigationEnd, NavigationCancel, NavigationError } from '@angular/router';
 import { LoadingOverlayComponent } from './loading-overlay/loading-overlay.component';
+import { NotificationCenterComponent } from './notification-center/notification-center.component';
 import { LoadingOverlayService } from './loading-overlay/loading-overlay.service';
 import { BackgroundService } from './services/background.service';
 import { AuthService } from './services/auth.service';
@@ -9,7 +10,7 @@ import { TomService } from './tom-assistant/tom.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, LoadingOverlayComponent],
+  imports: [RouterOutlet, LoadingOverlayComponent, NotificationCenterComponent],
   template: `
     <div class="app-bg"
       [style.background-image]="'url(' + bg.currentImage() + ')'"
@@ -20,6 +21,8 @@ import { TomService } from './tom-assistant/tom.service';
     @if (authService.isLoggedIn()) {
       <footer class="global-footer">
         <span class="global-footer__email">{{ authService.currentUser()!.email }}</span>
+        <!-- Sino (1.18.0): também mantém a conexão social (presença) enquanto estiver logado. -->
+        <app-notification-center />
         <button
           class="retro-btn global-footer__logout"
           [title]="'Trocar as cores do site (agora: ' + theme.label + ')'"

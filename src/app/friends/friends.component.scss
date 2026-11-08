@@ -1,0 +1,315 @@
+/* Amigos (1.18.0). Contêiner, cards, paginação e vazio vêm do styles.scss (.page, .d-card,
+   .m-card, .m-pagination, .m-empty…); aqui só abas, avatar com a inicial e a linha de ações. */
+
+.mobile-container {
+  width: 100vw;
+  max-width: 100vw;
+  min-height: 100vh;
+  padding: 0 12px 24px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.page {
+  max-width: min(1100px, 96vw);
+  margin: 0 auto;
+}
+
+/* ===== ABAS (mesmo desenho das abas do ranking) ===== */
+
+.fr-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.fr-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 2px solid var(--border-color);
+  background-color: var(--panel-bg);
+  color: var(--text-color);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  letter-spacing: 0.05em;
+  cursor: var(--cp);
+  transition:
+    border-color 0.1s,
+    color 0.1s;
+
+  &:hover:not(.active) {
+    border-color: #cc8800;
+  }
+
+  &.active {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+  }
+}
+
+.fr-badge {
+  min-width: 14px;
+  padding: 2px 4px;
+  background-color: var(--accent-color);
+  color: var(--bg-color);
+  font-size: 6px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+/* No celular as abas rolam de lado em vez de quebrar em várias linhas. */
+.mobile-container .fr-tabs {
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  .fr-tab {
+    flex-shrink: 0;
+  }
+}
+
+/* ===== MENSAGEM, BUSCA ===== */
+
+.fr-message {
+  margin: 0 0 14px;
+  font-size: 8px;
+  line-height: 1.6;
+  text-align: center;
+  color: var(--accent-color);
+  text-shadow: 2px 2px 0 var(--bg-color);
+
+  &--error {
+    color: #ff6b6b;
+  }
+}
+
+.fr-toolbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+
+  .m-input {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .retro-btn {
+    float: none;
+    margin: 0;
+    font-size: 8px;
+  }
+}
+
+.fr-hint {
+  margin-bottom: 14px;
+}
+
+.fr-retry {
+  display: flex;
+  justify-content: center;
+
+  .retro-btn {
+    float: none;
+    margin: 0;
+  }
+}
+
+.fr-section-gap {
+  margin-top: 24px;
+}
+
+.fr-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ===== CARD DE JOGADOR ===== */
+
+.fr-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// Card não é clicável inteiro: as ações ficam nos botões.
+.fr-item {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  cursor: default;
+
+  &.m-card:hover,
+  &.d-card:hover {
+    border-color: var(--border-color);
+    background-color: var(--panel-bg);
+  }
+
+  &.m-card:active {
+    transform: none;
+  }
+}
+
+// O usuário não tem foto: medalhão com a inicial do nome de usuário.
+.fr-avatar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--gold-color);
+  border-radius: 50%;
+  background-color: var(--bg-color);
+  color: var(--accent-color);
+  font-size: 14px;
+  box-shadow: inset 0 0 0 2px var(--border-color);
+
+  &--muted {
+    border-color: var(--border-color);
+    color: var(--label-title-color);
+  }
+}
+
+.fr-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.fr-name {
+  font-size: 10px;
+  color: var(--accent-color);
+  overflow-wrap: anywhere;
+}
+
+.fr-desc {
+  font-size: 6px;
+  line-height: 1.8;
+  color: var(--label-title-color);
+}
+
+.fr-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: 100%;
+  justify-content: flex-end;
+
+  .retro-btn {
+    float: none;
+    margin: 0;
+    padding: 6px 10px;
+    font-size: 7px;
+  }
+}
+
+/* ===== PRESENÇA ===== */
+
+.fr-avatar {
+  position: relative;
+}
+
+// Bolinha de presença: discreta, no canto do medalhão (e nos botões de "meu status").
+.fr-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--bg-color);
+  border-radius: 50%;
+  background-color: #6b6b6b;
+
+  &--online {
+    background-color: #5fd35f;
+  }
+
+  &--away {
+    background-color: var(--gold-color);
+  }
+
+  &--busy {
+    background-color: #ff6b6b;
+  }
+}
+
+.fr-avatar-dot {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 10px;
+  height: 10px;
+}
+
+.fr-presence--on {
+  color: var(--accent-color);
+}
+
+.fr-me {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.fr-me-label {
+  font-size: 7px;
+  color: var(--label-title-color);
+  text-shadow: 2px 2px 0 var(--bg-color);
+}
+
+.fr-me-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 2px solid var(--border-color);
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 6px;
+  cursor: var(--cp);
+
+  &.active {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+  }
+}
+
+.fr-invite-msg {
+  font-style: italic;
+  color: var(--text-soft);
+  overflow-wrap: anywhere;
+}
+
+.fr-btn-danger {
+  border-color: #ff6b6b;
+  color: #ff6b6b;
+}

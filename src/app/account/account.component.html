@@ -71,12 +71,64 @@
         }
       </section>
 
+      <!-- ===== AMIGOS ===== -->
+      <section class="account-section">
+        <h2>AMIGOS</h2>
+        <p class="hint">
+          Na página de amigos, outros jogadores veem só o seu nome de usuário — nunca o e-mail.
+        </p>
+        <label class="ack-check">
+          <input
+            type="checkbox"
+            class="retro-checkbox"
+            [ngModel]="p.discoverable"
+            (ngModelChange)="toggleFriendPrivacy('discoverable', $event)"
+            [disabled]="savingFriendPrivacy()"
+          />
+          <span>Aparecer na busca de jogadores (desligado: só me acham pelo nome exato)</span>
+        </label>
+        <label class="ack-check">
+          <input
+            type="checkbox"
+            class="retro-checkbox"
+            [ngModel]="p.accept_friend_requests"
+            (ngModelChange)="toggleFriendPrivacy('accept_friend_requests', $event)"
+            [disabled]="savingFriendPrivacy()"
+          />
+          <span>Receber solicitações de amizade</span>
+        </label>
+        <label class="ack-check">
+          <input
+            type="checkbox"
+            class="retro-checkbox"
+            [ngModel]="p.presence_visibility === 'friends'"
+            (ngModelChange)="togglePresenceVisibility($event)"
+            [disabled]="savingFriendPrivacy()"
+          />
+          <span>Mostrar aos meus amigos quando estou online</span>
+        </label>
+        <label class="ack-check">
+          <input
+            type="checkbox"
+            class="retro-checkbox"
+            [ngModel]="p.show_last_seen"
+            (ngModelChange)="toggleFriendPrivacy('show_last_seen', $event)"
+            [disabled]="savingFriendPrivacy() || p.presence_visibility === 'nobody'"
+          />
+          <span>Mostrar aos meus amigos quando acessei pela última vez</span>
+        </label>
+        @if (friendPrivacyMessage()) {
+          <p class="info-msg">{{ friendPrivacyMessage() }}</p>
+        }
+      </section>
+
       <!-- ===== EXPORTAR ===== -->
       <section class="account-section">
         <h2>BAIXAR MEUS DADOS</h2>
         <p class="hint">
           Gera um arquivo JSON com sua conta, fichas de personagem, sessões, inventários, monstros
-          catalogados, rolagens e estatísticas do ranking.
+          catalogados, rolagens, estatísticas do ranking e seus amigos, solicitações, bloqueios,
+          notificações e convites para mesas.
         </p>
         <div class="row-actions">
           <button type="button" class="retro-btn" (click)="exportData()" [disabled]="exporting()">

@@ -1,0 +1,58 @@
+<div class="si-backdrop" (click)="close()">
+  <div
+    class="si-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="si-invite-title"
+    (click)="$event.stopPropagation()"
+  >
+    <button type="button" class="si-close" aria-label="Fechar" (click)="close()">✕</button>
+    <h3 id="si-invite-title" class="si-title">CONVIDAR {{ friend().username }}</h3>
+
+    @if (loadError()) {
+      <p class="si-empty">Não foi possível carregar suas mesas.</p>
+    } @else if (loading()) {
+      <p class="si-empty">Carregando suas mesas...</p>
+    } @else if (sessions().length === 0) {
+      <p class="si-empty">
+        Você ainda não é mestre de nenhuma mesa. Crie uma para convidar amigos.
+      </p>
+    } @else {
+      <span class="si-label" id="si-sessions-label">PARA QUAL MESA?</span>
+      <div class="si-options" role="radiogroup" aria-labelledby="si-sessions-label">
+        @for (s of sessions(); track s.id_game_session) {
+          <button
+            type="button"
+            role="radio"
+            class="si-option"
+            [class.active]="selected() === s.id_game_session"
+            [attr.aria-checked]="selected() === s.id_game_session"
+            (click)="selected.set(s.id_game_session)"
+          >
+            <img class="ui-icon" src="assets/icons/compass.png" alt="" />
+            <span class="si-option-name">{{ s.session_name }}</span>
+          </button>
+        }
+      </div>
+
+      <label class="si-label" for="si-message">RECADO (OPCIONAL)</label>
+      <textarea
+        id="si-message"
+        class="si-textarea"
+        rows="3"
+        [maxlength]="messageMax"
+        placeholder="Ex.: sessão de sábado às 20h"
+        [ngModel]="message()"
+        (ngModelChange)="message.set($event)"
+      ></textarea>
+      <p class="si-hint">O convite vale por 7 dias. Só {{ friend().username }} vê o recado.</p>
+
+      @if (error()) {
+        <p class="si-error" role="alert">{{ error() }}</p>
+      }
+      <button type="button" class="retro-btn si-submit" [disabled]="!canSend()" (click)="send()">
+        {{ sending() ? 'ENVIANDO...' : 'ENVIAR CONVITE' }}
+      </button>
+    }
+  </div>
+</div>

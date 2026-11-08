@@ -2,7 +2,11 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { AccountProfile, DeleteAccountRequest } from '../models/account.interface';
+import {
+  AccountProfile,
+  DeleteAccountRequest,
+  FriendPrivacyPreference,
+} from '../models/account.interface';
 
 /** Conta do usuário logado — direitos do titular (LGPD art. 18). */
 @Injectable({ providedIn: 'root' })
@@ -22,6 +26,18 @@ export class AccountService {
   updateShowInRanking(show: boolean): Observable<AccountProfile> {
     return this.http.patch<AccountProfile>(`${this.baseUrl}/api/account`, {
       show_in_ranking: show,
+    });
+  }
+
+  /** Privacidade dos amigos (1.18.0): aparecer na busca / receber solicitações. */
+  updateFriendPrivacy(key: FriendPrivacyPreference, value: boolean): Observable<AccountProfile> {
+    return this.http.patch<AccountProfile>(`${this.baseUrl}/api/account`, { [key]: value });
+  }
+
+  /** Presença (1.18.0): amigos veem ou não quando estou online. */
+  updatePresenceVisibility(visible: boolean): Observable<AccountProfile> {
+    return this.http.patch<AccountProfile>(`${this.baseUrl}/api/account`, {
+      presence_visibility: visible ? 'friends' : 'nobody',
     });
   }
 

@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AccountService } from '../services/account.service';
 import { AuthService } from '../services/auth.service';
-import { AccountProfile } from '../models/account.interface';
+import { AccountProfile, FriendPrivacyPreference } from '../models/account.interface';
 import { LEGAL_CONTACT_EMAIL, LEGAL_DOC_ROUTES } from '../legal/legal-info';
 import { apiErrorMessage } from '../auth/auth-errors';
 import { suggestionsFromError } from '../auth/username';
@@ -53,6 +53,9 @@ export class AccountComponent implements OnInit {
 
   savingRanking = signal(false);
   rankingMessage = signal('');
+
+  savingFriendPrivacy = signal(false);
+  friendPrivacyMessage = signal('');
 
   exporting = signal(false);
   exportError = signal('');
@@ -119,6 +122,42 @@ export class AccountComponent implements OnInit {
       error: (err) => {
         this.rankingMessage.set(apiErrorMessage(err, 'Não foi possível salvar a preferência.'));
         this.savingRanking.set(false);
+      },
+    });
+  }
+
+  toggleFriendPrivacy(key: FriendPrivacyPreference, value: boolean): void {
+    this.friendPrivacyMessage.set('');
+    this.savingFriendPrivacy.set(true);
+    this.accountService.updateFriendPrivacy(key, value).subscribe({
+      next: (profile) => {
+        this.profile.set(profile);
+        this.friendPrivacyMessage.set('Preferência salva.');
+        this.savingFriendPrivacy.set(false);
+      },
+      error: (err) => {
+        this.friendPrivacyMessage.set(
+          apiErrorMessage(err, 'Não foi possível salvar a preferência.'),
+        );
+        this.savingFriendPrivacy.set(false);
+      },
+    });
+  }
+
+  togglePresenceVisibility(visible: boolean): void {
+    this.friendPrivacyMessage.set('');
+    this.savingFriendPrivacy.set(true);
+    this.accountService.updatePresenceVisibility(visible).subscribe({
+      next: (profile) => {
+        this.profile.set(profile);
+        this.friendPrivacyMessage.set('Preferência salva.');
+        this.savingFriendPrivacy.set(false);
+      },
+      error: (err) => {
+        this.friendPrivacyMessage.set(
+          apiErrorMessage(err, 'Não foi possível salvar a preferência.'),
+        );
+        this.savingFriendPrivacy.set(false);
       },
     });
   }

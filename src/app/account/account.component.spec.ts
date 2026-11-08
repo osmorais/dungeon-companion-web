@@ -16,6 +16,10 @@ function profile(overrides: Partial<AccountProfile> = {}): AccountProfile {
     has_password: true,
     google_linked: false,
     show_in_ranking: true,
+    discoverable: true,
+    accept_friend_requests: true,
+    presence_visibility: 'friends',
+    show_last_seen: false,
     ...overrides,
   };
 }
@@ -27,6 +31,8 @@ describe('AccountComponent', () => {
     getProfile: ReturnType<typeof vi.fn>;
     updateUsername: ReturnType<typeof vi.fn>;
     updateShowInRanking: ReturnType<typeof vi.fn>;
+    updateFriendPrivacy: ReturnType<typeof vi.fn>;
+    updatePresenceVisibility: ReturnType<typeof vi.fn>;
     exportData: ReturnType<typeof vi.fn>;
     deleteAccount: ReturnType<typeof vi.fn>;
   };
@@ -46,6 +52,8 @@ describe('AccountComponent', () => {
       getProfile: vi.fn(),
       updateUsername: vi.fn(),
       updateShowInRanking: vi.fn(),
+      updateFriendPrivacy: vi.fn(),
+      updatePresenceVisibility: vi.fn(),
       exportData: vi.fn(),
       deleteAccount: vi.fn().mockReturnValue(of({ message: 'ok' })),
     };
@@ -75,6 +83,36 @@ describe('AccountComponent', () => {
     component.toggleRanking(false);
     expect(component.rankingMessage()).toBeTruthy();
     expect(component.profile()?.show_in_ranking).toBe(true);
+  });
+
+  it('privacidade dos amigos grava a preferência escolhida', () => {
+    create();
+    accountService.updateFriendPrivacy.mockReturnValue(of(profile({ discoverable: false })));
+    component.toggleFriendPrivacy('discoverable', false);
+    expect(accountService.updateFriendPrivacy).toHaveBeenCalledWith('discoverable', false);
+    expect(component.profile()?.discoverable).toBe(false);
+    expect(component.friendPrivacyMessage()).toBe('Preferência salva.');
+    expect(component.savingFriendPrivacy()).toBe(false);
+  });
+
+  it('erro ao salvar a privacidade dos amigos mantém o valor e avisa', () => {
+    create();
+    accountService.updateFriendPrivacy.mockReturnValue(throwError(() => ({ status: 500 })));
+    component.toggleFriendPrivacy('accept_friend_requests', false);
+    expect(component.friendPrivacyMessage()).toBeTruthy();
+    expect(component.profile()?.accept_friend_requests).toBe(true);
+    expect(component.savingFriendPrivacy()).toBe(false);
+  });
+
+  it('esconder a presença dos amigos grava e atualiza o perfil', () => {
+    create();
+    accountService.updatePresenceVisibility.mockReturnValue(
+      of(profile({ presence_visibility: 'nobody' })),
+    );
+    component.togglePresenceVisibility(false);
+    expect(accountService.updatePresenceVisibility).toHaveBeenCalledWith(false);
+    expect(component.profile()?.presence_visibility).toBe('nobody');
+    expect(component.savingFriendPrivacy()).toBe(false);
   });
 
   it('carrega o perfil e preenche o nome de usuário', () => {
