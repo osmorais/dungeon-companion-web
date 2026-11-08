@@ -34,6 +34,15 @@ describe('isSimpleWeapon', () => {
 });
 
 describe('weaponToCard', () => {
+  it('arma do catálogo (criação) sem modificador nem bônus: só o dado, nunca "undefined"', () => {
+    const raw = weapon({ name: 'Adaga', damage_die: '1d4' }) as Partial<WeaponRow>;
+    delete raw.damage_modifier;
+    delete raw.attack_bonus;
+    const card = weaponToCard(raw as WeaponRow);
+    expect(card.stats[0].value).toBe('1d4');
+    expect(card.badge).toBe('+0');
+  });
+
   it('medalhão = bônus de ataque; arte pelo id; faixa categoria · alcance; dano com o modificador', () => {
     const card = weaponToCard(weapon());
     expect(card.badge).toBe('+5');

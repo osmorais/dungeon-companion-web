@@ -34,7 +34,7 @@ export interface Release {
 export const RELEASES: Release[] = [
   {
     version: '1.18.0',
-    date: '2026-11-03',
+    date: '2026-11-08',
     title: 'Amigos',
     changes: [
       {
@@ -60,6 +60,58 @@ export const RELEASES: Release[] = [
       {
         kind: 'melhoria',
         text: 'Em Minha Conta você escolhe se aparece na busca de jogadores, se recebe solicitações de amizade e se seus amigos veem quando você está online. A Política de Privacidade foi atualizada com isso.',
+      },
+    ],
+  },
+  {
+    version: '1.17.12',
+    date: '2026-11-06',
+    title: 'Ilustração do Humano na criação de personagem',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'O Humano ganhou sua ilustração na escolha de raça, como as outras raças.',
+      },
+    ],
+  },
+  {
+    version: '1.17.11',
+    date: '2026-11-06',
+    title: 'Raças com ilustração na criação de personagem',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'A raça agora é escolhida por miniaturas com a ilustração de cada uma, e a escolhida aparece em tamanho maior.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A primeira etapa da criação começa pelos detalhes do personagem (nome, idade e alinhamento) e não mostra mais o nível, que é sempre 1.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'As listas de escolha mostram "Selecione..." enquanto nada foi escolhido, em vez de aparecerem vazias.',
+      },
+    ],
+  },
+  {
+    version: '1.17.10',
+    date: '2026-11-06',
+    title: 'Sugestão de atributos pela classe',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'Na criação de personagem, o passo de atributos agora sugere onde colocar os valores mais altos de acordo com a classe escolhida, com os atributos marcados como 1º e 2º.',
+      },
+    ],
+  },
+  {
+    version: '1.17.9',
+    date: '2026-11-06',
+    title: 'Dano das armas na criação de personagem',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'As cartas das armas na criação de personagem mostravam o dano com um texto estranho no final (como "1d4undefined"). Agora aparece só o dado da arma.',
       },
     ],
   },
