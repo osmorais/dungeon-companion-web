@@ -7,7 +7,7 @@ import {
   Router,
 } from '@angular/router';
 import { BehaviorSubject, of, Subject, throwError } from 'rxjs';
-import { FriendsComponent } from './friends.component';
+import { FriendsComponent, PagedState } from './friends.component';
 import { FriendService } from '../services/friend.service';
 import { SocialSocketService } from '../services/social-socket.service';
 import { SessionInviteService } from '../services/session-invite.service';
@@ -57,6 +57,62 @@ function player(overrides: Partial<PlayerSearchResult> = {}): PlayerSearchResult
   };
 }
 
+describe('PagedState', () => {
+  it('resposta antiga que chega depois não sobrescreve a mais nova', () => {
+    const responses: Subject<PagedList<string>>[] = [];
+    const state = new PagedState<string>(() => {
+      const response = new Subject<PagedList<string>>();
+      responses.push(response);
+      return response;
+    });
+    state.load(1);
+    state.load(2);
+    responses[1].next(paged(['nova'], 13));
+    responses[0].next(paged(['antiga'], 99));
+    expect(state.items()).toEqual(['nova']);
+    expect(state.total()).toBe(13);
+    expect(state.page()).toBe(2);
+  });
+
+  it('erro de chamada antiga não marca a lista como erro nem encerra o loading', () => {
+    const responses: Subject<PagedList<string>>[] = [];
+    const state = new PagedState<string>(() => {
+      const response = new Subject<PagedList<string>>();
+      responses.push(response);
+      return response;
+    });
+    state.load(1);
+    state.load(2);
+    responses[0].error(new Error('x'));
+    expect(state.error()).toBe(false);
+    expect(state.loading()).toBe(true);
+  });
+
+  it('página além do fim volta para a última que tem itens', () => {
+    const pages: Record<number, PagedList<string>> = {
+      1: paged(['a', 'b'], 12),
+      2: paged([], 0),
+    };
+    const fetch = vi.fn((page: number) => of(pages[page]));
+    const state = new PagedState<string>(fetch);
+    state.load(2);
+    expect(fetch.mock.calls.map(([page]) => page)).toEqual([2, 1]);
+    expect(state.page()).toBe(1);
+    expect(state.items()).toEqual(['a', 'b']);
+    expect(state.total()).toBe(12);
+    expect(state.loading()).toBe(false);
+  });
+
+  it('página 1 vazia é lista vazia, sem nova chamada', () => {
+    const fetch = vi.fn(() => of(paged<string>([], 0)));
+    const state = new PagedState<string>(fetch);
+    state.load(1);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(state.items()).toEqual([]);
+    expect(state.loading()).toBe(false);
+  });
+});
+
 /** Lógica da página de Amigos sem renderizar o template. */
 describe('FriendsComponent', () => {
   let component: FriendsComponent;
@@ -96,6 +152,7 @@ describe('FriendsComponent', () => {
     queryAba = null;
     invites = {
       list: vi.fn().mockReturnValue(of(paged([INVITE]))),
+      send: vi.fn().mockReturnValue(of({})),
       reject: vi.fn().mockReturnValue(of({})),
       cancel: vi.fn().mockReturnValue(of({})),
     };
@@ -143,12 +200,36 @@ describe('FriendsComponent', () => {
       expect(invites['list']).toHaveBeenCalledWith('sent', 1, 12);
     });
 
-    it('convidar abre o modal com o amigo; enviado fecha e avisa', () => {
+    const SUBMISSION = { id_game_session: 's1', session_name: 'A Mina Perdida', message: 'Bora?' };
+
+    it('convidar abre o modal com o amigo; enviado avisa', () => {
       component.openInvite(FRIEND);
       expect(component.inviteTarget()).toEqual({ id: 'f1', username: 'gorak' });
-      component.onInviteSent('A Mina Perdida');
+      component.sendInvite(SUBMISSION);
+      expect(invites['send']).toHaveBeenCalledWith('s1', 'f1', 'Bora?');
       expect(component.inviteTarget()).toBeNull();
       expect(component.message()).toContain('gorak');
+    });
+
+    it('o modal fecha antes da resposta e o amigo fica travado até ela', () => {
+      const response = new Subject<object>();
+      invites['send'].mockReturnValue(response);
+      component.openInvite(FRIEND);
+      component.sendInvite(SUBMISSION);
+      expect(component.inviteTarget()).toBeNull();
+      expect(component.isBusy('f1')).toBe(true);
+      response.next({});
+      expect(component.isBusy('f1')).toBe(false);
+    });
+
+    it('convite recusado pela API: o motivo aparece na página', () => {
+      invites['send'].mockReturnValue(
+        throwError(() => ({ error: { error: { message: 'A mesa já está cheia' } } })),
+      );
+      component.openInvite(FRIEND);
+      component.sendInvite(SUBMISSION);
+      expect(component.message()).toBe('A mesa já está cheia');
+      expect(component.messageIsError()).toBe(true);
     });
 
     it('entrar abre a escolha de personagem; depois vai pra mesa', () => {
@@ -340,6 +421,55 @@ describe('FriendsComponent', () => {
     expect(friendService['searchPlayers']).toHaveBeenCalled();
   });
 
+  describe('botão de adicionar muda no clique', () => {
+    let response: Subject<{ status: string; request: { id_friend_request?: string } }>;
+    const found = () => component.results.items()[0];
+
+    beforeEach(() => {
+      component.query.set('thor');
+      component.search();
+      response = new Subject();
+      friendService['sendRequest'].mockReturnValue(response);
+      // O recarregamento depois da resposta não interfere no que se está conferindo.
+      friendService['searchPlayers'].mockReturnValue(new Subject());
+      component.discoverPrimary(found());
+    });
+
+    it('antes da resposta já mostra o pedido enviado, com o botão travado', () => {
+      expect(found().relationship).toBe('request_sent');
+      expect(found().id_friend_request).toBeNull();
+      expect(component.isBusy('p1')).toBe(true);
+    });
+
+    it('clicar de novo enquanto envia não faz nada', () => {
+      component.discoverPrimary(found());
+      expect(friendService['sendRequest']).toHaveBeenCalledTimes(1);
+      expect(friendService['cancelRequest']).not.toHaveBeenCalled();
+      expect(found().relationship).toBe('request_sent');
+    });
+
+    it('com a resposta, guarda o id do pedido e libera o cancelar', () => {
+      response.next({ status: 'pending', request: { id_friend_request: 'r7' } });
+      expect(found().id_friend_request).toBe('r7');
+      expect(component.isBusy('p1')).toBe(false);
+      component.discoverPrimary(found());
+      expect(friendService['cancelRequest']).toHaveBeenCalledWith('r7');
+    });
+
+    it('pedido inverso: a resposta transforma em amizade', () => {
+      response.next({ status: 'accepted', request: { id_friend_request: 'r7' } });
+      expect(found().relationship).toBe('friend');
+      expect(found().id_friend_request).toBeNull();
+    });
+
+    it('erro volta o botão para adicionar e mostra a mensagem', () => {
+      response.error({ status: 500 });
+      expect(found().relationship).toBe('none');
+      expect(component.isBusy('p1')).toBe(false);
+      expect(component.messageIsError()).toBe(true);
+    });
+  });
+
   it('pedido inverso: enviar vira amizade na hora', () => {
     friendService['sendRequest'].mockReturnValue(of({ status: 'accepted', request: {} }));
     component.discoverPrimary(player());
@@ -407,10 +537,101 @@ describe('FriendsComponent', () => {
   });
 
   it('remover o último item da página volta uma página', () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
     friendService['getFriends'].mockReturnValue(of({ ...paged([FRIEND], 13), page: 2 }));
     component.friends.load(2);
     friendService['getFriends'].mockClear();
-    component.friends.reloadAfterRemoval();
+    friendService['getFriends'].mockImplementation((page: number) =>
+      of(page === 2 ? paged([], 0) : paged([{ ...FRIEND, id: 'f2' }], 12)),
+    );
+    component.removeFriend(FRIEND);
     expect(friendService['getFriends']).toHaveBeenCalledWith(1, 12, '');
+    expect(component.friends.page()).toBe(1);
+  });
+
+  describe('o card some no clique e volta se a ação falhar', () => {
+    let response: Subject<object>;
+
+    beforeEach(() => {
+      vi.spyOn(window, 'confirm').mockReturnValue(true);
+      response = new Subject();
+      // O recarregamento depois da resposta não interfere no que se está conferindo.
+      friendService['getFriends'].mockReturnValue(new Subject());
+    });
+
+    it('remover amigo', () => {
+      friendService['removeFriend'].mockReturnValue(response);
+      component.removeFriend(FRIEND);
+      expect(component.friends.items()).toEqual([]);
+      expect(component.friends.total()).toBe(0);
+      expect(component.isBusy('f1')).toBe(true);
+      response.error({ status: 500 });
+      expect(component.friends.items()).toEqual([FRIEND]);
+      expect(component.friends.total()).toBe(1);
+      expect(component.messageIsError()).toBe(true);
+    });
+
+    it('volta no mesmo lugar da lista, sem desfazer a remoção de outro card', () => {
+      const other = { ...FRIEND, id: 'f2' };
+      const third = { ...FRIEND, id: 'f3' };
+      const state = component.friends;
+      state.items.set([FRIEND, other, third]);
+      state.total.set(3);
+      const undo = state.removeNow((f) => f.id === 'f2');
+      state.removeNow((f) => f.id === 'f3');
+      undo();
+      expect(state.items().map((f) => f.id)).toEqual(['f1', 'f2']);
+      expect(state.total()).toBe(2);
+    });
+
+    it('bloquear na lista de amigos', () => {
+      friendService['block'].mockReturnValue(response);
+      component.blockUser(FRIEND);
+      expect(component.friends.items()).toEqual([]);
+      response.error({ status: 500 });
+      expect(component.friends.items()).toEqual([FRIEND]);
+    });
+
+    it('bloquear na busca muda o botão e desfaz no erro', () => {
+      friendService['searchPlayers'].mockReturnValue(of(paged([player()])));
+      component.query.set('thor');
+      component.search();
+      component.selectTab('discover');
+      friendService['block'].mockReturnValue(response);
+      component.blockUser(player());
+      expect(component.results.items()[0].relationship).toBe('blocked');
+      response.error({ status: 500 });
+      expect(component.results.items()[0].relationship).toBe('none');
+    });
+
+    it('aceitar solicitação recebida', () => {
+      component.selectTab('requests');
+      friendService['acceptRequest'].mockReturnValue(response);
+      component.accept(REQUEST);
+      expect(component.received.items()).toEqual([]);
+      response.error({ status: 500 });
+      expect(component.received.items()).toEqual([REQUEST]);
+    });
+
+    it('recusar convite para mesa baixa o contador na hora', () => {
+      component.selectTab('requests');
+      const before = component.pendingCount();
+      invites['reject'].mockReturnValue(response);
+      component.rejectInvite(INVITE);
+      expect(component.receivedInvites.items()).toEqual([]);
+      expect(component.pendingCount()).toBe(before - 1);
+    });
+
+    it('cancelar pedido na busca volta para adicionar na hora e desfaz no erro', () => {
+      const sent = player({ relationship: 'request_sent', id_friend_request: 'r8' });
+      friendService['searchPlayers'].mockReturnValue(of(paged([sent])));
+      component.query.set('thor');
+      component.search();
+      friendService['cancelRequest'].mockReturnValue(response);
+      component.discoverPrimary(sent);
+      expect(component.results.items()[0].relationship).toBe('none');
+      response.error({ status: 500 });
+      expect(component.results.items()[0]).toEqual(sent);
+    });
   });
 });

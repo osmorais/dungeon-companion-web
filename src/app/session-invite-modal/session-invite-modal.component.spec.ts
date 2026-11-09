@@ -29,15 +29,11 @@ const INVITE: SessionInviteView = {
 
 describe('SessionInviteModalComponent', () => {
   let gameSessions: { getMySessions: ReturnType<typeof vi.fn> };
-  let invites: { send: ReturnType<typeof vi.fn> };
   let modal: SessionInviteModalComponent;
 
   function create() {
     TestBed.configureTestingModule({
-      providers: [
-        { provide: GameSessionService, useValue: gameSessions },
-        { provide: SessionInviteService, useValue: invites },
-      ],
+      providers: [{ provide: GameSessionService, useValue: gameSessions }],
     });
     const fixture = TestBed.createComponent(SessionInviteModalComponent);
     fixture.componentRef.setInput('friend', { id: 'f1', username: 'gorak' });
@@ -49,7 +45,6 @@ describe('SessionInviteModalComponent', () => {
     gameSessions = {
       getMySessions: vi.fn().mockReturnValue(of({ GameSessionPagedList: [SESSION] })),
     };
-    invites = { send: vi.fn().mockReturnValue(of({})) };
   });
 
   it('lista só as mesas em que o usuário é mestre; com uma só, já vem escolhida', () => {
@@ -59,14 +54,17 @@ describe('SessionInviteModalComponent', () => {
     expect(modal.canSend()).toBe(true);
   });
 
-  it('envia com o recado e avisa com o nome da mesa', () => {
+  it('devolve a mesa escolhida e o recado pra tela de amigos enviar', () => {
     create();
-    const sent = vi.fn();
-    modal.sent.subscribe(sent);
+    const submitted = vi.fn();
+    modal.submitted.subscribe(submitted);
     modal.message.set('Bora?');
     modal.send();
-    expect(invites.send).toHaveBeenCalledWith('s1', 'f1', 'Bora?');
-    expect(sent).toHaveBeenCalledWith('A Mina Perdida');
+    expect(submitted).toHaveBeenCalledWith({
+      id_game_session: 's1',
+      session_name: 'A Mina Perdida',
+      message: 'Bora?',
+    });
   });
 
   it('sem mesa escolhida não envia', () => {
@@ -74,19 +72,11 @@ describe('SessionInviteModalComponent', () => {
       of({ GameSessionPagedList: [SESSION, { ...SESSION, id_game_session: 's2' }] }),
     );
     create();
+    const submitted = vi.fn();
+    modal.submitted.subscribe(submitted);
     expect(modal.canSend()).toBe(false);
     modal.send();
-    expect(invites.send).not.toHaveBeenCalled();
-  });
-
-  it('erro da API vira mensagem e libera o botão', () => {
-    invites.send.mockReturnValue(
-      throwError(() => ({ error: { error: { message: 'A mesa já está cheia' } } })),
-    );
-    create();
-    modal.send();
-    expect(modal.error()).toBe('A mesa já está cheia');
-    expect(modal.sending()).toBe(false);
+    expect(submitted).not.toHaveBeenCalled();
   });
 });
 

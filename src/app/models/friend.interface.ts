@@ -38,6 +38,8 @@ export interface AppNotification {
   type: NotificationType;
   payload: Record<string, string>;
   actor: SocialUser | null;
+  /** Solicitação de amizade que ainda dá pra responder por esta notificação; senão, null. */
+  pending_friend_request_id: string | null;
   read_at: string | null;
   created_at: string;
 }

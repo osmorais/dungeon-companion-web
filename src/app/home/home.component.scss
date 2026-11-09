@@ -1,5 +1,5 @@
 .home-container {
-  width: 1000px;
+  width: 1120px;
   max-width: 96vw;
   /* Cabe numa tela só: a altura da tela menos o rodapé global (no topo), conteúdo centralizado
      na vertical. */
@@ -10,20 +10,70 @@
   align-items: center;
 }
 
-/* Tudo numa tela só: papéis (e o Grimório, que é de todos) à esquerda; as opções do papel escolhido
-   abrem à direita. */
+/* Tudo numa tela só: papéis à esquerda, opções do papel escolhido no centro e, à direita, o que é
+   de todos. */
 .home-layout {
+  --home-link-bg: color-mix(in srgb, var(--bg-color) 55%, #000); // fundo que liga papel e opções
   display: grid;
-  grid-template-columns: 300px 1fr;
+  grid-template-columns: 260px 1fr 280px;
   gap: 24px;
   align-items: stretch;
   text-align: left;
 }
 
+/* Linhas 1fr: os dois papéis ficam sempre da mesma altura, mesmo com descrições de tamanhos
+   diferentes. */
 .home-roles {
+  display: grid;
+  grid-template-rows: auto 1fr 1fr;
+  gap: 14px;
+
+  .retro-card {
+    justify-content: center;
+  }
+
+  /* Papel aberto: uma ponte escura sai do card, atravessa o vão entre as colunas e cobre a borda
+     do painel, ligando o papel às opções dele. O z-index deixa a ponte por cima do painel. */
+  .retro-card--selected {
+    position: relative;
+    z-index: 1;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: -2px;
+      bottom: -2px;
+      left: calc(100% + 2px); // depois da borda do card, que continua visível
+      width: 26px; // vão entre as colunas (24) + borda do painel (2)
+      box-sizing: border-box;
+      background-color: var(--home-link-bg);
+      border-top: 2px solid var(--border-color);
+      border-bottom: 2px solid var(--border-color);
+    }
+  }
+}
+
+.home-shared {
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+/* Sem largura pras três colunas: "Para todos" desce e ocupa a largura toda, em linha. */
+@media (max-width: 1099px) {
+  .home-layout {
+    grid-template-columns: 260px 1fr;
+  }
+
+  .home-shared {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+
+    .role-subtitle {
+      grid-column: 1 / -1;
+    }
+  }
 }
 
 .home-options {
@@ -32,6 +82,10 @@
 
 .home-options-panel {
   width: 100%;
+  box-sizing: border-box;
+  padding: 14px;
+  background-color: var(--home-link-bg);
+  border: 2px solid var(--border-color);
   animation: home-options-in 0.25s steps(5) both;
 }
 
@@ -94,10 +148,6 @@
   color: var(--label-title-color);
   margin: 0 0 4px;
   letter-spacing: 2px;
-
-  &--shared {
-    margin-top: 10px;
-  }
 }
 
 .menu-options--grid {
@@ -141,7 +191,7 @@
     background-color: var(--btn-color-hover);
   }
 
-  // Card deitado (ícone à esquerda do texto), pro Grimório.
+  // Card deitado (ícone à esquerda do texto), pros itens de "Para todos".
   &--row {
     flex-direction: row;
     gap: 14px;
@@ -171,6 +221,7 @@
 
 .card-title {
   font-size: 11px;
+  line-height: 1.5; // sem isso, título que quebra em duas linhas encosta em si mesmo
   color: var(--accent-color);
 }
 

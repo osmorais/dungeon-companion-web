@@ -1,7 +1,16 @@
-import { Component, computed, inject, OnInit, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  computed,
+  inject,
+  OnInit,
+  signal,
+  viewChild,
+  WritableSignal,
+} from '@angular/core';
 import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { Observable } from 'rxjs';
 import { AccountService } from '../services/account.service';
 import { AuthService } from '../services/auth.service';
 import { AccountProfile, FriendPrivacyPreference } from '../models/account.interface';
@@ -107,57 +116,68 @@ export class AccountComponent implements OnInit {
   }
 
   toggleRanking(show: boolean): void {
-    this.rankingMessage.set('');
-    this.savingRanking.set(true);
-    this.accountService.updateShowInRanking(show).subscribe({
-      next: (profile) => {
-        this.profile.set(profile);
-        this.rankingMessage.set(
-          profile.show_in_ranking
-            ? 'Seus personagens aparecem no ranking.'
-            : 'Seus personagens não aparecem mais no ranking.',
-        );
-        this.savingRanking.set(false);
-      },
-      error: (err) => {
-        this.rankingMessage.set(apiErrorMessage(err, 'Não foi possível salvar a preferência.'));
-        this.savingRanking.set(false);
-      },
-    });
+    this.savePreference(
+      'show_in_ranking',
+      show,
+      this.accountService.updateShowInRanking(show),
+      { saving: this.savingRanking, message: this.rankingMessage },
+      (profile) =>
+        profile.show_in_ranking
+          ? 'Seus personagens aparecem no ranking.'
+          : 'Seus personagens não aparecem mais no ranking.',
+    );
   }
 
   toggleFriendPrivacy(key: FriendPrivacyPreference, value: boolean): void {
-    this.friendPrivacyMessage.set('');
-    this.savingFriendPrivacy.set(true);
-    this.accountService.updateFriendPrivacy(key, value).subscribe({
-      next: (profile) => {
-        this.profile.set(profile);
-        this.friendPrivacyMessage.set('Preferência salva.');
-        this.savingFriendPrivacy.set(false);
-      },
-      error: (err) => {
-        this.friendPrivacyMessage.set(
-          apiErrorMessage(err, 'Não foi possível salvar a preferência.'),
-        );
-        this.savingFriendPrivacy.set(false);
-      },
-    });
+    this.savePreference(
+      key,
+      value,
+      this.accountService.updateFriendPrivacy(key, value),
+      { saving: this.savingFriendPrivacy, message: this.friendPrivacyMessage },
+      () => 'Preferência salva.',
+    );
   }
 
   togglePresenceVisibility(visible: boolean): void {
-    this.friendPrivacyMessage.set('');
-    this.savingFriendPrivacy.set(true);
-    this.accountService.updatePresenceVisibility(visible).subscribe({
+    this.savePreference(
+      'presence_visibility',
+      visible ? 'friends' : 'nobody',
+      this.accountService.updatePresenceVisibility(visible),
+      { saving: this.savingFriendPrivacy, message: this.friendPrivacyMessage },
+      () => 'Preferência salva.',
+    );
+  }
+
+  /**
+   * Aplica a escolha no perfil já no clique e desfaz se salvar falhar. Sem isso o `[ngModel]` não
+   * recebe valor novo no erro e a caixa continuaria mostrando o que não foi salvo.
+   */
+  private savePreference<K extends keyof AccountProfile>(
+    key: K,
+    value: AccountProfile[K],
+    save: Observable<AccountProfile>,
+    ui: { saving: WritableSignal<boolean>; message: WritableSignal<string> },
+    savedMessage: (profile: AccountProfile) => string,
+  ): void {
+    const current = this.profile();
+    if (!current) return;
+    const previous = current[key];
+    const setField = (field: AccountProfile[K]) =>
+      this.profile.update((profile) => profile && { ...profile, [key]: field });
+
+    ui.message.set('');
+    ui.saving.set(true);
+    setField(value);
+    save.subscribe({
       next: (profile) => {
         this.profile.set(profile);
-        this.friendPrivacyMessage.set('Preferência salva.');
-        this.savingFriendPrivacy.set(false);
+        ui.message.set(savedMessage(profile));
+        ui.saving.set(false);
       },
       error: (err) => {
-        this.friendPrivacyMessage.set(
-          apiErrorMessage(err, 'Não foi possível salvar a preferência.'),
-        );
-        this.savingFriendPrivacy.set(false);
+        setField(previous);
+        ui.message.set(apiErrorMessage(err, 'Não foi possível salvar a preferência.'));
+        ui.saving.set(false);
       },
     });
   }

@@ -85,7 +85,7 @@
     </fieldset>
   </div>
 } @else {
-  <!-- ===== DESKTOP LAYOUT ===== (papéis à esquerda, opções do escolhido abrem à direita) -->
+  <!-- ===== DESKTOP LAYOUT ===== (papéis à esquerda, opções do escolhido no centro, "Para todos" à direita) -->
   <div class="home-container">
     <fieldset class="title-panel">
 
@@ -110,8 +110,35 @@
               <span class="card-desc">{{ r.desc }}</span>
             </button>
           }
+        </div>
 
-          <p class="role-subtitle role-subtitle--shared">PARA TODOS</p>
+        <div class="home-options">
+          @if (role(); as current) {
+            @for (r of [current]; track r) {
+              <div class="home-options-panel">
+                <p class="role-subtitle">
+                  {{ current === 'player' ? 'JOGADOR' : 'MESTRE' }}: O QUE DESEJA FAZER?
+                </p>
+                <div class="menu-options--grid">
+                  @for (opt of roleOptions(); track opt.title) {
+                    <button class="retro-card" [disabled]="opt.disabled?.()" (click)="opt.action()">
+                      <span class="card-icon"
+                        ><img class="ui-icon" [src]="'assets/icons/' + opt.icon + '.png'" alt=""
+                      /></span>
+                      <span class="card-title">{{ opt.title }}</span>
+                      <span class="card-desc">{{ opt.desc }}</span>
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          } @else {
+            <p class="home-options-hint">ESCOLHA JOGADOR OU MESTRE<br />PARA VER AS OPÇÕES</p>
+          }
+        </div>
+
+        <div class="home-shared">
+          <p class="role-subtitle">PARA TODOS</p>
           <button class="retro-card retro-card--row" (click)="openSpellCatalog()">
             <span class="card-icon"
               ><img class="ui-icon" src="assets/icons/spellbook.png" alt=""
@@ -139,31 +166,6 @@
               <span class="card-desc">Encontre jogadores e veja seus amigos</span>
             </span>
           </button>
-        </div>
-
-        <div class="home-options">
-          @if (role(); as current) {
-            @for (r of [current]; track r) {
-              <div class="home-options-panel">
-                <p class="role-subtitle">
-                  {{ current === 'player' ? 'JOGADOR' : 'MESTRE' }}: O QUE DESEJA FAZER?
-                </p>
-                <div class="menu-options--grid">
-                  @for (opt of roleOptions(); track opt.title) {
-                    <button class="retro-card" [disabled]="opt.disabled?.()" (click)="opt.action()">
-                      <span class="card-icon"
-                        ><img class="ui-icon" [src]="'assets/icons/' + opt.icon + '.png'" alt=""
-                      /></span>
-                      <span class="card-title">{{ opt.title }}</span>
-                      <span class="card-desc">{{ opt.desc }}</span>
-                    </button>
-                  }
-                </div>
-              </div>
-            }
-          } @else {
-            <p class="home-options-hint">ESCOLHA JOGADOR OU MESTRE<br />PARA VER AS OPÇÕES</p>
-          }
         </div>
       </div>
 

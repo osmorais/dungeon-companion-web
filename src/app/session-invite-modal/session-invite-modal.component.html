@@ -47,11 +47,8 @@
       ></textarea>
       <p class="si-hint">O convite vale por 7 dias. Só {{ friend().username }} vê o recado.</p>
 
-      @if (error()) {
-        <p class="si-error" role="alert">{{ error() }}</p>
-      }
       <button type="button" class="retro-btn si-submit" [disabled]="!canSend()" (click)="send()">
-        {{ sending() ? 'ENVIANDO...' : 'ENVIAR CONVITE' }}
+        ENVIAR CONVITE
       </button>
     }
   </div>

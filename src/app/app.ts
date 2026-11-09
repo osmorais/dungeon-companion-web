@@ -16,28 +16,33 @@ import { TomService } from './tom-assistant/tom.service';
       [style.background-image]="'url(' + bg.currentImage() + ')'"
       [class.app-bg--fading]="bg.transitioning()">
     </div>
-    <!-- TEMA/SAIR no topo da página (absolute, rola junto): a base da tela fica livre pras gavetas
-         da sessão. A altura vem de --footer-height, que o body reserva em cima. -->
+    <!-- TEMA/TOM à esquerda e conta à direita, no topo da página (absolute, rola junto): a base da
+         tela fica livre pras gavetas da sessão. A altura vem de --footer-height, que o body reserva
+         em cima. -->
     @if (authService.isLoggedIn()) {
       <footer class="global-footer">
-        <span class="global-footer__email">{{ authService.currentUser()!.email }}</span>
-        <!-- Sino (1.18.0): também mantém a conexão social (presença) enquanto estiver logado. -->
-        <app-notification-center />
-        <button
-          class="retro-btn global-footer__logout"
-          [title]="'Trocar as cores do site (agora: ' + theme.label + ')'"
-          (click)="theme.toggle()"
-        >
-          TEMA: {{ theme.label }}
-        </button>
-        <button
-          class="retro-btn global-footer__logout"
-          [title]="tom.enabled() ? 'Desligar a ajuda do Tom' : 'Ligar a ajuda do Tom'"
-          (click)="tom.toggle()"
-        >
-          TOM: {{ tom.enabled() ? 'LIGADO' : 'DESLIGADO' }}
-        </button>
-        <button class="retro-btn global-footer__logout" (click)="logout()">SAIR</button>
+        <div class="global-footer__group">
+          <button
+            class="retro-btn global-footer__logout"
+            [title]="'Trocar as cores do site (agora: ' + theme.label + ')'"
+            (click)="theme.toggle()"
+          >
+            TEMA: {{ theme.label }}
+          </button>
+          <button
+            class="retro-btn global-footer__logout"
+            [title]="tom.enabled() ? 'Desligar a ajuda do Tom' : 'Ligar a ajuda do Tom'"
+            (click)="tom.toggle()"
+          >
+            TOM: {{ tom.enabled() ? 'LIGADO' : 'DESLIGADO' }}
+          </button>
+        </div>
+        <div class="global-footer__group">
+          <span class="global-footer__email">{{ authService.currentUser()!.email }}</span>
+          <!-- Sino (1.18.0): também mantém a conexão social (presença) enquanto estiver logado. -->
+          <app-notification-center />
+          <button class="retro-btn global-footer__logout" (click)="logout()">SAIR</button>
+        </div>
       </footer>
     }
     <router-outlet /><app-loading-overlay />
@@ -51,13 +56,18 @@ import { TomService } from './tom-assistant/tom.service';
       height: var(--footer-height);
       box-sizing: border-box;
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
       align-items: center;
       gap: 16px;
       padding: 0 24px;
       background-color: var(--bg-color);
       border-bottom: 1px solid var(--border-color);
       z-index: 100;
+    }
+    .global-footer__group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
     }
     .global-footer__email {
       font-size: 7px;
@@ -71,7 +81,8 @@ import { TomService } from './tom-assistant/tom.service';
     }
     /* Celular estreito: o e-mail sai pra caberem TEMA, TOM e SAIR numa linha. */
     @media (max-width: 520px) {
-      .global-footer {
+      .global-footer,
+      .global-footer__group {
         gap: 8px;
       }
       .global-footer__email {

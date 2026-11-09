@@ -3,7 +3,15 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
 import { NotificationCenterComponent } from './notification-center.component';
-import { notificationLink, notificationText, timeAgo } from './notification-text';
+import {
+  notificationIcon,
+  notificationLink,
+  notificationParts,
+  notificationText,
+  notificationTitle,
+  timeAgo,
+} from './notification-text';
+import { FriendService } from '../services/friend.service';
 import { NotificationsService } from '../services/notifications.service';
 import { SocialSocketService } from '../services/social-socket.service';
 import { AppNotification, SocialEvent } from '../models/friend.interface';
@@ -14,6 +22,7 @@ function note(overrides: Partial<AppNotification> = {}): AppNotification {
     type: 'friend_request_received',
     payload: { id_friend_request: 'r1' },
     actor: { id: 'u2', username: 'gorak' },
+    pending_friend_request_id: null,
     read_at: null,
     created_at: '2026-11-03T12:00:00Z',
     ...overrides,
@@ -36,6 +45,22 @@ describe('notification-text', () => {
     );
     expect(notificationText(note({ type: 'session_invite_accepted' }))).toContain('entrou');
     expect(notificationText(note({ type: 'session_invite_rejected' }))).toContain('recusou');
+  });
+
+  it('separa o nome do resto da frase, pra mostrar em outra cor', () => {
+    expect(notificationParts(note())).toEqual({ who: 'gorak', rest: 'quer ser seu amigo.' });
+    expect(notificationParts(note({ type: 'novo_tipo' as never })).who).toBe('');
+  });
+
+  it('só a solicitação de amizade tem título', () => {
+    expect(notificationTitle(note())).toBe('Solicitação de amizade');
+    expect(notificationTitle(note({ type: 'friend_request_accepted' }))).toBeNull();
+  });
+
+  it('cada tipo tem um ícone, e tipo desconhecido cai num genérico', () => {
+    expect(notificationIcon(note())).toBe('campfire');
+    expect(notificationIcon(note({ type: 'session_invite_received' }))).toBe('compass');
+    expect(notificationIcon(note({ type: 'novo_tipo' as never }))).toBe('scroll');
   });
 
   it('link: solicitação ou convite recebido abre a aba de solicitações', () => {
@@ -85,8 +110,16 @@ describe('NotificationCenterComponent', () => {
     events: Subject<SocialEvent>;
     reconnected: Subject<void>;
   };
+  let friends: {
+    acceptRequest: ReturnType<typeof vi.fn>;
+    rejectRequest: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
+    friends = {
+      acceptRequest: vi.fn().mockReturnValue(of({})),
+      rejectRequest: vi.fn().mockReturnValue(of({})),
+    };
     service = {
       unread: signal(2),
       refreshUnread: vi.fn(),
@@ -105,6 +138,7 @@ describe('NotificationCenterComponent', () => {
         provideRouter([]),
         { provide: NotificationsService, useValue: service },
         { provide: SocialSocketService, useValue: socket },
+        { provide: FriendService, useValue: friends },
         { provide: ElementRef, useValue: new ElementRef(document.createElement('div')) },
       ],
     });
@@ -176,6 +210,99 @@ describe('NotificationCenterComponent', () => {
     component.markAll();
     expect(service.markAllRead).toHaveBeenCalled();
     expect(component.items().every((i) => i.read_at)).toBe(true);
+  });
+
+  describe('responder a solicitação pelo painel', () => {
+    const pending = (overrides: Partial<AppNotification> = {}) =>
+      note({ pending_friend_request_id: 'r9', ...overrides });
+
+    function openWith(...items: AppNotification[]) {
+      service.list.mockReturnValue(of({ items, page: 1, pageSize: 10, total_count: items.length }));
+      component.toggle();
+    }
+
+    it('aceitar usa a solicitação pendente de agora e marca como lida', () => {
+      openWith(pending());
+      component.respond(component.items()[0], 'accepted');
+      expect(friends.acceptRequest).toHaveBeenCalledWith('r9');
+      expect(component.responded()['n1']).toBe('accepted');
+      expect(service.markRead).toHaveBeenCalledWith('n1');
+    });
+
+    it('recusar', () => {
+      openWith(pending());
+      component.respond(component.items()[0], 'rejected');
+      expect(friends.rejectRequest).toHaveBeenCalledWith('r9');
+      expect(component.responded()['n1']).toBe('rejected');
+    });
+
+    it('sem solicitação pendente, não faz nada', () => {
+      openWith(note());
+      component.respond(component.items()[0], 'accepted');
+      expect(friends.acceptRequest).not.toHaveBeenCalled();
+      expect(component.responded()).toEqual({});
+    });
+
+    it('a resposta aparece já no clique e o segundo clique não envia de novo', () => {
+      friends.acceptRequest.mockReturnValue(new Subject());
+      openWith(pending());
+      component.respond(component.items()[0], 'accepted');
+      expect(component.responded()['n1']).toBe('accepted');
+      component.respond(component.items()[0], 'accepted');
+      component.respond(component.items()[0], 'rejected');
+      expect(friends.acceptRequest).toHaveBeenCalledTimes(1);
+      expect(friends.rejectRequest).not.toHaveBeenCalled();
+    });
+
+    it('erro devolve os botões, mostra o motivo e não marca como lida', () => {
+      friends.acceptRequest.mockReturnValue(
+        throwError(() => ({ error: { error: { message: 'Essa solicitação já foi respondida' } } })),
+      );
+      openWith(pending());
+      component.respond(component.items()[0], 'accepted');
+      expect(component.responded()).toEqual({});
+      expect(component.actionError()).toBe('Essa solicitação já foi respondida');
+      expect(service.markRead).not.toHaveBeenCalled();
+    });
+
+    it('notificações da mesma solicitação respondem juntas', () => {
+      openWith(pending(), pending({ id_notification: 'n2' }));
+      component.respond(component.items()[0], 'accepted');
+      expect(friends.acceptRequest).toHaveBeenCalledTimes(1);
+      expect(component.responded()).toEqual({ n1: 'accepted', n2: 'accepted' });
+      expect(service.markRead).toHaveBeenCalledWith('n2');
+    });
+
+    it('a resposta continua visível depois de recarregar a lista', () => {
+      openWith(pending());
+      component.respond(component.items()[0], 'accepted');
+      service.list.mockReturnValue(of({ items: [note()], page: 1, pageSize: 10, total_count: 1 }));
+      component.load();
+      expect(component.responded()['n1']).toBe('accepted');
+    });
+
+    it('mudança nas solicitações recarrega o painel aberto; fechado, não', () => {
+      service.list.mockClear();
+      const changed: SocialEvent = { type: 'social_changed', user_id: 'me', scope: 'requests' };
+      socket.events.next(changed);
+      expect(service.list).not.toHaveBeenCalled();
+      component.toggle();
+      service.list.mockClear();
+      socket.events.next(changed);
+      expect(service.list).toHaveBeenCalledTimes(1);
+    });
+
+    it('o painel não fecha quando o botão clicado some da tela', () => {
+      const host = TestBed.inject(ElementRef).nativeElement as HTMLElement;
+      const button = host.appendChild(document.createElement('button'));
+      component.toggle();
+      host.addEventListener('click', (event) => {
+        button.remove();
+        component.onDocumentClick(event as MouseEvent);
+      });
+      button.click();
+      expect(component.open()).toBe(true);
+    });
   });
 
   it('Esc fecha o painel', () => {

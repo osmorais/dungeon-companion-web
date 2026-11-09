@@ -460,7 +460,7 @@
   <app-session-invite-modal
     [friend]="target"
     (closed)="inviteTarget.set(null)"
-    (sent)="onInviteSent($event)"
+    (submitted)="sendInvite($event)"
   />
 }
 @if (acceptTarget(); as target) {

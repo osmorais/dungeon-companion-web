@@ -1,4 +1,8 @@
-/* Sino de notificações no topo global (1.18.0): mesmo botão retrô do TEMA/TOM/SAIR. */
+/* Notificações no topo global (1.18.0): só o ícone, sem quadro. O botão ocupa a altura do topo e o
+   ícone, maior que ele, passa da borda de baixo (e continua clicável por ser filho do botão). */
+
+$bell-icon: 48px;
+$bell-icon-mobile: 42px;
 
 :host {
   position: relative;
@@ -7,22 +11,45 @@
 
 .nc-bell {
   position: relative;
-  float: none;
-  margin: 0;
-  padding: 4px 10px;
-  font-size: 9px;
-  line-height: 1;
+  width: $bell-icon;
+  height: var(--footer-height);
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: 'Press Start 2P', monospace;
+  cursor: var(--cp);
+
+  .ui-icon {
+    position: absolute;
+    top: 2px;
+    left: 0;
+    width: $bell-icon;
+    height: $bell-icon;
+  }
+
+  &:hover .ui-icon {
+    filter: brightness(1.25);
+  }
 
   &:focus-visible {
     outline: 2px solid var(--accent-color);
     outline-offset: 2px;
   }
+
+  @media (max-width: 767px) {
+    width: $bell-icon-mobile;
+
+    .ui-icon {
+      width: $bell-icon-mobile;
+      height: $bell-icon-mobile;
+    }
+  }
 }
 
 .nc-badge {
   position: absolute;
-  top: -6px;
-  right: -6px;
+  top: 4px;
+  right: -2px;
   min-width: 14px;
   padding: 2px 3px;
   background-color: var(--accent-color);
@@ -32,12 +59,25 @@
   text-align: center;
 }
 
+// Só no celular: escurece tudo atrás do painel (inclusive o resto do topo). Tocar nele fecha.
+.nc-backdrop {
+  display: none;
+
+  @media (max-width: 767px) {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 150;
+    background-color: rgba(0, 0, 0, 0.65);
+  }
+}
+
 .nc-panel {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 16px); // abaixo do ícone, que passa da borda do topo
   right: 0;
   z-index: 200;
-  width: min(320px, calc(100vw - 24px));
+  width: min(360px, calc(100vw - 24px));
   max-height: 60vh;
   overflow-y: auto;
   box-sizing: border-box;
@@ -50,7 +90,7 @@
   // sino, o painel vazava pela esquerda da tela. Aqui ele ocupa a largura da tela.
   @media (max-width: 767px) {
     position: fixed;
-    top: 48px;
+    top: 56px;
     left: 12px;
     right: 12px;
     width: auto;
@@ -108,23 +148,24 @@
   list-style: none;
 }
 
-.nc-item {
+.nc-action-error {
+  margin: 0 0 8px;
+  font-size: 7px;
+  line-height: 1.7;
+  color: var(--sheet-label-color);
+}
+
+// A linha é o quadro: o texto e os botões de resposta são botões separados, lado a lado.
+.nc-row {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  width: 100%;
-  padding: 8px 10px;
+  align-items: center;
   border: 1px solid var(--border-color);
   background-color: var(--bg-color);
   color: var(--text-soft);
-  font-family: inherit;
-  text-align: left;
-  cursor: var(--cp);
 
   &:hover,
-  &:focus-visible {
+  &:focus-within {
     border-color: var(--accent-color);
-    outline: none;
   }
 
   // Não lida: barra dourada à esquerda.
@@ -134,9 +175,95 @@
   }
 }
 
+.nc-item {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 8px 10px;
+  border: none;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: var(--cp);
+
+  &:focus-visible {
+    outline: none;
+  }
+}
+
+.nc-icon {
+  flex: none;
+  width: 28px;
+  height: 28px;
+}
+
+.nc-body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.nc-item-title {
+  font-size: 8px;
+  line-height: 1.5;
+  color: var(--text-color);
+}
+
 .nc-text {
   font-size: 7px;
   line-height: 1.7;
+}
+
+.nc-name {
+  color: var(--accent-color);
+}
+
+.nc-actions {
+  display: flex;
+  flex: none;
+  gap: 6px;
+  padding-right: 8px;
+}
+
+.nc-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--border-color);
+  background-color: var(--panel-bg);
+  font-family: inherit;
+  font-size: 10px;
+  cursor: var(--cp);
+
+  .ui-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover,
+  &:focus-visible {
+    background-color: var(--btn-color-hover);
+    border-color: var(--accent-color);
+    outline: none;
+  }
+
+  &--reject {
+    color: var(--sheet-label-color);
+  }
+}
+
+.nc-status {
+  flex: none;
+  padding-right: 10px;
+  font-size: 6px;
+  color: var(--label-title-color);
 }
 
 .nc-time {
