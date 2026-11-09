@@ -1,0 +1,54 @@
+<div class="si-backdrop" (click)="close()">
+  <div
+    class="si-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="si-accept-title"
+    (click)="$event.stopPropagation()"
+  >
+    <button type="button" class="si-close" aria-label="Fechar" (click)="close()">✕</button>
+    <h3 id="si-accept-title" class="si-title">{{ invite().session_name }}</h3>
+    <p class="si-hint">MESTRE: {{ invite().user.username }}</p>
+    @if (invite().message) {
+      <p class="si-hint">"{{ invite().message }}"</p>
+    }
+
+    @if (loadError()) {
+      <p class="si-empty">Não foi possível carregar seus personagens.</p>
+    } @else if (loading()) {
+      <p class="si-empty">Carregando seus personagens...</p>
+    } @else if (list().length === 0) {
+      <p class="si-empty">Você precisa de um personagem para entrar. Crie um e volte aqui.</p>
+    } @else {
+      <span class="si-label" id="si-chars-label">COM QUAL PERSONAGEM?</span>
+      <div class="si-options" role="radiogroup" aria-labelledby="si-chars-label">
+        @for (c of list(); track c.id_character) {
+          <button
+            type="button"
+            role="radio"
+            class="si-option"
+            [class.active]="selected() === c.id_character"
+            [attr.aria-checked]="selected() === c.id_character"
+            (click)="selected.set(c.id_character)"
+          >
+            <img class="ui-icon" src="assets/icons/swords.png" alt="" />
+            <span class="si-option-name">{{ c.name }}</span>
+            <span class="si-option-meta">{{ c.class }} · NV {{ c.level }}</span>
+          </button>
+        }
+      </div>
+
+      @if (error()) {
+        <p class="si-error" role="alert">{{ error() }}</p>
+      }
+      <button
+        type="button"
+        class="retro-btn si-submit"
+        [disabled]="!canAccept()"
+        (click)="accept()"
+      >
+        {{ accepting() ? 'ENTRANDO...' : 'ENTRAR NA MESA' }}
+      </button>
+    }
+  </div>
+</div>

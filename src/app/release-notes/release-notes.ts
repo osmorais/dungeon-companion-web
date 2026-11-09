@@ -33,6 +33,37 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.18.0',
+    date: '2026-11-08',
+    title: 'Amigos',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'Nova página de Amigos: procure outros jogadores pelo nome de usuário, envie e responda solicitações de amizade e veja sua lista de amigos.',
+      },
+      {
+        kind: 'novidade',
+        text: 'Agora dá para bloquear um jogador: ele não consegue mais te encontrar na busca nem te enviar solicitações.',
+      },
+      {
+        kind: 'novidade',
+        text: 'Veja quais amigos estão online, ausentes ou ocupados e quem quer jogar, e escolha o seu próprio status.',
+      },
+      {
+        kind: 'novidade',
+        text: 'Notificações no topo do site: você fica sabendo na hora quando alguém quer ser seu amigo, aceita o seu pedido ou te convida para uma mesa.',
+      },
+      {
+        kind: 'novidade',
+        text: 'Mestres podem convidar amigos para as suas mesas. Quem é convidado escolhe o personagem e entra direto, sem precisar do código.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Em Minha Conta você escolhe se aparece na busca de jogadores, se recebe solicitações de amizade e se seus amigos veem quando você está online. A Política de Privacidade foi atualizada com isso.',
+      },
+    ],
+  },
+  {
     version: '1.17.12',
     date: '2026-11-06',
     title: 'Ilustração do Humano na criação de personagem',

@@ -1,0 +1,106 @@
+<div class="si-backdrop" (click)="close()">
+  <div
+    class="si-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="sf-title"
+    (click)="$event.stopPropagation()"
+  >
+    <button type="button" class="si-close" aria-label="Fechar" (click)="close()">✕</button>
+    <h3 id="sf-title" class="si-title">CONVIDAR AMIGOS</h3>
+
+    <label class="si-label" for="sf-search">BUSCAR</label>
+    <input
+      id="sf-search"
+      class="m-input sf-search"
+      type="search"
+      maxlength="20"
+      autocomplete="off"
+      placeholder="NOME DO AMIGO"
+      [ngModel]="query()"
+      (ngModelChange)="onQueryChange($event)"
+    />
+
+    <label class="si-label" for="sf-message">RECADO (OPCIONAL)</label>
+    <textarea
+      id="sf-message"
+      class="si-textarea"
+      rows="2"
+      [maxlength]="messageMax"
+      placeholder="Ex.: sessão de sábado às 20h"
+      [ngModel]="message()"
+      (ngModelChange)="message.set($event)"
+    ></textarea>
+    <p class="si-hint">O recado vai nos convites enviados depois de escrito.</p>
+
+    @if (error()) {
+      <p class="si-error" role="alert">{{ error() }}</p>
+    }
+
+    @if (friends.error()) {
+      <p class="si-empty">Não foi possível carregar seus amigos.</p>
+    } @else if (friends.loading() && friends.items().length === 0) {
+      <p class="si-empty">Carregando seus amigos...</p>
+    } @else if (friends.items().length === 0) {
+      <p class="si-empty">
+        {{
+          query().trim()
+            ? 'Nenhum amigo com esse nome.'
+            : 'Você ainda não tem amigos. Adicione jogadores na tela de Amigos.'
+        }}
+      </p>
+    } @else {
+      <ul class="sf-list">
+        @for (f of friends.items(); track f.id) {
+          <li class="sf-row">
+            <span class="sf-body">
+              <span class="sf-name">{{ f.username }}</span>
+              <span class="sf-presence">
+                <span
+                  class="sf-dot"
+                  [class.sf-dot--on]="f.presence !== 'offline'"
+                  aria-hidden="true"
+                ></span>
+                {{ presenceLine(f) }}
+              </span>
+            </span>
+            @if (isMember(f)) {
+              <span class="sf-status">NA MESA</span>
+            } @else if (isInvited(f)) {
+              <span class="sf-status">CONVIDADO</span>
+            } @else {
+              <app-icon-action
+                icon="compass"
+                label="Convidar para esta mesa"
+                [end]="true"
+                [disabled]="sending().has(f.id)"
+                (pressed)="invite(f)"
+              />
+            }
+          </li>
+        }
+      </ul>
+      @if (friends.pages() > 1) {
+        <div class="m-pagination">
+          <button
+            class="m-page-btn"
+            [disabled]="!friends.hasPrev()"
+            (click)="friends.prev()"
+            aria-label="Página anterior"
+          >
+            &#9664;
+          </button>
+          <span class="m-page-info">{{ friends.page() }} / {{ friends.pages() }}</span>
+          <button
+            class="m-page-btn"
+            [disabled]="!friends.hasNext()"
+            (click)="friends.next()"
+            aria-label="Próxima página"
+          >
+            &#9654;
+          </button>
+        </div>
+      }
+    }
+  </div>
+</div>

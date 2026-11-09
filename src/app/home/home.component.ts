@@ -153,4 +153,8 @@ export class HomeComponent {
   openRanking() {
     this.router.navigate(['/ranking']);
   }
+
+  openFriends() {
+    this.router.navigate(['/amigos']);
+  }
 }

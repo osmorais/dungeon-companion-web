@@ -65,6 +65,15 @@
             <span class="m-card-desc">Os maiores feitos de todas as mesas</span>
           </span>
         </button>
+        <button class="m-card" (click)="openFriends()">
+          <span class="m-card-icon"
+            ><img class="ui-icon" src="assets/icons/campfire.png" alt=""
+          /></span>
+          <span class="m-card-body">
+            <span class="m-card-title">AMIGOS</span>
+            <span class="m-card-desc">Encontre jogadores e veja seus amigos</span>
+          </span>
+        </button>
       </div>
 
       <nav class="legal-links">
@@ -76,7 +85,7 @@
     </fieldset>
   </div>
 } @else {
-  <!-- ===== DESKTOP LAYOUT ===== (papéis à esquerda, opções do escolhido abrem à direita) -->
+  <!-- ===== DESKTOP LAYOUT ===== (papéis à esquerda, opções do escolhido no centro, "Para todos" à direita) -->
   <div class="home-container">
     <fieldset class="title-panel">
 
@@ -101,26 +110,6 @@
               <span class="card-desc">{{ r.desc }}</span>
             </button>
           }
-
-          <p class="role-subtitle role-subtitle--shared">PARA TODOS</p>
-          <button class="retro-card retro-card--row" (click)="openSpellCatalog()">
-            <span class="card-icon"
-              ><img class="ui-icon" src="assets/icons/spellbook.png" alt=""
-            /></span>
-            <span class="card-text">
-              <span class="card-title">GRIMÓRIO DE MAGIAS</span>
-              <span class="card-desc">Consulte todas as magias</span>
-            </span>
-          </button>
-          <button class="retro-card retro-card--row" (click)="openRanking()">
-            <span class="card-icon"
-              ><img class="ui-icon" src="assets/icons/medal.png" alt=""
-            /></span>
-            <span class="card-text">
-              <span class="card-title">RANKING</span>
-              <span class="card-desc">Os maiores feitos de todas as mesas</span>
-            </span>
-          </button>
         </div>
 
         <div class="home-options">
@@ -146,6 +135,37 @@
           } @else {
             <p class="home-options-hint">ESCOLHA JOGADOR OU MESTRE<br />PARA VER AS OPÇÕES</p>
           }
+        </div>
+
+        <div class="home-shared">
+          <p class="role-subtitle">PARA TODOS</p>
+          <button class="retro-card retro-card--row" (click)="openSpellCatalog()">
+            <span class="card-icon"
+              ><img class="ui-icon" src="assets/icons/spellbook.png" alt=""
+            /></span>
+            <span class="card-text">
+              <span class="card-title">GRIMÓRIO DE MAGIAS</span>
+              <span class="card-desc">Consulte todas as magias</span>
+            </span>
+          </button>
+          <button class="retro-card retro-card--row" (click)="openRanking()">
+            <span class="card-icon"
+              ><img class="ui-icon" src="assets/icons/medal.png" alt=""
+            /></span>
+            <span class="card-text">
+              <span class="card-title">RANKING</span>
+              <span class="card-desc">Os maiores feitos de todas as mesas</span>
+            </span>
+          </button>
+          <button class="retro-card retro-card--row" (click)="openFriends()">
+            <span class="card-icon"
+              ><img class="ui-icon" src="assets/icons/campfire.png" alt=""
+            /></span>
+            <span class="card-text">
+              <span class="card-title">AMIGOS</span>
+              <span class="card-desc">Encontre jogadores e veja seus amigos</span>
+            </span>
+          </button>
         </div>
       </div>
 

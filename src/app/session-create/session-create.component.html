@@ -85,6 +85,39 @@
     </section>
 
     <section class="m-section">
+      <h2 class="m-section-title">
+        <img class="ui-icon" src="assets/icons/campfire.png" alt="" /> CONVIDAR AMIGOS
+        @if (selectedFriendIds().size > 0) {
+          <span class="m-section-extra">{{ selectedFriendIds().size }} selecionado(s)</span>
+        }
+      </h2>
+
+      @if (loadingFriends()) {
+        <app-skeleton-rows [rows]="2" [height]="56" />
+      } @else if (availableFriends().length === 0) {
+        <p class="m-empty">Você ainda não tem amigos para convidar.</p>
+      } @else {
+        <div class="m-card-list">
+          @for (friend of availableFriends(); track friend.id) {
+            <button
+              class="m-card m-card--compact"
+              [class.m-card--selected]="isFriendSelected(friend.id)"
+              (click)="toggleFriend(friend.id)"
+            >
+              <span class="m-card-body">
+                <span class="m-card-title">{{ friend.username }}</span>
+                <span class="m-card-desc">{{ presenceLine(friend) }}</span>
+              </span>
+              @if (isFriendSelected(friend.id)) {
+                <span class="m-card-icon"><img class="ui-icon" src="assets/icons/check.png" alt="" /></span>
+              }
+            </button>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="m-section">
       <h2 class="m-section-title">CÓDIGO DA SESSÃO</h2>
       <button class="retro-btn m-submit" [disabled]="!canGenerate()" (click)="generateCode()">
         <img class="ui-icon" src="assets/icons/gear.png" alt="" /> GERAR CÓDIGO
@@ -194,6 +227,42 @@
           <span class="catalog-desc">Em breve...</span>
         </button>
 
+      </div>
+    </fieldset>
+
+    <fieldset class="retro-panel">
+      <legend>CONVIDAR AMIGOS</legend>
+
+      <div class="npc-picker-panel">
+        <div class="npc-picker-header">
+          <span class="catalog-icon"><img class="ui-icon" src="assets/icons/campfire.png" alt="" /></span>
+          <span class="catalog-title">AMIGOS</span>
+          @if (selectedFriendIds().size > 0) {
+            <span class="npc-selected-badge">{{ selectedFriendIds().size }} selecionado(s)</span>
+          }
+        </div>
+
+        @if (loadingFriends()) {
+          <app-skeleton-rows [rows]="3" [height]="22" />
+        } @else if (availableFriends().length === 0) {
+          <p class="npc-picker-empty">Você ainda não tem amigos para convidar.</p>
+        } @else {
+          <div class="npc-picker-list">
+            @for (friend of availableFriends(); track friend.id) {
+              <div
+                class="npc-picker-item"
+                [class.npc-picker-item--selected]="isFriendSelected(friend.id)"
+                (click)="toggleFriend(friend.id)"
+              >
+                <span class="npc-picker-check">{{ isFriendSelected(friend.id) ? '✓' : '' }}</span>
+                <div class="npc-picker-info">
+                  <span class="npc-picker-name">{{ friend.username }}</span>
+                  <span class="npc-picker-meta">{{ presenceLine(friend) }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        }
       </div>
     </fieldset>
 

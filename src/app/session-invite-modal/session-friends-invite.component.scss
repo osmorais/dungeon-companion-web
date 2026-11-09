@@ -1,0 +1,67 @@
+/* Lista de amigos da janela de convite dentro da sessão (a janela em si vem do .si-*). */
+
+.sf-search {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+}
+
+.sf-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sf-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  background-color: var(--panel-bg);
+}
+
+.sf-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.sf-name {
+  font-size: 9px;
+  line-height: 1.4;
+  color: var(--accent-color);
+  overflow-wrap: anywhere;
+}
+
+.sf-presence {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 6px;
+  line-height: 1.8;
+  color: var(--text-soft);
+}
+
+.sf-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #6b6b6b;
+
+  &--on {
+    background-color: #5fd35f;
+  }
+}
+
+.sf-status {
+  flex: none;
+  font-size: 6px;
+  color: var(--label-title-color);
+}

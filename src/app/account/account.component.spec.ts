@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { AccountComponent, exportFileName } from './account.component';
 import { AccountService } from '../services/account.service';
 import { AuthService } from '../services/auth.service';
@@ -16,6 +16,10 @@ function profile(overrides: Partial<AccountProfile> = {}): AccountProfile {
     has_password: true,
     google_linked: false,
     show_in_ranking: true,
+    discoverable: true,
+    accept_friend_requests: true,
+    presence_visibility: 'friends',
+    show_last_seen: false,
     ...overrides,
   };
 }
@@ -27,6 +31,8 @@ describe('AccountComponent', () => {
     getProfile: ReturnType<typeof vi.fn>;
     updateUsername: ReturnType<typeof vi.fn>;
     updateShowInRanking: ReturnType<typeof vi.fn>;
+    updateFriendPrivacy: ReturnType<typeof vi.fn>;
+    updatePresenceVisibility: ReturnType<typeof vi.fn>;
     exportData: ReturnType<typeof vi.fn>;
     deleteAccount: ReturnType<typeof vi.fn>;
   };
@@ -46,6 +52,8 @@ describe('AccountComponent', () => {
       getProfile: vi.fn(),
       updateUsername: vi.fn(),
       updateShowInRanking: vi.fn(),
+      updateFriendPrivacy: vi.fn(),
+      updatePresenceVisibility: vi.fn(),
       exportData: vi.fn(),
       deleteAccount: vi.fn().mockReturnValue(of({ message: 'ok' })),
     };
@@ -75,6 +83,84 @@ describe('AccountComponent', () => {
     component.toggleRanking(false);
     expect(component.rankingMessage()).toBeTruthy();
     expect(component.profile()?.show_in_ranking).toBe(true);
+  });
+
+  it('privacidade dos amigos grava a preferência escolhida', () => {
+    create();
+    accountService.updateFriendPrivacy.mockReturnValue(of(profile({ discoverable: false })));
+    component.toggleFriendPrivacy('discoverable', false);
+    expect(accountService.updateFriendPrivacy).toHaveBeenCalledWith('discoverable', false);
+    expect(component.profile()?.discoverable).toBe(false);
+    expect(component.friendPrivacyMessage()).toBe('Preferência salva.');
+    expect(component.savingFriendPrivacy()).toBe(false);
+  });
+
+  it('erro ao salvar a privacidade dos amigos mantém o valor e avisa', () => {
+    create();
+    accountService.updateFriendPrivacy.mockReturnValue(throwError(() => ({ status: 500 })));
+    component.toggleFriendPrivacy('accept_friend_requests', false);
+    expect(component.friendPrivacyMessage()).toBeTruthy();
+    expect(component.profile()?.accept_friend_requests).toBe(true);
+    expect(component.savingFriendPrivacy()).toBe(false);
+  });
+
+  describe('caixa volta ao valor salvo quando salvar falha', () => {
+    it('privacidade: muda no clique e desfaz no erro', () => {
+      create();
+      const response = new Subject<AccountProfile>();
+      accountService.updateFriendPrivacy.mockReturnValue(response);
+      component.toggleFriendPrivacy('discoverable', false);
+      expect(component.profile()?.discoverable).toBe(false);
+      expect(component.savingFriendPrivacy()).toBe(true);
+      response.error({ status: 500 });
+      expect(component.profile()?.discoverable).toBe(true);
+      expect(component.savingFriendPrivacy()).toBe(false);
+    });
+
+    it('presença: muda no clique e desfaz no erro', () => {
+      create();
+      const response = new Subject<AccountProfile>();
+      accountService.updatePresenceVisibility.mockReturnValue(response);
+      component.togglePresenceVisibility(false);
+      expect(component.profile()?.presence_visibility).toBe('nobody');
+      response.error({ status: 500 });
+      expect(component.profile()?.presence_visibility).toBe('friends');
+    });
+
+    it('ranking: muda no clique e desfaz no erro', () => {
+      create();
+      const response = new Subject<AccountProfile>();
+      accountService.updateShowInRanking.mockReturnValue(response);
+      component.toggleRanking(false);
+      expect(component.profile()?.show_in_ranking).toBe(false);
+      response.error({ status: 500 });
+      expect(component.profile()?.show_in_ranking).toBe(true);
+    });
+
+    it('desfazer não apaga outra preferência salva enquanto isso', () => {
+      create();
+      const privacy = new Subject<AccountProfile>();
+      accountService.updateFriendPrivacy.mockReturnValue(privacy);
+      accountService.updateShowInRanking.mockReturnValue(
+        of(profile({ show_in_ranking: false, discoverable: false })),
+      );
+      component.toggleFriendPrivacy('discoverable', false);
+      component.toggleRanking(false);
+      privacy.error({ status: 500 });
+      expect(component.profile()?.discoverable).toBe(true);
+      expect(component.profile()?.show_in_ranking).toBe(false);
+    });
+  });
+
+  it('esconder a presença dos amigos grava e atualiza o perfil', () => {
+    create();
+    accountService.updatePresenceVisibility.mockReturnValue(
+      of(profile({ presence_visibility: 'nobody' })),
+    );
+    component.togglePresenceVisibility(false);
+    expect(accountService.updatePresenceVisibility).toHaveBeenCalledWith(false);
+    expect(component.profile()?.presence_visibility).toBe('nobody');
+    expect(component.savingFriendPrivacy()).toBe(false);
   });
 
   it('carrega o perfil e preenche o nome de usuário', () => {

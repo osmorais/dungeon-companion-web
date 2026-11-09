@@ -1,0 +1,90 @@
+<button
+  type="button"
+  class="nc-bell"
+  [attr.aria-expanded]="open()"
+  aria-controls="notification-panel"
+  [attr.aria-label]="
+    notifications.unread() > 0
+      ? 'Notificações: ' + notifications.unread() + ' não lidas'
+      : 'Notificações'
+  "
+  (click)="toggle()"
+>
+  <img class="ui-icon" src="assets/icons/scroll.png" alt="" />
+  @if (notifications.unread() > 0) {
+    <span class="nc-badge" aria-hidden="true">{{
+      notifications.unread() > 99 ? '99+' : notifications.unread()
+    }}</span>
+  }
+</button>
+
+@if (open()) {
+  <div class="nc-backdrop" aria-hidden="true" (click)="open.set(false)"></div>
+  <div id="notification-panel" class="nc-panel" role="dialog" aria-label="Notificações">
+    <div class="nc-head">
+      <span class="nc-title">NOTIFICAÇÕES</span>
+      @if (notifications.unread() > 0) {
+        <button type="button" class="nc-link" (click)="markAll()">MARCAR TODAS COMO LIDAS</button>
+      }
+    </div>
+
+    @if (error()) {
+      <p class="nc-empty">Não foi possível carregar.</p>
+      <button type="button" class="nc-link nc-retry" (click)="load()">TENTAR DE NOVO</button>
+    } @else if (loading() && items().length === 0) {
+      <p class="nc-empty">Carregando...</p>
+    } @else if (items().length === 0) {
+      <p class="nc-empty">Nenhuma notificação por enquanto.</p>
+    } @else {
+      @if (actionError()) {
+        <p class="nc-action-error" role="alert">{{ actionError() }}</p>
+      }
+      <ul class="nc-list">
+        @for (n of items(); track n.id_notification) {
+          <li class="nc-row" [class.nc-row--unread]="!n.read_at">
+            <button type="button" class="nc-item" (click)="select(n)">
+              <img class="ui-icon nc-icon" [src]="'assets/icons/' + icon(n) + '.png'" alt="" />
+              <span class="nc-body">
+                @if (title(n); as itemTitle) {
+                  <span class="nc-item-title">{{ itemTitle }}</span>
+                }
+                <span class="nc-text">
+                  @if (parts(n).who; as who) {
+                    <span class="nc-name">{{ who }}</span
+                    >&ngsp;
+                  }
+                  {{ parts(n).rest }}
+                </span>
+                <span class="nc-time">{{ ago(n.created_at) }}</span>
+              </span>
+            </button>
+            @if (responded()[n.id_notification]; as response) {
+              <span class="nc-status">{{ response === 'accepted' ? 'ACEITA' : 'RECUSADA' }}</span>
+            } @else if (n.pending_friend_request_id) {
+              <div class="nc-actions">
+                <button
+                  type="button"
+                  class="nc-action nc-action--accept"
+                  title="Aceitar"
+                  [attr.aria-label]="'Aceitar a solicitação de ' + parts(n).who"
+                  (click)="respond(n, 'accepted')"
+                >
+                  <img class="ui-icon" src="assets/icons/check.png" alt="" />
+                </button>
+                <button
+                  type="button"
+                  class="nc-action nc-action--reject"
+                  title="Recusar"
+                  [attr.aria-label]="'Recusar a solicitação de ' + parts(n).who"
+                  (click)="respond(n, 'rejected')"
+                >
+                  ✕
+                </button>
+              </div>
+            }
+          </li>
+        }
+      </ul>
+    }
+  </div>
+}

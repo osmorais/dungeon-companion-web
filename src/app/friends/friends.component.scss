@@ -1,0 +1,389 @@
+/* Amigos (1.18.0): tudo numa tela só. Moldura (.framed-card), paginação e vazio vêm do styles.scss.
+   A marca da tela é a presença: card de quem está por perto aceso, de quem saiu, apagado. */
+
+.mobile-container {
+  width: 100vw;
+  max-width: 100vw;
+  min-height: 100vh;
+  padding: 0 12px 24px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.page {
+  width: min(1240px, 96vw);
+  margin: 0 auto;
+}
+
+.fr-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 20px;
+  align-items: start;
+}
+
+/* ===== MENSAGEM, BUSCA ===== */
+
+.fr-message {
+  margin: 0 0 14px;
+  font-size: 8px;
+  line-height: 1.6;
+  text-align: center;
+  color: var(--accent-color);
+  text-shadow: 2px 2px 0 var(--bg-color);
+
+  &--error {
+    color: #ff6b6b;
+  }
+}
+
+.fr-toolbar {
+  display: flex;
+  margin-bottom: 14px;
+
+  .m-input {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.fr-retry {
+  display: flex;
+  justify-content: center;
+
+  .retro-btn {
+    float: none;
+    margin: 0;
+  }
+}
+
+.fr-section-gap {
+  margin-top: 24px;
+}
+
+.fr-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ===== CARDS (moldura e fundo dos personagens da sessão) ===== */
+
+.fr-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fr-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-sizing: border-box;
+  min-height: 210px;
+  padding: 16px 10px 12px;
+  background-color: var(--bg-color);
+  background-image: var(--character-card-bg);
+  background-size: cover;
+  background-position: center;
+  text-align: center;
+  transition: filter 0.15s;
+
+  // Acima dos vizinhos, pra dica do botão não ficar por baixo deles.
+  &:hover,
+  &:focus-within {
+    z-index: 2;
+  }
+
+  // O destaque da moldura é sempre brilho: a cor da borda some debaixo da imagem.
+  &--lit {
+    box-shadow: 0 0 16px color-mix(in srgb, var(--accent-color) 45%, transparent);
+  }
+
+  &--off {
+    filter: grayscale(0.9) brightness(0.65);
+
+    &:hover,
+    &:focus-within {
+      filter: grayscale(0.35) brightness(0.9);
+    }
+  }
+}
+
+.fr-card-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-shadow: 2px 2px 0 var(--bg-color);
+}
+
+.fr-card-name {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--accent-color);
+  overflow-wrap: anywhere;
+}
+
+.fr-card-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.fr-desc {
+  font-size: 6px;
+  line-height: 1.8;
+  color: var(--text-soft);
+}
+
+.fr-presence {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 6px;
+  line-height: 1.8;
+  color: var(--text-soft);
+
+  &--on {
+    color: var(--accent-color);
+  }
+}
+
+/* ===== COLUNA DE PEDIDOS ===== */
+
+.fr-side {
+  position: sticky;
+  top: calc(var(--footer-height) + 12px);
+  box-sizing: border-box;
+  max-height: calc(100vh - var(--footer-height) - 24px);
+  overflow-y: auto;
+  padding: 14px 12px;
+  border: 2px solid var(--border-color);
+  background-color: var(--bg-color);
+
+  .m-pagination {
+    margin-top: 8px;
+  }
+}
+
+.fr-side-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 18px 0 10px;
+  font-size: 8px;
+  line-height: 1.5;
+  color: var(--accent-color);
+
+  &:first-child {
+    margin-top: 0;
+  }
+}
+
+.fr-count {
+  min-width: 14px;
+  padding: 2px 4px;
+  background-color: var(--accent-color);
+  color: var(--bg-color);
+  font-size: 6px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.fr-side-empty {
+  margin: 0;
+  font-size: 7px;
+  line-height: 1.7;
+  color: var(--label-title-color);
+}
+
+.fr-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fr-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  background-color: var(--panel-bg);
+}
+
+.fr-row-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.fr-row-actions {
+  display: flex;
+  flex: none;
+  gap: 4px;
+}
+
+.fr-name {
+  font-size: 9px;
+  line-height: 1.4;
+  color: var(--accent-color);
+  overflow-wrap: anywhere;
+}
+
+.fr-invite-msg {
+  font-style: italic;
+  overflow-wrap: anywhere;
+}
+
+.fr-blocked-link {
+  display: block;
+  margin: 16px auto 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--label-title-color);
+  font-family: inherit;
+  font-size: 7px;
+  text-decoration: underline;
+  cursor: var(--cp);
+
+  &:hover,
+  &:focus-visible {
+    color: var(--accent-color);
+    outline: none;
+  }
+}
+
+/* ===== MEU STATUS ===== */
+
+.fr-dot {
+  display: inline-block;
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--bg-color);
+  border-radius: 50%;
+  background-color: #6b6b6b;
+
+  &--online {
+    background-color: #5fd35f;
+  }
+
+  &--away {
+    background-color: var(--gold-color);
+  }
+
+  &--busy {
+    background-color: #ff6b6b;
+  }
+}
+
+.fr-me {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.fr-me-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 2px solid var(--border-color);
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 6px;
+  cursor: var(--cp);
+
+  &.active {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+  }
+}
+
+/* ===== JANELA DE BLOQUEADOS ===== */
+
+.fr-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.fr-modal {
+  box-sizing: border-box;
+  width: min(440px, 100%);
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 14px;
+  background-color: var(--bg-color);
+}
+
+.fr-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .fr-side-title {
+    margin: 0;
+  }
+}
+
+/* ===== TELAS ESTREITAS: a coluna de pedidos vem antes dos cards ===== */
+
+@media (max-width: 999px) {
+  .fr-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .fr-side {
+    position: static;
+    order: -1;
+    max-height: none;
+    overflow-y: visible;
+  }
+}
+
+@media (max-width: 767px) {
+  .fr-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+  }
+
+  .fr-card {
+    min-height: 180px;
+  }
+
+  .fr-card-name {
+    font-size: 11px;
+  }
+}

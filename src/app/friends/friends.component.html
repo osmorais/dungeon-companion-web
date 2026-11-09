@@ -1,0 +1,420 @@
+<!-- Tudo numa tela só: amigos e busca na área principal; pedidos, convites e enviados na coluna
+     (no celular e em telas estreitas, a coluna vem primeiro). -->
+<div [class.page]="!isMobile()" [class.mobile-container]="isMobile()">
+  @if (isMobile()) {
+    <div class="m-header">
+      <button class="m-back" (click)="goBack()" aria-label="Voltar">&#8592;</button>
+      <h1 class="m-title">AMIGOS</h1>
+    </div>
+    <ng-container *ngTemplateOutlet="myStatus"></ng-container>
+  } @else {
+    <header class="page-topbar">
+      <button class="retro-btn page-topbar-back" (click)="goBack()">← VOLTAR</button>
+      <h1 class="page-topbar-name">AMIGOS</h1>
+      <ng-container *ngTemplateOutlet="myStatus"></ng-container>
+    </header>
+  }
+
+  @if (message()) {
+    <p class="fr-message" [class.fr-message--error]="messageIsError()" role="status">
+      {{ message() }}
+    </p>
+  }
+
+  <div class="fr-layout">
+    <section class="fr-main" aria-label="Seus amigos">
+      <form class="fr-toolbar" (ngSubmit)="search()">
+        <label class="fr-sr-only" for="friends-search">Buscar amigos e jogadores pelo nome</label>
+        <input
+          id="friends-search"
+          name="q"
+          class="m-input"
+          type="search"
+          maxlength="20"
+          autocomplete="off"
+          placeholder="BUSCAR AMIGOS E JOGADORES"
+          [ngModel]="query()"
+          (ngModelChange)="onQueryChange($event)"
+        />
+      </form>
+
+      @if (friends.error()) {
+        <p class="m-empty">ERRO AO CARREGAR OS AMIGOS.</p>
+        <div class="fr-retry">
+          <button class="retro-btn" (click)="friends.load()">TENTAR DE NOVO</button>
+        </div>
+      } @else if (friends.loading() && friends.items().length === 0) {
+        <div aria-busy="true" aria-label="Carregando">
+          <app-skeleton-rows [rows]="4" [height]="56" />
+        </div>
+      } @else if (friends.items().length === 0) {
+        @if (query().trim()) {
+          <p class="m-empty">NENHUM AMIGO COM ESSE NOME.</p>
+        } @else {
+          <p class="m-empty">
+            VOCÊ AINDA NÃO TEM AMIGOS.<br />BUSQUE JOGADORES PELO NOME AQUI EM CIMA.
+          </p>
+        }
+      } @else {
+        <ul class="fr-grid">
+          @for (f of friends.items(); track f.id) {
+            <li
+              class="fr-card framed-card"
+              [class.fr-card--lit]="f.presence !== 'offline'"
+              [class.fr-card--off]="f.presence === 'offline'"
+            >
+              <div class="fr-card-body">
+                <span class="fr-card-name">{{ f.username }}</span>
+                <span class="fr-presence" [class.fr-presence--on]="f.presence !== 'offline'">
+                  <span [class]="'fr-dot fr-dot--' + f.presence" aria-hidden="true"></span>
+                  {{ presenceLine(f) }}
+                </span>
+                <span class="fr-desc">AMIGOS DESDE {{ date(f.friends_since) }}</span>
+              </div>
+              <div class="fr-card-actions">
+                <app-icon-action
+                  icon="compass"
+                  label="Convidar para mesa"
+                  [disabled]="isBusy(f.id)"
+                  (pressed)="openInvite(f)"
+                />
+                <app-icon-action
+                  label="Remover dos amigos"
+                  [disabled]="isBusy(f.id)"
+                  (pressed)="removeFriend(f)"
+                />
+                <app-icon-action
+                  icon="padlock"
+                  label="Bloquear"
+                  [danger]="true"
+                  [disabled]="isBusy(f.id)"
+                  (pressed)="blockUser(f)"
+                />
+              </div>
+            </li>
+          }
+        </ul>
+        <ng-container
+          *ngTemplateOutlet="pager; context: { $implicit: friends, showTotal: true }"
+        ></ng-container>
+      }
+
+      @if (searched()) {
+        <h2 class="m-section-title fr-section-gap">OUTROS JOGADORES</h2>
+        @if (results.error()) {
+          <p class="m-empty">ERRO AO BUSCAR JOGADORES.</p>
+        } @else if (results.loading() && results.items().length === 0) {
+          <div aria-busy="true" aria-label="Carregando">
+            <app-skeleton-rows [rows]="2" [height]="56" />
+          </div>
+        } @else if (otherPlayers().length === 0) {
+          <p class="m-empty">
+            NENHUM OUTRO JOGADOR ENCONTRADO.<br />QUEM PREFERIU NÃO APARECER NA BUSCA SÓ É
+            ENCONTRADO PELO NOME EXATO.
+          </p>
+        } @else {
+          <ul class="fr-grid">
+            @for (p of otherPlayers(); track p.id) {
+              <li class="fr-card framed-card">
+                <div class="fr-card-body">
+                  <span class="fr-card-name">{{ p.username }}</span>
+                  @switch (p.relationship) {
+                    @case ('request_sent') {
+                      <span class="fr-desc">SOLICITAÇÃO ENVIADA</span>
+                    }
+                    @case ('request_received') {
+                      <span class="fr-desc">QUER SER SEU AMIGO</span>
+                    }
+                    @case ('blocked') {
+                      <span class="fr-desc">BLOQUEADO POR VOCÊ</span>
+                    }
+                  }
+                </div>
+                <div class="fr-card-actions">
+                  <app-icon-action
+                    [icon]="discoverAction(p.relationship).icon"
+                    [label]="discoverAction(p.relationship).label"
+                    [disabled]="isBusy(p.id)"
+                    (pressed)="discoverPrimary(p)"
+                  />
+                  @if (p.relationship !== 'blocked') {
+                    <app-icon-action
+                      icon="padlock"
+                      label="Bloquear"
+                      [danger]="true"
+                      [disabled]="isBusy(p.id)"
+                      (pressed)="blockUser(p)"
+                    />
+                  }
+                </div>
+              </li>
+            }
+          </ul>
+          <ng-container
+            *ngTemplateOutlet="pager; context: { $implicit: results, showTotal: false }"
+          ></ng-container>
+        }
+      }
+    </section>
+
+    <aside class="fr-side" aria-label="Pedidos e convites">
+      <h2 class="fr-side-title">
+        PEDIDOS
+        @if (received.total() > 0) {
+          <span class="fr-count">{{ received.total() }}</span>
+        }
+      </h2>
+      @if (received.error()) {
+        <p class="fr-side-empty">Erro ao carregar os pedidos.</p>
+      } @else if (received.items().length === 0) {
+        <p class="fr-side-empty">Nenhum pedido por enquanto.</p>
+      } @else {
+        <ul class="fr-rows">
+          @for (r of received.items(); track r.id_friend_request) {
+            <li class="fr-row">
+              <span class="fr-row-body">
+                <span class="fr-name">{{ r.user.username }}</span>
+                <span class="fr-desc">PEDIU EM {{ date(r.created_at) }}</span>
+              </span>
+              <span class="fr-row-actions">
+                <app-icon-action
+                  icon="check"
+                  label="Aceitar"
+                  [end]="true"
+                  [disabled]="isBusy(r.id_friend_request)"
+                  (pressed)="accept(r)"
+                />
+                <app-icon-action
+                  label="Recusar"
+                  [end]="true"
+                  [disabled]="isBusy(r.id_friend_request)"
+                  (pressed)="reject(r)"
+                />
+                <app-icon-action
+                  icon="padlock"
+                  label="Bloquear"
+                  [danger]="true"
+                  [end]="true"
+                  [disabled]="isBusy(r.user.id)"
+                  (pressed)="blockUser(r.user)"
+                />
+              </span>
+            </li>
+          }
+        </ul>
+        <ng-container
+          *ngTemplateOutlet="pager; context: { $implicit: received, showTotal: false }"
+        ></ng-container>
+      }
+
+      @if (receivedInvites.items().length > 0) {
+        <h2 class="fr-side-title">
+          CONVITES PARA MESAS <span class="fr-count">{{ receivedInvites.total() }}</span>
+        </h2>
+        <ul class="fr-rows">
+          @for (inv of receivedInvites.items(); track inv.id_session_invite) {
+            <li class="fr-row">
+              <span class="fr-row-body">
+                <span class="fr-name">{{ inv.session_name }}</span>
+                <span class="fr-desc">MESTRE {{ inv.user.username }}</span>
+                <span class="fr-desc">ATÉ {{ date(inv.expires_at) }}</span>
+                @if (inv.message) {
+                  <span class="fr-desc fr-invite-msg">"{{ inv.message }}"</span>
+                }
+              </span>
+              <span class="fr-row-actions">
+                <app-icon-action
+                  icon="swords"
+                  label="Entrar na mesa"
+                  [end]="true"
+                  [disabled]="isBusy(inv.id_session_invite)"
+                  (pressed)="openAccept(inv)"
+                />
+                <app-icon-action
+                  label="Recusar"
+                  [end]="true"
+                  [disabled]="isBusy(inv.id_session_invite)"
+                  (pressed)="rejectInvite(inv)"
+                />
+              </span>
+            </li>
+          }
+        </ul>
+        <ng-container
+          *ngTemplateOutlet="pager; context: { $implicit: receivedInvites, showTotal: false }"
+        ></ng-container>
+      }
+
+      @if (sent.items().length > 0 || sentInvites.items().length > 0) {
+        <h2 class="fr-side-title">
+          ENVIADOS <span class="fr-count">{{ sent.total() + sentInvites.total() }}</span>
+        </h2>
+        <ul class="fr-rows">
+          @for (r of sent.items(); track r.id_friend_request) {
+            <li class="fr-row">
+              <span class="fr-row-body">
+                <span class="fr-name">{{ r.user.username }}</span>
+                <span class="fr-desc">PEDIDO EM {{ date(r.created_at) }}</span>
+              </span>
+              <span class="fr-row-actions">
+                <app-icon-action
+                  label="Cancelar pedido"
+                  [end]="true"
+                  [disabled]="isBusy(r.id_friend_request)"
+                  (pressed)="cancel(r)"
+                />
+              </span>
+            </li>
+          }
+          @for (inv of sentInvites.items(); track inv.id_session_invite) {
+            <li class="fr-row">
+              <span class="fr-row-body">
+                <span class="fr-name">{{ inv.user.username }}</span>
+                <span class="fr-desc">{{ inv.session_name }}</span>
+                <span class="fr-desc">ATÉ {{ date(inv.expires_at) }}</span>
+              </span>
+              <span class="fr-row-actions">
+                <app-icon-action
+                  label="Cancelar convite"
+                  [end]="true"
+                  [disabled]="isBusy(inv.id_session_invite)"
+                  (pressed)="cancelInvite(inv)"
+                />
+              </span>
+            </li>
+          }
+        </ul>
+        <ng-container
+          *ngTemplateOutlet="pager; context: { $implicit: sent, showTotal: false }"
+        ></ng-container>
+        <ng-container
+          *ngTemplateOutlet="pager; context: { $implicit: sentInvites, showTotal: false }"
+        ></ng-container>
+      }
+
+      <button type="button" class="fr-blocked-link" (click)="blockedOpen.set(true)">
+        Bloqueados ({{ blocked.total() }})
+      </button>
+    </aside>
+  </div>
+</div>
+
+<ng-template #myStatus>
+  @if (me(); as m) {
+    <div class="fr-me" role="group" aria-label="Meu status">
+      @for (opt of statusOptions; track opt.value) {
+        <button
+          type="button"
+          class="fr-me-opt"
+          [class.active]="m.status === opt.value"
+          [attr.aria-pressed]="m.status === opt.value"
+          (click)="setStatus(opt.value)"
+        >
+          <span [class]="'fr-dot fr-dot--' + opt.value" aria-hidden="true"></span>
+          {{ opt.label }}
+        </button>
+      }
+      <button
+        type="button"
+        class="fr-me-opt"
+        [class.active]="m.availability === 'available'"
+        [attr.aria-pressed]="m.availability === 'available'"
+        (click)="toggleAvailability()"
+      >
+        <img class="ui-icon" src="assets/icons/d20.png" alt="" />
+        QUERO JOGAR
+      </button>
+    </div>
+  }
+</ng-template>
+
+@if (blockedOpen()) {
+  <div class="fr-modal-backdrop" (click)="blockedOpen.set(false)">
+    <div
+      class="fr-modal framed-card"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="fr-blocked-title"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="fr-modal-head">
+        <h2 id="fr-blocked-title" class="fr-side-title">BLOQUEADOS</h2>
+        <app-icon-action label="Fechar" [end]="true" (pressed)="blockedOpen.set(false)" />
+      </div>
+      <p class="m-hint">
+        Quem você bloqueou não te encontra na busca nem te envia solicitações. A pessoa não é
+        avisada.
+      </p>
+      @if (blocked.error()) {
+        <p class="fr-side-empty">Erro ao carregar os bloqueados.</p>
+      } @else if (blocked.items().length === 0) {
+        <p class="fr-side-empty">Você não bloqueou ninguém.</p>
+      } @else {
+        <ul class="fr-rows">
+          @for (b of blocked.items(); track b.id) {
+            <li class="fr-row">
+              <span class="fr-row-body">
+                <span class="fr-name">{{ b.username }}</span>
+                <span class="fr-desc">BLOQUEADO EM {{ date(b.blocked_at) }}</span>
+              </span>
+              <span class="fr-row-actions">
+                <app-icon-action
+                  icon="padlock"
+                  label="Desbloquear"
+                  [end]="true"
+                  [disabled]="isBusy(b.id)"
+                  (pressed)="unblock(b)"
+                />
+              </span>
+            </li>
+          }
+        </ul>
+        <ng-container
+          *ngTemplateOutlet="pager; context: { $implicit: blocked, showTotal: false }"
+        ></ng-container>
+      }
+    </div>
+  </div>
+}
+
+@if (inviteTarget(); as target) {
+  <app-session-invite-modal
+    [friend]="target"
+    (closed)="inviteTarget.set(null)"
+    (submitted)="sendInvite($event)"
+  />
+}
+@if (acceptTarget(); as target) {
+  <app-invite-accept-modal
+    [invite]="target"
+    (closed)="acceptTarget.set(null)"
+    (joined)="onJoined($event)"
+  />
+}
+
+<ng-template #pager let-state let-showTotal="showTotal">
+  @if (state.pages() > 1) {
+    <div class="m-pagination">
+      <button
+        class="m-page-btn"
+        [disabled]="!state.hasPrev()"
+        (click)="state.prev()"
+        aria-label="Página anterior"
+      >
+        &#9664;
+      </button>
+      <span class="m-page-info">{{ state.page() }} / {{ state.pages() }}</span>
+      <button
+        class="m-page-btn"
+        [disabled]="!state.hasNext()"
+        (click)="state.next()"
+        aria-label="Próxima página"
+      >
+        &#9654;
+      </button>
+    </div>
+  }
+  @if (showTotal) {
+    <p class="m-total">TOTAL: {{ state.total() }}</p>
+  }
+</ng-template>

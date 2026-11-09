@@ -126,6 +126,11 @@ export const routes: Routes = [
     loadComponent: () => import('./account/account.component').then(m => m.AccountComponent),
   },
   {
+    path: 'amigos',
+    canActivate: [authGuard],
+    loadComponent: () => import('./friends/friends.component').then(m => m.FriendsComponent),
+  },
+  {
     path: 'sessions',
     canActivate: [authGuard],
     loadComponent: () =>
