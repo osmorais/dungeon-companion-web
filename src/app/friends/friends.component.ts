@@ -8,9 +8,9 @@ import {
   signal,
 } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Observable, skip, Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { FriendService } from '../services/friend.service';
 import { SocialSocketService } from '../services/social-socket.service';
@@ -20,6 +20,8 @@ import {
   SessionInviteModalComponent,
 } from '../session-invite-modal/session-invite-modal.component';
 import { InviteAcceptModalComponent } from '../session-invite-modal/invite-accept-modal.component';
+import { IconActionComponent } from './icon-action.component';
+import { PagedState } from './paged-state';
 import { apiErrorMessage } from '../auth/auth-errors';
 import {
   BlockedUser,
@@ -27,7 +29,6 @@ import {
   Friend,
   FriendRequestView,
   MyPresence,
-  PagedList,
   PlayerSearchResult,
   SessionInviteView,
   SocialEvent,
@@ -35,93 +36,19 @@ import {
 } from '../models/friend.interface';
 import {
   availabilityToggle,
-  avatarInitial,
   discoverAction,
-  isFriendsTab,
   MY_STATUS_OPTIONS,
   presenceLine,
   FRIENDS_PAGE_SIZE,
-  FRIENDS_TABS,
-  FriendsTab,
   PLAYER_SEARCH_MIN_LENGTH,
   shortDate,
-  totalPages,
 } from './friends-page';
 
-const FILTER_DEBOUNCE_MS = 300;
-
-/** Uma lista paginada da tela (amigos, recebidas, enviadas, busca, bloqueados). */
-export class PagedState<T> {
-  items = signal<T[]>([]);
-  page = signal(1);
-  total = signal(0);
-  loading = signal(false);
-  error = signal(false);
-  pages = computed(() => totalPages(this.total(), FRIENDS_PAGE_SIZE));
-  hasPrev = computed(() => this.page() > 1);
-  hasNext = computed(() => this.page() < this.pages());
-
-  /** Filtro, paginação e socket disparam em paralelo: só a resposta da chamada mais nova vale. */
-  private latestRequest = 0;
-
-  constructor(private fetch: (page: number) => Observable<PagedList<T>>) {}
-
-  load(page = this.page()): void {
-    const request = ++this.latestRequest;
-    this.page.set(page);
-    this.loading.set(true);
-    this.error.set(false);
-    this.fetch(page).subscribe({
-      next: (res) => {
-        if (request !== this.latestRequest) return;
-        // Os itens desta página saíram enquanto ela estava aberta: a API devolve vazio e total 0.
-        if (!res.items.length && page > 1) {
-          this.load(page - 1);
-          return;
-        }
-        this.items.set(res.items);
-        this.total.set(res.total_count);
-        this.loading.set(false);
-      },
-      error: () => {
-        if (request !== this.latestRequest) return;
-        this.error.set(true);
-        this.loading.set(false);
-      },
-    });
-  }
-
-  prev(): void {
-    if (this.hasPrev()) this.load(this.page() - 1);
-  }
-
-  next(): void {
-    if (this.hasNext()) this.load(this.page() + 1);
-  }
-
-  /** Troca um item no lugar (ex.: presença de um amigo mudou), sem recarregar. */
-  patch(match: (item: T) => boolean, change: (item: T) => T): void {
-    this.items.update((list) => list.map((item) => (match(item) ? change(item) : item)));
-  }
-
-  /** Tira o item da lista já no clique. Devolve como desfazer, se a ação falhar. */
-  removeNow(match: (item: T) => boolean): () => void {
-    const index = this.items().findIndex(match);
-    if (index < 0) return () => undefined;
-    const item = this.items()[index];
-    this.items.update((list) => list.filter((i) => i !== item));
-    this.total.update((n) => Math.max(0, n - 1));
-    return () => {
-      if (this.items().some(match)) return;
-      this.items.update((list) => [...list.slice(0, index), item, ...list.slice(index)]);
-      this.total.update((n) => n + 1);
-    };
-  }
-}
+const SEARCH_DEBOUNCE_MS = 300;
 
 /**
- * Amigos (1.18.0): lista de amigos (todos e online), solicitações recebidas e enviadas, busca de
- * jogadores e bloqueados. As regras (duplicidade, bloqueio, permissões, privacidade da presença)
+ * Amigos (1.18.0), tudo numa tela só: amigos (conectados primeiro), busca de jogadores, pedidos,
+ * convites e bloqueados. As regras (duplicidade, bloqueio, permissões, privacidade da presença)
  * ficam todas na API — aqui só se mostra o que ela devolve. Os eventos do socket social só dizem
  * o que recarregar (ou trocam a presença de um amigo no lugar).
  */
@@ -134,21 +61,18 @@ export class PagedState<T> {
     SkeletonRowsComponent,
     SessionInviteModalComponent,
     InviteAcceptModalComponent,
+    IconActionComponent,
   ],
   templateUrl: './friends.component.html',
   styleUrls: ['./friends.component.scss'],
 })
 export class FriendsComponent implements OnInit, OnDestroy {
   private router = inject(Router);
-  private route = inject(ActivatedRoute);
   private friendService = inject(FriendService);
   private socket = inject(SocialSocketService);
   private inviteService = inject(SessionInviteService);
   private subs = new Subscription();
 
-  readonly tabs = FRIENDS_TABS;
-  readonly searchMin = PLAYER_SEARCH_MIN_LENGTH;
-  readonly initial = avatarInitial;
   readonly date = shortDate;
   readonly discoverAction = discoverAction;
   readonly presenceLine = presenceLine;
@@ -163,15 +87,13 @@ export class FriendsComponent implements OnInit, OnDestroy {
   me = signal<MyPresence | null>(null);
 
   isMobile = signal(typeof window !== 'undefined' && window.innerWidth < 768);
-  tab = signal<FriendsTab>('all');
+  blockedOpen = signal(false);
 
-  filter = signal('');
-  private filterTimer: ReturnType<typeof setTimeout> | null = null;
-
+  /** O mesmo campo filtra os amigos e busca outros jogadores. */
   query = signal('');
-  /** Termo da última busca feita (a lista mostra o resultado dele, não do que está digitado). */
+  private searchTimer: ReturnType<typeof setTimeout> | null = null;
+  /** Termo da última busca de jogadores; vazio enquanto não há letras suficientes. */
   searched = signal('');
-  canSearch = computed(() => this.query().trim().length >= PLAYER_SEARCH_MIN_LENGTH);
 
   /** Feedback da última ação (aceitar, remover, bloquear…). */
   message = signal('');
@@ -179,13 +101,8 @@ export class FriendsComponent implements OnInit, OnDestroy {
   /** Ids com ação em andamento: o botão fica desligado até a resposta. */
   busy = signal<ReadonlySet<string>>(new Set());
 
-  receivedCount = signal(0);
-
   friends = new PagedState<Friend>((page) =>
-    this.friendService.getFriends(page, FRIENDS_PAGE_SIZE, this.filter()),
-  );
-  online = new PagedState<Friend>((page) =>
-    this.friendService.getFriends(page, FRIENDS_PAGE_SIZE, '', true),
+    this.friendService.getFriends(page, FRIENDS_PAGE_SIZE, this.query()),
   );
   received = new PagedState<FriendRequestView>((page) =>
     this.friendService.getRequests('received', page, FRIENDS_PAGE_SIZE),
@@ -205,8 +122,13 @@ export class FriendsComponent implements OnInit, OnDestroy {
   sentInvites = new PagedState<SessionInviteView>((page) =>
     this.inviteService.list('sent', page, FRIENDS_PAGE_SIZE),
   );
-  /** Pendências na aba Solicitações: solicitações de amizade + convites para mesa recebidos. */
-  pendingCount = computed(() => this.receivedCount() + this.receivedInvites.total());
+  /** Resultado da busca sem quem já é amigo (esses aparecem nos cards de cima). */
+  otherPlayers = computed(() => this.results.items().filter((p) => p.relationship !== 'friend'));
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.blockedOpen.set(false);
+  }
 
   @HostListener('window:resize')
   onResize() {
@@ -214,67 +136,34 @@ export class FriendsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // Link da notificação abre direto na aba certa (?aba=requests).
-    const requested = this.route.snapshot?.queryParamMap.get('aba');
-    if (isFriendsTab(requested) && requested !== 'all') this.selectTab(requested);
-    else this.friends.load(1);
-    this.loadCounts();
-    // Total de convites recebidos pro contador da aba (a aba Solicitações recarrega ao abrir).
-    if (this.tab() !== 'requests') this.receivedInvites.load(1);
+    this.refreshAll();
     this.friendService.getMyPresence().subscribe({
       next: (me) => this.me.set(me),
       error: () => undefined,
     });
     this.socket.acquire();
     this.subs.add(this.socket.events.subscribe((event) => this.onSocialEvent(event)));
-    this.subs.add(this.socket.reconnected.subscribe(() => this.refreshCurrentTab()));
-    // Notificação clicada com a página já aberta só troca o ?aba= (o componente não é recriado).
-    if (this.route.queryParamMap) {
-      this.subs.add(
-        this.route.queryParamMap.pipe(skip(1)).subscribe((params) => {
-          const aba = params.get('aba');
-          if (isFriendsTab(aba)) this.selectTab(aba);
-        }),
-      );
-    }
+    this.subs.add(this.socket.reconnected.subscribe(() => this.refreshAll()));
   }
 
   ngOnDestroy(): void {
-    if (this.filterTimer) clearTimeout(this.filterTimer);
+    if (this.searchTimer) clearTimeout(this.searchTimer);
     this.subs.unsubscribe();
     this.socket.release();
   }
 
-  selectTab(tab: FriendsTab): void {
-    if (this.tab() === tab) return;
-    this.tab.set(tab);
-    this.message.set('');
-    // A URL acompanha a aba: o link de uma notificação sempre muda a URL e troca a aba.
-    this.router
-      .navigate(['/amigos'], { queryParams: { aba: tab === 'all' ? null : tab }, replaceUrl: true })
-      .catch(() => undefined);
-    if (tab === 'all') this.friends.load(1);
-    if (tab === 'online') this.online.load(1);
-    if (tab === 'requests') {
-      this.received.load(1);
-      this.sent.load(1);
-      this.receivedInvites.load(1);
-      this.sentInvites.load(1);
-    }
-    if (tab === 'blocked') this.blocked.load(1);
-    if (tab === 'discover' && this.searched()) this.results.load();
-  }
-
-  onFilterChange(value: string): void {
-    this.filter.set(value);
-    if (this.filterTimer) clearTimeout(this.filterTimer);
-    this.filterTimer = setTimeout(() => this.friends.load(1), FILTER_DEBOUNCE_MS);
+  onQueryChange(value: string): void {
+    this.query.set(value);
+    if (this.searchTimer) clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => this.search(), SEARCH_DEBOUNCE_MS);
   }
 
   search(): void {
-    if (!this.canSearch()) return;
-    this.searched.set(this.query().trim());
-    this.results.load(1);
+    if (this.searchTimer) clearTimeout(this.searchTimer);
+    this.friends.load(1);
+    const term = this.query().trim();
+    this.searched.set(term.length >= PLAYER_SEARCH_MIN_LENGTH ? term : '');
+    if (this.searched()) this.results.load(1);
   }
 
   isBusy(id: string): boolean {
@@ -303,33 +192,33 @@ export class FriendsComponent implements OnInit, OnDestroy {
   // ----- tempo real -----
 
   onSocialEvent(event: SocialEvent): void {
-    switch (event.type) {
-      case 'presence_updated': {
-        const { id, ...presence } = event.friend;
-        const apply = (f: Friend) => ({ ...f, ...presence });
-        this.friends.patch((f) => f.id === id, apply);
-        // Na aba Online, entrar/sair muda a lista: recarrega.
-        if (this.tab() === 'online') this.online.load();
-        return;
-      }
-      case 'social_changed':
-        if (event.scope === 'requests') this.loadCounts();
-        if (event.scope === 'invites') {
-          this.receivedInvites.load();
-          if (this.tab() === 'requests') this.sentInvites.load();
-          return;
-        }
-        if (
-          (event.scope === 'friends' && (this.tab() === 'all' || this.tab() === 'online')) ||
-          (event.scope === 'requests' && this.tab() === 'requests') ||
-          (event.scope === 'blocked' && this.tab() === 'blocked')
-        )
-          this.refreshCurrentTab();
-        return;
-      case 'notification_created':
-        this.loadCounts();
-        return;
+    if (event.type === 'presence_updated') {
+      // O card acende ou apaga no lugar; a ordem só muda na próxima carga, sem cards pulando.
+      const { id, ...presence } = event.friend;
+      this.friends.patch(
+        (f) => f.id === id,
+        (f) => ({ ...f, ...presence }),
+      );
+      return;
     }
+    if (event.type !== 'social_changed') return;
+    switch (event.scope) {
+      case 'friends':
+        this.friends.load();
+        break;
+      case 'requests':
+        this.received.load();
+        this.sent.load();
+        break;
+      case 'invites':
+        this.receivedInvites.load();
+        this.sentInvites.load();
+        return;
+      case 'blocked':
+        this.blocked.load();
+        break;
+    }
+    this.reloadResults();
   }
 
   // ----- amigos -----
@@ -337,7 +226,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
   removeFriend(friend: Friend): void {
     if (!confirm(`Desfazer a amizade com ${friend.username}?`)) return;
     this.removeCard(
-      this.tab() === 'online' ? this.online : this.friends,
+      this.friends,
       (f) => f.id === friend.id,
       friend.id,
       this.friendService.removeFriend(friend.id),
@@ -360,31 +249,23 @@ export class FriendsComponent implements OnInit, OnDestroy {
       this.friendService.block(user.id),
       () => {
         this.notify(`${user.username} foi bloqueado.`);
-        this.refreshCurrentTab();
-        this.loadCounts();
+        this.refreshAll();
       },
       undo,
     );
   }
 
-  /** O que muda na aba aberta assim que se bloqueia alguém. Devolve como desfazer. */
+  /** O que muda na tela assim que se bloqueia alguém. Devolve como desfazer. */
   private showBlockedNow(userId: string): () => void {
-    switch (this.tab()) {
-      case 'all':
-        return this.friends.removeNow((f) => f.id === userId);
-      case 'online':
-        return this.online.removeNow((f) => f.id === userId);
-      case 'requests':
-        return this.received.removeNow((r) => r.user.id === userId);
-      case 'discover': {
-        const player = this.results.items().find((p) => p.id === userId);
-        if (!player) return () => undefined;
-        this.setPlayer(userId, 'blocked');
-        return () => this.setPlayer(userId, player.relationship, player.id_friend_request);
-      }
-      default:
-        return () => undefined;
-    }
+    const undoFriend = this.friends.removeNow((f) => f.id === userId);
+    const undoRequest = this.received.removeNow((r) => r.user.id === userId);
+    const player = this.results.items().find((p) => p.id === userId);
+    if (player) this.setPlayer(userId, 'blocked');
+    return () => {
+      undoFriend();
+      undoRequest();
+      if (player) this.setPlayer(userId, player.relationship, player.id_friend_request);
+    };
   }
 
   // ----- solicitações -----
@@ -397,7 +278,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
       this.friendService.acceptRequest(request.id_friend_request),
       () => {
         this.notify(`Agora você e ${request.user.username} são amigos.`);
-        this.loadCounts();
+        this.friends.load();
       },
     );
   }
@@ -408,10 +289,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
       (r) => r.id_friend_request === request.id_friend_request,
       request.id_friend_request,
       this.friendService.rejectRequest(request.id_friend_request),
-      () => {
-        this.notify('Solicitação recusada.');
-        this.loadCounts();
-      },
+      () => this.notify('Solicitação recusada.'),
     );
   }
 
@@ -446,6 +324,11 @@ export class FriendsComponent implements OnInit, OnDestroy {
                 : `Solicitação enviada para ${player.username}.`,
             );
             this.results.load();
+            this.sent.load();
+            if (res.status === 'accepted') {
+              this.received.load();
+              this.friends.load();
+            }
           },
         );
         return;
@@ -454,6 +337,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
         this.runOnPlayer(player, 'none', this.friendService.cancelRequest(requestId), () => {
           this.notify('Solicitação cancelada.');
           this.results.load();
+          this.sent.load();
         });
         return;
       case 'request_received':
@@ -461,13 +345,15 @@ export class FriendsComponent implements OnInit, OnDestroy {
         this.runOnPlayer(player, 'friend', this.friendService.acceptRequest(requestId), () => {
           this.notify(`Agora você e ${player.username} são amigos.`);
           this.results.load();
-          this.loadCounts();
+          this.received.load();
+          this.friends.load();
         });
         return;
       case 'blocked':
         this.runOnPlayer(player, 'none', this.friendService.unblock(player.id), () => {
           this.notify(`${player.username} foi desbloqueado.`);
           this.results.load();
+          this.blocked.load();
         });
         return;
       default:
@@ -529,7 +415,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
       this.inviteService.send(invite.id_game_session, target.id, invite.message),
       () => {
         this.notify(`Convite enviado para ${target.username} (${invite.session_name}).`);
-        if (this.tab() === 'requests') this.sentInvites.load();
+        this.sentInvites.load();
       },
     );
   }
@@ -568,27 +454,18 @@ export class FriendsComponent implements OnInit, OnDestroy {
     this.router.navigate(['/']);
   }
 
-  private refreshCurrentTab(): void {
-    switch (this.tab()) {
-      case 'all':
-        this.friends.load();
-        return;
-      case 'online':
-        this.online.load();
-        return;
-      case 'requests':
-        this.received.load();
-        this.sent.load();
-        this.receivedInvites.load();
-        this.sentInvites.load();
-        return;
-      case 'discover':
-        this.results.load();
-        return;
-      case 'blocked':
-        this.blocked.load();
-        return;
-    }
+  private refreshAll(): void {
+    this.friends.load();
+    this.received.load();
+    this.sent.load();
+    this.receivedInvites.load();
+    this.sentInvites.load();
+    this.blocked.load();
+    this.reloadResults();
+  }
+
+  private reloadResults(): void {
+    if (this.searched()) this.results.load();
   }
 
   /** O card some já no clique e volta se a ação falhar. */
@@ -610,13 +487,6 @@ export class FriendsComponent implements OnInit, OnDestroy {
       },
       undo,
     );
-  }
-
-  private loadCounts(): void {
-    this.friendService.getRequestCounts().subscribe({
-      next: (counts) => this.receivedCount.set(counts.received),
-      error: () => undefined,
-    });
   }
 
   private notify(text: string, isError = false): void {

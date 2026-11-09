@@ -5,25 +5,9 @@ import {
   PlayerRelationship,
 } from '../models/friend.interface';
 
-export type FriendsTab = 'all' | 'online' | 'requests' | 'discover' | 'blocked';
-
-export const FRIENDS_TABS: { key: FriendsTab; title: string }[] = [
-  { key: 'all', title: 'TODOS' },
-  { key: 'online', title: 'ONLINE' },
-  { key: 'requests', title: 'SOLICITAÇÕES' },
-  { key: 'discover', title: 'DESCOBRIR' },
-  { key: 'blocked', title: 'BLOQUEADOS' },
-];
-
 export const FRIENDS_PAGE_SIZE = 12;
 /** Igual ao backend (PLAYER_SEARCH_MIN_LENGTH). */
 export const PLAYER_SEARCH_MIN_LENGTH = 2;
-
-/** Inicial do nome no lugar do avatar (o usuário não tem foto própria). */
-export function avatarInitial(username: string | null | undefined): string {
-  const first = (username ?? '').trim().charAt(0);
-  return first ? first.toUpperCase() : '?';
-}
 
 /** Data curta (dd/mm/aaaa) pra "amigos desde" e "bloqueado em". */
 export function shortDate(iso: string | null | undefined): string {
@@ -34,27 +18,24 @@ export function shortDate(iso: string | null | undefined): string {
   return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()}`;
 }
 
-/** Ação principal do jogador encontrado na busca, conforme a relação. */
+/**
+ * Ação principal do jogador encontrado na busca, conforme a relação: `icon` é o arquivo em
+ * assets/icons (`null` = ✕) e `label`, a dica do botão. Amigos não aparecem nessa lista.
+ */
 export function discoverAction(relationship: PlayerRelationship): {
+  icon: string | null;
   label: string;
-  disabled: boolean;
 } {
   switch (relationship) {
-    case 'friend':
-      return { label: 'JÁ SÃO AMIGOS', disabled: true };
     case 'request_sent':
-      return { label: 'CANCELAR PEDIDO', disabled: false };
+      return { icon: null, label: 'Cancelar pedido' };
     case 'request_received':
-      return { label: 'ACEITAR PEDIDO', disabled: false };
+      return { icon: 'check', label: 'Aceitar pedido' };
     case 'blocked':
-      return { label: 'DESBLOQUEAR', disabled: false };
+      return { icon: 'padlock', label: 'Desbloquear' };
     default:
-      return { label: 'ADICIONAR', disabled: false };
+      return { icon: 'heart', label: 'Adicionar aos amigos' };
   }
-}
-
-export function isFriendsTab(value: unknown): value is FriendsTab {
-  return FRIENDS_TABS.some((t) => t.key === value);
 }
 
 export const PRESENCE_LABELS: Record<FriendPresence['presence'], string> = {

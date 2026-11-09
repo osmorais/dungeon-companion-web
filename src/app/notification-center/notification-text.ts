@@ -51,21 +51,14 @@ export function notificationIcon(n: AppNotification): string {
 }
 
 /** Para onde a notificação leva (a página confere o acesso de novo pela API). */
-export function notificationLink(n: AppNotification): {
-  commands: string[];
-  queryParams?: Record<string, string>;
-} {
+export function notificationLink(n: AppNotification): { commands: string[] } {
   switch (n.type) {
-    case 'friend_request_received':
-    case 'session_invite_received':
-    case 'session_invite_rejected':
-      return { commands: ['/amigos'], queryParams: { aba: 'requests' } };
     case 'session_invite_accepted':
       return n.payload['id_game_session']
         ? { commands: ['/session', n.payload['id_game_session']] }
         : { commands: ['/amigos'] };
     default:
-      return { commands: ['/amigos'], queryParams: { aba: 'all' } };
+      return { commands: ['/amigos'] };
   }
 }
 

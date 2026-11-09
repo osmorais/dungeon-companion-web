@@ -95,11 +95,6 @@ export interface PagedList<T> {
   total_count: number;
 }
 
-export interface FriendRequestCounts {
-  received: number;
-  sent: number;
-}
-
 export interface FriendRequest {
   id_friend_request: string;
   sender_id: string;

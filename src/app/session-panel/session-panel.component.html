@@ -45,6 +45,11 @@
         <span>CÓDIGO <strong class="page-topbar-code">{{ sessionDetail()!.game_session.session_code }}</strong></span>
         <span>JOGADORES <strong>{{ sessionDetail()!.players.length }}/{{ sessionDetail()!.game_session.max_player_quantity }}</strong></span>
       </div>
+      @if (isOwner()) {
+        <button class="retro-btn page-topbar-action page-topbar-action--inline" (click)="friendsInviteOpen.set(true)">
+          CONVIDAR AMIGOS
+        </button>
+      }
 
       <!-- Combate: no celular só aparece com luta em andamento (o mestre inicia pelo Quadro do Mestre) -->
       @if (combat(); as c) {
@@ -440,6 +445,11 @@
       <!-- Topo da sessão: nome, mestre, código e jogadores, fora de qualquer quadro -->
       <header class="page-topbar">
         <button class="retro-btn page-topbar-back" (click)="goBack()">← VOLTAR</button>
+        @if (isOwner()) {
+          <button class="retro-btn page-topbar-action" (click)="friendsInviteOpen.set(true)">
+            CONVIDAR AMIGOS
+          </button>
+        }
         <h1 class="page-topbar-name">{{ sessionDetail()!.game_session.session_name }}</h1>
         <div class="page-topbar-meta">
           <span>MESTRE <strong>{{ sessionDetail()!.game_session.dm_name }}</strong></span>
@@ -1147,6 +1157,15 @@
     [isDm]="isOwner()"
     (dismissed)="dismissReferenceImage()"
     (hideForAll)="hideReferenceImageForAll()"
+  />
+}
+
+<!-- ===== MODAL: CONVIDAR AMIGOS (só o mestre) ===== -->
+@if (friendsInviteOpen() && isOwner()) {
+  <app-session-friends-invite
+    [sessionId]="id()!"
+    [memberIds]="memberIds()"
+    (closed)="friendsInviteOpen.set(false)"
   />
 }
 

@@ -94,6 +94,7 @@ import { monsterDisplayName } from './monster-display-name';
 import { hpColor, hpPercent } from './hp-display';
 import { challengeRatingText, monsterSpeedText } from '../services/monster-format';
 import { IMAGE_TYPE_ERROR, isAcceptedImageFile } from '../constants/image-upload';
+import { SessionFriendsInviteComponent } from '../session-invite-modal/session-friends-invite.component';
 
 @Component({
   selector: 'app-session-panel',
@@ -130,6 +131,7 @@ import { IMAGE_TYPE_ERROR, isAcceptedImageFile } from '../constants/image-upload
     DmBoardComponent,
     DmBoardTabComponent,
     SkeletonRowsComponent,
+    SessionFriendsInviteComponent,
   ],
   templateUrl: './session-panel.component.html',
   styleUrls: ['./session-panel.component.scss'],
@@ -150,6 +152,9 @@ export class SessionPanelComponent implements OnDestroy {
 
   isMobile = signal(typeof window !== 'undefined' && window.innerWidth < 768);
   sessionDetail = this.sessionState.detail;
+  /** Janela do mestre pra convidar amigos pra esta mesa. */
+  friendsInviteOpen = signal(false);
+  memberIds = computed(() => this.sessionDetail()?.players.map((p) => p.user_id) ?? []);
   error = signal(false);
   refreshing = signal(false);
   hpEdits = signal<Record<string, number>>({});

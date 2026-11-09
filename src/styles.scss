@@ -1133,6 +1133,26 @@ input[type="checkbox"].retro-checkbox {
   transform: translateY(-50%);
 }
 
+// Ação à direita no topo da página, espelhando o VOLTAR. --inline: fora do topo (celular).
+.page-topbar-action {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  float: none;
+  margin: 0;
+  padding: 8px 14px;
+  font-size: 8px;
+  text-shadow: none;
+  transform: translateY(-50%);
+
+  &--inline {
+    position: static;
+    display: block;
+    margin: 0 auto 12px;
+    transform: none;
+  }
+}
+
 // Linha de ações acima da grade (busca, "+ catalogar"...).
 .page-toolbar {
   display: flex;

@@ -1,13 +1,8 @@
 import { TestBed } from '@angular/core/testing';
-import {
-  ActivatedRoute,
-  convertToParamMap,
-  ParamMap,
-  provideRouter,
-  Router,
-} from '@angular/router';
-import { BehaviorSubject, of, Subject, throwError } from 'rxjs';
-import { FriendsComponent, PagedState } from './friends.component';
+import { provideRouter, Router } from '@angular/router';
+import { of, Subject, throwError } from 'rxjs';
+import { FriendsComponent } from './friends.component';
+import { PagedState } from './paged-state';
 import { FriendService } from '../services/friend.service';
 import { SocialSocketService } from '../services/social-socket.service';
 import { SessionInviteService } from '../services/session-invite.service';
@@ -123,25 +118,15 @@ describe('FriendsComponent', () => {
     events: Subject<SocialEvent>;
     reconnected: Subject<void>;
   };
-  let queryAba: string | null;
-  let queryParams$: BehaviorSubject<ParamMap>;
   let invites: Record<string, ReturnType<typeof vi.fn>>;
 
   function create() {
-    queryParams$ = new BehaviorSubject(convertToParamMap(queryAba ? { aba: queryAba } : {}));
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
         { provide: FriendService, useValue: friendService },
         { provide: SocialSocketService, useValue: socket },
         { provide: SessionInviteService, useValue: invites },
-        {
-          provide: ActivatedRoute,
-          useValue: {
-            snapshot: { queryParamMap: convertToParamMap(queryAba ? { aba: queryAba } : {}) },
-            queryParamMap: queryParams$,
-          },
-        },
       ],
     });
     component = TestBed.runInInjectionContext(() => new FriendsComponent());
@@ -149,7 +134,6 @@ describe('FriendsComponent', () => {
   }
 
   beforeEach(() => {
-    queryAba = null;
     invites = {
       list: vi.fn().mockReturnValue(of(paged([INVITE]))),
       send: vi.fn().mockReturnValue(of({})),
@@ -165,7 +149,6 @@ describe('FriendsComponent', () => {
     friendService = {
       getFriends: vi.fn().mockReturnValue(of(paged([FRIEND]))),
       getRequests: vi.fn().mockReturnValue(of(paged([REQUEST]))),
-      getRequestCounts: vi.fn().mockReturnValue(of({ received: 3, sent: 1 })),
       searchPlayers: vi.fn().mockReturnValue(of(paged([player()]))),
       getBlocked: vi.fn().mockReturnValue(of(paged([]))),
       sendRequest: vi.fn().mockReturnValue(of({ status: 'pending', request: {} })),
@@ -188,14 +171,7 @@ describe('FriendsComponent', () => {
   });
 
   describe('convites para mesa', () => {
-    it('contador da aba soma solicitações e convites recebidos', () => {
-      expect(invites['list']).toHaveBeenCalledWith('received', 1, 12);
-      expect(component.pendingCount()).toBe(4);
-    });
-
-    it('aba de solicitações carrega convites recebidos e enviados', () => {
-      invites['list'].mockClear();
-      component.selectTab('requests');
+    it('abre já com convites recebidos e enviados', () => {
       expect(invites['list']).toHaveBeenCalledWith('received', 1, 12);
       expect(invites['list']).toHaveBeenCalledWith('sent', 1, 12);
     });
@@ -278,11 +254,6 @@ describe('FriendsComponent', () => {
       });
     });
 
-    it('aba Online pede só os conectados', () => {
-      component.selectTab('online');
-      expect(friendService['getFriends']).toHaveBeenLastCalledWith(1, 12, '', true);
-    });
-
     it('presença de um amigo muda no lugar, sem recarregar a lista', () => {
       friendService['getFriends'].mockClear();
       socket.events.next({
@@ -297,83 +268,46 @@ describe('FriendsComponent', () => {
       expect(friendService['getFriends']).not.toHaveBeenCalled();
     });
 
-    it('na aba Online, mudança de presença recarrega a lista', () => {
-      component.selectTab('online');
+    it('cada evento recarrega só o que mudou', () => {
+      const load = (scope: 'friends' | 'requests' | 'blocked') =>
+        socket.events.next({ type: 'social_changed', user_id: 'me', scope });
       friendService['getFriends'].mockClear();
-      socket.events.next({
-        type: 'presence_updated',
-        user_id: 'me',
-        friend: { id: 'f9', presence: 'online', availability: null, last_seen_at: null },
-      });
-      expect(friendService['getFriends']).toHaveBeenCalledWith(1, 12, '', true);
-    });
-
-    it('social_changed de amigos recarrega a aba de amigos; de solicitações, o contador', () => {
-      friendService['getFriends'].mockClear();
-      friendService['getRequestCounts'].mockClear();
-      socket.events.next({ type: 'social_changed', user_id: 'me', scope: 'friends' });
-      expect(friendService['getFriends']).toHaveBeenCalled();
-      socket.events.next({ type: 'social_changed', user_id: 'me', scope: 'requests' });
-      expect(friendService['getRequestCounts']).toHaveBeenCalled();
-    });
-
-    it('evento de outra aba não recarrega a atual', () => {
+      friendService['getRequests'].mockClear();
       friendService['getBlocked'].mockClear();
-      socket.events.next({ type: 'social_changed', user_id: 'me', scope: 'blocked' });
+      load('friends');
+      expect(friendService['getFriends']).toHaveBeenCalledTimes(1);
+      expect(friendService['getRequests']).not.toHaveBeenCalled();
+      load('requests');
+      expect(friendService['getRequests']).toHaveBeenCalledWith('received', 1, 12);
+      expect(friendService['getRequests']).toHaveBeenCalledWith('sent', 1, 12);
       expect(friendService['getBlocked']).not.toHaveBeenCalled();
+      load('blocked');
+      expect(friendService['getBlocked']).toHaveBeenCalledTimes(1);
     });
 
-    it('reconectar recarrega a aba atual (cobre eventos perdidos)', () => {
+    it('com uma busca aberta, evento atualiza também os resultados', () => {
+      component.query.set('thor');
+      component.search();
+      friendService['searchPlayers'].mockClear();
+      socket.events.next({ type: 'social_changed', user_id: 'me', scope: 'requests' });
+      expect(friendService['searchPlayers']).toHaveBeenCalledTimes(1);
+    });
+
+    it('reconectar recarrega tudo (cobre eventos perdidos)', () => {
       friendService['getFriends'].mockClear();
       socket.reconnected.next();
       expect(friendService['getFriends']).toHaveBeenCalled();
     });
   });
 
-  it('link da notificação abre direto na aba pedida', () => {
-    TestBed.resetTestingModule();
-    queryAba = 'requests';
-    friendService['getRequests'].mockClear();
-    create();
-    expect(component.tab()).toBe('requests');
-    expect(friendService['getRequests']).toHaveBeenCalledWith('received', 1, 12);
-  });
-
-  it('notificação clicada com a página aberta troca a aba pelo ?aba=', () => {
-    expect(component.tab()).toBe('all');
-    queryParams$.next(convertToParamMap({ aba: 'requests' }));
-    expect(component.tab()).toBe('requests');
-    queryParams$.next(convertToParamMap({ aba: 'hackear' }));
-    expect(component.tab()).toBe('requests');
-  });
-
-  it('trocar de aba atualiza o ?aba= da URL', () => {
-    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
-    component.selectTab('blocked');
-    expect(navigate).toHaveBeenCalledWith(['/amigos'], {
-      queryParams: { aba: 'blocked' },
-      replaceUrl: true,
-    });
-    component.selectTab('all');
-    expect(navigate).toHaveBeenLastCalledWith(['/amigos'], {
-      queryParams: { aba: null },
-      replaceUrl: true,
-    });
-  });
-
-  it('aba desconhecida na URL fica em Todos', () => {
-    TestBed.resetTestingModule();
-    queryAba = 'hackear';
-    create();
-    expect(component.tab()).toBe('all');
-  });
-
   afterEach(() => vi.restoreAllMocks());
 
-  it('abre com a lista de amigos e o contador de solicitações recebidas', () => {
+  it('abre tudo numa tela só: amigos, pedidos e bloqueados', () => {
     expect(friendService['getFriends']).toHaveBeenCalledWith(1, 12, '');
     expect(component.friends.items()).toEqual([FRIEND]);
-    expect(component.receivedCount()).toBe(3);
+    expect(friendService['getRequests']).toHaveBeenCalledWith('received', 1, 12);
+    expect(friendService['getRequests']).toHaveBeenCalledWith('sent', 1, 12);
+    expect(friendService['getBlocked']).toHaveBeenCalledWith(1, 12);
   });
 
   it('erro ao carregar marca o estado de erro', () => {
@@ -383,22 +317,43 @@ describe('FriendsComponent', () => {
     expect(component.friends.loading()).toBe(false);
   });
 
-  it('aba de solicitações carrega recebidas e enviadas', () => {
-    component.selectTab('requests');
-    expect(friendService['getRequests']).toHaveBeenCalledWith('received', 1, 12);
-    expect(friendService['getRequests']).toHaveBeenCalledWith('sent', 1, 12);
-  });
-
-  it('filtro espera a pessoa parar de digitar', () => {
+  it('digitar espera a pessoa parar e filtra os amigos', () => {
     vi.useFakeTimers();
     friendService['getFriends'].mockClear();
-    component.onFilterChange('go');
-    component.onFilterChange('gor');
+    component.onQueryChange('go');
+    component.onQueryChange('gor');
     expect(friendService['getFriends']).not.toHaveBeenCalled();
     vi.advanceTimersByTime(300);
     expect(friendService['getFriends']).toHaveBeenCalledTimes(1);
     expect(friendService['getFriends']).toHaveBeenCalledWith(1, 12, 'gor');
+    expect(friendService['searchPlayers']).toHaveBeenCalledWith('gor', 1, 12);
     vi.useRealTimers();
+  });
+
+  it('apagar a busca esconde os outros jogadores e mostra todos os amigos', () => {
+    component.query.set('thor');
+    component.search();
+    expect(component.searched()).toBe('thor');
+    friendService['getFriends'].mockClear();
+    component.query.set('');
+    component.search();
+    expect(component.searched()).toBe('');
+    expect(friendService['getFriends']).toHaveBeenCalledWith(1, 12, '');
+  });
+
+  it('quem já é amigo não aparece em outros jogadores', () => {
+    friendService['searchPlayers'].mockReturnValue(
+      of(paged([player(), player({ id: 'p2', relationship: 'friend' })])),
+    );
+    component.query.set('thor');
+    component.search();
+    expect(component.otherPlayers().map((p) => p.id)).toEqual(['p1']);
+  });
+
+  it('janela de bloqueados abre e fecha com Esc', () => {
+    component.blockedOpen.set(true);
+    component.onEscape();
+    expect(component.blockedOpen()).toBe(false);
   });
 
   it('busca só com 2 letras ou mais, e mostra o termo buscado', () => {
@@ -509,12 +464,12 @@ describe('FriendsComponent', () => {
     expect(friendService['removeFriend']).toHaveBeenCalledWith('f1');
   });
 
-  it('bloquear pede confirmação e atualiza o contador', () => {
+  it('bloquear pede confirmação e atualiza as listas', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true);
-    friendService['getRequestCounts'].mockClear();
+    friendService['getBlocked'].mockClear();
     component.blockUser(FRIEND);
     expect(friendService['block']).toHaveBeenCalledWith('f1');
-    expect(friendService['getRequestCounts']).toHaveBeenCalled();
+    expect(friendService['getBlocked']).toHaveBeenCalled();
   });
 
   it('erro da API vira mensagem de erro e libera o botão', () => {
@@ -596,7 +551,6 @@ describe('FriendsComponent', () => {
       friendService['searchPlayers'].mockReturnValue(of(paged([player()])));
       component.query.set('thor');
       component.search();
-      component.selectTab('discover');
       friendService['block'].mockReturnValue(response);
       component.blockUser(player());
       expect(component.results.items()[0].relationship).toBe('blocked');
@@ -605,7 +559,6 @@ describe('FriendsComponent', () => {
     });
 
     it('aceitar solicitação recebida', () => {
-      component.selectTab('requests');
       friendService['acceptRequest'].mockReturnValue(response);
       component.accept(REQUEST);
       expect(component.received.items()).toEqual([]);
@@ -614,12 +567,19 @@ describe('FriendsComponent', () => {
     });
 
     it('recusar convite para mesa baixa o contador na hora', () => {
-      component.selectTab('requests');
-      const before = component.pendingCount();
+      const before = component.receivedInvites.total();
       invites['reject'].mockReturnValue(response);
       component.rejectInvite(INVITE);
       expect(component.receivedInvites.items()).toEqual([]);
-      expect(component.pendingCount()).toBe(before - 1);
+      expect(component.receivedInvites.total()).toBe(before - 1);
+    });
+
+    it('bloquear tira também o pedido dessa pessoa e desfaz no erro', () => {
+      friendService['block'].mockReturnValue(response);
+      component.blockUser(REQUEST.user);
+      expect(component.received.items()).toEqual([]);
+      response.error({ status: 500 });
+      expect(component.received.items()).toEqual([REQUEST]);
     });
 
     it('cancelar pedido na busca volta para adicionar na hora e desfaz no erro', () => {

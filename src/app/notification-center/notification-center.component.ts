@@ -149,7 +149,7 @@ export class NotificationCenterComponent implements OnInit, OnDestroy {
     this.markAsRead(n);
     const link = notificationLink(n);
     this.open.set(false);
-    this.router.navigate(link.commands, link.queryParams ? { queryParams: link.queryParams } : {});
+    this.router.navigate(link.commands);
   }
 
   markAll(): void {

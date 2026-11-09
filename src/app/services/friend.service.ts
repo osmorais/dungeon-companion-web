@@ -7,7 +7,6 @@ import {
   BlockedUser,
   Friend,
   FriendRequest,
-  FriendRequestCounts,
   FriendRequestView,
   MyPresence,
   PagedList,
@@ -27,15 +26,9 @@ export class FriendService {
   private silent = { context: new HttpContext().set(SKIP_LOADING_OVERLAY, true) };
 
   /** `online`: só os amigos conectados agora (aba Online). */
-  getFriends(
-    page: number,
-    pageSize: number,
-    search = '',
-    online = false,
-  ): Observable<PagedList<Friend>> {
+  getFriends(page: number, pageSize: number, search = ''): Observable<PagedList<Friend>> {
     let params = new HttpParams().set('page', page).set('pageSize', pageSize);
     if (search.trim()) params = params.set('search', search.trim());
-    if (online) params = params.set('status', 'online');
     return this.http.get<PagedList<Friend>>(`${this.baseUrl}/api/friends`, {
       params,
       ...this.silent,
@@ -67,12 +60,6 @@ export class FriendService {
       `${this.baseUrl}/api/friend-requests/${direction}`,
       { params, ...this.silent },
     );
-  }
-
-  getRequestCounts(): Observable<FriendRequestCounts> {
-    return this.http.get<FriendRequestCounts>(`${this.baseUrl}/api/friend-requests/count`, {
-      ...this.silent,
-    });
   }
 
   sendRequest(receiverId: string): Observable<SendFriendRequestResult> {

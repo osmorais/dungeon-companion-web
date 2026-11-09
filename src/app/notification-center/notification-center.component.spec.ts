@@ -63,15 +63,12 @@ describe('notification-text', () => {
     expect(notificationIcon(note({ type: 'novo_tipo' as never }))).toBe('scroll');
   });
 
-  it('link: solicitação ou convite recebido abre a aba de solicitações', () => {
-    const requests = { commands: ['/amigos'], queryParams: { aba: 'requests' } };
-    expect(notificationLink(note())).toEqual(requests);
-    expect(notificationLink(note({ type: 'session_invite_received' }))).toEqual(requests);
-    expect(notificationLink(note({ type: 'session_invite_rejected' }))).toEqual(requests);
-    expect(notificationLink(note({ type: 'friend_request_accepted' }))).toEqual({
-      commands: ['/amigos'],
-      queryParams: { aba: 'all' },
-    });
+  it('link: tudo de amigos abre a tela de Amigos', () => {
+    const friends = { commands: ['/amigos'] };
+    expect(notificationLink(note())).toEqual(friends);
+    expect(notificationLink(note({ type: 'session_invite_received' }))).toEqual(friends);
+    expect(notificationLink(note({ type: 'session_invite_rejected' }))).toEqual(friends);
+    expect(notificationLink(note({ type: 'friend_request_accepted' }))).toEqual(friends);
   });
 
   it('link: convite aceito leva o mestre pra mesa', () => {
@@ -190,12 +187,12 @@ describe('NotificationCenterComponent', () => {
     expect(component.error()).toBe(true);
   });
 
-  it('clicar marca como lida e leva pra aba certa', () => {
+  it('clicar marca como lida e leva pra tela de Amigos', () => {
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     component.toggle();
     component.select(component.items()[0]);
     expect(service.markRead).toHaveBeenCalledWith('n1');
-    expect(navigate).toHaveBeenCalledWith(['/amigos'], { queryParams: { aba: 'requests' } });
+    expect(navigate).toHaveBeenCalledWith(['/amigos']);
     expect(component.open()).toBe(false);
   });
 
