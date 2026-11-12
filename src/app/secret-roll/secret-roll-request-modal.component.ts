@@ -2,6 +2,8 @@ import { Component, EventEmitter, Input, Output, inject, signal } from '@angular
 import { GameSessionService } from '../services/game-session.service';
 import { PlayerSession, SecretRollCheck } from '../models/game-session.interface';
 import { SECRET_ROLL_SAVES, SECRET_ROLL_SKILLS, secretCheckLabel } from './secret-roll-checks';
+import { SaveContext } from '../models/character-response.interface';
+import { SAVE_CONTEXTS, SAVE_CONTEXT_LABELS } from '../roll-modal/d20-options';
 
 /**
  * Mestre pede um teste secreto (perícia ou resistência) a um ou mais jogadores. Cada um recebe o
@@ -23,11 +25,16 @@ export class SecretRollRequestModalComponent {
 
   readonly skills = SECRET_ROLL_SKILLS;
   readonly saves = SECRET_ROLL_SAVES;
+  readonly contexts = SAVE_CONTEXTS;
+  readonly contextLabels = SAVE_CONTEXT_LABELS;
 
   selected = signal<ReadonlySet<string>>(new Set());
   kind = signal<'skill' | 'save'>('skill');
   idSkill = signal(13); // Percepção
   ability = signal<'STR' | 'DEX' | 'CON' | 'INT' | 'WIS' | 'CHA'>('WIS');
+  /** Só resistência: CD (opcional, fica na API — o jogador não vê) e contra o que é. */
+  dc = signal<number | null>(null);
+  against = signal<ReadonlySet<SaveContext>>(new Set());
   sending = signal(false);
   error = signal<string | null>(null);
 
@@ -66,6 +73,24 @@ export class SecretRollRequestModalComponent {
     this.idSkill.set(Number((event.target as HTMLSelectElement).value));
   }
 
+  setDc(event: Event): void {
+    const value = (event.target as HTMLInputElement).valueAsNumber;
+    this.dc.set(Number.isInteger(value) && value >= 1 && value <= 40 ? value : null);
+  }
+
+  isAgainst(context: SaveContext): boolean {
+    return this.against().has(context);
+  }
+
+  toggleAgainst(context: SaveContext): void {
+    this.against.update((current) => {
+      const next = new Set(current);
+      if (next.has(context)) next.delete(context);
+      else next.add(context);
+      return next;
+    });
+  }
+
   setAbility(event: Event): void {
     this.ability.set(
       (event.target as HTMLSelectElement).value as (typeof this.saves)[number]['ability'],
@@ -81,6 +106,9 @@ export class SecretRollRequestModalComponent {
         id_player_sessions: [...this.selected()],
         check: this.check,
         label: secretCheckLabel(this.check),
+        ...(this.kind() === 'save'
+          ? { dc: this.dc(), against: SAVE_CONTEXTS.filter((c) => this.against().has(c)) }
+          : {}),
       })
       .subscribe({
         next: () => {

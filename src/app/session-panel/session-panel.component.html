@@ -880,6 +880,7 @@
     [endingTurn]="endingTurn()"
     [delayingTurn]="delayingTurn()"
     [showLinks]="myPlayer()?.id_character === actionsChar.id"
+    [hideSaveDc]="isOwner()"
     [canAdjustHp]="canAdjustHpFor(actionsChar.id)"
     [savingHp]="isSavingHpFor(actionsChar.id)"
     (adjustHp)="adjustHpFor(actionsChar.id, $event)"

@@ -6,6 +6,7 @@ import {
   monsterChecks,
   parseDice,
   splitAttackDamage,
+  monsterSaveAgainst,
 } from './monster-actions';
 
 /** Ficha mínima do bestiário com as ações dadas (atributos de um goblin). */
@@ -393,5 +394,33 @@ describe('usos (fase 2): o que gastar e se ainda dá', () => {
       status: 'USADA NESTA RODADA',
       restorable: false,
     });
+  });
+});
+
+describe('monsterSaveAgainst (contexto da resistência)', () => {
+  const ability = (desc: string): MonsterAbility =>
+    ({
+      name: 'Ação',
+      desc,
+      dc: { ability: 'CON', value: 13, success: 'metade' },
+    }) as MonsterAbility;
+
+  it('veneno pelo texto ou pelo tipo de dano; enfeitiçar e medo pelo texto; sempre efeito visível', () => {
+    expect(monsterSaveAgainst(ability('fica envenenado por 1 minuto'), [])).toEqual([
+      'poison',
+      'visible',
+    ]);
+    expect(
+      monsterSaveAgainst(ability('Mordida.'), [{ dice: '2d6', type: 'veneno' } as never]),
+    ).toEqual(['poison', 'visible']);
+    expect(monsterSaveAgainst(ability('o alvo fica enfeitiçado'), [])).toEqual([
+      'charm',
+      'visible',
+    ]);
+    expect(monsterSaveAgainst(ability('fica amedrontado até o fim'), [])).toEqual([
+      'fear',
+      'visible',
+    ]);
+    expect(monsterSaveAgainst(ability('Sopro de fogo.'), [])).toEqual(['visible']);
   });
 });

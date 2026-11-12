@@ -1,3 +1,4 @@
+import type { SaveContext } from './character-response.interface';
 import {
   CastStageApplied,
   CastStageRoll,
@@ -98,6 +99,9 @@ export interface SessionEventPayloadMap {
     id_character: number;
     label: string;
     check: SecretRollCheck;
+    /** Ausente na API antiga (= teste secreto). */
+    secret?: boolean;
+    against?: SaveContext[];
   };
   spell_cast: {
     id_character: number;

@@ -50,8 +50,68 @@
         <img class="ui-icon" src="assets/icons/candle.png" alt="" /> {{ reminder }}
       </p>
     }
+    @if (advantageFrom.length) {
+      <label class="smite-special-toggle">
+        <input
+          type="checkbox"
+          [checked]="autoAdvantageOn()"
+          [disabled]="isRolling() || !!result()"
+          (change)="toggleAutoAdvantage()"
+        />
+        Vantagem: {{ advantageFrom.join('; ') }}
+      </label>
+      @if (advantagesCancel) {
+        <p class="roll-modifier-line">Vantagem e desvantagem se anulam: a rolagem fica normal.</p>
+      }
+    }
+    @for (reminder of advantageReminders; track reminder) {
+      <p class="roll-modifier-line">
+        <img class="ui-icon" src="assets/icons/candle.png" alt="" /> {{ reminder }}
+      </p>
+      @if (!result() && !isRolling() && advantageState() !== 'advantage') {
+        <button class="roll-toggle-btn" (click)="rollWithAdvantage()">ROLAR COM VANTAGEM</button>
+      }
+    }
     @if (saveLine; as line) {
       <p class="roll-hit-question">{{ line }}</p>
+    }
+    @if (saveRequestTargets.length) {
+      <div class="roll-save-request">
+        <p class="roll-modifier-line">
+          QUEM FOI ATINGIDO? Eles rolam a resistência na própria tela.
+        </p>
+        @for (target of saveRequestTargets; track target.id) {
+          <label class="smite-special-toggle">
+            @switch (saveStatus(target.id)) {
+              @case ('pending') {
+                <span>{{ target.label }}: aguardando a rolagem</span>
+              }
+              @case ('success') {
+                <span>{{ target.label }}: passou</span>
+              }
+              @case ('fail') {
+                <span>{{ target.label }}: falhou</span>
+              }
+              @default {
+                <input
+                  type="checkbox"
+                  [checked]="saveRequestPicks().has(target.id)"
+                  (change)="toggleSaveTarget(target.id)"
+                />
+                {{ target.label }}
+              }
+            }
+          </label>
+        }
+        @if (saveRequestError(); as message) {
+          <p class="roll-modifier-line">{{ message }}</p>
+        }
+        @if (saveRequestPicks().size > 0) {
+          <button class="roll-toggle-btn" [disabled]="requestingSaves()" (click)="requestSaves()">
+            {{ requestingSaves() ? 'PEDINDO...' : 'PEDIR RESISTÊNCIA' }}
+          </button>
+        }
+      </div>
     }
 
     @if (isAbility && powerAttackName) {
@@ -210,7 +270,7 @@
               resultado
             </p>
           }
-          @if (secretRequestId) {
+          @if (secretRequestId && secretRoll) {
             <p class="roll-hidden-note">
               <img class="ui-icon" src="assets/icons/padlock.png" alt="" /> Teste secreto: só você e
               o mestre veem

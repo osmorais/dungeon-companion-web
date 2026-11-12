@@ -77,6 +77,8 @@ export function spellRollConfig(spell: Spell, slotLevel: number): AbilityRollCon
         onSuccess: roll.save_on_success,
         effectNote: roll.save_effect_note ?? undefined,
         ability: roll.save_ability,
+        dc: roll.save_dc,
+        against: roll.save_against ?? [],
       },
       damage: {
         diceCount: entry.dice_count,

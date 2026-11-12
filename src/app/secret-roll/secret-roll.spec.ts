@@ -85,6 +85,34 @@ describe('SecretRollRequestModalComponent (mestre)', () => {
     });
   });
 
+  it('resistência com CD e contexto (a CD fica na API)', () => {
+    const { modal } = create();
+    modal.togglePlayer('p1');
+    modal.setKind('save');
+    modal.setDc({ target: { valueAsNumber: 13 } } as unknown as Event);
+    modal.toggleAgainst('poison');
+    modal.toggleAgainst('magic');
+    modal.toggleAgainst('poison');
+    modal.toggleAgainst('poison');
+    modal.send();
+    expect(requestSecretRoll.mock.calls[0][1]).toMatchObject({
+      check: { kind: 'save' },
+      dc: 13,
+      against: ['poison', 'magic'],
+    });
+  });
+
+  it('CD fora de 1–40 fica vazia; perícia não leva CD nem contexto', () => {
+    const { modal } = create();
+    modal.setDc({ target: { valueAsNumber: 0 } } as unknown as Event);
+    expect(modal.dc()).toBeNull();
+    modal.setDc({ target: { valueAsNumber: NaN } } as unknown as Event);
+    expect(modal.dc()).toBeNull();
+    modal.togglePlayer('p1');
+    modal.send();
+    expect(requestSecretRoll.mock.calls[0][1]).not.toHaveProperty('dc');
+  });
+
   it('sem jogador escolhido não envia; erro mostra mensagem e não fecha', () => {
     const { modal, closed } = create();
     modal.send();
@@ -120,12 +148,62 @@ describe('SecretRollPromptComponent (jogador)', () => {
     expect(prompt.actorName()).toBe('Lyra');
     expect(prompt.rollConfig()).toBeNull();
     prompt.roll();
-    expect(prompt.rollConfig()).toEqual({
+    expect(prompt.rollConfig()).toMatchObject({
       mode: 'ability',
       rollType: 'skill',
       label: 'Teste secreto: Percepção',
       modifier: 5,
+      advantageFrom: [],
+      indomitable: 0,
     });
+  });
+
+  it('resistência pedida contra uma magia: aplica a vantagem do contexto e oferece o Indomável', () => {
+    const fighterDwarf = {
+      character_sheet: {
+        ...sheet.character_sheet,
+        attributes_and_saves: { CON: { save: 3 } },
+        resource_trackers: [{ name: 'Indomável', max: 1, used: 0, recharge_on: 'long_rest' }],
+        combat_features: {
+          halfling_lucky: false,
+          active_effects: { active: [], turn_uses: {} },
+          d20_reminders: [
+            { applies: 'save', abilities: null, against: 'poison', text: 'Resistência Anã' },
+          ],
+        },
+      },
+    } as unknown as CharacterSheetResponse;
+    const updateResourceUses = vi.fn(() => of({ resource_trackers: [] }));
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: CharacterService,
+          useValue: { getCharacterById: () => of(fighterDwarf), updateResourceUses },
+        },
+      ],
+    });
+    const prompt = TestBed.runInInjectionContext(() => new SecretRollPromptComponent());
+    prompt.request = {
+      request_id: 'req-2',
+      id_character: 10,
+      label: 'Magia: Rajada de Veneno',
+      check: { kind: 'save', ability: 'CON' },
+      secret: false,
+      against: ['poison', 'magic', 'visible'],
+    };
+    prompt.ngOnInit();
+    expect(prompt.isSecret).toBe(false);
+    expect(prompt.againstText).toBe('veneno, magia');
+    prompt.roll();
+    expect(prompt.rollConfig()).toMatchObject({
+      rollType: 'save',
+      label: 'Resistência: Rajada de Veneno',
+      modifier: 3,
+      advantageFrom: ['Resistência Anã'],
+      indomitable: 1,
+    });
+    prompt.onIndomitableUsed();
+    expect(updateResourceUses).toHaveBeenCalledWith(10, 'Indomável', 1);
   });
 
   it('erro ao carregar a ficha', () => {

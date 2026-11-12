@@ -1407,9 +1407,10 @@ export class SessionPanelComponent implements OnDestroy {
         monsterCard: this.monsterCardFor(monster.id_monster_session),
       },
       card: monsterActionToCard(action, monster.image_url),
-      saveDc: request.castSave?.dc ?? null,
+      // A CD da ação de monstro fica só com o mestre: o aviso da mesa não mostra.
+      saveDc: null,
       saveAbility: request.castSave?.ability ?? null,
-      saveNote: request.castSave ? saveNote(request.castSave.dc, request.castSave.ability) : null,
+      saveNote: null,
     };
   }
 
