@@ -64,6 +64,13 @@ export function applySessionEvent(
                   ...p.character,
                   current_hit_points: event.current_hit_points,
                   temporary_hit_points: event.temporary_hit_points,
+                  // Forma Selvagem: começou, acabou ou mudou o PV da forma.
+                  ...(event.max_hit_points !== undefined
+                    ? { max_hit_points: event.max_hit_points }
+                    : {}),
+                  ...(event.wild_shape_name !== undefined
+                    ? { wild_shape_name: event.wild_shape_name }
+                    : {}),
                 },
               }
             : p,

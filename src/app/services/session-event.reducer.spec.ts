@@ -36,6 +36,44 @@ describe('applySessionEvent', () => {
     expect(detail).toEqual(snapshot);
   });
 
+  it('Forma Selvagem: o PV máximo e a forma mudam junto com o PV', () => {
+    let detail = sessionDetail({ players: [player('p1')] });
+    detail = apply(detail, {
+      type: 'player_hp_updated',
+      id_player_session: 'p1',
+      current_hit_points: 11,
+      temporary_hit_points: 0,
+      max_hit_points: 11,
+      wild_shape_name: 'Lobo',
+    });
+    expect(detail.players[0].character).toMatchObject({
+      current_hit_points: 11,
+      max_hit_points: 11,
+      wild_shape_name: 'Lobo',
+    });
+    detail = apply(detail, {
+      type: 'player_hp_updated',
+      id_player_session: 'p1',
+      current_hit_points: 18,
+      temporary_hit_points: 0,
+      max_hit_points: 30,
+      wild_shape_name: null,
+    });
+    expect(detail.players[0].character).toMatchObject({
+      current_hit_points: 18,
+      max_hit_points: 30,
+      wild_shape_name: null,
+    });
+    // sem os campos (PV comum), o máximo fica como estava
+    detail = apply(detail, {
+      type: 'player_hp_updated',
+      id_player_session: 'p1',
+      current_hit_points: 10,
+      temporary_hit_points: 0,
+    });
+    expect(detail.players[0].character?.max_hit_points).toBe(30);
+  });
+
   describe('jogadores e NPCs', () => {
     it('adiciona e remove jogador', () => {
       let detail = apply(sessionDetail(), { type: 'player_added', player: player('p1') });

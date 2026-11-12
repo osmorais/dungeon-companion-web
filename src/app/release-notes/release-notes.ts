@@ -33,6 +33,48 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.21.0',
+    date: '2026-11-12',
+    title: 'Forma Selvagem',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'Forma Selvagem: o druida escolhe a besta do bestiário (pelo nível dele, com as regras de nado e voo) e passa a usar o PV, a CA, a força, a destreza, a constituição, o deslocamento e os ataques dela. O Círculo da Lua vira bestas mais fortes.',
+      },
+      {
+        kind: 'novidade',
+        text: 'Quando o PV da forma chega a 0, o druida volta à forma normal e o dano que sobrou passa para ele. A mesa vê no card a forma e o PV dela.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Transformado, o druida não lança magias até sair da forma (a partir do nível 18, com Magias da Besta, pode).',
+      },
+    ],
+  },
+  {
+    version: '1.20.0',
+    date: '2026-11-12',
+    title: 'Ataque Extra, Ação Ardilosa e visão no escuro',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'Ataque Extra: quem ataca mais de uma vez por ação vê a contagem ("ataque 1 de 2"). No combate, a contagem continua de onde parou na mesma vez, mesmo fechando a tela de ações.',
+      },
+      {
+        kind: 'novidade',
+        text: 'Ação Ardilosa: o ladino escolhe Disparar, Desengajar ou Esconder como ação bônus, e a mesa é avisada. Esconder já abre o teste de Furtividade.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'O alcance da visão no escuro aparece na ficha e no card do personagem na mesa.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A ficha e os pedidos de resistência carregam mais rápido.',
+      },
+    ],
+  },
+  {
     version: '1.19.0',
     date: '2026-11-12',
     title: 'Vantagens automáticas e resistências pedidas na mesa',

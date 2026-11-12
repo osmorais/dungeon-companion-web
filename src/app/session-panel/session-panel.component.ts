@@ -824,9 +824,13 @@ export class SessionPanelComponent implements OnDestroy {
     const nextTemp = Math.max(0, currentTemp - amount);
     const spillover = Math.max(0, amount - currentTemp);
     const nextHp = Math.max(0, this.editedHp(player) - spillover);
+    // Forma Selvagem: o que passa do PV da forma vai pro druida (a API aplica).
+    const overflow = player.character?.wild_shape_name
+      ? Math.max(0, spillover - this.editedHp(player))
+      : 0;
 
     if (amount === this.playerDamageInput(player)) this.clearPlayerDamageInput(player);
-    this.commitPlayerHp(player, nextHp, nextTemp);
+    this.commitPlayerHp(player, nextHp, nextTemp, overflow);
   }
 
   /**
@@ -882,19 +886,27 @@ export class SessionPanelComponent implements OnDestroy {
     this.commitPlayerHp(pending.player, pending.player.character!.max_hit_points, temp);
   }
 
-  private commitPlayerHp(player: PlayerSession, newHp: number, newTempHp: number): void {
+  private commitPlayerHp(
+    player: PlayerSession,
+    newHp: number,
+    newTempHp: number,
+    overflow = 0,
+  ): void {
     const id = player.id_player_session;
     this.hpEdits.update(edits => ({ ...edits, [id]: newHp }));
     this.tempHpEdits.update(edits => ({ ...edits, [id]: newTempHp }));
-    this.saveHp(player);
+    this.saveHp(player, overflow);
   }
 
-  saveHp(player: PlayerSession) {
+  saveHp(player: PlayerSession, overflow = 0) {
     const newHp = this.editedHp(player);
     const newTempHp = this.editedTempHp(player);
     const id = player.id_player_session;
     this.savingHp.update(s => { const n = new Set(s); n.add(id); return n; });
-    this.gameSessionService.updatePlayerHp(id, newHp, newTempHp).pipe(
+    const update = overflow
+      ? this.gameSessionService.updatePlayerHp(id, newHp, newTempHp, overflow)
+      : this.gameSessionService.updatePlayerHp(id, newHp, newTempHp);
+    update.pipe(
       finalize(() => this.savingHp.update(s => { const n = new Set(s); n.delete(id); return n; })),
     ).subscribe({
       next: (response) => {
@@ -907,7 +919,18 @@ export class SessionPanelComponent implements OnDestroy {
               ? {
                   ...p,
                   character: p.character
-                    ? { ...p.character, current_hit_points: storedHp, temporary_hit_points: newTempHp }
+                    ? {
+                        ...p.character,
+                        current_hit_points: storedHp,
+                        temporary_hit_points: newTempHp,
+                        // Forma Selvagem: a forma acabou (ou mudou) — o máximo e o nome vêm da API.
+                        ...(response?.max_hit_points !== undefined
+                          ? { max_hit_points: response.max_hit_points }
+                          : {}),
+                        ...(response?.wild_shape_name !== undefined
+                          ? { wild_shape_name: response.wild_shape_name }
+                          : {}),
+                      }
                     : p.character,
                 }
               : p,

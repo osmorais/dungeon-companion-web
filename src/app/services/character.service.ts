@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpContext } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { CharacterSheetData } from '../models/character.interface';
-import { ActiveEffects, CharacterBackground, CharacterSheetResponse, ResourceTracker } from '../models/character-response.interface';
+import { ActiveEffects, CharacterBackground, CharacterSheetResponse, ResourceTracker, WildShapeOption } from '../models/character-response.interface';
 import { AvatarPreset } from '../models/avatar-preset.interface';
 import { CharacterOptions } from '../models/character-options.interface';
 import { CharacterSummary, CharacterPagedList } from '../models/character-summary.interface';
@@ -118,6 +118,28 @@ export class CharacterService {
     return this.http.patch<{ slots_expended: Record<string, number> }>(
       `${this.baseUrl}/api/character-sheet/${id}/spell-slots`,
       { level, delta },
+    );
+  }
+
+  /** Bestas que o druida pode virar no nível dele (Forma Selvagem). */
+  getWildShapeOptions(id: number): Observable<{ beasts: WildShapeOption[] }> {
+    return this.http.get<{ beasts: WildShapeOption[] }>(
+      `${this.baseUrl}/api/character-sheet/${id}/wild-shape/options`,
+    );
+  }
+
+  /** Transforma o druida na besta (gasta um uso). */
+  startWildShape(id: number, slug: string): Observable<{ active_effects: ActiveEffects }> {
+    return this.http.post<{ active_effects: ActiveEffects }>(
+      `${this.baseUrl}/api/character-sheet/${id}/wild-shape`,
+      { slug },
+    );
+  }
+
+  /** Volta o druida à forma normal. */
+  endWildShape(id: number): Observable<{ active_effects: ActiveEffects }> {
+    return this.http.delete<{ active_effects: ActiveEffects }>(
+      `${this.baseUrl}/api/character-sheet/${id}/wild-shape`,
     );
   }
 

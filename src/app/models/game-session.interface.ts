@@ -57,6 +57,10 @@ export interface PlayerCharacterSummary {
   image_url: string | null;
   /** Resistências e reações pra quem aplica dano nele (só no detalhe da sessão). */
   defenses?: DamageDefenses;
+  /** Alcance da visão no escuro, em metros (informativo, no card). */
+  darkvision_m?: number | null;
+  /** Druida transformado: o nome da besta (o PV acima é o da forma). */
+  wild_shape_name?: string | null;
 }
 
 /** Espelho de `DamageDefenses` da API (combat-features.ts). */

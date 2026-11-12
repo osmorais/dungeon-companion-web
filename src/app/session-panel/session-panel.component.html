@@ -179,6 +179,15 @@
                   <span class="mobile-char-name">{{ player.character.name }}</span>
                   <span class="mobile-char-meta">{{ player.character.class }}</span>
                   <span class="mobile-char-meta">{{ player.character.race }}</span>
+                  @if (player.character.wild_shape_name; as beast) {
+                    <span class="mobile-char-meta">Forma Selvagem: {{ beast }}</span>
+                  }
+                  @if (player.character.darkvision_m) {
+                    <span class="mobile-char-meta" title="Visão no escuro">
+                      <img class="ui-icon" src="assets/icons/moon.png" alt="Visão no escuro" />
+                      {{ player.character.darkvision_m }} m
+                    </span>
+                  }
                   <app-xp-bar class="mobile-xp-bar" [level]="player.character.level"
                     [xp]="player.character.experience_points" [nextLevelXp]="player.character.next_level_xp"
                     [canOpenLevelUp]="isMyCharacter(player)" (levelUp)="openLevelUp(player.id_character)" />
@@ -593,6 +602,15 @@
                   <span class="player-label">{{ player.player_name }}</span>
                   <span class="char-name">{{ player.character.name }}</span>
                   <span class="char-meta">{{ player.character.class }} — {{ player.character.race }}</span>
+                  @if (player.character.wild_shape_name; as beast) {
+                    <span class="char-meta">Forma Selvagem: {{ beast }}</span>
+                  }
+                  @if (player.character.darkvision_m) {
+                    <span class="char-meta" title="Visão no escuro">
+                      <img class="ui-icon" src="assets/icons/moon.png" alt="Visão no escuro" />
+                      {{ player.character.darkvision_m }} m
+                    </span>
+                  }
                   <app-xp-bar class="card-xp-bar" [level]="player.character.level"
                     [xp]="player.character.experience_points" [nextLevelXp]="player.character.next_level_xp"
                     [canOpenLevelUp]="isMyCharacter(player)" (levelUp)="openLevelUp(player.id_character)" />
@@ -683,6 +701,12 @@
                   @if (npc.character) {
                     <span class="npc-name">{{ npc.character.name }}</span>
                     <span class="npc-meta">{{ npc.character.class }} &mdash; {{ npc.character.race }}</span>
+                    @if (npc.character.darkvision_m) {
+                      <span class="npc-meta" title="Visão no escuro">
+                        <img class="ui-icon" src="assets/icons/moon.png" alt="Visão no escuro" />
+                        {{ npc.character.darkvision_m }} m
+                      </span>
+                    }
                     <span class="npc-level">NÍVEL {{ npc.character.level }}</span>
                     <app-hp-bar class="row-hp-bar" [current]="editedNpcHp(npc)"
                       [max]="npc.character.max_hit_points" [temp]="npc.character.temporary_hit_points" />

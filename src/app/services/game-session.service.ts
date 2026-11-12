@@ -79,10 +79,24 @@ export class GameSessionService {
     idPlayerSession: string,
     currentHitPoints: number,
     temporaryHitPoints: number,
-  ): Observable<{ current_hit_points: number } | null> {
-    return this.http.patch<{ current_hit_points: number } | null>(
+    /** Forma Selvagem: dano que passou do PV da forma (vai pro druida). */
+    overflow = 0,
+  ): Observable<{
+    current_hit_points: number;
+    max_hit_points?: number;
+    wild_shape_name?: string | null;
+  } | null> {
+    return this.http.patch<{
+      current_hit_points: number;
+      max_hit_points?: number;
+      wild_shape_name?: string | null;
+    } | null>(
       `${this.baseUrl}/api/game-session/player/${idPlayerSession}/hp`,
-      { current_hit_points: currentHitPoints, temporary_hit_points: temporaryHitPoints },
+      {
+        current_hit_points: currentHitPoints,
+        temporary_hit_points: temporaryHitPoints,
+        ...(overflow > 0 ? { overflow } : {}),
+      },
       { context: this.silentContext() },
     );
   }

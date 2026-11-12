@@ -264,6 +264,20 @@ describe('SessionPanelComponent', () => {
       expect(gameSessionService.updatePlayerHp).toHaveBeenCalledWith('p1', 15, 2);
     });
 
+    it('Forma Selvagem: o dano que passa do PV da forma vai junto (a API passa pro druida)', () => {
+      const p = player('p1', {
+        character: {
+          ...player('p1').character!,
+          current_hit_points: 4,
+          temporary_hit_points: 0,
+          wild_shape_name: 'Lobo',
+        },
+      });
+      typeDamage(p, 10);
+      component.applyPlayerDamage(p);
+      expect(gameSessionService.updatePlayerHp).toHaveBeenCalledWith('p1', 0, 0, 6);
+    });
+
     it('PV não fica negativo', () => {
       const p = withHp(4, 0);
       typeDamage(p, 50);
