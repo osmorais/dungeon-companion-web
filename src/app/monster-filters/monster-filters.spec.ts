@@ -97,4 +97,27 @@ describe('filtros das listas de monstros (catalogar e bestiário)', () => {
     expect(activeFilterCount(f({ search: ' ' }))).toBe(0);
     expect(activeFilterCount(f({ search: 'og', crMin: 2, flies: true }))).toBe(3);
   });
+
+  it('cartas com arte própria vêm primeiro, cada grupo na ordenação escolhida', () => {
+    const comArte = (m: BestiaryMonsterSummary) => ['ogro', 'rato'].includes(m.index);
+    expect(ids(filterMonsters(LIST, f({ sort: 'name' }), comArte))).toEqual([
+      'ogro',
+      'rato',
+      'aarakocra',
+      'dragao-vermelho-anciao',
+    ]);
+    expect(ids(filterMonsters(LIST, f({ sort: 'cr' }), comArte))).toEqual([
+      'rato',
+      'ogro',
+      'aarakocra',
+      'dragao-vermelho-anciao',
+    ]);
+    // Os filtros continuam valendo.
+    expect(ids(filterMonsters(LIST, f({ flies: true }), comArte))).toEqual([
+      'aarakocra',
+      'dragao-vermelho-anciao',
+    ]);
+    // Sem o critério de arte, nada muda.
+    expect(ids(filterMonsters(LIST, f({ sort: 'name' })))[0]).toBe('aarakocra');
+  });
 });

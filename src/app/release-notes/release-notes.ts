@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.23.2',
+    date: '2026-11-12',
+    title: 'Bestiário mostra primeiro os monstros com arte',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'No bestiário e na tela de catalogar, os monstros com arte própria (a do bestiário ou a imagem enviada pelo mestre) aparecem primeiro; os que ainda usam a imagem genérica vêm depois. Os filtros e a ordenação continuam valendo dentro de cada grupo.',
+      },
+    ],
+  },
+  {
     version: '1.23.1',
     date: '2026-11-12',
     title: 'Talento repetido ao subir de nível',

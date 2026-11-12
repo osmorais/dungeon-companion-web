@@ -270,6 +270,22 @@ describe('MonsterCatalogListComponent: filtros e páginas (1.14.0)', () => {
     expect(component.pageMonsters()[0].id_monster_catalog).toBe('m8');
   });
 
+  it('primeiro as cartas com arte (imagem do mestre ou do monstro), depois as genéricas', () => {
+    const generico = entry({ id_monster_catalog: 'a-troll', monster_api_slug: 'troll' });
+    const doMestre = entry({
+      id_monster_catalog: 'b-troll',
+      monster_api_slug: 'troll',
+      image_url: 'https://x/troll.png',
+    });
+    const goblin = entry({ id_monster_catalog: 'c-goblin' });
+    const { component } = setup([generico, doMestre, goblin]);
+    expect(component.filteredMonsters().map((m) => m.id_monster_catalog)).toEqual([
+      'b-troll',
+      'c-goblin',
+      'a-troll',
+    ]);
+  });
+
   it('a busca acha o nome dado pelo mestre e o original; filtrar volta pra página 1', () => {
     const ogro = entry({
       id_monster_catalog: 'ogro-1',
