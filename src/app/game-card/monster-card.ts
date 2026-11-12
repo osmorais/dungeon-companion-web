@@ -119,8 +119,8 @@ const ACTION_RIBBON: Record<MonsterActionCardInfo['kind'], string> = {
 
 /**
  * Carta da ação do monstro na tela de lançamento (1.13.0): o nome da ação, a imagem do monstro na
- * arte e, no pergaminho, os números (ataque, dano, CD) — os mesmos que os dados mostram. O
- * medalhão leva o bônus de ataque ou a CD.
+ * arte e, no pergaminho, os números (ataque, dano, atributo da resistência). A mesa vê a carta,
+ * então a CD não entra (1.19.0). O medalhão leva o bônus de ataque ou o atributo da resistência.
  */
 export function monsterActionToCard(
   action: MonsterActionCardInfo,
@@ -131,7 +131,7 @@ export function monsterActionToCard(
     action.kind === 'attack'
       ? stat('ATAQUE')
       : action.kind === 'save'
-        ? stat('CD').split(' ')[0]
+        ? stat('RESISTÊNCIA') || stat('CD').split(' ')[0] // 'CD': aviso de antes da 1.19.0
         : '!';
   return {
     title: action.name,

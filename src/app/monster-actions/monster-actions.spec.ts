@@ -237,7 +237,7 @@ describe('carta da ação (tela de lançamento, 1.13.0)', () => {
     expect(attack.card?.stats[0].value).toBe('+5');
     expect(save.card).toMatchObject({ kind: 'save', name: MORDIDA_ARANHA.name });
     expect(save.card?.stats).toEqual([
-      { label: 'CD', value: '11 CON' },
+      { label: 'RESISTÊNCIA', value: 'CON' },
       { label: 'DANO', value: expect.stringContaining('veneno') },
       { label: 'SE PASSAR', value: 'metade' },
     ]);
@@ -248,6 +248,9 @@ describe('carta da ação (tela de lançamento, 1.13.0)', () => {
     const [a] = monsterActions(block([CHICOTE_BALOR]));
     expect(a.card?.stats.map((s) => s.label)).toEqual(['ATAQUE', 'DANO', 'SE ACERTAR']);
     expect(a.card?.stats[1].value).toContain('fogo');
+    // a carta vai pra mesa: sem a CD
+    expect(a.card?.stats[2].value).toMatch(/^resistência [A-Z]{3}$/);
+    expect(JSON.stringify(a.card)).not.toContain('CD');
   });
 
   it('sopro (só CD) e dano puro também têm carta; texto e multiataque não', () => {

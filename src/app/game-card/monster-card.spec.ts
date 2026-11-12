@@ -59,12 +59,19 @@ describe('monsterActionToCard (carta da ação na tela de lançamento)', () => {
     });
   });
 
-  it('resistência: a CD no medalhão; sem imagem, a padrão', () => {
+  it('resistência: o atributo no medalhão (a CD não vai pra mesa); sem imagem, a padrão', () => {
     const card = monsterActionToCard(
-      { name: 'Sopro', kind: 'save', stats: [{ label: 'CD', value: '13 DES' }] },
+      { name: 'Sopro', kind: 'save', stats: [{ label: 'RESISTÊNCIA', value: 'DES' }] },
       null,
     );
-    expect(card.badge).toBe('13');
+    expect(card.badge).toBe('DES');
+    // aviso de antes da 1.19.0 (com a CD no pergaminho) continua abrindo
+    expect(
+      monsterActionToCard(
+        { name: 'Sopro', kind: 'save', stats: [{ label: 'CD', value: '13 DES' }] },
+        null,
+      ).badge,
+    ).toBe('13');
     expect(card.ribbon).toBe('EFEITO COM RESISTÊNCIA');
     expect(card.art).toBe(DEFAULT_MONSTER_IMAGE);
     // A carta da ação usa a moldura comum (medalhão com a CD), não a do monstro.
