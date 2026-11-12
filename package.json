@@ -1,6 +1,6 @@
 {
   "name": "dungeon-companion-web",
-  "version": "1.23.3",
+  "version": "1.24.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

@@ -32,6 +32,10 @@ export interface CharacterSheetData {
     expertise_skill_ids?: number[];
     /** Só relevante se a raça tiver `tool_proficiency_options` (hoje só o Anão). */
     tool_proficiency?: string;
+    /** Idiomas à escolha da raça e do antecedente (1.24.0). */
+    languages?: string[];
+    /** Ferramenta genérica do antecedente → a escolhida ({"Um tipo de kit de jogo": "Dados"}). */
+    tools?: Record<string, string>;
     /** Só relevante se a classe tiver `fighting_style_options` (hoje só o Guerreiro). */
     fighting_style?: string;
     /** Meio-Elfo: dois atributos diferentes (chaves em inglês, menos CHA) que ganham +1. */

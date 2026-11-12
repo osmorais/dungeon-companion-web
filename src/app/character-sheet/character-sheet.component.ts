@@ -27,10 +27,12 @@ type DesktopPage = 'sheet' | 'notes';
 
 const NOTES_SEPARATOR = '\n\n[ANOTAÇÕES]\n\n';
 
+import { LanguageToolModalComponent } from '../language-tool-picker/language-tool-modal.component';
+import { LanguageToolValue } from '../language-tool-picker/language-tool-picker.component';
 @Component({
   selector: 'app-character-sheet',
   standalone: true,
-  imports: [CommonModule, KeyValuePipe, AvatarDisplayComponent, AvatarCustomizerComponent, RollModalComponent, LevelUpModalComponent, EquipmentModalComponent, SkeletonRowsComponent, GameCardComponent, CardViewerComponent],
+  imports: [CommonModule, KeyValuePipe, AvatarDisplayComponent, AvatarCustomizerComponent, RollModalComponent, LevelUpModalComponent, EquipmentModalComponent, SkeletonRowsComponent, GameCardComponent, CardViewerComponent, LanguageToolModalComponent],
   templateUrl: './character-sheet.component.html',
   styleUrls: ['./character-sheet.component.scss'],
 })
@@ -805,6 +807,55 @@ export class CharacterSheetComponent {
     if (!id) return;
     this.charService.getCharacterById(id).subscribe({
       next: sheet => this.charService.currentCharacter.set(sheet),
+    });
+  }
+
+  /** ========================= IDIOMAS E FERRAMENTAS À ESCOLHA (1.24.0) ========================= */
+
+  showLanguageToolModal = signal(false);
+
+  /** A raça ou o antecedente deixam escolher idioma ou ferramenta. */
+  hasLanguageToolChoices(): boolean {
+    const c = this.sheetData()?.character_sheet.proficiencies_and_languages.choices;
+    return !!c && (c.language_count > 0 || c.tool_slots.length > 0);
+  }
+
+  /** Ainda falta escolher algo ("Idioma à escolha" ou ferramenta genérica na ficha). */
+  hasPendingLanguageToolChoices(): boolean {
+    const c = this.sheetData()?.character_sheet.proficiencies_and_languages.choices;
+    if (!c) return false;
+    return (
+      c.chosen_languages.length < c.language_count ||
+      c.tool_slots.some((t) => !c.chosen_tools[t.placeholder])
+    );
+  }
+
+  onLanguageToolSaved(result: { languages: string[]; tools: string[]; value: LanguageToolValue }): void {
+    this.showLanguageToolModal.set(false);
+    const sheet = this.sheetData();
+    if (!sheet) return;
+    const profs = sheet.character_sheet.proficiencies_and_languages;
+    // Ferramentas da ficha: troca as genéricas pelas escolhidas e mantém as outras (raça, talento).
+    const generic = new Set((profs.choices?.tool_slots ?? []).map((t) => t.placeholder));
+    const previous = new Set(Object.values(profs.choices?.chosen_tools ?? {}));
+    const others = profs.tools.filter((t) => !generic.has(t) && !previous.has(t));
+    this.charService.currentCharacter.set({
+      ...sheet,
+      character_sheet: {
+        ...sheet.character_sheet,
+        proficiencies_and_languages: {
+          ...profs,
+          languages: result.languages,
+          tools: [...new Set([...result.tools, ...others])],
+          choices: profs.choices
+            ? {
+                ...profs.choices,
+                chosen_languages: result.value.languages,
+                chosen_tools: result.value.tools,
+              }
+            : profs.choices,
+        },
+      },
     });
   }
 

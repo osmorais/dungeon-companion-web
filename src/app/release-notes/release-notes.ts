@@ -33,6 +33,25 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.24.0',
+    date: '2026-11-12',
+    title: 'Escolha de idiomas e ferramentas',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'Na criação do personagem, você escolhe os idiomas extras da raça e do antecedente e qual kit de jogo, instrumento musical ou ferramenta de artesão o antecedente dá, em vez de ficar "à escolha".',
+      },
+      {
+        kind: 'novidade',
+        text: 'Personagens já criados podem fazer essas escolhas na própria ficha, no quadro de proficiências, e trocar depois se quiserem.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A ficha passa a mostrar as ferramentas em que o personagem tem proficiência.',
+      },
+    ],
+  },
+  {
     version: '1.23.3',
     date: '2026-11-12',
     title: 'Ficha: proficiência em armas e impressão corrigidas',

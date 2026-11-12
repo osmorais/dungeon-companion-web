@@ -178,6 +178,8 @@ export interface CharacterSheetResponse {
       weapons: string[];
       tools: string[];
       languages: string[];
+      /** Vagas "à escolha" e o já escolhido (1.24.0); ausente na API antiga. */
+      choices?: SheetLanguageToolChoices;
     };
     equipment: {
       currency: { cp: number; sp: number; ep: number; gp: number; pp: number };
@@ -209,4 +211,14 @@ export interface CharacterSheetResponse {
     /** Traços que mexem no ataque (só na ficha carregada). */
     combat_features?: CombatFeatures;
   };
+}
+
+/** Idiomas e ferramentas à escolha da raça e do antecedente, como a ficha recebe (1.24.0). */
+export interface SheetLanguageToolChoices {
+  language_count: number;
+  language_options: string[];
+  fixed_languages: string[];
+  chosen_languages: string[];
+  tool_slots: { placeholder: string; options: string[] }[];
+  chosen_tools: Record<string, string>;
 }

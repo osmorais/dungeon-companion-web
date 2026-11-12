@@ -66,6 +66,8 @@ export interface Race {
   traits: TraitInfo[];
   /** Opções de ferramenta pra escolher 1 (ex: Anão) — ausente se a raça não tiver essa escolha. */
   tool_proficiency_options?: string[];
+  /** Idiomas à escolha da raça (Humano e Meio-Elfo: 1). */
+  extra_languages?: number;
 }
 
 export interface CharacterClass {
@@ -98,6 +100,8 @@ export interface Background {
   /** `id_skill` das mesmas perícias — concedidas (sempre treinadas), como as fixas da raça. */
   skill_ids: number[];
   tools: string[];
+  /** Ferramentas genéricas ("Um tipo de kit de jogo") com as opções de cada uma (1.24.0). */
+  tool_choices?: { placeholder: string; options: string[] }[];
   feature: TraitInfo;
   /** Armas do equipamento do antecedente (nomes da tabela `weapon`) — a API põe na ficha. */
   starting_weapons?: string[];
@@ -204,4 +208,6 @@ export interface CharacterOptions {
   alignments: Alignment[];
   spells: Spell[];
   armours: Armour[];
+  /** Idiomas que dá pra escolher (1.24.0). */
+  languages?: string[];
 }

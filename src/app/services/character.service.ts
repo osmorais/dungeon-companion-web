@@ -176,6 +176,17 @@ export class CharacterService {
     return this.http.patch<EquipmentUpdateResult>(`${this.baseUrl}/api/character-sheet/${id}/equipment`, input);
   }
 
+  /** Idiomas e ferramentas à escolha (1.24.0); devolve como a ficha passa a mostrar. */
+  updateLanguageToolChoices(
+    id: number,
+    input: { languages: string[]; tools: Record<string, string> },
+  ): Observable<{ languages: string[]; tools: string[] }> {
+    return this.http.patch<{ languages: string[]; tools: string[] }>(
+      `${this.baseUrl}/api/character-sheet/${id}/language-tool-choices`,
+      input,
+    );
+  }
+
   previewLevelUp(id: number, idSubclass?: string): Observable<LevelUpPreview> {
     const params: Record<string, string> = idSubclass ? { id_subclass: idSubclass } : {};
     return this.http.get<LevelUpPreview>(`${this.baseUrl}/api/character-sheet/${id}/level-up/preview`, { params });
