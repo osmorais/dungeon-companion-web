@@ -185,6 +185,8 @@ export interface RevealedMonster {
   id_monster_session: string;
   name: string;
   image_url: string | null;
+  /** Slug do bestiário (arte padrão, 1.23.0); ausente na API antiga. */
+  monster_slug?: string | null;
   monster_type?: string | null;
   size?: string | null;
   lore?: string | null;
@@ -351,6 +353,8 @@ export interface MonsterCastInfo {
   image_url: string | null;
   monster_type: string | null;
   size: string | null;
+  /** Slug do bestiário (arte padrão, 1.23.0); ausente na API antiga. */
+  monster_slug?: string | null;
 }
 
 export interface SpellCastStagePayload {

@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { GameCardComponent } from '../game-card/game-card.component';
-import { monsterToCard } from '../game-card/monster-card';
+import { monsterImage, monsterToCard } from '../game-card/monster-card';
 import {
   MonsterAbilityKey,
   MonsterActionOp,
@@ -98,11 +98,16 @@ export class MonsterDrawerComponent {
   readonly speedText = monsterSpeedText;
 
   readonly name = computed(() => monsterDisplayName(this.monsterSig()!));
+  /** Imagem do mestre ou a arte padrão do slug (cartas das ações). */
+  readonly artUrl = computed(() => {
+    const m = this.monsterSig()!;
+    return monsterImage(m.image_url, m.monster_api_slug);
+  });
   readonly card = computed(() => {
     const m = this.monsterSig()!;
     return monsterToCard({
       name: monsterDisplayName(m),
-      imageUrl: m.image_url,
+      imageUrl: monsterImage(m.image_url, m.monster_api_slug),
       monsterType: m.data_snapshot.type,
       size: m.data_snapshot.size,
       lore: m.lore,

@@ -37,6 +37,8 @@ export interface SessionEventPayloadMap {
     image_url: string | null;
     monster_type?: string | null;
     size?: string | null;
+    /** Slug do bestiário (arte padrão, 1.23.0). */
+    monster_slug?: string | null;
     /** Derrotado num combate em andamento: o XP acumulado do combate (1.15.0). */
     combat_xp?: { id_combat_encounter: string; defeated_xp: number } | null;
   };
@@ -95,6 +97,8 @@ export interface SessionEventPayloadMap {
     monster_type?: string | null;
     size?: string | null;
     lore?: string | null;
+    /** Slug do bestiário (arte padrão, 1.23.0). */
+    monster_slug?: string | null;
   };
   monster_hidden: { id_monster_session: string };
   roll_added: { roll: RollLogEntry };

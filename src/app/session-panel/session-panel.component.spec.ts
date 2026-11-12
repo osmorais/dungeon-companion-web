@@ -8,6 +8,7 @@ import { SessionStateService } from '../services/session-state.service';
 import { CharacterService } from '../services/character.service';
 import { AuthService } from '../services/auth.service';
 import {
+  CombatParticipant,
   GameSessionDetail,
   MonsterSession,
   NpcSession,
@@ -78,6 +79,44 @@ describe('SessionPanelComponent', () => {
     else if ('id_player_session' in target) component.setPlayerDamageInput(target, event);
     else component.setMonsterDamageInput(target, event);
   }
+
+  describe('arte padrão do monstro (1.23.0)', () => {
+    it('mestre: imagem dele ou a arte do slug, na lista, no turno e na carta', () => {
+      const semImagem = monster('m1');
+      const comImagem = monster('m2', { image_url: 'https://x/m2.png' });
+      const semArte = monster('m3', { monster_api_slug: 'troll' });
+      detail.set(sessionDetail({ monsters: [semImagem, comImagem, semArte] }));
+      expect(component.monsterImageOf(semImagem)).toBe('assets/monsters/goblin.webp');
+      expect(component.monsterImageOf(comImagem)).toBe('https://x/m2.png');
+      expect(component.monsterImageOf(semArte)).toBe('assets/monster.png');
+      expect(component.monsterCardFor('m1')?.art).toBe('assets/monsters/goblin.webp');
+      expect(
+        component.turnCardFor({
+          participant_type: 'monster',
+          id_monster_session: 'm1',
+        } as CombatParticipant).imageUrl,
+      ).toBe('assets/monsters/goblin.webp');
+    });
+
+    it('jogador: a arte só do monstro revelado, pelo slug que a API manda', () => {
+      detail.set(
+        sessionDetail({
+          game_session: { ...sessionDetail().game_session, user_id: 'outro-mestre' },
+          revealed_monsters: [
+            { id_monster_session: 'm1', name: 'Coisa', image_url: null, monster_slug: 'mimico' },
+          ],
+        }),
+      );
+      expect(component.monsterCardFor('m1')?.art).toBe('assets/monsters/mimico.webp');
+      // Escondido: o jogador não recebe nada dele, continua a genérica.
+      expect(
+        component.turnCardFor({
+          participant_type: 'monster',
+          id_monster_session: 'm9',
+        } as CombatParticipant).imageUrl,
+      ).toBe('assets/monster.png');
+    });
+  });
 
   describe('reação do Tom às rolagens', () => {
     const d20 = (id: string, actor: string, natural: number) =>

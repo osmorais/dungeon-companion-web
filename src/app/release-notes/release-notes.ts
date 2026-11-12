@@ -33,6 +33,21 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.23.0',
+    date: '2026-11-12',
+    title: 'Artes dos monstros',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'Vinte e quatro monstros comuns ganharam arte própria em pixel art: goblin, kobold, orc, esqueleto, zumbi, lobo, bandido, cultista, rato gigante, aranha gigante, ogro, gnoll, hobgoblin, bugbear, chefe goblin, capitão dos bandidos, lobo atroz, worg, carniçal, sombra, urso-coruja, mímico, cubo gelatinoso e harpia.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A arte aparece na carta, na mesa, no início do combate, nos avisos e no bestiário sempre que o mestre não enviou uma imagem própria. A imagem do mestre continua valendo por cima.',
+      },
+    ],
+  },
+  {
     version: '1.22.0',
     date: '2026-11-12',
     title: 'Companheiro Animal',

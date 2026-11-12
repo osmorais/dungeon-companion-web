@@ -82,7 +82,12 @@ import { MonsterRevealNoticeComponent } from '../monster-reveal/monster-reveal-n
 import { MonsterCarouselComponent } from '../monster-reveal/monster-carousel.component';
 import { MonsterDrawerComponent } from '../monster-drawer/monster-drawer.component';
 import { MonsterDefeatNoticeComponent } from '../monster-reveal/monster-defeat-notice.component';
-import { MonsterRevealInfo, monsterActionToCard, monsterToCard } from '../game-card/monster-card';
+import {
+  MonsterRevealInfo,
+  monsterActionToCard,
+  monsterImage,
+  monsterToCard,
+} from '../game-card/monster-card';
 import { GameCardComponent } from '../game-card/game-card.component';
 import { GameCardData } from '../game-card/game-card.model';
 import { CastStageView, castRollView } from '../spell-cast/spell-cast-stage.model';
@@ -188,6 +193,11 @@ export class SessionPanelComponent implements OnDestroy {
   /** Imagem padrão pra monstros sem `image_url` cadastrada (avatar revelado, modais de anúncio/derrota/detalhe). */
   readonly DEFAULT_MONSTER_IMAGE = 'assets/monster.png';
 
+  /** Imagem do monstro da mesa: a do mestre ou a arte padrão do slug (1.23.0). */
+  monsterImageOf(monster: MonsterSession): string {
+    return monsterImage(monster.image_url, monster.monster_api_slug);
+  }
+
   /** Quando ligado, desliga o socket e usa polling a cada 6s pra atualizar a sessão. */
   pollingEnabled = signal(false);
 
@@ -290,7 +300,7 @@ export class SessionPanelComponent implements OnDestroy {
       if (event.type === 'monster_defeated') {
         this.showMonsterDefeatedToast({
           name: event.name,
-          imageUrl: event.image_url,
+          imageUrl: monsterImage(event.image_url, event.monster_slug),
           monsterType: event.monster_type ?? null,
           size: event.size ?? null,
         });
@@ -299,7 +309,7 @@ export class SessionPanelComponent implements OnDestroy {
       if (event.type === 'monster_revealed') {
         this.queueMonsterAnnouncement({
           name: event.name,
-          imageUrl: event.image_url,
+          imageUrl: monsterImage(event.image_url, event.monster_slug),
           monsterType: event.monster_type ?? null,
           size: event.size ?? null,
           lore: event.lore ?? null,
@@ -1537,11 +1547,11 @@ export class SessionPanelComponent implements OnDestroy {
       spellName: action.name,
       actor: {
         name,
-        imageUrl: monster.image_url,
+        imageUrl: this.monsterImageOf(monster),
         avatarPreset: null,
         monsterCard: this.monsterCardFor(monster.id_monster_session),
       },
-      card: monsterActionToCard(action, monster.image_url),
+      card: monsterActionToCard(action, this.monsterImageOf(monster)),
       // A CD da ação de monstro fica só com o mestre: o aviso da mesa não mostra.
       saveDc: null,
       saveAbility: request.castSave?.ability ?? null,
@@ -2101,8 +2111,9 @@ export class SessionPanelComponent implements OnDestroy {
     const weapon = stage.weapon ?? null;
     const monsterAction = stage.monster_action ?? null;
     const monster = stage.monster ?? null;
+    const monsterImg = monster ? monsterImage(monster.image_url, monster.monster_slug) : null;
     const card = monsterAction
-      ? monsterActionToCard(monsterAction, monster?.image_url ?? null)
+      ? monsterActionToCard(monsterAction, monsterImg)
       : weapon
         ? weaponInfoToCard(weapon)
         : stage.spell
@@ -2119,12 +2130,12 @@ export class SessionPanelComponent implements OnDestroy {
       actor: monster
         ? {
             name: monster.name,
-            imageUrl: monster.image_url,
+            imageUrl: monsterImg,
             avatarPreset: null,
             // A descrição não vem na etapa: sai da lista (revelados do jogador / monstros do mestre).
             monsterCard: monsterToCard({
               name: monster.name,
-              imageUrl: monster.image_url,
+              imageUrl: monsterImg,
               monsterType: monster.monster_type,
               size: monster.size,
               lore: this.monsterLore(monster.id_monster_session),
@@ -2642,9 +2653,12 @@ export class SessionPanelComponent implements OnDestroy {
     const detail = this.sessionDetail();
     const name = this.combatParticipantName(p);
     if (p.participant_type === 'monster') {
+      const own = detail?.monsters.find((m) => m.id_monster_session === p.id_monster_session);
+      const revealed = detail?.revealed_monsters.find((m) => m.id_monster_session === p.id_monster_session);
+      // Jogador: só a arte do revelado (o escondido continua com a genérica, sem entregar quem é).
       const image = this.isOwner()
-        ? detail?.monsters.find((m) => m.id_monster_session === p.id_monster_session)?.image_url
-        : detail?.revealed_monsters.find((m) => m.id_monster_session === p.id_monster_session)?.image_url;
+        ? own && this.monsterImageOf(own)
+        : revealed && monsterImage(revealed.image_url, revealed.monster_slug);
       // A carta do monstro (1.13.0); escondido, pro jogador continua o "misterioso" sem carta.
       const monsterCard = p.id_monster_session ? this.monsterCardFor(p.id_monster_session) : null;
       return { name, imageUrl: image || this.DEFAULT_MONSTER_IMAGE, avatarPreset: null, monsterCard };
@@ -2673,7 +2687,7 @@ export class SessionPanelComponent implements OnDestroy {
       if (!m) return null;
       return monsterToCard({
         name: this.monsterDisplayName(m),
-        imageUrl: m.image_url,
+        imageUrl: this.monsterImageOf(m),
         monsterType: m.data_snapshot.type,
         size: m.data_snapshot.size,
         lore: m.lore,
@@ -2683,7 +2697,7 @@ export class SessionPanelComponent implements OnDestroy {
     if (!r) return null;
     return monsterToCard({
       name: r.name,
-      imageUrl: r.image_url,
+      imageUrl: monsterImage(r.image_url, r.monster_slug),
       monsterType: r.monster_type,
       size: r.size,
       lore: r.lore,
