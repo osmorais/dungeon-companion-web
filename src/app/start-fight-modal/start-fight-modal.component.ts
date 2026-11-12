@@ -9,6 +9,7 @@ import {
   StartEncounterParticipantInput,
 } from '../models/game-session.interface';
 
+import { monsterImage } from '../game-card/monster-card';
 @Component({
   selector: 'app-start-fight-modal',
   standalone: true,
@@ -20,7 +21,10 @@ export class StartFightModalComponent {
   private gameSessionService = inject(GameSessionService);
 
   /** Miniatura padrão pra monstros sem image_url. */
-  readonly DEFAULT_MONSTER_IMAGE = 'assets/monster.png';
+  /** Imagem do mestre ou a arte padrão do slug (1.23.0). */
+  imageOf(monster: MonsterSession): string {
+    return monsterImage(monster.image_url, monster.monster_api_slug);
+  }
 
   /** 'add' reaproveita esse mesmo modal pra incluir participantes num combate já em andamento
    *  (iniciando ou não a rolagem de iniciativa) — só muda o texto e qual endpoint é chamado. */

@@ -57,6 +57,10 @@ export interface PlayerCharacterSummary {
   image_url: string | null;
   /** Resistências e reações pra quem aplica dano nele (só no detalhe da sessão). */
   defenses?: DamageDefenses;
+  /** Alcance da visão no escuro, em metros (informativo, no card). */
+  darkvision_m?: number | null;
+  /** Druida transformado: o nome da besta (o PV acima é o da forma). */
+  wild_shape_name?: string | null;
 }
 
 /** Espelho de `DamageDefenses` da API (combat-features.ts). */
@@ -74,6 +78,41 @@ export interface PlayerSession {
   player_name: string;
   user_id: string;
   character: PlayerCharacterSummary | null;
+}
+
+/**
+ * Companheiro Animal de um ranger (Conclave da Besta) — espelho de `SessionCompanion` da API
+ * (companion.ts). Age na vez do ranger; a CA e as ações já contam a proficiência dele.
+ */
+export interface SessionCompanion {
+  id_session_companion: string;
+  id_game_session: string;
+  id_player_session: string;
+  slug: string;
+  name: string;
+  /** Cor do contorno que liga o card do companheiro ao do ranger. */
+  color: string;
+  hp_current: number;
+  hp_max: number;
+  /** CA da besta + proficiência do ranger. */
+  armor_class: number;
+  /** Somada no ataque e no dano das ações da besta. */
+  proficiency_bonus: number;
+  /** Ataques por comando: 2 a partir do nível 11 do ranger. */
+  attacks_per_command: number;
+  speed: string;
+  /** Ações no formato do bestiário. */
+  actions: unknown[];
+}
+
+/** Besta que o ranger pode escolher como companheiro. */
+export interface CompanionOption {
+  slug: string;
+  name: string;
+  challenge_rating: number;
+  hp_max: number;
+  ac: number;
+  speed: Record<string, string>;
 }
 
 export interface NpcSession {
@@ -146,6 +185,8 @@ export interface RevealedMonster {
   id_monster_session: string;
   name: string;
   image_url: string | null;
+  /** Slug do bestiário (arte padrão, 1.23.0); ausente na API antiga. */
+  monster_slug?: string | null;
   monster_type?: string | null;
   size?: string | null;
   lore?: string | null;
@@ -312,6 +353,8 @@ export interface MonsterCastInfo {
   image_url: string | null;
   monster_type: string | null;
   size: string | null;
+  /** Slug do bestiário (arte padrão, 1.23.0); ausente na API antiga. */
+  monster_slug?: string | null;
 }
 
 export interface SpellCastStagePayload {
@@ -365,6 +408,8 @@ export interface GameSessionDetail {
   game_session: GameSession;
   players: PlayerSession[];
   npcs: NpcSession[];
+  /** Companheiros Animais dos rangers (todos veem). Ausente na API antiga. */
+  companions?: SessionCompanion[];
   /** Só preenchido para o mestre — jogadores recebem sempre um array vazio aqui. */
   monsters: MonsterSession[];
   /** Monstros revelados pelo mestre — visível para todos, sem status/PV. */

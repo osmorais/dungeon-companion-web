@@ -266,7 +266,93 @@
       <div class="pa-columns">
         <div class="pa-col">
           <h3 class="pa-col-title" [class.pa-col-title--turn]="turnFocus"><img class="ui-icon" src="assets/icons/swords.png" alt="" /> COMBATE</h3>
-          @if (data.character_sheet.weapons.length || combatFeatures()?.unarmed) {
+          @if (wildShape(); as form) {
+            <div class="pa-section">
+              <h4 class="pa-section-title">FORMA SELVAGEM: {{ form.name.toUpperCase() }}</h4>
+              <p class="pa-hint">
+                PV da forma {{ form.hp_current }}/{{ form.hp_max }} · CA {{ form.armor_class }} ·
+                {{ form.speed }} · dura até {{ form.hours }} h
+              </p>
+              <p class="pa-hint">
+                Seu PV: {{ form.druid_hit_points.current }}/{{ form.druid_hit_points.max }}. Se a
+                forma chegar a 0, você volta e o dano que sobrar passa para você.
+              </p>
+              @if (wildShapeActions().length) {
+                <div class="pa-cunning">
+                  @for (action of wildShapeActions(); track action.key) {
+                    <button class="retro-btn pa-cunning-btn" (click)="rollWildShapeAction(action)">
+                      {{ action.name.toUpperCase() }}
+                    </button>
+                  }
+                </div>
+              }
+              <div class="pa-cunning">
+                <button
+                  class="retro-btn pa-cunning-btn"
+                  [disabled]="wildShapeBusy()"
+                  (click)="endWildShape()"
+                >
+                  SAIR DA FORMA
+                </button>
+              </div>
+            </div>
+          }
+          @if (hasCompanionFeature()) {
+            <div class="pa-section">
+              @if (companion; as pet) {
+                <h4 class="pa-section-title" [style.color]="pet.color">
+                  COMPANHEIRO: {{ pet.name.toUpperCase() }}
+                </h4>
+                <p class="pa-hint">
+                  PV {{ pet.hp_current }}/{{ pet.hp_max }} · CA {{ pet.armor_class }} ·
+                  {{ pet.speed }}
+                </p>
+                <p class="pa-hint">
+                  Age na sua vez: mande atacar com a sua ação. Ataque e dano já somam +{{
+                    pet.proficiency_bonus
+                  }}.
+                </p>
+                @if (companionActions().length) {
+                  <div class="pa-cunning">
+                    @for (action of companionActions(); track action.key) {
+                      <button class="retro-btn pa-cunning-btn" (click)="rollCompanionAction(action)">
+                        {{ action.name.toUpperCase() }}
+                      </button>
+                    }
+                  </div>
+                }
+                <div class="pa-cunning">
+                  <button
+                    class="retro-btn pa-cunning-btn"
+                    [disabled]="companionBusy()"
+                    (click)="companionPicking.set(true)"
+                  >
+                    TROCAR
+                  </button>
+                  <button
+                    class="retro-btn pa-cunning-btn"
+                    [disabled]="companionBusy()"
+                    (click)="dismissCompanion()"
+                  >
+                    DISPENSAR
+                  </button>
+                </div>
+              } @else {
+                <h4 class="pa-section-title">COMPANHEIRO ANIMAL</h4>
+                <p class="pa-hint">Escolha uma besta de ND 1/4 ou menor para lutar ao seu lado.</p>
+                <div class="pa-cunning">
+                  <button
+                    class="retro-btn pa-cunning-btn"
+                    [disabled]="companionBusy()"
+                    (click)="companionPicking.set(true)"
+                  >
+                    ESCOLHER
+                  </button>
+                </div>
+              }
+            </div>
+          }
+          @if (!wildShape() && (data.character_sheet.weapons.length || combatFeatures()?.unarmed)) {
             <div class="pa-section">
               <h4 class="pa-section-title">ARMAS</h4>
               <!-- Baralho: tocar abre a "mão" em tela cheia, com ATACAR na carta da vez -->
@@ -275,6 +361,26 @@
                 label="ARMAS"
                 (open)="activeHand.set('weapons')"
               />
+              @if ((combatFeatures()?.attacks_per_action ?? 1) > 1) {
+                <p class="pa-hint">
+                  Ataque Extra: {{ combatFeatures()!.attacks_per_action }} ataques por ação de Atacar.
+                </p>
+              }
+            </div>
+          }
+          @if (combatFeatures()?.cunning_action) {
+            <div class="pa-section">
+              <h4 class="pa-section-title">AÇÃO ARDILOSA (AÇÃO BÔNUS)</h4>
+              <div class="pa-cunning">
+                @for (option of cunningOptions; track option.key) {
+                  <button class="retro-btn pa-cunning-btn" (click)="useCunningAction(option)">
+                    {{ option.label }}
+                  </button>
+                }
+              </div>
+              @if (cunningUsed(); as used) {
+                <p class="pa-hint">Você usou {{ used }}. A mesa foi avisada.</p>
+              }
             </div>
           }
           @for (res of resourceTrackers(); track res.name) {
@@ -388,7 +494,12 @@
         @if (data.character_sheet.spellcasting_info) {
           <div class="pa-col">
             <h3 class="pa-col-title"><img class="ui-icon" src="assets/icons/scroll.png" alt="" /> MAGIAS</h3>
-            @if (data.character_sheet.spellcasting_info; as spellInfo) {
+            @if (wildShape()?.spells_blocked) {
+              <p class="pa-no-slots">
+                Transformado em {{ wildShape()!.name }}: sem magias até sair da forma (Forma
+                Selvagem).
+              </p>
+            } @else if (data.character_sheet.spellcasting_info; as spellInfo) {
               <div class="pa-section">
                 <h4 class="pa-section-title">
                   GRIMÓRIO
@@ -516,7 +627,7 @@
     [backLabel]="view() === 'grimoire' ? 'VOLTAR AO GRIMÓRIO' : 'VOLTAR ÀS AÇÕES'"
     (rolled)="onRolled()"
     (closed)="closeRoll()"
-    (attackResolved)="attackResolved.emit($event)"
+    (attackResolved)="onAttackResolved($event)"
     (smiteUsed)="onSmiteUsed($event)"
     (riderSpellUsed)="onRiderSpellUsed($event)"
     (oncePerTurnUsed)="onOncePerTurnUsed($event)"
@@ -615,3 +726,25 @@
   }
 </ng-template>
 
+@if (companionPicking()) {
+  <app-wild-shape-picker
+    [idCharacter]="idCharacter"
+    [loader]="companionLoader"
+    title="COMPANHEIRO ANIMAL"
+    hint="Escolha a besta. Ela chega com o PV cheio; trocar substitui a atual."
+    emptyHint="Nenhuma besta com esse nome."
+    pickLabel="ESCOLHER"
+    [busy]="companionBusy()"
+    (picked)="chooseCompanion($event)"
+    (closed)="companionPicking.set(false)"
+  />
+}
+
+@if (wildShapePicking()) {
+  <app-wild-shape-picker
+    [idCharacter]="idCharacter"
+    [busy]="wildShapeBusy()"
+    (picked)="startWildShape($event)"
+    (closed)="wildShapePicking.set(false)"
+  />
+}

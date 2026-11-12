@@ -117,6 +117,12 @@
                   <label>MOVIMENTO</label>
                   <span>{{ data.character_sheet.combat_stats.speed }}</span>
                 </div>
+                @if (data.character_sheet.combat_features?.darkvision_m; as darkvision) {
+                  <div class="mobile-stat-card">
+                    <label>VISÃO NO ESCURO</label>
+                    <span>{{ darkvision }} m</span>
+                  </div>
+                }
                 <div class="mobile-stat-card">
                   <label>BÔNUS PROF.</label>
                   <span>{{ formatMod(data.character_sheet.combat_stats.proficiency_bonus) }}</span>
@@ -524,6 +530,12 @@
             <span class="sheet-hero-label">MOVIMENTO</span>
             <span class="sheet-stat-value">{{ data.character_sheet.combat_stats.speed }}</span>
           </div>
+          @if (data.character_sheet.combat_features?.darkvision_m; as darkvision) {
+            <div class="sheet-stat">
+              <span class="sheet-hero-label">VISÃO NO ESCURO</span>
+              <span class="sheet-stat-value">{{ darkvision }} m</span>
+            </div>
+          }
           <div class="sheet-stat">
             <span class="sheet-hero-label">BÔNUS PROF.</span>
             <span class="sheet-stat-value">{{ formatMod(data.character_sheet.combat_stats.proficiency_bonus) }}</span>

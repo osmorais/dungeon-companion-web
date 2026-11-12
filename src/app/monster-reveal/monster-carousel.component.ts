@@ -2,7 +2,7 @@ import { Component, computed, input, linkedSignal, output, signal } from '@angul
 import { CardViewerComponent } from '../game-card/card-viewer.component';
 import { GameCardComponent } from '../game-card/game-card.component';
 import { GameCardData } from '../game-card/game-card.model';
-import { monsterToCard } from '../game-card/monster-card';
+import { monsterImage, monsterToCard } from '../game-card/monster-card';
 import { RevealedMonster } from '../models/game-session.interface';
 
 /**
@@ -31,7 +31,7 @@ export class MonsterCarouselComponent {
       id: m.id_monster_session,
       card: monsterToCard({
         name: m.name,
-        imageUrl: m.image_url,
+        imageUrl: monsterImage(m.image_url, m.monster_slug),
         monsterType: m.monster_type,
         size: m.size,
         lore: m.lore,

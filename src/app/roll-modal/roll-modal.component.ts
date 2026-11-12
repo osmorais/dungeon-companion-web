@@ -108,7 +108,12 @@ export interface AbilityRollConfig {
   };
   /** Vários ataques na mesma ação (raios do Raio Ardente, feixes da Rajada Mística): depois de
    *  cada um (acerto + dano, ou erro), o modal oferece o próximo até `count`. */
-  instances?: { count: number; label: string };
+  instances?: {
+    count: number;
+    label: string;
+    /** Começa num ataque que não o primeiro (Ataque Extra: o 1º já foi feito nesta vez). */
+    start?: number;
+  };
 }
 
 export interface FreeformRollConfig {
@@ -629,6 +634,8 @@ export class RollModalComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     if (this.canHideRoll && this.startHidden) this.rollHidden.set(true);
     if (this.advantageFrom.length) this.autoAdvantageOn.set(true);
+    const start = this.config.mode === 'ability' ? this.config.instances?.start : undefined;
+    if (start && start > 1) this.instanceIndex.set(start);
     if (this.cast) {
       // Anuncia o lançamento já ao abrir: a mesa e quem lança veem a carta entrar juntos.
       this.sendCastStage('open');

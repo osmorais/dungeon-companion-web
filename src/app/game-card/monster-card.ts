@@ -3,8 +3,53 @@ import { MonsterActionCardInfo } from '../models/game-session.interface';
 import { BestiaryMonsterSummary, MonsterCatalogEntry } from '../models/monster-catalog.interface';
 import { catalogMonsterName, challengeRatingText, isHighThreat } from '../services/monster-format';
 
-/** Imagem de monstro quando o mestre não enviou uma (a mesma das listas e da ficha). */
+/** Imagem de monstro quando o mestre não enviou uma e o monstro não tem arte própria. */
 export const DEFAULT_MONSTER_IMAGE = 'assets/monster.png';
+
+/**
+ * Monstros do bestiário com arte própria (1.23.0), em `assets/monsters/<slug>.webp` — as levas 1
+ * e 2 de `procedimentos/artes-monstros.md` nos docs. Monstro novo com arte: pôr o arquivo e o slug.
+ */
+export const MONSTER_ART_SLUGS: ReadonlySet<string> = new Set([
+  // Leva 1 — encontros de nível 1 a 3
+  'goblin',
+  'kobold',
+  'orc',
+  'esqueleto',
+  'zumbi',
+  'lobo',
+  'bandido',
+  'cultista',
+  'rato-gigante',
+  'aranha-gigante',
+  'ogro',
+  'gnoll',
+  // Leva 2 — líderes, feras e masmorra
+  'hobgoblin',
+  'bugbear',
+  'chefe-goblin',
+  'capitao-dos-bandidos',
+  'lobo-atroz',
+  'worg',
+  'carnical',
+  'sombra',
+  'urso-coruja',
+  'mimico',
+  'cubo-gelatinoso',
+  'harpia',
+]);
+
+/** Imagem padrão do monstro: a arte do slug, se houver; senão a genérica. */
+export function defaultMonsterImage(slug?: string | null): string {
+  return slug && MONSTER_ART_SLUGS.has(slug)
+    ? `assets/monsters/${slug}.webp`
+    : DEFAULT_MONSTER_IMAGE;
+}
+
+/** A imagem que o mestre subiu ganha; sem ela, a padrão do monstro. */
+export function monsterImage(imageUrl: string | null | undefined, slug?: string | null): string {
+  return imageUrl || defaultMonsterImage(slug);
+}
 
 /** O que o aviso de revelação sabe do monstro (evento `monster_revealed`). */
 export interface MonsterRevealInfo {
@@ -50,7 +95,7 @@ export function catalogMonsterCard(monster: MonsterCatalogEntry): GameCardData {
   const s = monster.data_snapshot;
   return summaryCard({
     name: catalogMonsterName(monster),
-    imageUrl: monster.image_url,
+    imageUrl: monsterImage(monster.image_url, monster.monster_api_slug),
     type: s.type,
     size: s.size,
     alignment: s.alignment,
@@ -67,7 +112,7 @@ export function bestiaryMonsterCard(
 ): GameCardData {
   return summaryCard({
     name: customName?.trim() || monster.name,
-    imageUrl: null,
+    imageUrl: defaultMonsterImage(monster.index),
     type: monster.type,
     size: monster.size,
     alignment: monster.alignment,
@@ -119,8 +164,8 @@ const ACTION_RIBBON: Record<MonsterActionCardInfo['kind'], string> = {
 
 /**
  * Carta da ação do monstro na tela de lançamento (1.13.0): o nome da ação, a imagem do monstro na
- * arte e, no pergaminho, os números (ataque, dano, CD) — os mesmos que os dados mostram. O
- * medalhão leva o bônus de ataque ou a CD.
+ * arte e, no pergaminho, os números (ataque, dano, atributo da resistência). A mesa vê a carta,
+ * então a CD não entra (1.19.0). O medalhão leva o bônus de ataque ou o atributo da resistência.
  */
 export function monsterActionToCard(
   action: MonsterActionCardInfo,
@@ -131,7 +176,7 @@ export function monsterActionToCard(
     action.kind === 'attack'
       ? stat('ATAQUE')
       : action.kind === 'save'
-        ? stat('CD').split(' ')[0]
+        ? stat('RESISTÊNCIA') || stat('CD').split(' ')[0] // 'CD': aviso de antes da 1.19.0
         : '!';
   return {
     title: action.name,

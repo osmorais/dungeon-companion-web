@@ -1,9 +1,12 @@
 import {
   DEFAULT_MONSTER_IMAGE,
+  MONSTER_ART_SLUGS,
   bestiaryMonsterCard,
   catalogMonsterCard,
   catalogMonsterCardState,
+  defaultMonsterImage,
   monsterActionToCard,
+  monsterImage,
   monsterToCard,
 } from './monster-card';
 import { MonsterCatalogEntry } from '../models/monster-catalog.interface';
@@ -59,12 +62,19 @@ describe('monsterActionToCard (carta da ação na tela de lançamento)', () => {
     });
   });
 
-  it('resistência: a CD no medalhão; sem imagem, a padrão', () => {
+  it('resistência: o atributo no medalhão (a CD não vai pra mesa); sem imagem, a padrão', () => {
     const card = monsterActionToCard(
-      { name: 'Sopro', kind: 'save', stats: [{ label: 'CD', value: '13 DES' }] },
+      { name: 'Sopro', kind: 'save', stats: [{ label: 'RESISTÊNCIA', value: 'DES' }] },
       null,
     );
-    expect(card.badge).toBe('13');
+    expect(card.badge).toBe('DES');
+    // aviso de antes da 1.19.0 (com a CD no pergaminho) continua abrindo
+    expect(
+      monsterActionToCard(
+        { name: 'Sopro', kind: 'save', stats: [{ label: 'CD', value: '13 DES' }] },
+        null,
+      ).badge,
+    ).toBe('13');
     expect(card.ribbon).toBe('EFEITO COM RESISTÊNCIA');
     expect(card.art).toBe(DEFAULT_MONSTER_IMAGE);
     // A carta da ação usa a moldura comum (medalhão com a CD), não a do monstro.
@@ -103,12 +113,12 @@ describe('catalogMonsterCard (bestiário: lista e detalhe)', () => {
     ...overrides,
   });
 
-  it('nome customizado, ND no medalhão, imagem padrão e resumo com os números do catálogo', () => {
+  it('nome customizado, ND no medalhão, arte do slug e resumo com os números do catálogo', () => {
     const card = catalogMonsterCard(entry({ custom_name: 'Brutus', hp_max: 70, ac: 13 }));
     expect(card).toMatchObject({
       title: 'Brutus',
       badge: '2',
-      art: DEFAULT_MONSTER_IMAGE,
+      art: 'assets/monsters/ogro.webp',
       ribbon: 'GIGANTE · GRANDE',
       text: 'Grande gigante.\nCA 13 · PV 70 · ND 2.',
       variant: 'monster',
@@ -137,11 +147,11 @@ describe('bestiaryMonsterCard (tela de catalogar)', () => {
     flies: false,
   };
 
-  it('a mesma carta do bestiário, com a imagem padrão e os números do livro', () => {
+  it('a mesma carta do bestiário, com a arte do slug e os números do livro', () => {
     expect(bestiaryMonsterCard(ogro)).toMatchObject({
       title: 'Ogro',
       badge: '2',
-      art: DEFAULT_MONSTER_IMAGE,
+      art: 'assets/monsters/ogro.webp',
       ribbon: 'GIGANTE · GRANDE',
       text: 'Grande gigante, caótico e mau.\nCA 11 · PV 59 · ND 2.',
     });
@@ -150,5 +160,41 @@ describe('bestiaryMonsterCard (tela de catalogar)', () => {
   it('nome customizado no título; em branco fica o do livro', () => {
     expect(bestiaryMonsterCard(ogro, ' Brutus ').title).toBe('Brutus');
     expect(bestiaryMonsterCard(ogro, '   ').title).toBe('Ogro');
+  });
+});
+
+describe('arte padrão do monstro (1.23.0)', () => {
+  it('slug com arte → a arte; sem arte, sem slug ou slug antigo → a genérica', () => {
+    expect(defaultMonsterImage('goblin')).toBe('assets/monsters/goblin.webp');
+    expect(defaultMonsterImage('dragao-vermelho-jovem')).toBe(DEFAULT_MONSTER_IMAGE);
+    expect(defaultMonsterImage('goblin-boss')).toBe(DEFAULT_MONSTER_IMAGE);
+    expect(defaultMonsterImage(null)).toBe(DEFAULT_MONSTER_IMAGE);
+    expect(defaultMonsterImage(undefined)).toBe(DEFAULT_MONSTER_IMAGE);
+  });
+
+  it('a imagem que o mestre subiu ganha da arte', () => {
+    expect(monsterImage('https://x/minha.png', 'goblin')).toBe('https://x/minha.png');
+    expect(monsterImage(null, 'goblin')).toBe('assets/monsters/goblin.webp');
+    expect(monsterImage('', 'kobold')).toBe('assets/monsters/kobold.webp');
+  });
+
+  it('as 24 artes das levas 1 e 2', () => {
+    expect(MONSTER_ART_SLUGS.size).toBe(24);
+  });
+
+  it('bestiário sem arte continua com a genérica', () => {
+    const card = bestiaryMonsterCard({
+      index: 'troll',
+      name: 'Troll',
+      challenge_rating: 5,
+      size: 'Grande',
+      type: 'gigante',
+      alignment: null,
+      hp_max: 84,
+      ac: 15,
+      legendary: false,
+      flies: false,
+    });
+    expect(card.art).toBe(DEFAULT_MONSTER_IMAGE);
   });
 });

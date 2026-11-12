@@ -26,7 +26,7 @@
         [cardState]="cardState()"
         [hp]="m.hp_max"
         [ac]="m.ac"
-        [imageUrl]="m.image_url"
+        [imageUrl]="artUrl(m)"
       >
         @if (m.custom_name) {
           <p class="cd-meta">({{ m.data_snapshot.name }})</p>

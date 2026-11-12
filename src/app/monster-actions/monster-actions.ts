@@ -172,7 +172,8 @@ function saveCard(
       name: a.name,
       kind: 'save',
       stats: cardStats([
-        ['CD', `${dc.value} ${dc.ability}`],
+        // A carta vai pra mesa: o atributo, não a CD (ela fica só no modal do mestre).
+        ['RESISTÊNCIA', dc.ability],
         ['DANO', damageText(entries)],
         ['SE PASSAR', dc.success === 'metade' ? 'metade' : 'nada'],
       ]),
@@ -337,7 +338,7 @@ function buttonsFor(
         stats: cardStats([
           ['ATAQUE', signed(a.attack.bonus)],
           ['DANO', damageText(onHit)],
-          a.dc && !onSave.length ? ['SE ACERTAR', `CD ${a.dc.value} ${a.dc.ability}`] : null,
+          a.dc && !onSave.length ? ['SE ACERTAR', `resistência ${a.dc.ability}`] : null,
         ]),
       },
     };

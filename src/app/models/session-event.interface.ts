@@ -12,6 +12,7 @@ import {
   PlayerSession,
   RechargeRoll,
   RollLogEntry,
+  SessionCompanion,
   SecretRollCheck,
   ShownReferenceImage,
   SpellCardInfo,
@@ -36,6 +37,8 @@ export interface SessionEventPayloadMap {
     image_url: string | null;
     monster_type?: string | null;
     size?: string | null;
+    /** Slug do bestiário (arte padrão, 1.23.0). */
+    monster_slug?: string | null;
     /** Derrotado num combate em andamento: o XP acumulado do combate (1.15.0). */
     combat_xp?: { id_combat_encounter: string; defeated_xp: number } | null;
   };
@@ -47,7 +50,13 @@ export interface SessionEventPayloadMap {
     id_player_session: string;
     current_hit_points: number;
     temporary_hit_points: number;
+    /** Forma Selvagem: o PV máximo mostrado e a forma (`null` = voltou ao normal). */
+    max_hit_points?: number;
+    wild_shape_name?: string | null;
   };
+  /** Companheiro Animal escolhido, trocado (`companion`) ou dispensado (`null`). */
+  companion_set: { id_player_session: string; companion: SessionCompanion | null };
+  companion_hp_updated: { id_session_companion: string; hp_current: number };
   player_xp_granted: {
     id_player_session: string;
     character_name: string;
@@ -88,6 +97,8 @@ export interface SessionEventPayloadMap {
     monster_type?: string | null;
     size?: string | null;
     lore?: string | null;
+    /** Slug do bestiário (arte padrão, 1.23.0). */
+    monster_slug?: string | null;
   };
   monster_hidden: { id_monster_session: string };
   roll_added: { roll: RollLogEntry };
