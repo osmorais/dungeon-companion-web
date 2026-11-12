@@ -33,6 +33,41 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.19.0',
+    date: '2026-11-12',
+    title: 'Vantagens automáticas e resistências pedidas na mesa',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'Quem lança uma magia ou ação de monstro com resistência pode marcar quem foi atingido: cada um rola a resistência na própria tela, e quem lançou vê quem passou e quem falhou.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Vantagens de raça e classe (Resistência Anã, Ancestralidade Feérica, Bravura, Esperteza Gnômica, Sentido de Perigo e Fúria) entram sozinhas quando a rolagem sabe contra o que é. Dá para desmarcar antes de rolar.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Quando não dá para saber contra o que é a rolagem, o lembrete de vantagem ganha o botão "rolar com vantagem". Vantagem e desvantagem juntas viram uma rolagem normal.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'O Indomável só aparece depois de uma resistência que falhou, quando a CD é conhecida.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'No teste secreto, o mestre pode informar a CD e contra o que é a resistência. Os jogadores não veem a CD.',
+      },
+      {
+        kind: 'correcao',
+        text: 'A CD das ações de monstro e das magias lançadas pelo mestre não aparece mais para os jogadores no aviso da mesa.',
+      },
+      {
+        kind: 'correcao',
+        text: 'Sortudo e Indomável agora funcionam também no teste secreto.',
+      },
+    ],
+  },
+  {
     version: '1.18.0',
     date: '2026-11-08',
     title: 'Amigos',

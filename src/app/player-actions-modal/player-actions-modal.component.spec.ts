@@ -612,17 +612,17 @@ describe('PlayerActionsModalComponent — fase 4 dos traços', () => {
     modal.rollSave('DEX', 3);
     expect(modal.activeRoll()).toMatchObject({
       inspiration: { sides: 8, from: 'Lyra' },
-      reminders: ['Sentido de Perigo', 'Bravura'],
+      advantageReminders: ['Sentido de Perigo', 'Bravura'],
     });
     modal.rollSave('WIS', 3);
-    expect(modal.activeRoll()).toMatchObject({ reminders: ['Bravura'] });
+    expect(modal.activeRoll()).toMatchObject({ advantageReminders: ['Bravura'] });
     modal.rollSkill({
       id_skill: 1,
       name: 'Atletismo',
       attribute_name: 'FOR',
       total_skill_value: 5,
     } as never);
-    expect(modal.activeRoll()).toMatchObject({ reminders: ['Fúria'] });
+    expect(modal.activeRoll()).toMatchObject({ advantageReminders: ['Fúria'] });
     modal.onInspirationUsed();
     expect(updateActiveEffects).toHaveBeenCalledWith(7, { consume_inspiration: true });
   });

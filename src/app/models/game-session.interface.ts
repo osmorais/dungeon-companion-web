@@ -1,3 +1,4 @@
+import type { SaveContext } from './character-response.interface';
 import { MonsterStatBlock } from './monster-catalog.interface';
 import { SpellCardDamage } from './character-options.interface';
 
@@ -225,6 +226,9 @@ export interface RollLogEntry {
   /** Só no evento do socket: rolagem de um lançamento de magia (aparece no aviso do lançamento,
    *  não num aviso de rolagem avulso). Não vem no GET da sessão. */
   cast_id?: string;
+  /** Resposta a um pedido de rolagem: o id do pedido e, numa resistência com CD, se passou. */
+  save_request_id?: string;
+  save_outcome?: 'success' | 'fail' | null;
 }
 
 export interface RollLogPayload {
@@ -336,6 +340,12 @@ export interface SecretRollRequestPayload {
   id_player_sessions: string[];
   check: SecretRollCheck;
   label: string;
+  /** Só resistência: CD (fica na API — o jogador recebe só se passou ou falhou). */
+  dc?: number | null;
+  /** Só resistência: contra o que é. */
+  against?: SaveContext[];
+  /** `false`: resistência pública contra uma magia/ação, pedida por quem lançou. */
+  secret?: boolean;
 }
 
 /** Anúncio de "personagem lançou uma magia" — só informativo, não persiste no backend (ao

@@ -18,6 +18,7 @@ import {
   spellSaveInfo,
 } from '../roll-modal/spell-roll-config';
 import { ApplyRequest, ApplyTarget } from '../roll-modal/apply-target';
+import { ATTRIBUTE_PT_TO_EN, d20Options } from '../roll-modal/d20-options';
 import {
   isOnHitSpell,
   RiderAttackKind,
@@ -55,15 +56,7 @@ import { CastStageView } from '../spell-cast/spell-cast-stage.model';
 import { AvatarPreset } from '../models/avatar-preset.interface';
 import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
 
-/** Atributo da perícia (sigla em português do banco) → chave em inglês dos traços. */
-const PT_TO_EN: Record<string, string> = {
-  FOR: 'STR',
-  DES: 'DEX',
-  CON: 'CON',
-  INT: 'INT',
-  SAB: 'WIS',
-  CAR: 'CHA',
-};
+const PT_TO_EN = ATTRIBUTE_PT_TO_EN;
 
 /** Tempo de conjuração de 1 minuto ou mais ("1 minuto", "10 minutos", "1 hora"…) — não cabe
  *  numa rodada de combate. Ação, ação bônus e reação ficam de fora. */
@@ -126,6 +119,8 @@ export class PlayerActionsModalComponent implements OnInit {
   /** Aviso do lançamento montado pelos eventos da mesa (sessão): o palco de quem lança mostra o
    *  mesmo que todos, ao mesmo tempo. */
   @Input() castViewSource: ((castId: string) => CastStageView | null) | null = null;
+  /** Mestre lançando por um NPC: a CD da magia não vai pro aviso da mesa. */
+  @Input() hideSaveDc = false;
   @Output() ownCast = new EventEmitter<string>();
   @Output() endTurn = new EventEmitter<void>();
   @Output() delayTurn = new EventEmitter<void>();
@@ -222,28 +217,11 @@ export class PlayerActionsModalComponent implements OnInit {
   /** ========================= ROLAGENS ========================= */
 
   /**
-   * O que o personagem tem pra mexer num d20: Sortudo (Halfling e talento), Inspiração Bárdica
-   * guardada, Indomável (só resistência) e os lembretes de vantagem que valem pra esta rolagem.
+   * O que o personagem tem pra mexer num d20 (Sortudo, Inspiração Bárdica, Indomável e vantagens).
+   * Rolagem manual: contexto desconhecido, então as vantagens condicionais viram lembrete.
    */
-  private d20Options(
-    kind: 'save' | 'check' | 'attack',
-    ability?: string,
-  ): Pick<AbilityRollConfig, 'halflingLucky' | 'luckPoints' | 'inspiration' | 'indomitable' | 'reminders'> {
-    const features = this.combatFeatures();
-    const luck = this.resourceTrackerByKey('Pontos de Sorte');
-    const indomitable = this.resourceTrackerByKey('Indomável');
-    const inspiration = features?.active_effects.bardic_inspiration ?? null;
-    const reminders = (features?.d20_reminders ?? [])
-      .filter((r) => r.applies === kind)
-      .filter((r) => !r.abilities || (!!ability && (r.abilities as string[]).includes(ability)))
-      .map((r) => r.text);
-    return {
-      halflingLucky: !!features?.halfling_lucky,
-      luckPoints: luck ? this.resourceAvailable(luck) : 0,
-      inspiration: inspiration ?? undefined,
-      indomitable: kind === 'save' && indomitable ? this.resourceAvailable(indomitable) : 0,
-      reminders,
-    };
+  private d20Options(kind: 'save' | 'check' | 'attack', ability?: string) {
+    return d20Options(this.combatFeatures(), this.resourceTrackers(), kind, ability, null);
   }
 
   /** Indomável usado no modal: debita o uso (a rolagem segue na tela). */
@@ -1151,9 +1129,9 @@ export class PlayerActionsModalComponent implements OnInit {
       spellName: spell.name,
       actor: this.actorCard ?? this.actorCardFromSheet(),
       card: spellToCard(spell),
-      saveDc: save?.save_dc ?? null,
+      saveDc: this.hideSaveDc ? null : (save?.save_dc ?? null),
       saveAbility: save?.save_ability ?? null,
-      saveNote: save ? saveNote(save.save_dc, save.save_ability) : null,
+      saveNote: save && !this.hideSaveDc ? saveNote(save.save_dc, save.save_ability) : null,
     };
   }
 

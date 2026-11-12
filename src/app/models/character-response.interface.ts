@@ -42,10 +42,21 @@ export interface ActiveEffects {
   bardic_inspiration?: { sides: number; from: string } | null;
 }
 
-/** Lembrete de vantagem num d20 (o jogador decide aplicar). */
+/**
+ * Contra o que é a resistência, quando quem pede a rolagem sabe: veneno, enfeitiçar, medo, magia
+ * ou efeito que dá pra ver. Espelho de `SaveContext` da API.
+ */
+export type SaveContext = 'poison' | 'charm' | 'fear' | 'magic' | 'visible';
+
+/**
+ * Vantagem num d20. Com `against`, só vale contra aquilo: com o contexto conhecido entra sozinha;
+ * sem contexto vira lembrete. `against: null` vale sempre (Fúria em Força).
+ */
 export interface D20Reminder {
   applies: 'save' | 'check';
   abilities: ('STR' | 'DEX' | 'CON' | 'INT' | 'WIS' | 'CHA')[] | null;
+  /** Ausente na API antiga: tratado como contexto desconhecido (lembrete). */
+  against?: SaveContext | null;
   text: string;
 }
 

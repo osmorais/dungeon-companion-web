@@ -151,7 +151,7 @@ describe('spellRollConfig — resistência', () => {
       label: 'Magia: Bola de Fogo',
       modifier: 0,
       autoHit: true,
-      save: { note: 'CD 14 de Destreza', onSuccess: 'half', ability: 'DEX' },
+      save: { note: 'CD 14 de Destreza', onSuccess: 'half', ability: 'DEX', dc: 14, against: [] },
       damage: {
         diceCount: 9,
         diceSides: 6,

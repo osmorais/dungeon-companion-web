@@ -631,11 +631,12 @@ describe('SessionPanelComponent', () => {
         card,
         castSave: { dc: 13, ability: 'DEX' },
       });
+      // A CD da ação de monstro fica só com o mestre: o aviso da mesa não leva.
       expect(component.activeMonsterRoll()?.cast).toMatchObject({
         private: true,
-        saveDc: 13,
+        saveDc: null,
         saveAbility: 'DEX',
-        saveNote: 'CD 13 de Destreza',
+        saveNote: null,
       });
       component.openMonsterRoll(m1, { config, consume: null });
       expect(component.activeMonsterRoll()?.cast).toBeNull();

@@ -2,6 +2,8 @@ import { NgTemplateOutlet } from '@angular/common';
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { GameSessionService } from '../services/game-session.service';
+import { SessionStateService } from '../services/session-state.service';
+import { SaveContext } from '../models/character-response.interface';
 import { DamageImpactService } from '../services/damage-impact.service';
 import {
   AdvantageState,
@@ -73,8 +75,13 @@ export interface AbilityRollConfig {
   indomitable?: number;
   /** Inspiração Bárdica guardada: soma o dado nesta rolagem (uma vez) e consome. */
   inspiration?: { sides: number; from: string };
-  /** Lembretes de vantagem que valem pra esta rolagem (o jogador decide). */
+  /** Avisos desta rolagem (ex.: o efeito de uma ação de monstro). */
   reminders?: string[];
+  /** Vantagens que valem nesta rolagem (contexto conhecido, ou Fúria em Força): entram sozinhas e
+   *  o jogador pode desmarcar. */
+  advantageFrom?: string[];
+  /** Vantagens de contexto desconhecido (rolagem manual): lembrete com "rolar com vantagem". */
+  advantageReminders?: string[];
   /** Halfling (Sortudo): 1 natural no d20 pode ser rolado de novo (vale o novo). */
   halflingLucky?: boolean;
   /** Talento Sortudo: Pontos de Sorte disponíveis — gastar um rola mais um d20 e fica o melhor. */
@@ -94,6 +101,10 @@ export interface AbilityRollConfig {
     effectNote?: string;
     /** Atributo da resistência (Evasão só vale em Destreza). */
     ability?: 'STR' | 'DEX' | 'CON' | 'INT' | 'WIS' | 'CHA';
+    /** CD conhecida: dá pra pedir a resistência aos jogadores atingidos (a CD fica na API). */
+    dc?: number | null;
+    /** Contra o que é a resistência (vantagem condicional de quem rola). */
+    against?: SaveContext[];
   };
   /** Vários ataques na mesma ação (raios do Raio Ardente, feixes da Rajada Mística): depois de
    *  cada um (acerto + dano, ou erro), o modal oferece o próximo até `count`. */
@@ -142,6 +153,7 @@ const CAST_ECHO_WAIT_MS = 2500;
 export class RollModalComponent implements OnInit, OnDestroy {
   private gameSessionService = inject(GameSessionService);
   private damageImpact = inject(DamageImpactService);
+  private sessionState = inject(SessionStateService);
 
   @Input({ required: true }) config!: RollConfig;
   @Input() idCharacter: number | null = null;
@@ -154,6 +166,8 @@ export class RollModalComponent implements OnInit, OnDestroy {
   @Input() startHidden = false;
   /** Resposta a um teste secreto do mestre: a rolagem vai oculta (só o mestre e quem rolou veem). */
   @Input() secretRequestId: string | null = null;
+  /** Com `secretRequestId`: teste secreto (oculto) ou resistência pública pedida por quem lançou. */
+  @Input() secretRoll = true;
   /** Alvos em que o dano/cura rolado pode ser aplicado direto (opcional). Vazio = sem a opção,
    *  e o modal se comporta como antes (encerra sozinho ao terminar a rolagem de dano). */
   @Input() applyTargets: ApplyTarget[] = [];
@@ -202,13 +216,28 @@ export class RollModalComponent implements OnInit, OnDestroy {
     return this.config.mode === 'ability' && this.isAbility ? (this.config.reminders ?? []) : [];
   }
 
+  get advantageFrom(): string[] {
+    return this.config.mode === 'ability' && this.isAbility ? (this.config.advantageFrom ?? []) : [];
+  }
+
+  get advantageReminders(): string[] {
+    return this.config.mode === 'ability' && this.isAbility
+      ? (this.config.advantageReminders ?? [])
+      : [];
+  }
+
+  /** Resistência pedida com CD: a API diz se passou ou falhou (a CD não chega aqui). */
+  saveOutcome = signal<'success' | 'fail' | null>(null);
+
   get canIndomitable(): boolean {
     return (
       this.d20Settled &&
       this.config.mode === 'ability' &&
       this.config.rollType === 'save' &&
       (this.config.indomitable ?? 0) > 0 &&
-      !this.indomitableSpent()
+      !this.indomitableSpent() &&
+      // Com a CD conhecida, só depois de falhar; sem ela, o jogador decide.
+      this.saveOutcome() !== 'success'
     );
   }
 
@@ -352,7 +381,102 @@ export class RollModalComponent implements OnInit, OnDestroy {
 
   readonly dieOptions = DIE_OPTIONS;
 
-  advantageState = signal<AdvantageState>('normal');
+  /** Vantagem/desvantagem escolhida nos botões. */
+  manualAdvantage = signal<AdvantageState>('normal');
+  /** Vantagem que veio sozinha (`advantageFrom`) — o jogador pode desmarcar antes de rolar. */
+  autoAdvantageOn = signal(false);
+  /** O que vale na rolagem: vantagem e desvantagem juntas se anulam (rolagem normal). */
+  advantageState = computed<AdvantageState>(() => {
+    const advantage = this.autoAdvantageOn() || this.manualAdvantage() === 'advantage';
+    const disadvantage = this.manualAdvantage() === 'disadvantage';
+    if (advantage && disadvantage) return 'normal';
+    return advantage ? 'advantage' : disadvantage ? 'disadvantage' : 'normal';
+  });
+
+  get advantagesCancel(): boolean {
+    return this.autoAdvantageOn() && this.manualAdvantage() === 'disadvantage';
+  }
+
+  toggleAutoAdvantage(): void {
+    if (this.isRolling() || this.result()) return;
+    this.autoAdvantageOn.update((on) => !on);
+  }
+
+  /** Lembrete sem contexto: rola já com vantagem. */
+  rollWithAdvantage(): void {
+    if (this.isRolling() || this.result()) return;
+    this.manualAdvantage.set('advantage');
+    this.roll();
+  }
+
+  /** Pedido de resistência aos jogadores atingidos (quem lançou marca quem foi pego). */
+  saveRequestPicks = signal<ReadonlySet<string>>(new Set());
+  /** id_player_session → id do pedido. */
+  saveRequests = signal<Record<string, string>>({});
+  requestingSaves = signal(false);
+  saveRequestError = signal<string | null>(null);
+
+  /** Jogadores que podem receber o pedido (só com CD conhecida e dentro da sessão). */
+  get saveRequestTargets(): { id: string; label: string }[] {
+    if (this.config.mode !== 'ability' || !this.sessionId) return [];
+    const save = this.config.save;
+    if (!save?.dc || !save.ability) return [];
+    return this.applyTargets
+      .filter((t) => t.key.startsWith('player:'))
+      .map((t) => ({ id: t.key.slice('player:'.length), label: t.label }));
+  }
+
+  toggleSaveTarget(id: string): void {
+    if (this.saveRequests()[id]) return;
+    this.saveRequestPicks.update((picks) => {
+      const next = new Set(picks);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  requestSaves(): void {
+    const ids = [...this.saveRequestPicks()].filter((id) => !this.saveRequests()[id]);
+    if (this.config.mode !== 'ability' || !this.sessionId || !ids.length) return;
+    const save = this.config.save;
+    if (!save?.dc || !save.ability || this.requestingSaves()) return;
+    this.requestingSaves.set(true);
+    this.saveRequestError.set(null);
+    this.gameSessionService
+      .requestSecretRoll(this.sessionId, {
+        id_player_sessions: ids,
+        check: { kind: 'save', ability: save.ability },
+        label: this.config.label.slice(0, 60),
+        dc: save.dc,
+        against: save.against ?? [],
+        secret: false,
+      })
+      .subscribe({
+        next: (created) => {
+          this.requestingSaves.set(false);
+          this.saveRequests.update((map) => ({
+            ...map,
+            ...Object.fromEntries(created.map((r) => [r.id_player_session, r.request_id])),
+          }));
+          this.saveRequestPicks.set(new Set());
+        },
+        error: () => {
+          this.requestingSaves.set(false);
+          this.saveRequestError.set('Não foi possível pedir a resistência. Tente de novo.');
+        },
+      });
+  }
+
+  /** Situação do pedido de um jogador: aguardando, passou ou falhou (a última rolagem dele). */
+  saveStatus(id: string): 'pending' | 'success' | 'fail' | null {
+    const requestId = this.saveRequests()[id];
+    if (!requestId) return null;
+    const answer = this.sessionState
+      .detail()
+      ?.recent_rolls.find((r) => r.save_request_id === requestId);
+    return answer?.save_outcome ?? 'pending';
+  }
   /** Bandeja de dados livres: quantos de cada lado (ex: {6: 3, 12: 1, ...} = 3d6 + 1d12). Começa
    *  zerada (o jogador escolhe) — todos os tipos presentes só pra ter valor definido no template. */
   freeformPool = signal<Record<number, number>>(Object.fromEntries(DIE_OPTIONS.map((d) => [d, 0])));
@@ -504,6 +628,7 @@ export class RollModalComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (this.canHideRoll && this.startHidden) this.rollHidden.set(true);
+    if (this.advantageFrom.length) this.autoAdvantageOn.set(true);
     if (this.cast) {
       // Anuncia o lançamento já ao abrir: a mesa e quem lança veem a carta entrar juntos.
       this.sendCastStage('open');
@@ -977,7 +1102,7 @@ export class RollModalComponent implements OnInit, OnDestroy {
 
   setAdvantage(state: AdvantageState) {
     if (this.isRolling()) return;
-    this.advantageState.set(state);
+    this.manualAdvantage.set(state);
     this.result.set(null);
   }
 
@@ -1306,6 +1431,7 @@ export class RollModalComponent implements OnInit, OnDestroy {
     this.gameSessionService.postRoll(this.sessionId, payload).subscribe({
       next: (entry) => {
         this.posting.set(false);
+        if (entry.save_outcome !== undefined) this.saveOutcome.set(entry.save_outcome);
         this.addCastRoll(entry, rollType);
       },
       error: () => {

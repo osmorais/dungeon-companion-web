@@ -1,3 +1,5 @@
+import type { SaveContext } from './character-response.interface';
+
 export interface AttributeType {
   id_attribute: number;
   name: string;
@@ -145,6 +147,8 @@ export interface SpellRoll {
   save_dc: number | null;
   /** Dano quando o alvo passa: metade, nenhum ou total (`null` sem dano). */
   save_on_success: 'half' | 'none' | 'full' | null;
+  /** Só `kind: 'save'`: contra o que é a resistência (veneno, enfeitiçar, medo, magia…). */
+  save_against?: SaveContext[];
   /** Só `kind: 'heal'`: cura PV ou dá PV temporários. */
   heal: 'hp' | 'temp_hp' | null;
   /** Cura Suprema (Clérigo da Vida nv17): valor máximo dos dados em vez de rolar. */

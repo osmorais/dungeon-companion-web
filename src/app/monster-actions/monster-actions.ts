@@ -1,4 +1,5 @@
 import { AbilityRollConfig } from '../roll-modal/roll-modal.component';
+import { SaveContext } from '../models/character-response.interface';
 import {
   MonsterAbility,
   MonsterAbilityAbbr,
@@ -235,6 +236,21 @@ export function splitAttackDamage(
   return { onHit, onSave };
 }
 
+/**
+ * Contra o que é a resistência de uma ação de monstro, pelo texto e pelo tipo de dano: veneno,
+ * enfeitiçar e medo. Toda ação conta como efeito visível (Sentido de Perigo); magia, não.
+ */
+export function monsterSaveAgainst(a: MonsterAbility, entries: DamageEntry[]): SaveContext[] {
+  const text = a.desc.toLowerCase();
+  const types = entries.map((e) => (e.type ?? '').toLowerCase()).join(' ');
+  const against: SaveContext[] = [];
+  if (/envenenad/.test(text) || /venen/.test(types)) against.push('poison');
+  if (/enfeiti[çc]ad/.test(text)) against.push('charm');
+  if (/amedrontad|apavorad/.test(text)) against.push('fear');
+  against.push('visible');
+  return against;
+}
+
 function saveConfig(
   a: MonsterAbility,
   entries: DamageEntry[],
@@ -255,6 +271,8 @@ function saveConfig(
       note: `CD ${dc.value} de ${ability.name}`,
       onSuccess: dc.success === 'metade' ? 'half' : 'none',
       ability: ability.en,
+      dc: dc.value,
+      against: monsterSaveAgainst(a, entries),
     },
   };
 }
