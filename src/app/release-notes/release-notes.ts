@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.23.1',
+    date: '2026-11-12',
+    title: 'Talento repetido ao subir de nível',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'Ao subir de nível, o talento que o personagem já tem não aparece mais para escolher de novo. Só o Adepto Elemental, que o livro deixa repetir com outro tipo de dano, continua na lista.',
+      },
+    ],
+  },
+  {
     version: '1.23.0',
     date: '2026-11-12',
     title: 'Artes dos monstros',
