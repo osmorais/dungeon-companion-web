@@ -2,6 +2,7 @@ import { applySessionEvent } from './session-event.reducer';
 import { SessionEvent } from '../models/session-event.interface';
 import {
   combat,
+  companion,
   monster,
   npc,
   participant,
@@ -24,6 +25,58 @@ function apply(detail: ReturnType<typeof sessionDetail>, event: EventInput) {
 }
 
 describe('applySessionEvent', () => {
+  describe('Companheiro Animal', () => {
+    it('companion_set adiciona, troca (um por ranger) e dispensa', () => {
+      let detail = sessionDetail({ players: [player('p1'), player('p2')] });
+      detail = apply(detail, {
+        type: 'companion_set',
+        id_player_session: 'p1',
+        companion: companion('c1', 'p1'),
+      });
+      detail = apply(detail, {
+        type: 'companion_set',
+        id_player_session: 'p2',
+        companion: companion('c2', 'p2'),
+      });
+      detail = apply(detail, {
+        type: 'companion_set',
+        id_player_session: 'p1',
+        companion: companion('c1', 'p1', { name: 'Pantera' }),
+      });
+      expect(detail.companions!.map((c) => c.name)).toEqual(['Lobo', 'Pantera']);
+      detail = apply(detail, { type: 'companion_set', id_player_session: 'p2', companion: null });
+      expect(detail.companions!.map((c) => c.id_session_companion)).toEqual(['c1']);
+    });
+
+    it('companion_hp_updated muda só o PV daquele companheiro', () => {
+      const detail = apply(
+        sessionDetail({ companions: [companion('c1', 'p1'), companion('c2', 'p2')] }),
+        { type: 'companion_hp_updated', id_session_companion: 'c2', hp_current: 3 },
+      );
+      expect(detail.companions!.map((c) => c.hp_current)).toEqual([12, 3]);
+    });
+
+    it('API antiga (sem companions): o evento cria a lista', () => {
+      const detail = apply(sessionDetail(), {
+        type: 'companion_set',
+        id_player_session: 'p1',
+        companion: companion('c1', 'p1'),
+      });
+      expect(detail.companions).toHaveLength(1);
+    });
+
+    it('o ranger sai da mesa e o companheiro sai junto', () => {
+      const detail = apply(
+        sessionDetail({
+          players: [player('p1'), player('p2')],
+          companions: [companion('c1', 'p1'), companion('c2', 'p2')],
+        }),
+        { type: 'player_removed', id_player_session: 'p1' },
+      );
+      expect(detail.companions!.map((c) => c.id_session_companion)).toEqual(['c2']);
+    });
+  });
+
   it('não muta o estado anterior', () => {
     const detail = sessionDetail({ players: [player('p1')] });
     const snapshot = structuredClone(detail);

@@ -297,6 +297,61 @@
               </div>
             </div>
           }
+          @if (hasCompanionFeature()) {
+            <div class="pa-section">
+              @if (companion; as pet) {
+                <h4 class="pa-section-title" [style.color]="pet.color">
+                  COMPANHEIRO: {{ pet.name.toUpperCase() }}
+                </h4>
+                <p class="pa-hint">
+                  PV {{ pet.hp_current }}/{{ pet.hp_max }} · CA {{ pet.armor_class }} ·
+                  {{ pet.speed }}
+                </p>
+                <p class="pa-hint">
+                  Age na sua vez: mande atacar com a sua ação. Ataque e dano já somam +{{
+                    pet.proficiency_bonus
+                  }}.
+                </p>
+                @if (companionActions().length) {
+                  <div class="pa-cunning">
+                    @for (action of companionActions(); track action.key) {
+                      <button class="retro-btn pa-cunning-btn" (click)="rollCompanionAction(action)">
+                        {{ action.name.toUpperCase() }}
+                      </button>
+                    }
+                  </div>
+                }
+                <div class="pa-cunning">
+                  <button
+                    class="retro-btn pa-cunning-btn"
+                    [disabled]="companionBusy()"
+                    (click)="companionPicking.set(true)"
+                  >
+                    TROCAR
+                  </button>
+                  <button
+                    class="retro-btn pa-cunning-btn"
+                    [disabled]="companionBusy()"
+                    (click)="dismissCompanion()"
+                  >
+                    DISPENSAR
+                  </button>
+                </div>
+              } @else {
+                <h4 class="pa-section-title">COMPANHEIRO ANIMAL</h4>
+                <p class="pa-hint">Escolha uma besta de ND 1/4 ou menor para lutar ao seu lado.</p>
+                <div class="pa-cunning">
+                  <button
+                    class="retro-btn pa-cunning-btn"
+                    [disabled]="companionBusy()"
+                    (click)="companionPicking.set(true)"
+                  >
+                    ESCOLHER
+                  </button>
+                </div>
+              }
+            </div>
+          }
           @if (!wildShape() && (data.character_sheet.weapons.length || combatFeatures()?.unarmed)) {
             <div class="pa-section">
               <h4 class="pa-section-title">ARMAS</h4>
@@ -670,6 +725,20 @@
     }
   }
 </ng-template>
+
+@if (companionPicking()) {
+  <app-wild-shape-picker
+    [idCharacter]="idCharacter"
+    [loader]="companionLoader"
+    title="COMPANHEIRO ANIMAL"
+    hint="Escolha a besta. Ela chega com o PV cheio; trocar substitui a atual."
+    emptyHint="Nenhuma besta com esse nome."
+    pickLabel="ESCOLHER"
+    [busy]="companionBusy()"
+    (picked)="chooseCompanion($event)"
+    (closed)="companionPicking.set(false)"
+  />
+}
 
 @if (wildShapePicking()) {
   <app-wild-shape-picker

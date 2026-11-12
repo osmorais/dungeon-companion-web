@@ -129,6 +129,8 @@ export interface CombatFeatures {
   attacks_per_action?: number;
   /** Ladino nv2: Ação Ardilosa (Disparar, Desengajar ou Esconder como ação bônus). */
   cunning_action?: boolean;
+  /** Ranger do Conclave da Besta (nv3): tem Companheiro Animal na mesa. */
+  animal_companion?: boolean;
   /** Alcance da visão no escuro, em metros; `null` se não tem. */
   darkvision_m?: number | null;
   /** Druida transformado: a forma, o PV dele e se as magias estão travadas. */

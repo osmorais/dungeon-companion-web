@@ -33,6 +33,25 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.22.0',
+    date: '2026-11-12',
+    title: 'Companheiro Animal',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'Companheiro Animal: o patrulheiro do Conclave da Besta (a partir do nível 3) escolhe uma besta de ND 1/4 ou menor para lutar ao seu lado. Ela aparece na mesa junto dos NPCs, com PV e CA, e um contorno da mesma cor liga o card dela ao do patrulheiro.',
+      },
+      {
+        kind: 'novidade',
+        text: 'O companheiro age na vez do patrulheiro: os ataques dele ficam nas ações do patrulheiro, já somando a proficiência no ataque e no dano (duas vezes por comando a partir do nível 11). Dá para trocar ou dispensar a besta a qualquer momento.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Dano e cura das rolagens podem ser aplicados direto no companheiro, e o mestre e o patrulheiro ajustam o PV dele no card.',
+      },
+    ],
+  },
+  {
     version: '1.21.0',
     date: '2026-11-12',
     title: 'Forma Selvagem',

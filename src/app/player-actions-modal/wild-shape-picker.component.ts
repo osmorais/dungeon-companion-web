@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, OnInit, output, signal } from '@angular/core';
+import { Observable } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { CharacterService } from '../services/character.service';
 import { WildShapeOption } from '../models/character-response.interface';
@@ -19,8 +20,8 @@ export function formatSpeed(speed: Record<string, string>): string {
 }
 
 /**
- * Escolha da besta da Forma Selvagem: só as que o nível do druida permite (a API filtra por ND,
- * nado e voo), com busca pelo nome.
+ * Escolha de uma besta, com busca pelo nome. Por padrão é a da Forma Selvagem (a API filtra pelo
+ * nível do druida: ND, nado e voo); com `loader` e os textos, serve pro Companheiro Animal.
  */
 @Component({
   selector: 'app-wild-shape-picker',
@@ -38,8 +39,8 @@ export function formatSpeed(speed: Record<string, string>): string {
         <button type="button" class="ws-close" aria-label="Fechar" (click)="closed.emit()">
           ✕
         </button>
-        <h3 id="ws-title" class="ws-title">FORMA SELVAGEM</h3>
-        <p class="ws-hint">Escolha a besta. Transformar gasta um uso.</p>
+        <h3 id="ws-title" class="ws-title">{{ title() }}</h3>
+        <p class="ws-hint">{{ hint() }}</p>
         <label class="ws-sr-only" for="ws-search">Buscar besta pelo nome</label>
         <input
           id="ws-search"
@@ -55,7 +56,7 @@ export function formatSpeed(speed: Record<string, string>): string {
         } @else if (loading()) {
           <p class="ws-hint">Carregando as bestas...</p>
         } @else if (filtered().length === 0) {
-          <p class="ws-hint">Nenhuma besta com esse nome no seu nível.</p>
+          <p class="ws-hint">{{ emptyHint() }}</p>
         } @else {
           <ul class="ws-list">
             @for (beast of filtered(); track beast.slug) {
@@ -74,7 +75,7 @@ export function formatSpeed(speed: Record<string, string>): string {
                   [disabled]="busy()"
                   (click)="picked.emit(beast)"
                 >
-                  TRANSFORMAR
+                  {{ pickLabel() }}
                 </button>
               </li>
             }
@@ -182,6 +183,12 @@ export class WildShapePickerComponent implements OnInit {
   private charService = inject(CharacterService);
 
   idCharacter = input.required<number>();
+  /** Outra lista de bestas (Companheiro Animal); sem ela, as da Forma Selvagem do personagem. */
+  loader = input<(() => Observable<{ beasts: WildShapeOption[] }>) | null>(null);
+  title = input('FORMA SELVAGEM');
+  hint = input('Escolha a besta. Transformar gasta um uso.');
+  emptyHint = input('Nenhuma besta com esse nome no seu nível.');
+  pickLabel = input('TRANSFORMAR');
   /** Transformando (aguardando a API): trava os botões. */
   busy = input(false);
   picked = output<WildShapeOption>();
@@ -201,7 +208,9 @@ export class WildShapePickerComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.charService.getWildShapeOptions(this.idCharacter()).subscribe({
+    const load = this.loader();
+    const source = load ? load() : this.charService.getWildShapeOptions(this.idCharacter());
+    source.subscribe({
       next: (res) => {
         this.beasts.set(res.beasts);
         this.loading.set(false);

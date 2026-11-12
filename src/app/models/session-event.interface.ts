@@ -12,6 +12,7 @@ import {
   PlayerSession,
   RechargeRoll,
   RollLogEntry,
+  SessionCompanion,
   SecretRollCheck,
   ShownReferenceImage,
   SpellCardInfo,
@@ -51,6 +52,9 @@ export interface SessionEventPayloadMap {
     max_hit_points?: number;
     wild_shape_name?: string | null;
   };
+  /** Companheiro Animal escolhido, trocado (`companion`) ou dispensado (`null`). */
+  companion_set: { id_player_session: string; companion: SessionCompanion | null };
+  companion_hp_updated: { id_session_companion: string; hp_current: number };
   player_xp_granted: {
     id_player_session: string;
     character_name: string;

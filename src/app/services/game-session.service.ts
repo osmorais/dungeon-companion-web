@@ -5,6 +5,7 @@ import { environment } from '../../environments/environment';
 import { SKIP_LOADING_OVERLAY } from '../loading-overlay/loading.interceptor';
 import {
   CombatEncounterDetail,
+  CompanionOption,
   CreateGameSessionPayload,
   GameSessionDetail,
   GameSessionPagedList,
@@ -27,6 +28,7 @@ import {
   StartEncounterParticipantInput,
   SubmitInitiativePayload,
   ReferenceImage,
+  SessionCompanion,
   ShownReferenceImage,
 } from '../models/game-session.interface';
 
@@ -182,7 +184,7 @@ export class GameSessionService {
     sessionId: string,
     payload: {
       id_character: number;
-      target_kind: 'player' | 'npc' | 'monster';
+      target_kind: 'player' | 'npc' | 'monster' | 'companion';
       target_id: string;
       amount: number;
       kind: 'damage' | 'heal' | 'temp_hp';
@@ -192,6 +194,46 @@ export class GameSessionService {
     return this.http.post<{ current_hit_points?: number; temporary_hit_points?: number }>(
       `${this.baseUrl}/api/game-session/${sessionId}/apply-amount`,
       payload,
+      { context: this.silentContext() },
+    );
+  }
+
+  // ── Companheiro Animal (ranger do Conclave da Besta) ──
+
+  /** Bestas que o ranger pode escolher (`allowed` falso se ainda não tem a característica). */
+  getCompanionOptions(
+    sessionId: string,
+    idPlayerSession: string,
+  ): Observable<{ allowed: boolean; beasts: CompanionOption[] }> {
+    return this.http.get<{ allowed: boolean; beasts: CompanionOption[] }>(
+      `${this.baseUrl}/api/game-session/${sessionId}/companion-options`,
+      { params: { id_player_session: idPlayerSession }, context: this.silentContext() },
+    );
+  }
+
+  /** Escolhe (ou troca) o companheiro: chega com o PV cheio. */
+  chooseCompanion(
+    sessionId: string,
+    idPlayerSession: string,
+    slug: string,
+  ): Observable<SessionCompanion> {
+    return this.http.post<SessionCompanion>(
+      `${this.baseUrl}/api/game-session/${sessionId}/companion`,
+      { id_player_session: idPlayerSession, slug },
+      { context: this.silentContext() },
+    );
+  }
+
+  dismissCompanion(idCompanion: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/api/game-session/companion/${idCompanion}`, {
+      context: this.silentContext(),
+    });
+  }
+
+  setCompanionHp(idCompanion: string, hpCurrent: number): Observable<{ hp_current: number }> {
+    return this.http.patch<{ hp_current: number }>(
+      `${this.baseUrl}/api/game-session/companion/${idCompanion}/hp`,
+      { hp_current: hpCurrent },
       { context: this.silentContext() },
     );
   }

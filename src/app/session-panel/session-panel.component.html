@@ -162,6 +162,8 @@
               <div class="mobile-player-card framed-card"
                 [class.mobile-player-card--current-turn]="isPlayerCurrentTurn(player)"
                 [class.mobile-player-card--has-bg]="player.character?.image_url"
+                [style.outline]="companionColorFor(player) ? '2px solid ' + companionColorFor(player) : null"
+                [style.outline-offset.px]="companionColorFor(player) ? 2 : null"
                 [style.background-image]="player.character?.image_url ? ('linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(' + player.character?.image_url + ')') : null">
                 @if (isOwner()) {
                   <button class="delete-btn" title="Remover jogador" (click)="deletePlayer(player.id_player_session)">✕</button>
@@ -256,10 +258,10 @@
       </fieldset>
 
       <!-- Lista de NPCs -->
-      @if (sessionDetail()!.npcs.length > 0) {
+      @if (sessionDetail()!.npcs.length > 0 || companions().length > 0) {
         <fieldset class="mobile-panel">
           <legend>NPCS</legend>
-          @if (sessionDetail()!.npcs.length > 0) {
+          @if (sessionDetail()!.npcs.length > 0 || companions().length > 0) {
           <div class="mobile-npc-list">
             @for (npc of sessionDetail()!.npcs; track npc.id_npc_session) {
               <div class="mobile-npc-row framed-card" [class.mobile-npc-row--current-turn]="isNpcCurrentTurn(npc)">
@@ -318,6 +320,14 @@
                   </div>
                 }
               </div>
+            }
+            @for (companion of companions(); track companion.id_session_companion) {
+              <app-companion-card [companion]="companion" [ownerName]="companionOwnerName(companion)"
+                [canEdit]="canManageCompanion(companion)" [canAct]="canManageCompanion(companion)"
+                [saving]="savingCompanionHp().has(companion.id_session_companion)"
+                [currentTurn]="isCompanionTurn(companion)"
+                (hpDelta)="applyCompanionHpDelta(companion, $event)"
+                (openActions)="openCompanionActions(companion)" />
             }
           </div>
           }
@@ -557,6 +567,8 @@
               <div class="player-card framed-card"
                 [class.player-card--current-turn]="isPlayerCurrentTurn(player)"
                 [class.player-card--has-bg]="player.character?.image_url"
+                [style.outline]="companionColorFor(player) ? '2px solid ' + companionColorFor(player) : null"
+                [style.outline-offset.px]="companionColorFor(player) ? 2 : null"
                 [class.player-card--tooltip-active]="avatarTooltipVisibleFor(player.id_character)"
                 [style.background-image]="player.character?.image_url ? ('linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(' + player.character?.image_url + ')') : null">
                 @if (isOwner()) {
@@ -679,10 +691,10 @@
       </fieldset>
 
       <!-- Lista de NPCs -->
-      @if (sessionDetail()!.npcs.length > 0 || isOwner()) {
+      @if (sessionDetail()!.npcs.length > 0 || companions().length > 0 || isOwner()) {
         <fieldset class="retro-panel">
           <legend>NPCS</legend>
-          @if (sessionDetail()!.npcs.length === 0) {
+          @if (sessionDetail()!.npcs.length === 0 && companions().length === 0) {
             <p class="empty-msg">NENHUM NPC ADICIONADO À SESSÃO.</p>
           } @else {
           <div class="npc-list">
@@ -750,6 +762,14 @@
                   </div>
                 }
               </div>
+            }
+            @for (companion of companions(); track companion.id_session_companion) {
+              <app-companion-card [companion]="companion" [ownerName]="companionOwnerName(companion)"
+                [canEdit]="canManageCompanion(companion)" [canAct]="canManageCompanion(companion)"
+                [saving]="savingCompanionHp().has(companion.id_session_companion)"
+                [currentTurn]="isCompanionTurn(companion)"
+                (hpDelta)="applyCompanionHpDelta(companion, $event)"
+                (openActions)="openCompanionActions(companion)" />
             }
           </div>
           }
@@ -894,6 +914,8 @@
     [fallbackName]="actionsChar.name"
     [sessionId]="id()"
     [applyTargets]="applyTargetsFor(actionsChar.id)"
+    [idPlayerSession]="playerSessionIdFor(actionsChar.id)"
+    [companion]="companionFor(actionsChar.id)"
     [turnKey]="combatTurnKey()"
     [inCombat]="!!sessionDetail()?.combat"
     [allies]="alliesFor(actionsChar.id)"
@@ -917,6 +939,7 @@
     (openInventory)="closePlayerActions(); openMyInventory()"
     (applyToTarget)="applyRollToTarget($event)"
     (closed)="closePlayerActions()"
+    (companionSet)="onCompanionSet(actionsChar.id, $event)"
     (attackResolved)="onAttackResolved(actionsChar.name, $event)" />
 }
 

@@ -18,6 +18,14 @@ export function applySessionEvent(
       return {
         ...detail,
         players: detail.players.filter((p) => p.id_player_session !== event.id_player_session),
+        // O companheiro sai junto com o ranger (cascata no banco).
+        ...(detail.companions
+          ? {
+              companions: detail.companions.filter(
+                (c) => c.id_player_session !== event.id_player_session,
+              ),
+            }
+          : {}),
       };
 
     case 'npc_added':
@@ -74,6 +82,23 @@ export function applySessionEvent(
                 },
               }
             : p,
+        ),
+      };
+
+    case 'companion_set': {
+      const others = (detail.companions ?? []).filter(
+        (c) => c.id_player_session !== event.id_player_session,
+      );
+      return { ...detail, companions: event.companion ? [...others, event.companion] : others };
+    }
+
+    case 'companion_hp_updated':
+      return {
+        ...detail,
+        companions: (detail.companions ?? []).map((c) =>
+          c.id_session_companion === event.id_session_companion
+            ? { ...c, hp_current: event.hp_current }
+            : c,
         ),
       };
 

@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output, computed, inject, signal } from '@angular/core';
 import { CommonModule, KeyValuePipe } from '@angular/common';
+import { map } from 'rxjs';
 import { CharacterService, HitDieRollResult } from '../services/character.service';
 import { GameSessionService } from '../services/game-session.service';
 import {
@@ -25,6 +26,7 @@ import { monsterActions, MonsterActionButton } from '../monster-actions/monster-
 import { MonsterStatBlock } from '../models/monster-catalog.interface';
 import { apiErrorMessage } from '../auth/auth-errors';
 import { WildShapeOption } from '../models/character-response.interface';
+import { SessionCompanion } from '../models/game-session.interface';
 import {
   isOnHitSpell,
   RiderAttackKind,
@@ -96,6 +98,10 @@ export class PlayerActionsModalComponent implements OnInit {
   /** Alvos em que o dano/cura rolado pode ser aplicado direto (opcional) — a sessão monta a lista
    *  conforme as permissões (mestre: todos; jogador: só o próprio personagem). */
   @Input() applyTargets: ApplyTarget[] = [];
+  /** Jogador dono do personagem nesta mesa (`null` em NPC): escolhe o Companheiro Animal. */
+  @Input() idPlayerSession: string | null = null;
+  /** Companheiro Animal do ranger nesta mesa (`null` = ainda não escolheu). */
+  @Input() companion: SessionCompanion | null = null;
   /** Vez atual do combate ("<combate>:<rodada>:<participante>") — trava as somas 1×/turno
    *  (Ataque Furtivo…). `null` fora de combate: sem trava. */
   @Input() turnKey: string | null = null;
@@ -137,6 +143,8 @@ export class PlayerActionsModalComponent implements OnInit {
   /** DANO/CURA no próprio personagem (a sessão aplica: temporários, confirmação de vida extra). */
   @Output() adjustHp = new EventEmitter<{ kind: 'damage' | 'heal'; amount: number }>();
   @Output() closed = new EventEmitter<void>();
+  /** Companheiro escolhido, trocado ou dispensado (a mesa atualiza sem esperar o socket). */
+  @Output() companionSet = new EventEmitter<SessionCompanion | null>();
   /** Repassa a confirmação de acerto/erro do roll-modal (só dispara no fluxo de ataque com dano) —
    *  a sessão usa isso pra reagir (ex: Tom). */
   @Output() attackResolved = new EventEmitter<boolean>();
@@ -279,6 +287,85 @@ export class PlayerActionsModalComponent implements OnInit {
     const form = this.wildShape();
     if (!form || !button.config || button.config.mode !== 'ability') return;
     this.activeRoll.set({ ...button.config, label: `${form.name}: ${button.config.label}` });
+  }
+
+  // ========================= COMPANHEIRO ANIMAL =========================
+
+  companionPicking = signal(false);
+  companionBusy = signal(false);
+
+  /** Ranger do Conclave da Besta numa mesa, jogando com o próprio personagem (não NPC). */
+  hasCompanionFeature(): boolean {
+    return !!this.combatFeatures()?.animal_companion && !!this.sessionId && !!this.idPlayerSession;
+  }
+
+  /** Bestas que o ranger pode escolher (a API filtra: ND 1/4, até Médio). */
+  readonly companionLoader = () =>
+    this.gameSessionService
+      .getCompanionOptions(this.sessionId!, this.idPlayerSession!)
+      .pipe(map((res) => ({ beasts: res.beasts })));
+
+  /**
+   * Ações da besta com a proficiência do ranger somada no ataque e no dano. A partir do nível 11
+   * ela ataca duas vezes quando o ranger manda atacar.
+   */
+  companionActions(): MonsterActionButton[] {
+    const companion = this.companion;
+    if (!companion) return [];
+    const block = { actions: companion.actions } as unknown as MonsterStatBlock;
+    return monsterActions(block)
+      .filter((b) => !!b.config)
+      .map((b) => ({ ...b, config: companionConfig(b.config as AbilityRollConfig, companion) }));
+  }
+
+  chooseCompanion(beast: WildShapeOption): void {
+    if (this.companionBusy() || !this.sessionId || !this.idPlayerSession) return;
+    this.companionBusy.set(true);
+    this.actionError.set(null);
+    const sessionId = this.sessionId;
+    this.gameSessionService.chooseCompanion(sessionId, this.idPlayerSession, beast.slug).subscribe({
+      next: (companion) => {
+        this.companionBusy.set(false);
+        this.companionPicking.set(false);
+        this.companionSet.emit(companion);
+        this.gameSessionService
+          .announceSpellCast(sessionId, {
+            id_character: this.idCharacter,
+            actor_name: this.actorName,
+            spell_name: `Companheiro Animal: ${companion.name}`,
+            is_ability: true,
+          })
+          .subscribe({ error: () => undefined });
+      },
+      error: (err) => {
+        this.companionBusy.set(false);
+        this.companionPicking.set(false);
+        this.actionError.set(apiErrorMessage(err, 'Não foi possível escolher o companheiro.'));
+      },
+    });
+  }
+
+  dismissCompanion(): void {
+    const companion = this.companion;
+    if (!companion || this.companionBusy()) return;
+    this.companionBusy.set(true);
+    this.actionError.set(null);
+    this.gameSessionService.dismissCompanion(companion.id_session_companion).subscribe({
+      next: () => {
+        this.companionBusy.set(false);
+        this.companionSet.emit(null);
+      },
+      error: (err) => {
+        this.companionBusy.set(false);
+        this.actionError.set(apiErrorMessage(err, 'Não foi possível dispensar o companheiro.'));
+      },
+    });
+  }
+
+  /** Ataque do companheiro: o modal das ações de monstro, com o nome dele. */
+  rollCompanionAction(button: MonsterActionButton): void {
+    if (!this.companion || !button.config || button.config.mode !== 'ability') return;
+    this.activeRoll.set({ ...button.config, label: `${this.companion.name}: ${button.config.label}` });
   }
 
   /** A ficha muda inteira ao transformar ou voltar (PV, CA, atributos, ataques). */
@@ -1305,4 +1392,24 @@ export class PlayerActionsModalComponent implements OnInit {
         : null,
     };
   }
+}
+
+/**
+ * Rolagem de uma ação do companheiro: proficiência do ranger no ataque (só quando há jogada de
+ * ataque) e no dano; com Ataques Múltiplos (nv11), "ataque da besta 1 de 2".
+ */
+export function companionConfig(
+  config: AbilityRollConfig,
+  companion: Pick<SessionCompanion, 'proficiency_bonus' | 'attacks_per_command'>,
+): AbilityRollConfig {
+  if (config.rollType !== 'attack') return config;
+  const pb = companion.proficiency_bonus;
+  return {
+    ...config,
+    modifier: config.autoHit ? config.modifier : config.modifier + pb,
+    ...(config.damage ? { damage: { ...config.damage, modifier: config.damage.modifier + pb } } : {}),
+    ...(companion.attacks_per_command > 1 && !config.autoHit
+      ? { instances: { count: companion.attacks_per_command, label: 'ataque da besta' } }
+      : {}),
+  };
 }

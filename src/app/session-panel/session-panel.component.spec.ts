@@ -15,6 +15,7 @@ import {
 } from '../models/game-session.interface';
 import {
   combat,
+  companion,
   monster,
   npc,
   participant,
@@ -40,6 +41,7 @@ describe('SessionPanelComponent', () => {
     updateNpcHp: ReturnType<typeof vi.fn>;
     updateMonsterHp: ReturnType<typeof vi.fn>;
     applyAmount: ReturnType<typeof vi.fn>;
+    setCompanionHp: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(() => {
@@ -49,6 +51,7 @@ describe('SessionPanelComponent', () => {
       updateNpcHp: vi.fn(() => of({})),
       updateMonsterHp: vi.fn(() => of({})),
       applyAmount: vi.fn(() => of({})),
+      setCompanionHp: vi.fn((_id: string, hp: number) => of({ hp_current: hp })),
     };
     TestBed.configureTestingModule({
       providers: [
@@ -859,6 +862,86 @@ describe('SessionPanelComponent', () => {
       expect(gameSessionService.updateMonsterHp).toHaveBeenCalledWith('m1', 0);
       component.applyRollToTarget({ targetKey: 'npc:n1', amount: 5, kind: 'heal' });
       expect(gameSessionService.updateNpcHp).toHaveBeenCalledWith('n1', 20);
+    });
+
+    describe('Companheiro Animal', () => {
+      const c1 = companion('c1', 'p1', { hp_current: 10, hp_max: 12 });
+
+      it('entra nos alvos com o nome do ranger, sem PV temporário', () => {
+        detail.set(sessionDetail({ players: [p1], companions: [c1] }));
+        expect(component.applyTargetsFor(10)).toContainEqual({
+          key: 'companion:c1',
+          label: 'Lobo (companheiro de Personagem p1)',
+          allowsTempHp: false,
+        });
+      });
+
+      it('mestre: dano e cura limitados entre 0 e o máximo; PV temporário ignorado', () => {
+        detail.set(sessionDetail({ players: [p1], companions: [c1] }));
+        component.applyRollToTarget({ targetKey: 'companion:c1', amount: 50, kind: 'heal' });
+        expect(gameSessionService.setCompanionHp).toHaveBeenLastCalledWith('c1', 12);
+        expect(detail()!.companions![0].hp_current).toBe(12);
+        component.applyRollToTarget({ targetKey: 'companion:c1', amount: 30, kind: 'damage' });
+        expect(gameSessionService.setCompanionHp).toHaveBeenLastCalledWith('c1', 0);
+        component.applyRollToTarget({ targetKey: 'companion:c1', amount: 5, kind: 'temp_hp' });
+        expect(gameSessionService.setCompanionHp).toHaveBeenCalledTimes(2);
+      });
+
+      it('jogador: manda pro servidor como companion e usa o PV que volta', () => {
+        detail.set(
+          sessionDetail({
+            game_session: { ...sessionDetail().game_session, user_id: 'outro-mestre' },
+            players: [p1, p2],
+            companions: [c1],
+          }),
+        );
+        component.activeActionsCharacter.set({ id: 20, name: 'Personagem p2' });
+        gameSessionService.applyAmount.mockReturnValue(of({ current_hit_points: 4 }));
+        component.applyRollToTarget({ targetKey: 'companion:c1', amount: 6, kind: 'damage' });
+        expect(gameSessionService.applyAmount).toHaveBeenCalledWith('gs', {
+          id_character: 20,
+          target_kind: 'companion',
+          target_id: 'c1',
+          amount: 6,
+          kind: 'damage',
+        });
+        expect(gameSessionService.setCompanionHp).not.toHaveBeenCalled();
+        expect(detail()!.companions![0].hp_current).toBe(4);
+      });
+
+      it('o card do ranger ganha a cor do companheiro; o modal recebe o companheiro dele', () => {
+        detail.set(sessionDetail({ players: [p1, p2], companions: [c1] }));
+        expect(component.companionColorFor(p1)).toBe('#5fb3d9');
+        expect(component.companionColorFor(p2)).toBeNull();
+        expect(component.companionFor(10)?.id_session_companion).toBe('c1');
+        expect(component.companionFor(20)).toBeNull();
+        expect(component.playerSessionIdFor(20)).toBe('p2');
+      });
+
+      it('escolher/dispensar no modal atualiza a mesa na hora', () => {
+        detail.set(sessionDetail({ players: [p1], companions: [] }));
+        component.onCompanionSet(10, c1);
+        expect(detail()!.companions).toEqual([c1]);
+        component.onCompanionSet(10, null);
+        expect(detail()!.companions).toEqual([]);
+      });
+
+      it('só o mestre e o jogador do ranger mexem no companheiro', () => {
+        // p1 é do usuário logado ('dm'), que aqui não é o mestre.
+        const c2 = companion('c2', 'p2');
+        detail.set(
+          sessionDetail({
+            game_session: { ...sessionDetail().game_session, user_id: 'outro-mestre' },
+            players: [p1, p2],
+            companions: [c1, c2],
+          }),
+        );
+        expect(component.canManageCompanion(c1)).toBe(true);
+        expect(component.canManageCompanion(c2)).toBe(false);
+        // Mestre: todos.
+        detail.set(sessionDetail({ players: [p1, p2], companions: [c1, c2] }));
+        expect(component.canManageCompanion(c2)).toBe(true);
+      });
     });
 
     it('alvo inexistente ou valor zero não faz nada', () => {
