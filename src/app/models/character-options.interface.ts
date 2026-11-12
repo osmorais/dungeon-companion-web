@@ -31,6 +31,10 @@ export interface WeaponRow {
   weight: number;
   price_value: number;
   isRanged: boolean;
+  /** Sabe usar a arma; `false` = o ataque não soma a proficiência (API 1.23.3+). */
+  proficient?: boolean;
+  /** Arma versátil: dado de dano com as duas mãos (ex.: "1d8"). */
+  versatile_die?: string | null;
 }
 
 export interface WeaponOption {

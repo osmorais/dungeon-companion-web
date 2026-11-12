@@ -33,6 +33,33 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.23.3',
+    date: '2026-11-12',
+    title: 'Ficha: proficiência em armas e impressão corrigidas',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'O ataque com uma arma que a classe não sabe usar (por exemplo, um bruxo com besta pesada) não soma mais o bônus de proficiência. As armas marciais dos Domínios da Guerra e da Tempestade e do Colégio da Bravura passam a contar.',
+      },
+      {
+        kind: 'correcao',
+        text: 'A ficha impressa mostra o dano com o atributo somado, o dano das armas versáteis com as duas mãos, a armadura vestida e o escudo.',
+      },
+      {
+        kind: 'correcao',
+        text: 'Humanos e meio-elfos ganham o idioma extra que o livro dá.',
+      },
+      {
+        kind: 'correcao',
+        text: 'O monge que usa escudo deixa de somar a Sabedoria na CA, como no livro.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A carta da arma mostra o dano com as duas mãos nas armas versáteis e avisa quando o personagem não tem proficiência nela.',
+      },
+    ],
+  },
+  {
     version: '1.23.2',
     date: '2026-11-12',
     title: 'Bestiário mostra primeiro os monstros com arte',

@@ -79,13 +79,19 @@ export function weaponToCard(weapon: WeaponRow): GameCardData {
     artFit: 'contain',
     ribbon: `${isSimpleWeapon(weapon.name) ? 'SIMPLES' : 'MARCIAL'} · ${weapon.isRanged ? 'DISTÂNCIA' : 'CORPO A CORPO'}`,
     stats: [
-      { label: 'DANO', value: damageLabel(weapon.damage_die, weapon.damage_modifier) },
+      {
+        label: 'DANO',
+        value: weapon.versatile_die
+          ? `${damageLabel(weapon.damage_die, weapon.damage_modifier)} (${damageLabel(weapon.versatile_die, weapon.damage_modifier)} duas mãos)`
+          : damageLabel(weapon.damage_die, weapon.damage_modifier),
+      },
       { label: 'TIPO', value: capitalize(weapon.damage_type) },
       { label: 'PROPRIEDADES', value: weapon.properties || '—' },
       { label: 'PESO', value: weapon.weight ? `${weapon.weight} kg` : '—' },
     ],
     text: null,
-    tags: [],
+    // Sem proficiência: o ataque não soma o bônus (ex.: bruxo com besta pesada).
+    tags: weapon.proficient === false ? ['SEM PROFICIÊNCIA'] : [],
   };
 }
 
