@@ -33,6 +33,21 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.24.1',
+    date: '2026-11-12',
+    title: 'Mesa do mestre em tempo real de novo',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'A mesa do mestre voltou a atualizar na hora: revelar e esconder monstros, os avisos de monstro revelado e derrotado e as outras mudanças da mesa aparecem sem atraso, como para os jogadores.',
+      },
+      {
+        kind: 'correcao',
+        text: 'O jogador passa a ver a arte do monstro assim que ele é revelado, sem precisar recarregar a página.',
+      },
+    ],
+  },
+  {
     version: '1.24.0',
     date: '2026-11-12',
     title: 'Escolha de idiomas e ferramentas',

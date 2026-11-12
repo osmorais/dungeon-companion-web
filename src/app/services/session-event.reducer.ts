@@ -200,6 +200,8 @@ export function applySessionEvent(
                 monster_type: event.monster_type ?? null,
                 size: event.size ?? null,
                 lore: event.lore ?? null,
+                // Arte padrão do monstro pro jogador (1.23.0) — sem isso só aparecia no recarregar.
+                monster_slug: event.monster_slug ?? null,
               },
             ],
       };

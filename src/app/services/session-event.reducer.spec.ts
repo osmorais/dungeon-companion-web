@@ -234,6 +234,17 @@ describe('applySessionEvent', () => {
       expect(m.data_snapshot).toMatchObject({ name: 'Goblin', strength: 8, dexterity: 18 });
     });
 
+    it('revelado guarda o slug da arte padrão (1.23.0)', () => {
+      const detail = apply(sessionDetail({ monsters: [monster('m1')] }), {
+        type: 'monster_revealed',
+        id_monster_session: 'm1',
+        name: 'Coisa',
+        image_url: null,
+        monster_slug: 'mimico',
+      });
+      expect(detail.revealed_monsters[0].monster_slug).toBe('mimico');
+    });
+
     it('revelar adiciona aos revelados (sem duplicar) e esconder remove', () => {
       let detail = sessionDetail({ monsters: [monster('m1')] });
       const reveal = {
@@ -253,6 +264,7 @@ describe('applySessionEvent', () => {
           monster_type: null,
           size: null,
           lore: null,
+          monster_slug: null,
         },
       ]);
 
@@ -280,6 +292,7 @@ describe('applySessionEvent', () => {
           monster_type: 'dragão',
           size: 'Enorme',
           lore: 'Senhor da montanha.',
+          monster_slug: null,
         },
       ]);
     });
