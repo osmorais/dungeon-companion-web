@@ -2866,7 +2866,7 @@ export class SessionPanelComponent implements OnDestroy {
     this.battlePrepareCheckedFor.add(pending.id_combat_participant);
 
     this.checkingBattlePrepare.set(true);
-    this.charService.getCharacterById(player.id_character).subscribe({
+    this.charService.getCharacterById(player.id_character, false, this.id()).subscribe({
       next: (sheet) => {
         this.checkingBattlePrepare.set(false);
         const info = sheet.character_sheet.spellcasting_info;
@@ -2947,7 +2947,7 @@ export class SessionPanelComponent implements OnDestroy {
     if (next && !this.battleCanPrepareMore()) return revert();
 
     this.battlePrepareError.set(null);
-    this.charService.setSpellPrepared(id, spell.id_spell, next).subscribe({
+    this.charService.setSpellPrepared(id, spell.id_spell, next, this.id()).subscribe({
       error: (err) => {
         revert();
         this.battlePrepareError.set(apiErrorMessage(err, 'Não foi possível preparar a magia.'));

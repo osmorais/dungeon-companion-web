@@ -158,7 +158,7 @@ describe('PlayerActionsModalComponent — Forma Selvagem', () => {
       speed: {},
     });
     expect(charService['startWildShape']).toHaveBeenCalledWith(7, 'lobo');
-    expect(charService['getCharacterById']).toHaveBeenCalledWith(7, true);
+    expect(charService['getCharacterById']).toHaveBeenCalledWith(7, true, 'gs');
     expect(announce).toHaveBeenCalledWith('gs', {
       id_character: 7,
       actor_name: 'Elara',

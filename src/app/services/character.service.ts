@@ -53,9 +53,15 @@ export class CharacterService {
   }
 
   /** `silent` evita o overlay de carregamento em tela cheia — usado pelo tooltip de hover no avatar. */
-  getCharacterById(id: number, silent = false): Observable<CharacterSheetResponse> {
+  /** `sessionId`: mesa de onde a ficha foi aberta — só o combate dela trava o preparo de magias. */
+  getCharacterById(
+    id: number,
+    silent = false,
+    sessionId?: string | null,
+  ): Observable<CharacterSheetResponse> {
     return this.http.get<CharacterSheetResponse>(`${this.baseUrl}/api/character-sheet/${id}`, {
       context: silent ? new HttpContext().set(SKIP_LOADING_OVERLAY, true) : undefined,
+      ...(sessionId ? { params: { session_id: sessionId } } : {}),
     });
   }
 
@@ -200,10 +206,16 @@ export class CharacterService {
     return this.http.post<LevelUpResult>(`${this.baseUrl}/api/character-sheet/${id}/level-up/confirm`, input);
   }
 
-  setSpellPrepared(id: number, idSpell: number, isPrepared: boolean): Observable<{ success: boolean }> {
+  /** `sessionId`: mesa onde está — um combate esquecido aberto noutra mesa não trava o preparo. */
+  setSpellPrepared(
+    id: number,
+    idSpell: number,
+    isPrepared: boolean,
+    sessionId?: string | null,
+  ): Observable<{ success: boolean }> {
     return this.http.patch<{ success: boolean }>(
       `${this.baseUrl}/api/character-sheet/${id}/spells/${idSpell}/prepared`,
-      { is_prepared: isPrepared },
+      { is_prepared: isPrepared, ...(sessionId ? { id_game_session: sessionId } : {}) },
     );
   }
 }

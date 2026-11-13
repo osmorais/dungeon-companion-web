@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.24.3',
+    date: '2026-11-12',
+    title: 'Preparar magias antes da luta',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'Preparar magias antes de rolar a iniciativa voltou a funcionar para quem também joga noutra mesa: um combate que ficou aberto em outra sessão não trava mais o preparo nesta.',
+      },
+    ],
+  },
+  {
     version: '1.24.2',
     date: '2026-11-12',
     title: 'Resistência de monstros contra magias',

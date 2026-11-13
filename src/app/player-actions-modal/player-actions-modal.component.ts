@@ -200,7 +200,7 @@ export class PlayerActionsModalComponent implements OnInit {
   actionError = signal<string | null>(null);
 
   ngOnInit(): void {
-    this.charService.getCharacterById(this.idCharacter).subscribe({
+    this.charService.getCharacterById(this.idCharacter, false, this.sessionId).subscribe({
       next: (sheet) => {
         this.sheet.set(sheet);
         this.loading.set(false);
@@ -370,7 +370,7 @@ export class PlayerActionsModalComponent implements OnInit {
 
   /** A ficha muda inteira ao transformar ou voltar (PV, CA, atributos, ataques). */
   private reloadSheet(): void {
-    this.charService.getCharacterById(this.idCharacter, true).subscribe({
+    this.charService.getCharacterById(this.idCharacter, true, this.sessionId).subscribe({
       next: (sheet) => this.sheet.set(sheet),
       error: () => undefined,
     });
@@ -1264,7 +1264,7 @@ export class PlayerActionsModalComponent implements OnInit {
     const next = !spell.is_prepared;
     if (next && !this.canPrepareMore()) return revert();
     this.actionError.set(null);
-    this.charService.setSpellPrepared(this.idCharacter, spell.id_spell, next).subscribe({
+    this.charService.setSpellPrepared(this.idCharacter, spell.id_spell, next, this.sessionId).subscribe({
       next: () => this.applyPreparedLocally(spell.id_spell, next),
       error: (err) => {
         revert();

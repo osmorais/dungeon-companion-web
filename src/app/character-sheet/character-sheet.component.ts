@@ -86,7 +86,7 @@ export class CharacterSheetComponent {
           this.charService.currentCharacter.set(null);
           const id = +paramId;
           forkJoin({
-            sheet: this.charService.getCharacterById(id),
+            sheet: this.charService.getCharacterById(id, false, this.sessionId()),
             background: this.charService.getCharacterBackground(id).pipe(catchError(() => of(null))),
           }).subscribe({
             next: ({ sheet, background }) => {
@@ -623,7 +623,7 @@ export class CharacterSheetComponent {
     const next = !spell.is_prepared;
     if (next && !this.canPrepareMore()) return revert();
 
-    this.charService.setSpellPrepared(id, spell.id_spell, next).subscribe({
+    this.charService.setSpellPrepared(id, spell.id_spell, next, this.sessionId()).subscribe({
       next: () => this.applySpellPreparedLocally(spell.id_spell, next),
       error: () => revert(),
     });
@@ -805,7 +805,7 @@ export class CharacterSheetComponent {
     this.showLevelUpModal.set(false);
     const id = this.sheetData()?.character_sheet.id_character;
     if (!id) return;
-    this.charService.getCharacterById(id).subscribe({
+    this.charService.getCharacterById(id, false, this.sessionId()).subscribe({
       next: sheet => this.charService.currentCharacter.set(sheet),
     });
   }
