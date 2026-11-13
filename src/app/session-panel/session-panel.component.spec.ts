@@ -80,6 +80,27 @@ describe('SessionPanelComponent', () => {
     else component.setMonsterDamageInput(target, event);
   }
 
+  describe('anéis da escolha de alvos (1.25.0)', () => {
+    it('jogador e NPC: sempre o avatar montado, nunca a imagem de fundo', () => {
+      const preset = { race: 'elf' } as unknown as NonNullable<
+        PlayerSession['character']
+      >['avatar_preset'];
+      const withBg = player('p1', {
+        id_character: 10,
+        character: {
+          ...player('p1').character!,
+          image_url: 'https://x/fundo.png',
+          avatar_preset: preset,
+        },
+      });
+      detail.set(sessionDetail({ players: [withBg] }));
+      expect(component.applyTargetsFor(10)[0].avatar).toEqual({
+        imageUrl: null,
+        avatarPreset: preset,
+      });
+    });
+  });
+
   describe('Quadro do Mestre: acerto automático (1.25.0)', () => {
     it('liga a opção na API e a mesa já fica com ela', () => {
       const update = vi.fn(() => of({ auto_hit_check: true }));

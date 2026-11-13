@@ -736,10 +736,11 @@ export class SessionPanelComponent implements OnDestroy {
     return [...players, ...npcs, ...companions, ...monsters];
   }
 
-  /** Foto ou avatar do personagem pro anel da escolha de alvos (1.25.0). */
+  /** Avatar do personagem pro anel da escolha de alvos (1.25.0) — sempre o avatar montado, nunca
+   *  a imagem de fundo do card (essa é pra moldura, não pro anel). */
   private targetAvatar(idCharacter: number, name: string): ApplyTarget['avatar'] {
     const card = this.characterCardFor(idCharacter, name);
-    return { imageUrl: card.imageUrl, avatarPreset: card.avatarPreset };
+    return { imageUrl: null, avatarPreset: card.avatarPreset };
   }
 
   /** Outros jogadores com personagem (Inspiração Bárdica escolhe um deles). */
