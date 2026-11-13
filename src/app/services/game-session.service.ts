@@ -32,11 +32,21 @@ import {
   ShownReferenceImage,
 } from '../models/game-session.interface';
 
+/** PV do alvo depois de aplicar; no monstro, o que entrou e a defesa que valeu (1.24.4). */
+export interface ApplyAmountResult {
+  current_hit_points?: number;
+  temporary_hit_points?: number;
+  applied_amount?: number;
+  defense?: 'immune' | 'resistant' | 'vulnerable';
+}
+
 /** Pedido criado: pra um jogador ou (1.24.2) pra um monstro, que o mestre rola. */
 export interface SecretRollRequestCreated {
   id_player_session: string | null;
   id_monster_session?: string | null;
-  request_id: string;
+  /** `null` com `immune`: monstro imune ao dano, sem pedido (1.24.4). */
+  request_id: string | null;
+  immune?: boolean;
 }
 
 export interface AddMonsterToSessionInput {
@@ -196,9 +206,10 @@ export class GameSessionService {
       amount: number;
       kind: 'damage' | 'heal' | 'temp_hp';
       cast_id?: string;
+      damage_type?: string | null;
     },
-  ): Observable<{ current_hit_points?: number; temporary_hit_points?: number }> {
-    return this.http.post<{ current_hit_points?: number; temporary_hit_points?: number }>(
+  ): Observable<ApplyAmountResult> {
+    return this.http.post<ApplyAmountResult>(
       `${this.baseUrl}/api/game-session/${sessionId}/apply-amount`,
       payload,
       { context: this.silentContext() },

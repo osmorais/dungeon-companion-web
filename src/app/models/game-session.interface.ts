@@ -383,6 +383,8 @@ export interface SecretRollRequestPayload {
   id_player_sessions: string[];
   /** Monstros atingidos: o pedido vai pro mestre rolar (1.24.2). Só resistência pública. */
   id_monster_sessions?: string[];
+  /** Tipo do dano da magia: monstro imune a ele nem recebe o pedido (1.24.4). */
+  damage_type?: string | null;
   check: SecretRollCheck;
   label: string;
   /** Só resistência: CD (fica na API — o jogador recebe só se passou ou falhou). */

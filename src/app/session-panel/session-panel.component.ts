@@ -105,6 +105,10 @@ import { IMAGE_TYPE_ERROR, isAcceptedImageFile } from '../constants/image-upload
 import { SessionFriendsInviteComponent } from '../session-invite-modal/session-friends-invite.component';
 
 import { MonsterStatBlock } from '../models/monster-catalog.interface';
+import { monsterApplyDefenses } from '../roll-modal/apply-target';
+
+/** Aviso "APLICOU": por que o dano no monstro mudou (1.24.4). */
+const DEFENSE_LABEL = { immune: 'imune', resistant: 'resistente', vulnerable: 'vulnerável' } as const;
 @Component({
   selector: 'app-session-panel',
   standalone: true,
@@ -687,6 +691,8 @@ export class SessionPanelComponent implements OnDestroy {
             key: `monster:${m.id_monster_session}`,
             label: this.monsterDisplayName(m),
             allowsTempHp: false,
+            // Mestre tem a ficha: o modal já ajusta imunidade/resistência/vulnerabilidade.
+            defenses: monsterApplyDefenses(m.data_snapshot),
           }))
       : detail.revealed_monsters.map((m) => ({
           key: `monster:${m.id_monster_session}`,
@@ -719,12 +725,19 @@ export class SessionPanelComponent implements OnDestroy {
   }
 
   /** Aplica o resultado de uma rolagem no alvo, com as mesmas regras do dano/cura em lote. */
-  applyRollToTarget({ targetKey, amount, kind, castId }: ApplyRequest): void {
+  applyRollToTarget({ targetKey, amount, kind, castId, damageType }: ApplyRequest): void {
     const detail = this.sessionDetail();
     if (!detail || amount <= 0) return;
     const [type, id] = targetKey.split(':');
     if (!this.isOwner()) {
-      this.applyViaServer(type as 'player' | 'npc' | 'monster' | 'companion', id, amount, kind, castId);
+      this.applyViaServer(
+        type as 'player' | 'npc' | 'monster' | 'companion',
+        id,
+        amount,
+        kind,
+        castId,
+        damageType,
+      );
       return;
     }
     if (type === 'player') {
@@ -767,6 +780,7 @@ export class SessionPanelComponent implements OnDestroy {
     amount: number,
     kind: ApplyRequest['kind'],
     castId?: string,
+    damageType?: string | null,
   ): void {
     const sessionId = this.sessionDetail()?.game_session.id_game_session;
     const actor = this.activeActionsCharacter();
@@ -779,6 +793,8 @@ export class SessionPanelComponent implements OnDestroy {
         amount,
         kind,
         ...(castId ? { cast_id: castId } : {}),
+        // Monstro: a API aplica imunidade/resistência/vulnerabilidade da ficha (1.24.4).
+        ...(type === 'monster' && damageType ? { damage_type: damageType } : {}),
       })
       .subscribe({
         next: (result) => {
@@ -2293,7 +2309,7 @@ export class SessionPanelComponent implements OnDestroy {
       event.actor_name,
       event.amount,
       event.kind,
-      event.target_label,
+      event.defense ? `${event.target_label} (${DEFENSE_LABEL[event.defense]})` : event.target_label,
     );
   }
 

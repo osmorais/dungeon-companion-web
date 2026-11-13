@@ -97,6 +97,9 @@
               @case ('fail') {
                 <span>{{ target.label }}: falhou</span>
               }
+              @case ('immune') {
+                <span>{{ target.label }}: imune a esse dano</span>
+              }
               @default {
                 <input
                   type="checkbox"

@@ -561,7 +561,19 @@ describe('SessionPanelComponent', () => {
         { key: 'player:p1', label: 'Personagem p1', allowsTempHp: true },
         { key: 'player:p2', label: 'Personagem p2', allowsTempHp: true },
         { key: 'npc:n1', label: 'Personagem n1', allowsTempHp: false },
-        { key: 'monster:m1', label: 'Goblin', allowsTempHp: false },
+        {
+          key: 'monster:m1',
+          label: 'Goblin',
+          allowsTempHp: false,
+          // Mestre: defesas da ficha do monstro (1.24.4) — o goblin não tem nenhuma.
+          defenses: {
+            resistances: [],
+            immunities: [],
+            vulnerabilities: [],
+            uncanny_dodge: false,
+            evasion: false,
+          },
+        },
       ]);
     });
 
@@ -859,6 +871,36 @@ describe('SessionPanelComponent', () => {
         const updated = detail()!.players.find((p) => p.id_player_session === 'p1')!;
         expect(updated.character!.current_hit_points).toBe(12);
         expect(updated.character!.temporary_hit_points).toBe(0);
+      });
+
+      it('dano em monstro leva o tipo pra API aplicar imunidade/resistência (1.24.4)', () => {
+        asPlayer();
+        component.activeActionsCharacter.set({ id: 20, name: 'Personagem p2' });
+        gameSessionService.applyAmount.mockReturnValue(
+          of({ applied_amount: 0, defense: 'immune' }),
+        );
+        component.applyRollToTarget({
+          targetKey: 'monster:m1',
+          amount: 6,
+          kind: 'damage',
+          damageType: 'veneno',
+        });
+        expect(gameSessionService.applyAmount.mock.calls[0][1]).toMatchObject({
+          target_kind: 'monster',
+          damage_type: 'veneno',
+        });
+      });
+
+      it('aviso "APLICOU" diz quando o monstro era imune', () => {
+        component.onAmountApplied({
+          id_character: 20,
+          actor_name: 'Ana',
+          target_label: 'Esqueleto',
+          amount: 0,
+          kind: 'damage',
+          defense: 'immune',
+        });
+        expect(component.activeSpellCastToast()?.targets).toEqual(['Esqueleto (imune)']);
       });
 
       it('dano em monstro: nada de PV volta pro jogador', () => {

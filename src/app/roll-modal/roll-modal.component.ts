@@ -15,7 +15,13 @@ import {
 import { PixelDieComponent } from '../pixel-die/pixel-die.component';
 import { PixelNumericDieComponent } from '../pixel-numeric-die/pixel-numeric-die.component';
 import { hasRiderChoices, RiderChoices, RiderOption } from './spell-riders';
-import { ApplyKind, ApplyRequest, ApplyTarget, resistsDamage } from './apply-target';
+import {
+  ApplyKind,
+  ApplyRequest,
+  ApplyTarget,
+  normalizeDamageType,
+  resistsDamage,
+} from './apply-target';
 import { CastShatterComponent } from '../spell-cast/cast-shatter.component';
 import { CastTriumphComponent } from '../spell-cast/cast-triumph.component';
 import { SpellCastStageComponent } from '../spell-cast/spell-cast-stage.component';
@@ -453,10 +459,12 @@ export class RollModalComponent implements OnInit, OnDestroy {
     const idsOf = (prefix: string) =>
       ids.filter((key) => key.startsWith(prefix)).map((key) => key.slice(prefix.length));
     const monsterIds = idsOf('monster:');
+    const damageType = normalizeDamageType(this.config.damage?.damageType) || null;
     this.gameSessionService
       .requestSecretRoll(this.sessionId, {
         id_player_sessions: idsOf('player:'),
         ...(monsterIds.length ? { id_monster_sessions: monsterIds } : {}),
+        ...(monsterIds.length && damageType ? { damage_type: damageType } : {}),
         check: { kind: 'save', ability: save.ability },
         label: this.config.label.slice(0, 60),
         dc: save.dc,
@@ -473,7 +481,7 @@ export class RollModalComponent implements OnInit, OnDestroy {
                 r.id_monster_session
                   ? `monster:${r.id_monster_session}`
                   : `player:${r.id_player_session}`,
-                r.request_id,
+                r.immune || !r.request_id ? IMMUNE_REQUEST : r.request_id,
               ]),
             ),
           }));
@@ -487,9 +495,10 @@ export class RollModalComponent implements OnInit, OnDestroy {
   }
 
   /** Situação do pedido de um jogador: aguardando, passou ou falhou (a última rolagem dele). */
-  saveStatus(id: string): 'pending' | 'success' | 'fail' | null {
+  saveStatus(id: string): 'pending' | 'success' | 'fail' | 'immune' | null {
     const requestId = this.saveRequests()[id];
     if (!requestId) return null;
+    if (requestId === IMMUNE_REQUEST) return 'immune';
     // Monstro: o total fica oculto com o mestre; chega só o passou/falhou (1.24.2).
     const resolved = this.sessionState.saveOutcomes()[requestId];
     if (resolved) return resolved;
@@ -866,12 +875,37 @@ export class RollModalComponent implements OnInit, OnDestroy {
   /** Quanto o alvo recebe: `full` = falhou/acertou, `half` = passou na resistência,
    *  `uncanny` = Esquiva Sobrenatural; com Evasão e resistência ao tipo já aplicadas. */
   amountForTarget(target: ApplyTarget | undefined, mode: 'full' | 'half' | 'uncanny'): number {
+    if (this.immunityOf(target)) return 0;
     const total = this.result()?.total ?? 0;
     let amount = mode === 'half' ? Math.floor(total / 2) : total;
     if (this.hasEvasion(target)) amount = mode === 'half' ? 0 : Math.floor(total / 2);
     if (mode === 'uncanny') amount = Math.floor(amount / 2);
-    if (this.resistanceOf(target)) amount = Math.floor(amount / 2);
+    // Resistência e vulnerabilidade juntas se anulam.
+    const resists = !!this.resistanceOf(target);
+    const vulnerable = !!this.vulnerabilityOf(target);
+    if (resists && !vulnerable) amount = Math.floor(amount / 2);
+    if (vulnerable && !resists) amount = amount * 2;
     return amount;
+  }
+
+  /** Imunidade do alvo ao tipo deste dano: a da ficha do monstro (mestre) ou a que a API
+   *  respondeu no pedido de resistência (jogador, 1.24.4). */
+  immunityOf(target: ApplyTarget | undefined): string | null {
+    if (this.applyKind !== 'damage' || !target) return null;
+    if (this.saveStatus(target.key) === 'immune') return 'imune';
+    if (!target.defenses?.immunities?.length) return null;
+    return resistsDamage(target.defenses.immunities, this.pendingDamage?.damageType);
+  }
+
+  vulnerabilityOf(target: ApplyTarget | undefined): string | null {
+    if (this.applyKind !== 'damage' || !target?.defenses?.vulnerabilities?.length) return null;
+    return resistsDamage(target.defenses.vulnerabilities, this.pendingDamage?.damageType);
+  }
+
+  /** Tipo do dano pra API ajustar no monstro (jogador não vê a ficha dele). */
+  private get applyDamageType(): string | null {
+    if (this.applyKind !== 'damage') return null;
+    return normalizeDamageType(this.pendingDamage?.damageType) || null;
   }
 
   /** Alvo único escolhido no seletor (cura distribuída e chamadas antigas). */
@@ -937,8 +971,9 @@ export class RollModalComponent implements OnInit, OnDestroy {
     this.selectedKeys.set(new Set(this.pendingTargets.map((t) => t.key)));
   }
 
+  /** Passou: marcado à mão ou a resistência pedida voltou "passou" (jogador ou monstro). */
   isPassed(key: string): boolean {
-    return this.passedKeys().has(key);
+    return this.passedKeys().has(key) || this.saveStatus(key) === 'success';
   }
 
   togglePassed(key: string): void {
@@ -978,7 +1013,13 @@ export class RollModalComponent implements OnInit, OnDestroy {
       const amount = this.pendingAmount(target);
       // Evasão (passou): nada a aplicar — só registra pra mesa ver.
       if (amount > 0)
-        this.applyToTarget.emit({ targetKey: target.key, amount, kind, castId: this.cast?.castId });
+        this.applyToTarget.emit({
+          targetKey: target.key,
+          amount,
+          kind,
+          castId: this.cast?.castId,
+          damageType: this.applyDamageType,
+        });
       this.applied.update((list) => [...list, { label: target.label, amount, kind }]);
     }
     this.appliedKeys.update((done) => new Set([...done, ...targets.map((t) => t.key)]));
@@ -1013,7 +1054,13 @@ export class RollModalComponent implements OnInit, OnDestroy {
     }
     this.distributeAmount.set(null);
     const kind = this.applyKind;
-    this.applyToTarget.emit({ targetKey: target.key, amount, kind, castId: this.cast?.castId });
+    this.applyToTarget.emit({
+      targetKey: target.key,
+      amount,
+      kind,
+      castId: this.cast?.castId,
+      damageType: this.applyDamageType,
+    });
     this.applied.update((list) => [...list, { label: target.label, amount, kind }]);
     this.sendCastStage('open');
   }
@@ -1464,3 +1511,6 @@ export class RollModalComponent implements OnInit, OnDestroy {
     });
   }
 }
+
+/** Marca, no lugar do id do pedido, o monstro imune ao dano (a API nem pediu, 1.24.4). */
+const IMMUNE_REQUEST = 'immune';

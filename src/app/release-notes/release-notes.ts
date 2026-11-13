@@ -33,6 +33,25 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.24.4',
+    date: '2026-11-12',
+    title: 'Imunidades e resistências dos monstros',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'O dano aplicado em monstros respeita a ficha do bestiário: imune não sofre nada, resistente sofre metade e vulnerável sofre o dobro. O aviso da mesa mostra quando o monstro era imune, resistente ou vulnerável.',
+      },
+      {
+        kind: 'correcao',
+        text: 'Ao pedir resistência a um monstro imune ao dano da magia (como um esqueleto contra veneno), ele nem precisa rolar: aparece como imune.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Quando a resistência pedida volta como "passou", o alvo já vem marcado para receber metade do dano.',
+      },
+    ],
+  },
+  {
     version: '1.24.3',
     date: '2026-11-12',
     title: 'Preparar magias antes da luta',
