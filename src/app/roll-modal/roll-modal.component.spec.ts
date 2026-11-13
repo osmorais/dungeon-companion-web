@@ -382,6 +382,26 @@ describe('RollModalComponent — fase 4', () => {
 
   const settle = () => vi.advanceTimersByTime(1000);
 
+  describe('autoRoll (pedido de resistência)', () => {
+    const save: AbilityRollConfig = { mode: 'ability', rollType: 'save', label: 'x', modifier: 2 };
+
+    it('com autoRoll, já rola ao abrir; sem, espera o clique', () => {
+      const component = TestBed.runInInjectionContext(() => new RollModalComponent());
+      component.config = save;
+      component.autoRoll = true;
+      component.ngOnInit();
+      vi.advanceTimersByTime(0);
+      expect(component.isRolling()).toBe(true);
+      settle();
+      expect(component.result()).not.toBeNull();
+
+      const manual = create(save).modal;
+      vi.advanceTimersByTime(0);
+      expect(manual.isRolling()).toBe(false);
+      expect(manual.result()).toBeNull();
+    });
+  });
+
   describe('crítico', () => {
     it('20 natural: acerto crítico e os dados de dano dobram (o modificador não)', () => {
       const random = vi.spyOn(Math, 'random').mockReturnValue(0.999);

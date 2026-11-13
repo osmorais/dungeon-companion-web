@@ -179,6 +179,8 @@ export class RollModalComponent implements OnInit, OnDestroy {
   @Input() secretRequestId: string | null = null;
   /** Com `secretRequestId`: teste secreto (oculto) ou resistência pública pedida por quem lançou. */
   @Input() secretRoll = true;
+  /** Já rola ao abrir (pedido de resistência: o ROLAR do aviso rola direto, sem 2º clique). */
+  @Input() autoRoll = false;
   /** Alvos em que o dano/cura rolado pode ser aplicado direto (opcional). Vazio = sem a opção,
    *  e o modal se comporta como antes (encerra sozinho ao terminar a rolagem de dano). */
   @Input() applyTargets: ApplyTarget[] = [];
@@ -670,6 +672,7 @@ export class RollModalComponent implements OnInit, OnDestroy {
         }, CAST_ECHO_WAIT_MS);
       }
     }
+    if (this.autoRoll && !this.pendingDamage) setTimeout(() => this.roll());
     if (this.pendingDamage && this.config.mode === 'ability' && this.config.autoHit) {
       this.attackPhase.set('damage');
       // Valor fixo, sem dado (Integridade Corporal, Curar pelo Toque, Preservar a Vida): já

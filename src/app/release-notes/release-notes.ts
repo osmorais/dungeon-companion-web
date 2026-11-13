@@ -33,6 +33,17 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.24.5',
+    date: '2026-11-12',
+    title: 'Resistência rolada direto do aviso',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'Quem é atingido por uma magia com teste de resistência clica em ROLAR no aviso e o dado já rola ali, na frente da tela de lançamento — antes a rolagem abria escondida atrás dela e pedia mais um clique.',
+      },
+    ],
+  },
+  {
     version: '1.24.4',
     date: '2026-11-12',
     title: 'Imunidades e resistências dos monstros',
