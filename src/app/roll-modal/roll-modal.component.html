@@ -45,516 +45,625 @@
     } @else {
       <h3 class="roll-modal-title">{{ title }}</h3>
     }
-    @for (reminder of reminders; track reminder) {
-      <p class="roll-modifier-line">
-        <img class="ui-icon" src="assets/icons/candle.png" alt="" /> {{ reminder }}
-      </p>
-    }
-    @if (advantageFrom.length) {
-      <label class="smite-special-toggle">
-        <input
-          type="checkbox"
-          [checked]="autoAdvantageOn()"
-          [disabled]="isRolling() || !!result()"
-          (change)="toggleAutoAdvantage()"
-        />
-        Vantagem: {{ advantageFrom.join('; ') }}
-      </label>
-      @if (advantagesCancel) {
-        <p class="roll-modifier-line">Vantagem e desvantagem se anulam: a rolagem fica normal.</p>
-      }
-    }
-    @for (reminder of advantageReminders; track reminder) {
-      <p class="roll-modifier-line">
-        <img class="ui-icon" src="assets/icons/candle.png" alt="" /> {{ reminder }}
-      </p>
-      @if (!result() && !isRolling() && advantageState() !== 'advantage') {
-        <button class="roll-toggle-btn" (click)="rollWithAdvantage()">ROLAR COM VANTAGEM</button>
-      }
-    }
-    @if (saveLine; as line) {
-      <p class="roll-hit-question">{{ line }}</p>
-    }
-    @if (saveRequestTargets.length) {
-      <div class="roll-save-request">
-        <p class="roll-modifier-line">
-          QUEM FOI ATINGIDO? Os jogadores rolam a resistência na própria tela; a dos monstros, o
-          mestre rola.
+    @if (pickingTargets()) {
+      <!-- Antes de tudo (1.25.0): quem está sendo atingido, pelos anéis da mesa -->
+      <div class="roll-target-pick">
+        <p class="roll-hit-question">
+          {{ applyKind === 'damage' ? 'QUEM VOCÊ ESTÁ ATINGINDO?' : 'EM QUEM?' }}
         </p>
-        @for (target of saveRequestTargets; track target.id) {
-          <label class="smite-special-toggle">
-            @switch (saveStatus(target.id)) {
-              @case ('pending') {
-                <span
-                  >{{ target.label }}: aguardando a rolagem{{
-                    target.id.startsWith('monster:') ? ' do mestre' : ''
-                  }}</span
-                >
-              }
-              @case ('success') {
-                <span>{{ target.label }}: passou</span>
-              }
-              @case ('fail') {
-                <span>{{ target.label }}: falhou</span>
-              }
-              @case ('immune') {
-                <span>{{ target.label }}: imune a esse dano</span>
-              }
-              @default {
-                <input
-                  type="checkbox"
-                  [checked]="saveRequestPicks().has(target.id)"
-                  (change)="toggleSaveTarget(target.id)"
-                />
-                {{ target.label }}
-              }
-            }
-          </label>
-        }
-        @if (saveRequestError(); as message) {
-          <p class="roll-modifier-line">{{ message }}</p>
-        }
-        @if (saveRequestPicks().size > 0) {
-          <button class="roll-toggle-btn" [disabled]="requestingSaves()" (click)="requestSaves()">
-            {{ requestingSaves() ? 'PEDINDO...' : 'PEDIR RESISTÊNCIA' }}
-          </button>
-        }
-      </div>
-    }
-
-    @if (isAbility && powerAttackName) {
-      <label class="smite-special-toggle">
-        <input
-          type="checkbox"
-          [checked]="powerAttackOn()"
-          [disabled]="isRolling() || !!result()"
-          (change)="togglePowerAttack()"
-        />
-        {{ powerAttackName }}: −5 no ataque, +10 no dano
-      </label>
-    }
-    @if (isAbility) {
-      <div class="roll-toggle-row">
-        <button
-          class="roll-toggle-btn"
-          [class.active]="advantageState() === 'normal'"
-          [disabled]="isRolling() || isAwaitingHitDecision"
-          (click)="setAdvantage('normal')"
-        >
-          NORMAL
-        </button>
-        <button
-          class="roll-toggle-btn"
-          [class.active]="advantageState() === 'advantage'"
-          [disabled]="isRolling() || isAwaitingHitDecision"
-          (click)="setAdvantage('advantage')"
-        >
-          VANTAGEM
-        </button>
-        <button
-          class="roll-toggle-btn"
-          [class.active]="advantageState() === 'disadvantage'"
-          [disabled]="isRolling() || isAwaitingHitDecision"
-          (click)="setAdvantage('disadvantage')"
-        >
-          DESVANTAGEM
-        </button>
-      </div>
-      <!-- Na tela de lançamento a visibilidade vem de quem abriu (ação de monstro: escondido =
-           só o mestre); trocar no meio deixaria a mesa com o aviso sem as rolagens. -->
-      @if (canHideRoll && !cast) {
-        <ng-container [ngTemplateOutlet]="hiddenToggle" />
-      }
-      @if (cast?.private) {
-        <p class="roll-hidden-note">
-          <img class="ui-icon" src="assets/icons/padlock.png" alt="" /> Monstro escondido: só você
-          vê esta rolagem
-        </p>
-      }
-    } @else if (config.mode === 'freeform') {
-      <div class="roll-freeform-config">
-        <div class="roll-freeform-pool">
-          @for (d of dieOptions; track d) {
-            <div class="roll-pool-row">
-              <span class="roll-pool-die-label">d{{ d }}</span>
-              <div class="roll-stepper">
-                <button
-                  class="roll-stepper-btn"
-                  [disabled]="isRolling()"
-                  (click)="changeFreeformDieCount(d, -1)"
-                >
-                  −
-                </button>
-                <span>{{ freeformPool()[d] }}</span>
-                <button
-                  class="roll-stepper-btn"
-                  [disabled]="isRolling()"
-                  (click)="changeFreeformDieCount(d, 1)"
-                >
-                  +
-                </button>
-              </div>
-            </div>
+        <div class="roll-target-grid">
+          @for (t of applicableTargets; track t.key) {
+            <button
+              type="button"
+              class="roll-target"
+              [class.roll-target--on]="isPicked(t.key)"
+              [attr.aria-pressed]="isPicked(t.key)"
+              (click)="togglePick(t.key)"
+            >
+              <span class="avatar-ring-wrap roll-target-ring">
+                <span class="roll-target-circle">
+                  @if (t.avatar?.imageUrl) {
+                    <img [src]="t.avatar!.imageUrl" alt="" />
+                  } @else {
+                    <app-avatar-display [preset]="t.avatar?.avatarPreset ?? null" />
+                  }
+                </span>
+                <span class="avatar-ring" aria-hidden="true"></span>
+              </span>
+              <span class="roll-target-name">{{ t.label }}</span>
+            </button>
           }
         </div>
-        <div class="roll-config-row">
-          <span class="roll-config-label">MOD</span>
-          <div class="roll-stepper">
-            <button
-              class="roll-stepper-btn"
-              [disabled]="isRolling()"
-              (click)="changeFreeformModifier(-1)"
-            >
-              −
-            </button>
-            <span>{{ formatMod(freeformModifier()) }}</span>
-            <button
-              class="roll-stepper-btn"
-              [disabled]="isRolling()"
-              (click)="changeFreeformModifier(1)"
-            >
-              +
-            </button>
-          </div>
+        <div class="roll-modal-actions">
+          <button
+            class="roll-btn-primary"
+            [disabled]="pickedKeys().size === 0"
+            (click)="confirmTargets()"
+          >
+            CONFIRMAR{{ pickedKeys().size ? ' (' + pickedKeys().size + ')' : '' }}
+          </button>
+          <button class="roll-btn-secondary" (click)="skipTargets()">SEM ALVO</button>
         </div>
-        @if (canHideRoll) {
+      </div>
+    } @else {
+      @for (reminder of reminders; track reminder) {
+        <p class="roll-modifier-line">
+          <img class="ui-icon" src="assets/icons/candle.png" alt="" /> {{ reminder }}
+        </p>
+      }
+      @if (advantageFrom.length) {
+        <label class="smite-special-toggle">
+          <input
+            type="checkbox"
+            [checked]="autoAdvantageOn()"
+            [disabled]="isRolling() || !!result()"
+            (change)="toggleAutoAdvantage()"
+          />
+          Vantagem: {{ advantageFrom.join('; ') }}
+        </label>
+        @if (advantagesCancel) {
+          <p class="roll-modifier-line">Vantagem e desvantagem se anulam: a rolagem fica normal.</p>
+        }
+      }
+      @for (reminder of advantageReminders; track reminder) {
+        <p class="roll-modifier-line">
+          <img class="ui-icon" src="assets/icons/candle.png" alt="" /> {{ reminder }}
+        </p>
+        @if (!result() && !isRolling() && advantageState() !== 'advantage') {
+          <button class="roll-toggle-btn" (click)="rollWithAdvantage()">ROLAR COM VANTAGEM</button>
+        }
+      }
+      @if (saveLine; as line) {
+        <p class="roll-hit-question">{{ line }}</p>
+      }
+      @if (saveRequestTargets.length && chosenTargets() === null) {
+        <div class="roll-save-request">
+          <p class="roll-modifier-line">
+            QUEM FOI ATINGIDO? Os jogadores rolam a resistência na própria tela; a dos monstros, o
+            mestre rola.
+          </p>
+          @for (target of saveRequestTargets; track target.id) {
+            <label class="smite-special-toggle">
+              @switch (saveStatus(target.id)) {
+                @case ('pending') {
+                  <span
+                    >{{ target.label }}: aguardando a rolagem{{
+                      target.id.startsWith('monster:') ? ' do mestre' : ''
+                    }}</span
+                  >
+                }
+                @case ('success') {
+                  <span>{{ target.label }}: passou</span>
+                }
+                @case ('fail') {
+                  <span>{{ target.label }}: falhou</span>
+                }
+                @case ('immune') {
+                  <span>{{ target.label }}: imune a esse dano</span>
+                }
+                @default {
+                  <input
+                    type="checkbox"
+                    [checked]="saveRequestPicks().has(target.id)"
+                    (change)="toggleSaveTarget(target.id)"
+                  />
+                  {{ target.label }}
+                }
+              }
+            </label>
+          }
+          @if (saveRequestError(); as message) {
+            <p class="roll-modifier-line">{{ message }}</p>
+          }
+          @if (saveRequestPicks().size > 0) {
+            <button class="roll-toggle-btn" [disabled]="requestingSaves()" (click)="requestSaves()">
+              {{ requestingSaves() ? 'PEDINDO...' : 'PEDIR RESISTÊNCIA' }}
+            </button>
+          }
+        </div>
+      }
+
+      @if (isAbility && powerAttackName) {
+        <label class="smite-special-toggle">
+          <input
+            type="checkbox"
+            [checked]="powerAttackOn()"
+            [disabled]="isRolling() || !!result()"
+            (change)="togglePowerAttack()"
+          />
+          {{ powerAttackName }}: −5 no ataque, +10 no dano
+        </label>
+      }
+      @if (isAbility) {
+        <div class="roll-toggle-row">
+          <button
+            class="roll-toggle-btn"
+            [class.active]="advantageState() === 'normal'"
+            [disabled]="isRolling() || isAwaitingHitDecision"
+            (click)="setAdvantage('normal')"
+          >
+            NORMAL
+          </button>
+          <button
+            class="roll-toggle-btn"
+            [class.active]="advantageState() === 'advantage'"
+            [disabled]="isRolling() || isAwaitingHitDecision"
+            (click)="setAdvantage('advantage')"
+          >
+            VANTAGEM
+          </button>
+          <button
+            class="roll-toggle-btn"
+            [class.active]="advantageState() === 'disadvantage'"
+            [disabled]="isRolling() || isAwaitingHitDecision"
+            (click)="setAdvantage('disadvantage')"
+          >
+            DESVANTAGEM
+          </button>
+        </div>
+        <!-- Na tela de lançamento a visibilidade vem de quem abriu (ação de monstro: escondido =
+           só o mestre); trocar no meio deixaria a mesa com o aviso sem as rolagens. -->
+        @if (canHideRoll && !cast) {
           <ng-container [ngTemplateOutlet]="hiddenToggle" />
         }
-      </div>
-    }
+        @if (cast?.private) {
+          <p class="roll-hidden-note">
+            <img class="ui-icon" src="assets/icons/padlock.png" alt="" /> Monstro escondido: só você
+            vê esta rolagem
+          </p>
+        }
+      } @else if (config.mode === 'freeform') {
+        <div class="roll-freeform-config">
+          <div class="roll-freeform-pool">
+            @for (d of dieOptions; track d) {
+              <div class="roll-pool-row">
+                <span class="roll-pool-die-label">d{{ d }}</span>
+                <div class="roll-stepper">
+                  <button
+                    class="roll-stepper-btn"
+                    [disabled]="isRolling()"
+                    (click)="changeFreeformDieCount(d, -1)"
+                  >
+                    −
+                  </button>
+                  <span>{{ freeformPool()[d] }}</span>
+                  <button
+                    class="roll-stepper-btn"
+                    [disabled]="isRolling()"
+                    (click)="changeFreeformDieCount(d, 1)"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+          <div class="roll-config-row">
+            <span class="roll-config-label">MOD</span>
+            <div class="roll-stepper">
+              <button
+                class="roll-stepper-btn"
+                [disabled]="isRolling()"
+                (click)="changeFreeformModifier(-1)"
+              >
+                −
+              </button>
+              <span>{{ formatMod(freeformModifier()) }}</span>
+              <button
+                class="roll-stepper-btn"
+                [disabled]="isRolling()"
+                (click)="changeFreeformModifier(1)"
+              >
+                +
+              </button>
+            </div>
+          </div>
+          @if (canHideRoll) {
+            <ng-container [ngTemplateOutlet]="hiddenToggle" />
+          }
+        </div>
+      }
 
-    @if (!castView()) {
-      <div class="roll-dice-display">
-        @if (isRolling()) {
-          @for (v of displayValues(); track $index) {
-            @if (sidesAt($index) === 6) {
-              <app-pixel-die [face]="v" [rolling]="true" />
-            } @else {
-              <app-pixel-numeric-die [sides]="sidesAt($index)" [rolling]="true" />
+      @if (!castView()) {
+        <div class="roll-dice-display">
+          @if (isRolling()) {
+            @for (v of displayValues(); track $index) {
+              @if (sidesAt($index) === 6) {
+                <app-pixel-die [face]="v" [rolling]="true" />
+              } @else {
+                <app-pixel-numeric-die [sides]="sidesAt($index)" [rolling]="true" />
+              }
+            }
+          } @else if (result(); as res) {
+            @for (v of res.rolls; track $index) {
+              @if (sidesAt($index) === 6) {
+                <app-pixel-die [face]="v" [dropped]="isDropped($index)" />
+              } @else {
+                <app-pixel-numeric-die
+                  [sides]="sidesAt($index)"
+                  [value]="v"
+                  [critical]="criticalFor($index)"
+                  [dropped]="isDropped($index)"
+                />
+              }
+            }
+          } @else {
+            @for (i of placeholderIndexes(); track i) {
+              @if (sidesAt(i) === 6) {
+                <app-pixel-die [face]="1" />
+              } @else {
+                <app-pixel-numeric-die [sides]="sidesAt(i)" [value]="null" />
+              }
             }
           }
-        } @else if (result(); as res) {
-          @for (v of res.rolls; track $index) {
-            @if (sidesAt($index) === 6) {
-              <app-pixel-die [face]="v" [dropped]="isDropped($index)" />
-            } @else {
-              <app-pixel-numeric-die
-                [sides]="sidesAt($index)"
-                [value]="v"
-                [critical]="criticalFor($index)"
-                [dropped]="isDropped($index)"
-              />
+        </div>
+      }
+
+      <!-- No lançamento, as decisões esperam o resultado aparecer no palco (sincronizado) -->
+      @if (!holdDecisions()) {
+        @if (result(); as res) {
+          <div class="roll-result">
+            @if (!castView()) {
+              <p class="roll-modifier-line">{{ formatMod(modifier) }} (modificador)</p>
+              <p class="roll-total">TOTAL: {{ res.total }}</p>
             }
+            @if (riderSaveLine; as line) {
+              <p class="roll-modifier-line">{{ line }}</p>
+            }
+            @if (saveSuccessTotal !== null && !hasChosenTargets) {
+              <p class="roll-modifier-line">Quem passar na resistência: {{ saveSuccessTotal }}</p>
+            }
+            @if (saveOutcome(); as outcome) {
+              <p
+                class="roll-save-stamp"
+                [class.roll-save-stamp--pass]="outcome === 'success'"
+                [class.roll-save-stamp--fail]="outcome === 'fail'"
+              >
+                {{ outcome === 'success' ? 'PASSOU' : 'FALHOU' }}
+              </p>
+            }
+            @if (canHideRoll && rollHidden()) {
+              <p class="roll-hidden-note">
+                <img class="ui-icon" src="assets/icons/padlock.png" alt="" /> Só você vê esse
+                resultado
+              </p>
+            }
+            @if (secretRequestId && secretRoll) {
+              <p class="roll-hidden-note">
+                <img class="ui-icon" src="assets/icons/padlock.png" alt="" /> Teste secreto: só você
+                e o mestre veem
+              </p>
+            }
+            @if (postFailed()) {
+              <p class="roll-post-error">Não foi possível registrar na sessão.</p>
+            }
+          </div>
+        }
+
+        @if (canApply) {
+          <div class="roll-apply" [class.roll-apply--heal]="applyKind !== 'damage'">
+            <p class="roll-apply-title">
+              @if (applyKind === 'damage') {
+                <img class="ui-icon" src="assets/icons/swords.png" alt="" />
+              }
+              {{
+                applyKind === 'damage'
+                  ? 'APLICAR O DANO'
+                  : applyKind === 'heal'
+                    ? '✚ APLICAR A CURA'
+                    : '✚ APLICAR OS PV TEMPORÁRIOS'
+              }}
+            </p>
+            <p class="roll-apply-hint">Marque quem foi atingido (opcional)</p>
+            @if (isDistributing) {
+              <select class="roll-apply-select" (change)="setApplyTarget($event)">
+                <option value="" [selected]="applyTargetKey() === ''">Escolha o alvo…</option>
+                @for (target of applicableTargets; track target.key) {
+                  <option [value]="target.key" [selected]="applyTargetKey() === target.key">
+                    {{ target.label }}
+                  </option>
+                }
+              </select>
+              <div class="roll-modal-actions">
+                <input
+                  class="roll-apply-select"
+                  type="number"
+                  min="1"
+                  [max]="distributeRemaining"
+                  [value]="distributeAmount() ?? distributeRemaining"
+                  (input)="setDistributeAmount($event)"
+                />
+                <button
+                  class="roll-btn-secondary"
+                  [disabled]="!applyTargetKey() || distributeRemaining <= 0"
+                  (click)="apply()"
+                >
+                  APLICAR (SOBRA {{ distributeRemaining }})
+                </button>
+              </div>
+            } @else if (pendingTargets.length > 0) {
+              <div class="roll-apply-list">
+                @for (target of pendingTargets; track target.key) {
+                  <div class="roll-apply-row">
+                    <label class="roll-apply-check">
+                      <input
+                        type="checkbox"
+                        class="retro-checkbox"
+                        [checked]="isTargetSelected(target.key)"
+                        (change)="toggleTarget(target.key)"
+                      />
+                      {{ target.label }}
+                      <span class="roll-apply-amount">{{ pendingAmount(target) }}</span>
+                    </label>
+                    @if (saveSuccessTotal !== null) {
+                      <label class="roll-apply-check roll-apply-flag">
+                        <input
+                          type="checkbox"
+                          class="retro-checkbox"
+                          [checked]="isPassed(target.key)"
+                          (change)="togglePassed(target.key)"
+                        />
+                        PASSOU
+                      </label>
+                    }
+                    @if (canUncannyDodge(target)) {
+                      <label class="roll-apply-check roll-apply-flag">
+                        <input
+                          type="checkbox"
+                          class="retro-checkbox"
+                          [checked]="isUncanny(target.key)"
+                          (change)="toggleUncanny(target.key)"
+                        />
+                        ESQUIVA
+                      </label>
+                    }
+                    @if (resistanceOf(target)) {
+                      <span class="roll-apply-note">resiste a {{ resistanceOf(target) }}</span>
+                    }
+                    @if (hasEvasion(target)) {
+                      <span class="roll-apply-note">Evasão</span>
+                    }
+                  </div>
+                }
+              </div>
+              <div class="roll-modal-actions">
+                <button class="roll-btn-secondary" (click)="toggleAllTargets()">
+                  {{ allTargetsSelected ? 'NENHUM' : 'TODOS' }}
+                </button>
+                <button
+                  class="roll-btn-primary roll-apply-btn"
+                  [disabled]="selectedCount === 0"
+                  (click)="applySelected()"
+                >
+                  APLICAR EM {{ selectedCount }} {{ selectedCount === 1 ? 'ALVO' : 'ALVOS' }}
+                </button>
+              </div>
+            }
+            @for (entry of applied(); track $index) {
+              <p class="roll-modifier-line">✓ {{ entry.label }}: {{ entry.amount }}</p>
+            }
+          </div>
+        }
+
+        @if (inspirationRoll() !== null) {
+          <p class="roll-modifier-line">Inspiração Bárdica: +{{ inspirationRoll() }}</p>
+        }
+        @if (canHalflingReroll || canUseLuck || canIndomitable || canUseInspiration) {
+          <div class="roll-modal-actions">
+            @if (canUseInspiration) {
+              <button class="roll-btn-secondary" (click)="useInspiration()">
+                <img class="ui-icon" src="assets/icons/lute.png" alt="" /> INSPIRAÇÃO BÁRDICA (d{{
+                  inspirationSides
+                }})
+              </button>
+            }
+            @if (canIndomitable) {
+              <button class="roll-btn-secondary" (click)="rerollIndomitable()">
+                <img class="ui-icon" src="assets/icons/shield.png" alt="" /> INDOMÁVEL: ROLAR DE
+                NOVO
+              </button>
+            }
+            @if (canHalflingReroll) {
+              <button class="roll-btn-secondary" (click)="rerollHalfling()">
+                <img class="ui-icon" src="assets/icons/clover.png" alt="" /> SORTUDO: ROLAR O 1 DE
+                NOVO
+              </button>
+            }
+            @if (canUseLuck) {
+              <button class="roll-btn-secondary" (click)="useLuck()">
+                <img class="ui-icon" src="assets/icons/clover.png" alt="" /> PONTO DE SORTE ({{
+                  config.mode === 'ability' ? config.luckPoints : 0
+                }})
+              </button>
+            }
+          </div>
+        }
+      }
+
+      @if (castShatter() || castTriumph()) {
+        <!-- errou (quebrando) ou concluiu (saída de vitória) -->
+      } @else if (holdDecisions()) {
+        <div class="roll-modal-actions">
+          <button class="roll-btn-primary" disabled>ROLANDO...</button>
+        </div>
+      } @else if (awaitingLuck()) {
+        <div class="roll-modal-actions">
+          <button class="roll-btn-primary" (click)="finishLuck()">CONCLUIR</button>
+        </div>
+      } @else if (awaitingApply() && hasChosenTargets) {
+        <!-- Alvos escolhidos no começo: aplica direto, conforme a resistência de cada um -->
+        <div class="roll-apply" [class.roll-apply--heal]="applyKind !== 'damage'">
+          @for (t of targetsToApply; track t.key) {
+            <p class="roll-apply-line">
+              <span>{{ t.label }}</span>
+              @switch (saveStatus(t.key)) {
+                @case ('success') {
+                  <span class="roll-apply-badge roll-apply-badge--pass">PASSOU</span>
+                }
+                @case ('fail') {
+                  <span class="roll-apply-badge roll-apply-badge--fail">FALHOU</span>
+                }
+                @case ('immune') {
+                  <span class="roll-apply-badge">IMUNE</span>
+                }
+                @case ('pending') {
+                  <span class="roll-apply-badge">AINDA NÃO ROLOU</span>
+                }
+              }
+              <span class="roll-apply-amount">{{ amountForChosen(t) }}</span>
+            </p>
           }
+        </div>
+        @if (confirmingPending()) {
+          <div class="roll-pending-confirm" role="alertdialog" aria-live="assertive">
+            <p class="roll-hit-question">
+              Nem todos os alvos rolaram a resistência:
+              {{ pendingNames }}. Eles não vão receber
+              {{ applyKind === 'damage' ? 'o dano' : 'a cura' }}. Deseja prosseguir?
+            </p>
+            <div class="roll-modal-actions">
+              <button class="roll-btn-primary" (click)="applyChosen(true)">PROSSEGUIR</button>
+              <button class="roll-btn-secondary" (click)="confirmingPending.set(false)">
+                VOLTAR
+              </button>
+            </div>
+          </div>
         } @else {
-          @for (i of placeholderIndexes(); track i) {
-            @if (sidesAt(i) === 6) {
-              <app-pixel-die [face]="1" />
-            } @else {
-              <app-pixel-numeric-die [sides]="sidesAt(i)" [value]="null" />
+          <div class="roll-modal-actions">
+            <button class="roll-btn-primary roll-apply-btn" (click)="applyChosen()">
+              {{ applyKind === 'damage' ? 'APLICAR O DANO' : 'APLICAR A CURA' }}
+            </button>
+            <button class="roll-btn-secondary" (click)="concludeWithoutApply()">
+              CONCLUIR SEM APLICAR
+            </button>
+          </div>
+        }
+      } @else if (awaitingApply()) {
+        <div class="roll-modal-actions">
+          <button class="roll-btn-primary" (click)="finishApply()">CONCLUIR</button>
+        </div>
+      } @else if (checkingHit()) {
+        <div class="roll-modal-actions">
+          <button class="roll-btn-primary" disabled>CONFERINDO O ACERTO...</button>
+        </div>
+      } @else if (offersHitCheck && !isCritical()) {
+        <p class="roll-hit-question">Contra {{ currentAttackTarget?.label }}</p>
+        <div class="roll-modal-actions">
+          <button class="roll-btn-primary" (click)="checkHit()">CONFERIR ACERTO</button>
+        </div>
+      } @else if (isAwaitingHitDecision) {
+        @if (isCritical()) {
+          <p class="roll-hit-question">ACERTO CRÍTICO! Os dados de dano dobram.</p>
+          <div class="roll-modal-actions">
+            <button class="roll-btn-primary" (click)="rollDamageNow()">
+              <img class="ui-icon" src="assets/icons/d20.png" alt="" /> ROLAR DANO EM DOBRO
+            </button>
+          </div>
+        } @else {
+          <p class="roll-hit-question">O ataque passou da CA do alvo?</p>
+          <div class="roll-modal-actions">
+            <button class="roll-btn-primary" (click)="rollDamageNow()">
+              <img class="ui-icon" src="assets/icons/d20.png" alt="" /> ROLAR DANO
+            </button>
+            <button class="roll-btn-secondary" (click)="confirmMiss()">NÃO ACERTEI</button>
+          </div>
+        }
+      } @else if (isOfferingNextInstance) {
+        <div class="roll-modal-actions">
+          <button class="roll-btn-primary" (click)="nextInstance()">
+            <img class="ui-icon" src="assets/icons/d20.png" alt="" /> PRÓXIMO:
+            {{ nextInstanceLabel.toUpperCase() }}
+          </button>
+          <button class="roll-btn-secondary" (click)="finishInstances()">ENCERRAR</button>
+        </div>
+      } @else if (isChoosingSmite) {
+        @if (smiteOptions.length) {
+          <p class="roll-hit-question">Usar Destruição Divina?</p>
+          <div class="roll-toggle-row">
+            <button
+              class="roll-toggle-btn"
+              [class.active]="selectedSmiteOption() === null"
+              (click)="selectSmiteOption(null)"
+            >
+              NÃO USAR
+            </button>
+            @for (option of smiteOptions; track option.slotKey) {
+              <button
+                class="roll-toggle-btn"
+                [class.active]="selectedSmiteOption() === option"
+                (click)="selectSmiteOption(option)"
+              >
+                {{ option.levelLabel }} ({{ option.bonusDice }}d8)
+              </button>
             }
+          </div>
+          @if (selectedSmiteOption()) {
+            <label class="smite-special-toggle">
+              <input
+                type="checkbox"
+                [checked]="smiteTargetSpecial()"
+                (change)="toggleSmiteTargetSpecial()"
+              />
+              Alvo é morto-vivo ou aberração (+1d8)
+            </label>
           }
         }
-      </div>
-    }
-
-    <!-- No lançamento, as decisões esperam o resultado aparecer no palco (sincronizado) -->
-    @if (!holdDecisions()) {
-      @if (result(); as res) {
-        <div class="roll-result">
-          @if (!castView()) {
-            <p class="roll-modifier-line">{{ formatMod(modifier) }} (modificador)</p>
-            <p class="roll-total">TOTAL: {{ res.total }}</p>
-          }
-          @if (riderSaveLine; as line) {
-            <p class="roll-modifier-line">{{ line }}</p>
-          }
-          @if (saveSuccessTotal !== null) {
-            <p class="roll-modifier-line">Quem passar na resistência: {{ saveSuccessTotal }}</p>
-          }
-          @if (canHideRoll && rollHidden()) {
-            <p class="roll-hidden-note">
-              <img class="ui-icon" src="assets/icons/padlock.png" alt="" /> Só você vê esse
-              resultado
-            </p>
-          }
-          @if (secretRequestId && secretRoll) {
-            <p class="roll-hidden-note">
-              <img class="ui-icon" src="assets/icons/padlock.png" alt="" /> Teste secreto: só você e
-              o mestre veem
-            </p>
-          }
-          @if (postFailed()) {
-            <p class="roll-post-error">Não foi possível registrar na sessão.</p>
-          }
-        </div>
-      }
-
-      @if (canApply) {
-        <div class="roll-apply" [class.roll-apply--heal]="applyKind !== 'damage'">
-          <p class="roll-apply-title">
-            @if (applyKind === 'damage') {
-              <img class="ui-icon" src="assets/icons/swords.png" alt="" />
+        @if (riderOptions.length) {
+          <p class="roll-hit-question">Usar uma magia neste acerto? (gasta o espaço)</p>
+          <div class="roll-toggle-row">
+            <button
+              class="roll-toggle-btn"
+              [class.active]="selectedRider() === null"
+              (click)="selectRider(null)"
+            >
+              NÃO USAR
+            </button>
+            @for (option of riderOptions; track option.key) {
+              <button
+                class="roll-toggle-btn"
+                [class.active]="selectedRider() === option"
+                (click)="selectRider(option)"
+              >
+                {{ option.spellName }} — {{ option.levelLabel }} ({{ option.dice.count }}d{{
+                  option.dice.sides
+                }})
+              </button>
             }
-            {{
-              applyKind === 'damage'
-                ? 'APLICAR O DANO'
-                : applyKind === 'heal'
-                  ? '✚ APLICAR A CURA'
-                  : '✚ APLICAR OS PV TEMPORÁRIOS'
-            }}
-          </p>
-          <p class="roll-apply-hint">Marque quem foi atingido (opcional)</p>
-          @if (isDistributing) {
-            <select class="roll-apply-select" (change)="setApplyTarget($event)">
-              <option value="" [selected]="applyTargetKey() === ''">Escolha o alvo…</option>
-              @for (target of applicableTargets; track target.key) {
-                <option [value]="target.key" [selected]="applyTargetKey() === target.key">
-                  {{ target.label }}
-                </option>
-              }
-            </select>
-            <div class="roll-modal-actions">
+          </div>
+        }
+        @if (riderToggles.length) {
+          <p class="roll-hit-question">Somar ao dano:</p>
+          @for (toggle of riderToggles; track toggle.key) {
+            <label class="smite-special-toggle">
               <input
-                class="roll-apply-select"
-                type="number"
-                min="1"
-                [max]="distributeRemaining"
-                [value]="distributeAmount() ?? distributeRemaining"
-                (input)="setDistributeAmount($event)"
+                type="checkbox"
+                [checked]="isToggleActive(toggle.key)"
+                (change)="toggleRider(toggle.key)"
               />
-              <button
-                class="roll-btn-secondary"
-                [disabled]="!applyTargetKey() || distributeRemaining <= 0"
-                (click)="apply()"
-              >
-                APLICAR (SOBRA {{ distributeRemaining }})
-              </button>
-            </div>
-          } @else if (pendingTargets.length > 0) {
-            <div class="roll-apply-list">
-              @for (target of pendingTargets; track target.key) {
-                <div class="roll-apply-row">
-                  <label class="roll-apply-check">
-                    <input
-                      type="checkbox"
-                      class="retro-checkbox"
-                      [checked]="isTargetSelected(target.key)"
-                      (change)="toggleTarget(target.key)"
-                    />
-                    {{ target.label }}
-                    <span class="roll-apply-amount">{{ pendingAmount(target) }}</span>
-                  </label>
-                  @if (saveSuccessTotal !== null) {
-                    <label class="roll-apply-check roll-apply-flag">
-                      <input
-                        type="checkbox"
-                        class="retro-checkbox"
-                        [checked]="isPassed(target.key)"
-                        (change)="togglePassed(target.key)"
-                      />
-                      PASSOU
-                    </label>
-                  }
-                  @if (canUncannyDodge(target)) {
-                    <label class="roll-apply-check roll-apply-flag">
-                      <input
-                        type="checkbox"
-                        class="retro-checkbox"
-                        [checked]="isUncanny(target.key)"
-                        (change)="toggleUncanny(target.key)"
-                      />
-                      ESQUIVA
-                    </label>
-                  }
-                  @if (resistanceOf(target)) {
-                    <span class="roll-apply-note">resiste a {{ resistanceOf(target) }}</span>
-                  }
-                  @if (hasEvasion(target)) {
-                    <span class="roll-apply-note">Evasão</span>
-                  }
-                </div>
-              }
-            </div>
-            <div class="roll-modal-actions">
-              <button class="roll-btn-secondary" (click)="toggleAllTargets()">
-                {{ allTargetsSelected ? 'NENHUM' : 'TODOS' }}
-              </button>
-              <button
-                class="roll-btn-primary roll-apply-btn"
-                [disabled]="selectedCount === 0"
-                (click)="applySelected()"
-              >
-                APLICAR EM {{ selectedCount }} {{ selectedCount === 1 ? 'ALVO' : 'ALVOS' }}
-              </button>
-            </div>
+              {{ toggle.spellName }} (+{{
+                toggle.dice ? toggle.dice.count + 'd' + toggle.dice.sides : toggle.flat
+              }}
+              {{ toggle.damageType }}){{ toggle.oncePerTurn ? ' — 1×/turno' : '' }}
+            </label>
           }
-          @for (entry of applied(); track $index) {
-            <p class="roll-modifier-line">✓ {{ entry.label }}: {{ entry.amount }}</p>
-          }
-        </div>
-      }
-
-      @if (inspirationRoll() !== null) {
-        <p class="roll-modifier-line">Inspiração Bárdica: +{{ inspirationRoll() }}</p>
-      }
-      @if (canHalflingReroll || canUseLuck || canIndomitable || canUseInspiration) {
+        }
         <div class="roll-modal-actions">
-          @if (canUseInspiration) {
-            <button class="roll-btn-secondary" (click)="useInspiration()">
-              <img class="ui-icon" src="assets/icons/lute.png" alt="" /> INSPIRAÇÃO BÁRDICA (d{{
-                inspirationSides
-              }})
-            </button>
-          }
-          @if (canIndomitable) {
-            <button class="roll-btn-secondary" (click)="rerollIndomitable()">
-              <img class="ui-icon" src="assets/icons/shield.png" alt="" /> INDOMÁVEL: ROLAR DE NOVO
-            </button>
-          }
-          @if (canHalflingReroll) {
-            <button class="roll-btn-secondary" (click)="rerollHalfling()">
-              <img class="ui-icon" src="assets/icons/clover.png" alt="" /> SORTUDO: ROLAR O 1 DE
-              NOVO
-            </button>
-          }
-          @if (canUseLuck) {
-            <button class="roll-btn-secondary" (click)="useLuck()">
-              <img class="ui-icon" src="assets/icons/clover.png" alt="" /> PONTO DE SORTE ({{
-                config.mode === 'ability' ? config.luckPoints : 0
-              }})
-            </button>
-          }
-        </div>
-      }
-    }
-
-    @if (castShatter() || castTriumph()) {
-      <!-- errou (quebrando) ou concluiu (saída de vitória) -->
-    } @else if (holdDecisions()) {
-      <div class="roll-modal-actions">
-        <button class="roll-btn-primary" disabled>ROLANDO...</button>
-      </div>
-    } @else if (awaitingLuck()) {
-      <div class="roll-modal-actions">
-        <button class="roll-btn-primary" (click)="finishLuck()">CONCLUIR</button>
-      </div>
-    } @else if (awaitingApply()) {
-      <div class="roll-modal-actions">
-        <button class="roll-btn-primary" (click)="finishApply()">CONCLUIR</button>
-      </div>
-    } @else if (isAwaitingHitDecision) {
-      @if (isCritical()) {
-        <p class="roll-hit-question">ACERTO CRÍTICO! Os dados de dano dobram.</p>
-        <div class="roll-modal-actions">
-          <button class="roll-btn-primary" (click)="rollDamageNow()">
-            <img class="ui-icon" src="assets/icons/d20.png" alt="" /> ROLAR DANO EM DOBRO
+          <button class="roll-btn-primary" (click)="confirmSmiteChoice()">
+            <img class="ui-icon" src="assets/icons/d20.png" alt="" /> ROLAR DANO
           </button>
         </div>
       } @else {
-        <p class="roll-hit-question">O ataque passou da CA do alvo?</p>
         <div class="roll-modal-actions">
-          <button class="roll-btn-primary" (click)="rollDamageNow()">
-            <img class="ui-icon" src="assets/icons/d20.png" alt="" /> ROLAR DANO
-          </button>
-          <button class="roll-btn-secondary" (click)="confirmMiss()">NÃO ACERTEI</button>
-        </div>
-      }
-    } @else if (isOfferingNextInstance) {
-      <div class="roll-modal-actions">
-        <button class="roll-btn-primary" (click)="nextInstance()">
-          <img class="ui-icon" src="assets/icons/d20.png" alt="" /> PRÓXIMO:
-          {{ nextInstanceLabel.toUpperCase() }}
-        </button>
-        <button class="roll-btn-secondary" (click)="finishInstances()">ENCERRAR</button>
-      </div>
-    } @else if (isChoosingSmite) {
-      @if (smiteOptions.length) {
-        <p class="roll-hit-question">Usar Destruição Divina?</p>
-        <div class="roll-toggle-row">
           <button
-            class="roll-toggle-btn"
-            [class.active]="selectedSmiteOption() === null"
-            (click)="selectSmiteOption(null)"
+            class="roll-btn-primary"
+            [disabled]="isRolling() || freeformPoolEmpty || (!!secretRequestId && !!result())"
+            (click)="roll()"
           >
-            NÃO USAR
+            {{ isRolling() ? 'ROLANDO...' : result() ? 'ROLAR NOVAMENTE' : 'ROLAR' }}
           </button>
-          @for (option of smiteOptions; track option.slotKey) {
-            <button
-              class="roll-toggle-btn"
-              [class.active]="selectedSmiteOption() === option"
-              (click)="selectSmiteOption(option)"
-            >
-              {{ option.levelLabel }} ({{ option.bonusDice }}d8)
-            </button>
-          }
-        </div>
-        @if (selectedSmiteOption()) {
-          <label class="smite-special-toggle">
-            <input
-              type="checkbox"
-              [checked]="smiteTargetSpecial()"
-              (change)="toggleSmiteTargetSpecial()"
-            />
-            Alvo é morto-vivo ou aberração (+1d8)
-          </label>
-        }
-      }
-      @if (riderOptions.length) {
-        <p class="roll-hit-question">Usar uma magia neste acerto? (gasta o espaço)</p>
-        <div class="roll-toggle-row">
-          <button
-            class="roll-toggle-btn"
-            [class.active]="selectedRider() === null"
-            (click)="selectRider(null)"
-          >
-            NÃO USAR
-          </button>
-          @for (option of riderOptions; track option.key) {
-            <button
-              class="roll-toggle-btn"
-              [class.active]="selectedRider() === option"
-              (click)="selectRider(option)"
-            >
-              {{ option.spellName }} — {{ option.levelLabel }} ({{ option.dice.count }}d{{
-                option.dice.sides
-              }})
-            </button>
-          }
+          <button class="roll-btn-secondary" (click)="close()">FECHAR</button>
         </div>
       }
-      @if (riderToggles.length) {
-        <p class="roll-hit-question">Somar ao dano:</p>
-        @for (toggle of riderToggles; track toggle.key) {
-          <label class="smite-special-toggle">
-            <input
-              type="checkbox"
-              [checked]="isToggleActive(toggle.key)"
-              (change)="toggleRider(toggle.key)"
-            />
-            {{ toggle.spellName }} (+{{
-              toggle.dice ? toggle.dice.count + 'd' + toggle.dice.sides : toggle.flat
-            }}
-            {{ toggle.damageType }}){{ toggle.oncePerTurn ? ' — 1×/turno' : '' }}
-          </label>
-        }
-      }
-      <div class="roll-modal-actions">
-        <button class="roll-btn-primary" (click)="confirmSmiteChoice()">
-          <img class="ui-icon" src="assets/icons/d20.png" alt="" /> ROLAR DANO
-        </button>
-      </div>
-    } @else {
-      <div class="roll-modal-actions">
-        <button
-          class="roll-btn-primary"
-          [disabled]="isRolling() || freeformPoolEmpty || (!!secretRequestId && !!result())"
-          (click)="roll()"
-        >
-          {{ isRolling() ? 'ROLANDO...' : result() ? 'ROLAR NOVAMENTE' : 'ROLAR' }}
-        </button>
-        <button class="roll-btn-secondary" (click)="close()">FECHAR</button>
-      </div>
     }
   </div>
 </ng-template>

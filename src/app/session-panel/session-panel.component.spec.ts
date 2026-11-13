@@ -80,6 +80,17 @@ describe('SessionPanelComponent', () => {
     else component.setMonsterDamageInput(target, event);
   }
 
+  describe('Quadro do Mestre: acerto automático (1.25.0)', () => {
+    it('liga a opção na API e a mesa já fica com ela', () => {
+      const update = vi.fn(() => of({ auto_hit_check: true }));
+      (gameSessionService as unknown as Record<string, unknown>)['updateSessionSettings'] = update;
+      component.toggleAutoHit();
+      expect(update).toHaveBeenCalledWith('gs', { auto_hit_check: true });
+      expect(detail()!.game_session.auto_hit_check).toBe(true);
+      expect(component.savingAutoHit()).toBe(false);
+    });
+  });
+
   describe('arte padrão do monstro (1.23.0)', () => {
     it('mestre: imagem dele ou a arte do slug, na lista, no turno e na carta', () => {
       const semImagem = monster('m1');
@@ -557,7 +568,8 @@ describe('SessionPanelComponent', () => {
           monsters: [{ ...m1, is_revealed: true }, hidden],
         }),
       );
-      expect(component.applyTargetsFor(10)).toEqual([
+      // toMatchObject: cada alvo leva também a imagem do anel (1.25.0).
+      expect(component.applyTargetsFor(10)).toMatchObject([
         { key: 'player:p1', label: 'Personagem p1', allowsTempHp: true },
         { key: 'player:p2', label: 'Personagem p2', allowsTempHp: true },
         { key: 'npc:n1', label: 'Personagem n1', allowsTempHp: false },
@@ -850,6 +862,8 @@ describe('SessionPanelComponent', () => {
           label: 'Goblin Chefe',
           allowsTempHp: false,
           damageOnly: true,
+          // Revelado sem slug (API antiga): a imagem genérica.
+          avatar: { imageUrl: 'assets/monster.png', avatarPreset: null },
         });
       });
 
@@ -954,6 +968,7 @@ describe('SessionPanelComponent', () => {
           key: 'companion:c1',
           label: 'Lobo (companheiro de Personagem p1)',
           allowsTempHp: false,
+          avatar: { imageUrl: 'assets/monsters/lobo.webp', avatarPreset: null },
         });
       });
 

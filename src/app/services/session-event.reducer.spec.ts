@@ -234,6 +234,14 @@ describe('applySessionEvent', () => {
       expect(m.data_snapshot).toMatchObject({ name: 'Goblin', strength: 8, dexterity: 18 });
     });
 
+    it('session_settings_updated muda a opção de acerto automático da mesa (1.25.0)', () => {
+      const detail = apply(sessionDetail(), {
+        type: 'session_settings_updated',
+        auto_hit_check: true,
+      });
+      expect(detail.game_session.auto_hit_check).toBe(true);
+    });
+
     it('save_resolved não mexe na mesa (o passou/falhou fica no SessionStateService)', () => {
       const detail = sessionDetail({ monsters: [monster('m1')] });
       expect(

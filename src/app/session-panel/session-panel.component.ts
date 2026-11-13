@@ -84,6 +84,7 @@ import { MonsterDrawerComponent } from '../monster-drawer/monster-drawer.compone
 import { MonsterDefeatNoticeComponent } from '../monster-reveal/monster-defeat-notice.component';
 import {
   MonsterRevealInfo,
+  defaultMonsterImage,
   monsterActionToCard,
   monsterImage,
   monsterToCard,
@@ -402,6 +403,27 @@ export class SessionPanelComponent implements OnDestroy {
     this.damageImpact.toggleEnabled();
   }
 
+  savingAutoHit = signal(false);
+
+  /** Quadro do Mestre: liga/desliga o acerto automático da mesa (1.25.0). */
+  toggleAutoHit(): void {
+    const detail = this.sessionDetail();
+    if (!detail || this.savingAutoHit()) return;
+    const next = !detail.game_session.auto_hit_check;
+    this.savingAutoHit.set(true);
+    this.gameSessionService
+      .updateSessionSettings(detail.game_session.id_game_session, { auto_hit_check: next })
+      .pipe(finalize(() => this.savingAutoHit.set(false)))
+      .subscribe({
+        next: ({ auto_hit_check }) =>
+          this.sessionState.patch((d) => ({
+            ...d,
+            game_session: { ...d.game_session, auto_hit_check },
+          })),
+        error: (err) => alert(apiErrorMessage(err, 'Não foi possível mudar a opção.')),
+      });
+  }
+
   togglePolling() {
     this.pollingEnabled.update(v => !v);
   }
@@ -673,6 +695,7 @@ export class SessionPanelComponent implements OnDestroy {
         label: p.character!.name ?? p.player_name,
         allowsTempHp: true,
         defenses: p.character!.defenses,
+        avatar: this.targetAvatar(p.id_character, p.character!.name),
       }));
     const npcs = detail.npcs
       .filter((n) => n.character)
@@ -681,6 +704,7 @@ export class SessionPanelComponent implements OnDestroy {
         label: n.character!.name,
         allowsTempHp: false,
         defenses: n.character!.defenses,
+        avatar: this.targetAvatar(n.id_character, n.character!.name),
       }));
     // Só monstros revelados, pra todos (1.13.2): escondido não entra nem pro mestre — o nome iria
     // pra mesa na linha "APLICOU … em …" do lançamento. Jogador: sem PV, e só dano.
@@ -693,20 +717,29 @@ export class SessionPanelComponent implements OnDestroy {
             allowsTempHp: false,
             // Mestre tem a ficha: o modal já ajusta imunidade/resistência/vulnerabilidade.
             defenses: monsterApplyDefenses(m.data_snapshot),
+            avatar: { imageUrl: this.monsterImageOf(m), avatarPreset: null },
           }))
       : detail.revealed_monsters.map((m) => ({
           key: `monster:${m.id_monster_session}`,
           label: m.name,
           allowsTempHp: false,
           damageOnly: true,
+          avatar: { imageUrl: monsterImage(m.image_url, m.monster_slug), avatarPreset: null },
         }));
     // Companheiros: PV normal, sem PV temporário (a API não guarda temporário pra eles).
     const companions = (detail.companions ?? []).map((c) => ({
       key: `companion:${c.id_session_companion}`,
       label: `${c.name} (companheiro de ${this.companionOwnerName(c)})`,
       allowsTempHp: false,
+      avatar: { imageUrl: defaultMonsterImage(c.slug), avatarPreset: null },
     }));
     return [...players, ...npcs, ...companions, ...monsters];
+  }
+
+  /** Foto ou avatar do personagem pro anel da escolha de alvos (1.25.0). */
+  private targetAvatar(idCharacter: number, name: string): ApplyTarget['avatar'] {
+    const card = this.characterCardFor(idCharacter, name);
+    return { imageUrl: card.imageUrl, avatarPreset: card.avatarPreset };
   }
 
   /** Outros jogadores com personagem (Inspiração Bárdica escolhe um deles). */
@@ -2167,6 +2200,7 @@ export class SessionPanelComponent implements OnDestroy {
       saveNote: stage.save_dc && stage.save_ability ? saveNote(stage.save_dc, stage.save_ability) : null,
       stamp: monsterSequenceStamp(monsterAction),
       applied: stage.applied ?? [],
+      targets: stage.targets ?? [],
       done: stage.phase === 'done',
     };
   }

@@ -216,6 +216,37 @@ export class GameSessionService {
     );
   }
 
+  // ── Acerto automático do ataque (1.25.0) ──
+
+  /** Mestre liga/desliga o acerto automático da mesa (Quadro do Mestre). */
+  updateSessionSettings(
+    sessionId: string,
+    settings: { auto_hit_check: boolean },
+  ): Observable<{ auto_hit_check: boolean }> {
+    return this.http.patch<{ auto_hit_check: boolean }>(
+      `${this.baseUrl}/api/game-session/${sessionId}/settings`,
+      settings,
+      { context: this.silentContext() },
+    );
+  }
+
+  /** O ataque acertou o alvo? A API compara com a CA sem revelar o número. */
+  attackCheck(
+    sessionId: string,
+    input: {
+      target_kind: 'player' | 'npc' | 'monster' | 'companion';
+      target_id: string;
+      total: number;
+      natural: number;
+    },
+  ): Observable<{ hit: boolean }> {
+    return this.http.post<{ hit: boolean }>(
+      `${this.baseUrl}/api/game-session/${sessionId}/attack-check`,
+      input,
+      { context: this.silentContext() },
+    );
+  }
+
   // ── Companheiro Animal (ranger do Conclave da Besta) ──
 
   /** Bestas que o ranger pode escolher (`allowed` falso se ainda não tem a característica). */

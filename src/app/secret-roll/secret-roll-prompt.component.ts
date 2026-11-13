@@ -154,6 +154,19 @@ export class SecretRollPromptComponent implements OnInit {
     });
   }
 
+  /** Tempo pra ler o PASSOU/FALHOU antes de voltar à tela de lançamento. */
+  static readonly RESULT_READ_MS = 2200;
+  private closeTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /** Rolou (e decidiu Sortudo/Indomável, se havia): mostra o resultado e volta pro lançamento. */
+  onRolled(): void {
+    if (this.closeTimer) return;
+    this.closeTimer = setTimeout(
+      () => this.closed.emit(),
+      SecretRollPromptComponent.RESULT_READ_MS,
+    );
+  }
+
   onLuckUsed(): void {
     this.spend('Pontos de Sorte');
   }

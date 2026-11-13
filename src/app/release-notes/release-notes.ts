@@ -33,6 +33,29 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.25.0',
+    date: '2026-11-13',
+    title: 'Lançamento com alvos escolhidos no começo',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'Ao lançar uma magia ou atacar, a primeira coisa é escolher quem você está atingindo, pelos anéis dos personagens, NPCs e monstros da mesa (dá para marcar vários, ou seguir SEM ALVO). Nas magias com teste de resistência, os alvos já recebem o pedido para rolar.',
+      },
+      {
+        kind: 'novidade',
+        text: 'No fim, só dois botões: APLICAR O DANO (conforme quem passou ou falhou na resistência) e CONCLUIR SEM APLICAR. Se alguém ainda não rolou, o jogo avisa antes de aplicar.',
+      },
+      {
+        kind: 'novidade',
+        text: 'Quadro do Mestre: opção de acerto automático — a mesa compara o ataque com a CA do alvo e diz se acertou, sem mostrar a CA do monstro. O botão de polling saiu do quadro.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'PASSOU e FALHOU aparecem em destaque na tela de lançamento para todos, e quem rolou a resistência volta para acompanhar o dano.',
+      },
+    ],
+  },
+  {
     version: '1.24.5',
     date: '2026-11-12',
     title: 'Resistência rolada direto do aviso',

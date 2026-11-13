@@ -38,6 +38,8 @@ export interface GameSession {
   dm_name: string;
   created_at?: Date;
   user_id: string;
+  /** Acerto automático do ataque contra a CA do alvo (1.25.0), opção do mestre. */
+  auto_hit_check?: boolean;
 }
 
 export interface PlayerCharacterSummary {
@@ -331,6 +333,12 @@ export interface WeaponCardInfo {
 
 /** Etapa de um lançamento de magia ou ataque com arma (POST /spell-cast-stage). */
 /** Dano/cura do lançamento já aplicado num alvo (aparece no aviso, sem aviso avulso). */
+/** Alvo escolhido no começo do lançamento (1.25.0) e o resultado da resistência dele. */
+export interface CastStageTarget {
+  label: string;
+  save?: 'pending' | 'success' | 'fail' | 'immune' | null;
+}
+
 export interface CastStageApplied {
   label: string;
   amount: number;
@@ -370,6 +378,8 @@ export interface SpellCastStagePayload {
   phase: 'open' | 'done' | 'cancel';
   rolls: CastStageRoll[];
   applied?: CastStageApplied[];
+  /** Alvos escolhidos no começo (1.25.0). */
+  targets?: CastStageTarget[];
   save_dc?: number | null;
   save_ability?: 'STR' | 'DEX' | 'CON' | 'INT' | 'WIS' | 'CHA' | null;
 }

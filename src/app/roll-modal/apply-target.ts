@@ -1,3 +1,5 @@
+import { AvatarPreset } from '../models/avatar-preset.interface';
+
 /** Alvo em que o resultado de uma rolagem de dano/cura pode ser aplicado direto (opcional). */
 export interface ApplyTarget {
   /** Ex.: "player:<id_player_session>", "npc:<id_npc_session>", "monster:<id_monster_session>". */
@@ -7,6 +9,8 @@ export interface ApplyTarget {
   allowsTempHp: boolean;
   /** Só aceita dano (monstro na mão do jogador: ele não cura monstro). */
   damageOnly?: boolean;
+  /** Anel do alvo na escolha do começo do lançamento (1.25.0): foto/arte ou avatar montado. */
+  avatar?: { imageUrl: string | null; avatarPreset: AvatarPreset | null };
   /** Resistências e reações do alvo (jogador/NPC) — o modal ajusta o dano ao aplicar. Monstro
    *  na mão do mestre (1.24.4) traz também imunidades e vulnerabilidades da ficha. */
   defenses?: {

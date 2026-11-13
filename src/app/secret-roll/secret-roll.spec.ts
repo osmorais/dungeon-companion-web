@@ -264,3 +264,23 @@ describe('SecretRollPromptComponent (mestre, resistência de monstro — 1.24.2)
     expect(prompt.error()).toBe(true);
   });
 });
+
+describe('SecretRollPromptComponent — volta pro lançamento depois de rolar (1.25.0)', () => {
+  it('fecha sozinho depois de mostrar o resultado', () => {
+    vi.useFakeTimers();
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [{ provide: CharacterService, useValue: { getCharacterById: vi.fn() } }],
+    });
+    const prompt = TestBed.runInInjectionContext(() => new SecretRollPromptComponent());
+    const closed = vi.fn();
+    prompt.closed.subscribe(closed);
+    prompt.onRolled();
+    prompt.onRolled(); // só um fechamento
+    vi.advanceTimersByTime(SecretRollPromptComponent.RESULT_READ_MS - 1);
+    expect(closed).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+    expect(closed).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+});

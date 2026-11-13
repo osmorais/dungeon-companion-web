@@ -1,6 +1,7 @@
 import type { SaveContext } from './character-response.interface';
 import {
   CastStageApplied,
+  CastStageTarget,
   CastStageRoll,
   CombatEncounterDetail,
   MonsterAbilityKey,
@@ -102,6 +103,8 @@ export interface SessionEventPayloadMap {
   };
   monster_hidden: { id_monster_session: string };
   roll_added: { roll: RollLogEntry };
+  /** Mestre mudou uma opção da mesa no Quadro do Mestre (1.25.0). */
+  session_settings_updated: { auto_hit_check: boolean };
   /** Resistência de monstro resolvida pelo mestre: a mesa sabe só se passou ou falhou (1.24.2). */
   save_resolved: {
     save_request_id: string;
@@ -154,6 +157,8 @@ export interface SessionEventPayloadMap {
     rolls: CastStageRoll[];
     /** O que já foi aplicado nos alvos (a API antiga não manda). */
     applied?: CastStageApplied[];
+    /** Alvos escolhidos no começo e o resultado da resistência de cada um (1.25.0). */
+    targets?: CastStageTarget[];
     save_dc: number | null;
     save_ability: 'STR' | 'DEX' | 'CON' | 'INT' | 'WIS' | 'CHA' | null;
   };

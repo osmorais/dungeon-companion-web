@@ -1475,7 +1475,8 @@
 @if (dmBoardOpen() && isOwner() && sessionDetail(); as detail) {
   <app-dm-board
     [detail]="detail"
-    [pollingEnabled]="pollingEnabled()"
+    [autoHitCheck]="!!sessionDetail()?.game_session?.auto_hit_check"
+    [savingAutoHit]="savingAutoHit()"
     [screenEffectsEnabled]="screenEffectsEnabled()"
     [endingCombat]="endingCombat()"
     [revealingMonsterId]="revealingMonsterId()"
@@ -1493,7 +1494,7 @@
     (addMonster)="closeDmBoard(); openAddMonsterModal()"
     (applyArea)="applyAreaAmount($event)"
     (sessionDeleted)="onDmDeletedSession()"
-    (togglePolling)="togglePolling()"
+    (toggleAutoHit)="toggleAutoHit()"
     (toggleScreenEffects)="toggleScreenEffects()"
   />
 }
