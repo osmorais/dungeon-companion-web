@@ -10,10 +10,27 @@ import {
 import { AbilityRollConfig, RollModalComponent } from '../roll-modal/roll-modal.component';
 import { ATTRIBUTE_PT_TO_EN, SAVE_CONTEXT_LABELS, d20Options } from '../roll-modal/d20-options';
 import { secretCheckModifier } from './secret-roll-checks';
+import { MonsterStatBlock } from '../models/monster-catalog.interface';
+import { monsterChecks } from '../monster-actions/monster-actions';
+
+/** Atributo do pedido (inglês) → sigla da ficha do monstro. */
+const SAVE_ABBR = {
+  STR: 'FOR',
+  DEX: 'DES',
+  CON: 'CON',
+  INT: 'INT',
+  WIS: 'SAB',
+  CHA: 'CAR',
+} as const;
 
 export interface SecretRollPromptRequest {
   request_id: string;
-  id_character: number;
+  /** `null` quando é a resistência de um monstro (o mestre rola, 1.24.2). */
+  id_character: number | null;
+  id_monster_session?: string | null;
+  monster_name?: string | null;
+  /** CD — só chega no pedido de monstro (pro mestre). */
+  dc?: number | null;
   label: string;
   check: SecretRollCheck;
   /** Teste secreto (padrão) ou resistência pública contra uma magia/ação. */
@@ -40,6 +57,8 @@ export class SecretRollPromptComponent implements OnInit {
 
   @Input({ required: true }) request!: SecretRollPromptRequest;
   @Input() sessionId: string | undefined;
+  /** Ficha do monstro atingido (pedido de monstro, só na tela do mestre). */
+  @Input() monster: MonsterStatBlock | null = null;
   @Output() closed = new EventEmitter<void>();
 
   actorName = signal('Personagem');
@@ -56,6 +75,11 @@ export class SecretRollPromptComponent implements OnInit {
     return this.request.secret !== false;
   }
 
+  /** Resistência de monstro: o mestre rola com o bônus da ficha do monstro. */
+  get isMonster(): boolean {
+    return !!this.request.id_monster_session;
+  }
+
   /** "veneno, magia" — sem o "efeito visível", que vale pra quase tudo. */
   get againstText(): string {
     return (this.request.against ?? [])
@@ -65,6 +89,10 @@ export class SecretRollPromptComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    if (this.isMonster || this.request.id_character === null) {
+      this.loadMonster();
+      return;
+    }
     this.charService.getCharacterById(this.request.id_character, true).subscribe({
       next: (sheet) => {
         this.actorName.set(sheet.character_sheet.header.name);
@@ -81,9 +109,33 @@ export class SecretRollPromptComponent implements OnInit {
     });
   }
 
+  /** Monstro: bônus de resistência da ficha (ou o modificador), sem vantagens de personagem. */
+  private loadMonster(): void {
+    const check = this.request.check;
+    this.actorName.set(this.request.monster_name ?? 'Monstro');
+    if (!this.monster || check.kind !== 'save') {
+      this.loading.set(false);
+      this.error.set(true);
+      return;
+    }
+    const abbr = SAVE_ABBR[check.ability];
+    const save = monsterChecks(this.monster).saves.find((s) => s.key === `save:${abbr}`);
+    this.modifier = save?.modifier ?? 0;
+    this.loading.set(false);
+  }
+
   roll(): void {
     const check = this.request.check;
     const isSave = check.kind === 'save';
+    if (this.isMonster) {
+      this.rollConfig.set({
+        mode: 'ability',
+        rollType: 'save',
+        label: `Resistência: ${this.request.label.replace(/^Magia: /, '')}`,
+        modifier: this.modifier,
+      });
+      return;
+    }
     this.rollConfig.set({
       mode: 'ability',
       rollType: isSave ? 'save' : 'skill',
@@ -111,12 +163,14 @@ export class SecretRollPromptComponent implements OnInit {
   }
 
   onInspirationUsed(): void {
+    if (this.request.id_character === null) return;
     this.charService
       .updateActiveEffects(this.request.id_character, { consume_inspiration: true })
       .subscribe({ error: () => undefined });
   }
 
   private spend(resource: string): void {
+    if (this.request.id_character === null) return;
     this.charService
       .updateResourceUses(this.request.id_character, resource, 1)
       .subscribe({ error: () => undefined });

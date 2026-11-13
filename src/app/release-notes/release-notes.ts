@@ -33,6 +33,21 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.24.2',
+    date: '2026-11-12',
+    title: 'Resistência de monstros contra magias',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'Quem lança uma magia com teste de resistência (como Bola de Fogo) agora pode marcar também os monstros atingidos. O pedido chega para o mestre, que rola a resistência de cada monstro com o bônus da ficha dele.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A mesa vê só se o monstro passou ou falhou; o número rolado fica com o mestre.',
+      },
+    ],
+  },
+  {
     version: '1.24.1',
     date: '2026-11-12',
     title: 'Mesa do mestre em tempo real de novo',

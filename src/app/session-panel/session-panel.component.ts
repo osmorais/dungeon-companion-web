@@ -104,6 +104,7 @@ import { challengeRatingText, monsterSpeedText } from '../services/monster-forma
 import { IMAGE_TYPE_ERROR, isAcceptedImageFile } from '../constants/image-upload';
 import { SessionFriendsInviteComponent } from '../session-invite-modal/session-friends-invite.component';
 
+import { MonsterStatBlock } from '../models/monster-catalog.interface';
 @Component({
   selector: 'app-session-panel',
   standalone: true,
@@ -3121,6 +3122,15 @@ export class SessionPanelComponent implements OnDestroy {
   receiveSecretRoll(request: SecretRollPromptRequest): void {
     this.pendingSecretRolls.update((queue) =>
       queue.some((r) => r.request_id === request.request_id) ? queue : [...queue, request],
+    );
+  }
+
+  /** Ficha do monstro do pedido de resistência (só o mestre tem a lista de monstros). */
+  monsterBlockFor(idMonsterSession: string | null | undefined): MonsterStatBlock | null {
+    if (!idMonsterSession) return null;
+    return (
+      this.sessionDetail()?.monsters.find((m) => m.id_monster_session === idMonsterSession)
+        ?.data_snapshot ?? null
     );
   }
 

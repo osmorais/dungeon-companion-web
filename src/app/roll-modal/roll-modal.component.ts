@@ -414,21 +414,23 @@ export class RollModalComponent implements OnInit, OnDestroy {
     this.roll();
   }
 
-  /** Pedido de resistência aos jogadores atingidos (quem lançou marca quem foi pego). */
+  /** Pedido de resistência aos atingidos (quem lançou marca quem foi pego): jogadores rolam na
+   *  própria tela; monstros, o mestre rola (1.24.2). Chave = a do alvo ("player:…"/"monster:…"). */
   saveRequestPicks = signal<ReadonlySet<string>>(new Set());
-  /** id_player_session → id do pedido. */
+  /** chave do alvo → id do pedido. */
   saveRequests = signal<Record<string, string>>({});
   requestingSaves = signal(false);
   saveRequestError = signal<string | null>(null);
 
-  /** Jogadores que podem receber o pedido (só com CD conhecida e dentro da sessão). */
+  /** Quem pode receber o pedido (só com CD conhecida e dentro da sessão): jogadores e monstros
+   *  da mesa (o jogador só vê os revelados). */
   get saveRequestTargets(): { id: string; label: string }[] {
     if (this.config.mode !== 'ability' || !this.sessionId) return [];
     const save = this.config.save;
     if (!save?.dc || !save.ability) return [];
     return this.applyTargets
-      .filter((t) => t.key.startsWith('player:'))
-      .map((t) => ({ id: t.key.slice('player:'.length), label: t.label }));
+      .filter((t) => t.key.startsWith('player:') || t.key.startsWith('monster:'))
+      .map((t) => ({ id: t.key, label: t.label }));
   }
 
   toggleSaveTarget(id: string): void {
@@ -448,9 +450,13 @@ export class RollModalComponent implements OnInit, OnDestroy {
     if (!save?.dc || !save.ability || this.requestingSaves()) return;
     this.requestingSaves.set(true);
     this.saveRequestError.set(null);
+    const idsOf = (prefix: string) =>
+      ids.filter((key) => key.startsWith(prefix)).map((key) => key.slice(prefix.length));
+    const monsterIds = idsOf('monster:');
     this.gameSessionService
       .requestSecretRoll(this.sessionId, {
-        id_player_sessions: ids,
+        id_player_sessions: idsOf('player:'),
+        ...(monsterIds.length ? { id_monster_sessions: monsterIds } : {}),
         check: { kind: 'save', ability: save.ability },
         label: this.config.label.slice(0, 60),
         dc: save.dc,
@@ -462,7 +468,14 @@ export class RollModalComponent implements OnInit, OnDestroy {
           this.requestingSaves.set(false);
           this.saveRequests.update((map) => ({
             ...map,
-            ...Object.fromEntries(created.map((r) => [r.id_player_session, r.request_id])),
+            ...Object.fromEntries(
+              created.map((r) => [
+                r.id_monster_session
+                  ? `monster:${r.id_monster_session}`
+                  : `player:${r.id_player_session}`,
+                r.request_id,
+              ]),
+            ),
           }));
           this.saveRequestPicks.set(new Set());
         },
@@ -477,6 +490,9 @@ export class RollModalComponent implements OnInit, OnDestroy {
   saveStatus(id: string): 'pending' | 'success' | 'fail' | null {
     const requestId = this.saveRequests()[id];
     if (!requestId) return null;
+    // Monstro: o total fica oculto com o mestre; chega só o passou/falhou (1.24.2).
+    const resolved = this.sessionState.saveOutcomes()[requestId];
+    if (resolved) return resolved;
     const answer = this.sessionState
       .detail()
       ?.recent_rolls.find((r) => r.save_request_id === requestId);

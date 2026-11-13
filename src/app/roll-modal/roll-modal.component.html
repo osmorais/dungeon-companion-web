@@ -78,13 +78,18 @@
     @if (saveRequestTargets.length) {
       <div class="roll-save-request">
         <p class="roll-modifier-line">
-          QUEM FOI ATINGIDO? Eles rolam a resistência na própria tela.
+          QUEM FOI ATINGIDO? Os jogadores rolam a resistência na própria tela; a dos monstros, o
+          mestre rola.
         </p>
         @for (target of saveRequestTargets; track target.id) {
           <label class="smite-special-toggle">
             @switch (saveStatus(target.id)) {
               @case ('pending') {
-                <span>{{ target.label }}: aguardando a rolagem</span>
+                <span
+                  >{{ target.label }}: aguardando a rolagem{{
+                    target.id.startsWith('monster:') ? ' do mestre' : ''
+                  }}</span
+                >
               }
               @case ('success') {
                 <span>{{ target.label }}: passou</span>

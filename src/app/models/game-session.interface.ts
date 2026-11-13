@@ -381,6 +381,8 @@ export type SecretRollCheck =
 
 export interface SecretRollRequestPayload {
   id_player_sessions: string[];
+  /** Monstros atingidos: o pedido vai pro mestre rolar (1.24.2). Só resistência pública. */
+  id_monster_sessions?: string[];
   check: SecretRollCheck;
   label: string;
   /** Só resistência: CD (fica na API — o jogador recebe só se passou ou falhou). */

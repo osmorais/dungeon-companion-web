@@ -32,6 +32,13 @@ import {
   ShownReferenceImage,
 } from '../models/game-session.interface';
 
+/** Pedido criado: pra um jogador ou (1.24.2) pra um monstro, que o mestre rola. */
+export interface SecretRollRequestCreated {
+  id_player_session: string | null;
+  id_monster_session?: string | null;
+  request_id: string;
+}
+
 export interface AddMonsterToSessionInput {
   id_monster_catalog?: string;
   monster_api_slug?: string;
@@ -376,8 +383,8 @@ export class GameSessionService {
   requestSecretRoll(
     sessionId: string,
     payload: SecretRollRequestPayload,
-  ): Observable<{ id_player_session: string; request_id: string }[]> {
-    return this.http.post<{ id_player_session: string; request_id: string }[]>(
+  ): Observable<SecretRollRequestCreated[]> {
+    return this.http.post<SecretRollRequestCreated[]>(
       `${this.baseUrl}/api/game-session/${sessionId}/secret-roll-request`,
       payload,
     );

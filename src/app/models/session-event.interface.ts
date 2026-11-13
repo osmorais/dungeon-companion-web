@@ -102,12 +102,24 @@ export interface SessionEventPayloadMap {
   };
   monster_hidden: { id_monster_session: string };
   roll_added: { roll: RollLogEntry };
+  /** Resistência de monstro resolvida pelo mestre: a mesa sabe só se passou ou falhou (1.24.2). */
+  save_resolved: {
+    save_request_id: string;
+    id_monster_session: string;
+    name: string;
+    outcome: 'success' | 'fail';
+  };
   /** Teste secreto pedido pelo mestre — o backend só manda pro jogador alvo. */
   secret_roll_requested: {
     target_user_id: string;
     request_id: string;
-    id_player_session: string;
-    id_character: number;
+    /** `null` quando o alvo é um monstro (o pedido vai pro mestre, 1.24.2). */
+    id_player_session: string | null;
+    id_character: number | null;
+    id_monster_session?: string | null;
+    monster_name?: string | null;
+    /** CD: só nos pedidos de monstro, que vão só pro mestre. */
+    dc?: number | null;
     label: string;
     check: SecretRollCheck;
     /** Ausente na API antiga (= teste secreto). */

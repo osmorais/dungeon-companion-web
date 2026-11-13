@@ -234,6 +234,19 @@ describe('applySessionEvent', () => {
       expect(m.data_snapshot).toMatchObject({ name: 'Goblin', strength: 8, dexterity: 18 });
     });
 
+    it('save_resolved não mexe na mesa (o passou/falhou fica no SessionStateService)', () => {
+      const detail = sessionDetail({ monsters: [monster('m1')] });
+      expect(
+        apply(detail, {
+          type: 'save_resolved',
+          save_request_id: 'r',
+          id_monster_session: 'm1',
+          name: 'Goblin',
+          outcome: 'fail',
+        }),
+      ).toBe(detail);
+    });
+
     it('revelado guarda o slug da arte padrão (1.23.0)', () => {
       const detail = apply(sessionDetail({ monsters: [monster('m1')] }), {
         type: 'monster_revealed',
