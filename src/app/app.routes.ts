@@ -112,8 +112,10 @@ export const routes: Routes = [
   {
     path: 'my-sessions',
     canActivate: [authGuard],
+    // Minhas aventuras: a mesma tela de Sessões criadas, do lado do jogador (1.25.3).
+    data: { role: 'player' },
     loadComponent: () =>
-      import('./my-sessions/my-sessions.component').then(m => m.MySessionsComponent),
+      import('./session-list/session-list.component').then(m => m.SessionListComponent),
   },
   {
     path: 'ranking',

@@ -1,10 +1,11 @@
-import { Component, inject, OnInit, signal, computed, HostListener } from '@angular/core';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { catchError, finalize, forkJoin, of } from 'rxjs';
 import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
 import { CharacterCardInfo, characterCardInfo, formatModifier, xpPercent } from './character-card';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { CharacterService } from '../services/character.service';
+import { openCharacterWizard } from '../services/open-character-wizard';
 import { CharacterSummary } from '../models/character-summary.interface';
 
 const PAGE_SIZE = 10;
@@ -12,20 +13,13 @@ const PAGE_SIZE = 10;
 @Component({
   selector: 'app-character-list',
   standalone: true,
-  imports: [SkeletonRowsComponent, AvatarDisplayComponent],
+  imports: [SkeletonRowsComponent, AvatarDisplayComponent, RouterLink],
   templateUrl: './character-list.component.html',
   styleUrls: ['./character-list.component.scss'],
 })
 export class CharacterListComponent implements OnInit {
   private router = inject(Router);
   private charService = inject(CharacterService);
-
-  isMobile = signal(typeof window !== 'undefined' && window.innerWidth < 768);
-
-  @HostListener('window:resize')
-  onResize() {
-    this.isMobile.set(window.innerWidth < 768);
-  }
 
   characters = signal<CharacterSummary[]>([]);
   error = signal(false);
@@ -42,6 +36,18 @@ export class CharacterListComponent implements OnInit {
   totalPages = computed(() => Math.ceil(this.totalCount() / this.pageSize) || 1);
   hasPrev = computed(() => this.page() > 1);
   hasNext = computed(() => this.page() < this.totalPages());
+  /** Faixa do rodapé ("MOSTRANDO 11–17 DE 17"). */
+  rangeStart = computed(() =>
+    this.characters().length ? (this.page() - 1) * this.pageSize + 1 : 0,
+  );
+  rangeEnd = computed(() => (this.page() - 1) * this.pageSize + this.characters().length);
+
+  /** + CRIAR PERSONAGEM: busca as opções antes de abrir o wizard, como na Home. */
+  openingCreate = signal(false);
+
+  createCharacter() {
+    openCharacterWizard(this.charService, this.router, this.openingCreate);
+  }
 
   ngOnInit() {
     this.loadPage();
@@ -50,16 +56,17 @@ export class CharacterListComponent implements OnInit {
   loadPage() {
     this.error.set(false);
     this.loading.set(true);
-    this.charService.getCharacters(this.page(), this.pageSize)
+    this.charService
+      .getCharacters(this.page(), this.pageSize)
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
-      next: res => {
-        this.characters.set(res.CharacterPagedList);
-        this.totalCount.set(res.total_count);
-        this.loadCards(res.CharacterPagedList.map(c => c.id_character));
-      },
-      error: () => this.error.set(true),
-    });
+        next: (res) => {
+          this.characters.set(res.CharacterPagedList);
+          this.totalCount.set(res.total_count);
+          this.loadCards(res.CharacterPagedList.map((c) => c.id_character));
+        },
+        error: () => this.error.set(true),
+      });
   }
 
   /**
@@ -73,14 +80,15 @@ export class CharacterListComponent implements OnInit {
   private loadCards(ids: number[]): void {
     this.cards.set(new Map());
     if (ids.length === 0) return;
-    forkJoin(ids.map(id => this.charService.getCharacterById(id, true).pipe(catchError(() => of(null)))))
-      .subscribe(sheets => {
-        const next = new Map<number, CharacterCardInfo>();
-        sheets.forEach((sheet, i) => {
-          if (sheet) next.set(ids[i], characterCardInfo(sheet));
-        });
-        this.cards.set(next);
+    forkJoin(
+      ids.map((id) => this.charService.getCharacterById(id, true).pipe(catchError(() => of(null)))),
+    ).subscribe((sheets) => {
+      const next = new Map<number, CharacterCardInfo>();
+      sheets.forEach((sheet, i) => {
+        if (sheet) next.set(ids[i], characterCardInfo(sheet));
       });
+      this.cards.set(next);
+    });
   }
 
   cardInfo(idCharacter: number): CharacterCardInfo | null {
@@ -89,14 +97,14 @@ export class CharacterListComponent implements OnInit {
 
   prevPage() {
     if (this.hasPrev()) {
-      this.page.update(p => p - 1);
+      this.page.update((p) => p - 1);
       this.loadPage();
     }
   }
 
   nextPage() {
     if (this.hasNext()) {
-      this.page.update(p => p + 1);
+      this.page.update((p) => p + 1);
       this.loadPage();
     }
   }
@@ -132,7 +140,7 @@ export class CharacterListComponent implements OnInit {
         // Se era o único personagem da página atual e ainda existem páginas anteriores,
         // volta uma página em vez de recarregar uma página vazia.
         if (this.characters().length === 1 && this.hasPrev()) {
-          this.page.update(p => p - 1);
+          this.page.update((p) => p - 1);
         }
         this.loadPage();
       },

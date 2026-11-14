@@ -1,5 +1,6 @@
-<!-- Sessões criadas (1.25.2): mesmo visual da Home — cenário com trilhos, título com sombra em
-     degrau e janela de borda laranja. Um template só; o celular ajusta por media query. -->
+<!-- Sessões criadas (/sessions, mestre) e Minhas aventuras (/my-sessions, jogador) — 1.25.2/1.25.3:
+     mesmo visual da Home, mesma tela; os textos, o ícone e a ação de destaque vêm de copy() pelo
+     papel da rota. Um template só; o celular ajusta por media query. -->
 <div class="fa-stage">
   <span class="fa-rail fa-rail--top" aria-hidden="true"></span>
   <span class="fa-rail fa-rail--bottom" aria-hidden="true"></span>
@@ -10,22 +11,22 @@
         ← <span class="sl-back__label">VOLTAR</span>
       </button>
       <div class="fa-intro sl-intro">
-        <h1 class="fa-heading">SESSÕES CRIADAS</h1>
-        <p class="fa-desc fa-subheading">Suas campanhas esperam o próximo capítulo.</p>
+        <h1 class="fa-heading">{{ copy().title }}</h1>
+        <p class="fa-desc fa-subheading">{{ copy().subtitle }}</p>
       </div>
     </header>
 
-    <section class="fa-window fa-window--main">
+    <section class="fa-window fa-window--main" [attr.aria-label]="copy().title">
       <div class="fa-window__bar">
-        <h2 class="fa-window__title">SUAS MESAS</h2>
+        <h2 class="fa-window__title">{{ copy().windowTitle }}</h2>
         @if (!loading() && !error() && totalCount() > 0) {
           <span class="sl-count"
             >AVENTURAS <strong>{{ totalCount() }}</strong></span
           >
         }
         @if (error() || loading() || totalCount() > 0) {
-          <button type="button" class="fa-btn fa-btn--primary sl-new" (click)="createSession()">
-            + NOVA SESSÃO
+          <button type="button" class="fa-btn fa-btn--primary sl-new" (click)="primaryAction()">
+            {{ copy().action }}
           </button>
         }
       </div>
@@ -33,7 +34,7 @@
       @if (error()) {
         <div class="sl-state" role="alert">
           <span class="sl-state__icon sl-state__icon--error" aria-hidden="true">!</span>
-          <p class="sl-state__title">NÃO FOI POSSÍVEL CARREGAR AS SESSÕES</p>
+          <p class="sl-state__title">{{ copy().error }}</p>
           <p class="fa-desc sl-state__desc">Confira sua conexão e tente de novo.</p>
           <button type="button" class="fa-btn" (click)="loadPage()">TENTAR DE NOVO</button>
         </div>
@@ -48,14 +49,12 @@
       } @else if (sessions().length === 0) {
         <div class="sl-state">
           <span class="sl-state__icon" aria-hidden="true">
-            <img class="ui-icon" src="assets/icons/book-open.png" alt="" />
+            <img class="ui-icon" [src]="copy().icon" alt="" />
           </span>
-          <p class="sl-state__title">NENHUMA SESSÃO AINDA</p>
-          <p class="fa-desc sl-state__desc">
-            Toda campanha começa com uma mesa vazia. Crie a primeira e chame seu grupo.
-          </p>
-          <button type="button" class="fa-btn fa-btn--primary" (click)="createSession()">
-            + CRIAR PRIMEIRA SESSÃO
+          <p class="sl-state__title">{{ copy().emptyTitle }}</p>
+          <p class="fa-desc sl-state__desc">{{ copy().emptyDesc }}</p>
+          <button type="button" class="fa-btn fa-btn--primary" (click)="primaryAction()">
+            {{ copy().emptyAction }}
           </button>
         </div>
       } @else {
@@ -65,7 +64,7 @@
               <button type="button" class="sl-card" (click)="openSession(session.id_game_session)">
                 <span class="sl-card__head">
                   <span class="sl-card__icon">
-                    <img class="ui-icon" src="assets/icons/book-open.png" alt="" />
+                    <img class="ui-icon" [src]="copy().icon" alt="" />
                   </span>
                   <span class="sl-card__title">{{ session.session_name }}</span>
                   <span class="sl-card__arrow" aria-hidden="true">›</span>
