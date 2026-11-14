@@ -1,173 +1,307 @@
-/* ===== DESKTOP ===== */
+/* Entrar em uma aventura (1.25.3). Cenário, janelas, campos e itens marcáveis vêm das classes .fa-*
+   do styles.scss; aqui o arranjo, o código em 5 casas e a barra de resumo. */
 
-.container {
-  width: 640px;
-  max-width: 90vw;
+.sj-content {
+  position: relative;
+  z-index: 1;
+  width: min(1180px, 100%);
 }
 
-.title-panel {
-  text-align: center;
-  margin-bottom: 0;
+/* ===== Topo ===== */
+
+.sj-top {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-bottom: 30px;
 }
 
-.entry-grid {
+.sj-back {
+  align-self: flex-start;
+}
+
+/* ===== Colunas: código | personagens ===== */
+
+.sj-columns {
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 24px;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 28px;
   align-items: start;
 }
 
-.field {
+/* ===== Código em 5 casas ===== */
+
+.sj-code {
+  align-items: center;
+  padding-block: 28px;
+  text-align: center;
+}
+
+// O <input> fica por cima das casas, transparente: o foco, a digitação e o colar são dele.
+.sj-code__field {
+  position: relative;
+}
+
+.sj-code__slots {
   display: flex;
-  flex-direction: column;
   gap: 10px;
 }
 
-.field-label {
-  font-size: 7px;
-  color: var(--label-title-color);
-  line-height: 1.8;
-}
-
-.code-input-wrap {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.code-input {
-  width: 160px;
-  background-color: var(--bg-color);
-  color: var(--accent-color);
+.sj-code__slot {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 66px;
+  box-sizing: border-box;
+  background-color: rgb(0 0 0 / 35%);
   border: 2px solid var(--border-color);
-  padding: 10px 12px;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 16px;
-  letter-spacing: 6px;
-  text-transform: uppercase;
+  font-size: 22px;
+  color: var(--gold-color);
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 
-  &:focus {
-    outline: 2px solid var(--accent-color);
+  &--next {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgb(255 170 0 / 35%);
   }
 }
 
-.code-counter {
-  font-size: 8px;
+.sj-code__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: transparent;
+  caret-color: transparent;
+  font-size: 22px;
+  opacity: 0;
+  cursor: text;
+}
+
+.sj-code__counter {
+  font-size: 7px;
+  letter-spacing: 2px;
   color: var(--label-title-color);
 
   &--ready {
-    color: #4caf50;
+    color: var(--gold-color);
   }
 }
 
-.char-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
+.sj-who {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 12px 14px;
+  background-color: rgb(0 0 0 / 25%);
+  border: 2px dashed var(--border-color);
+  text-align: left;
 }
 
-.char-card {
+.sj-who__name {
+  font-size: 20px;
+  color: var(--text-soft);
+}
+
+.sj-who__hint {
+  color: var(--label-title-color);
+}
+
+/* ===== Personagens ===== */
+
+.sj-count {
+  margin-left: auto;
+}
+
+.sj-chars {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  max-height: 460px;
+  overflow-y: auto;
+}
+
+.sj-char__badge {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  box-sizing: border-box;
+  background-color: var(--bg-color);
+  border: 3px solid var(--gold-color);
+  border-radius: 50%;
+  font-size: 14px;
+}
+
+.sj-char__mark {
+  margin-left: auto;
+}
+
+.sj-empty {
+  margin: 0;
+  color: var(--label-title-color);
+}
+
+.sj-none {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 16px;
-  background-color: var(--bg-color);
-  color: var(--text-color);
-  border: 2px solid var(--border-color);
-  font-family: 'Press Start 2P', monospace;
-  cursor: var(--cp);
-  text-align: left;
-  transition: border-color 0.15s, background-color 0.15s;
-
-  &:hover {
-    border-color: var(--accent-color);
-    background-color: var(--btn-color);
-  }
-
-  &--selected {
-    border-color: var(--accent-color);
-    background-color: var(--btn-color-hover);
-  }
+  align-items: center;
+  gap: 14px;
+  padding: 24px 0;
+  text-align: center;
 }
 
-.char-card-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-}
-
-.char-name {
-  font-size: 9px;
+.sj-none__title {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.6;
   color: var(--accent-color);
 }
 
-.selected-mark {
-  font-size: 10px;
-  color: #4caf50;
-}
+/* ===== Resumo e entrar ===== */
 
-.char-meta {
-  font-size: 7px;
-  color: var(--label-title-color);
-  line-height: 1.8;
-}
-
-.char-level {
-  font-size: 7px;
-  color: var(--label-title-color);
-}
-
-.empty-msg {
-  font-size: 9px;
-  color: var(--label-title-color);
-  text-align: center;
-  padding: 10px 0;
-  margin: 0;
-  line-height: 2;
-}
-
-.error-msg {
-  font-size: 7px;
-  color: #ff6b6b;
-  text-align: right;
-  margin: 4px 0 0;
-  line-height: 1.8;
-}
-
-.action-row {
+.sj-summary {
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
   align-items: center;
-  margin-top: 4px;
+  gap: 12px 18px;
+  margin-top: 32px;
+  padding: 16px 22px;
+  background-color: color-mix(in srgb, var(--bg-color) 82%, var(--panel-bg));
+  border: 2px solid var(--border-color);
+  box-shadow:
+    0 0 0 2px #000,
+    8px 8px 0 rgb(0 0 0 / 45%);
 }
 
-.back-btn {
-  float: none;
-  margin-top: 0;
+.sj-summary__text {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-soft);
+}
+
+.sj-summary__error {
+  flex-basis: 100%;
+  order: -1;
+  margin: 0;
   font-size: 8px;
-  padding: 8px 14px;
+  color: #ff6b6b;
 }
 
-.join-btn {
-  float: none;
-  margin-top: 0;
-  font-size: 9px;
-  padding: 10px 20px;
+/* ===== Celular: etapas empilhadas e ENTRAR fixo embaixo ===== */
 
-  &:disabled {
-    opacity: 0.4;
-    cursor: var(--cx);
+@media (max-width: 767px) {
+  .sj-top {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+
+  .sj-back {
+    align-self: center;
+  }
+
+  .sj-back__label {
+    display: none;
+  }
+
+  .sj-intro {
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+
+    .fa-heading {
+      margin-bottom: 8px;
+      font-size: 11px;
+    }
+
+    .fa-subheading {
+      font-size: 19px;
+    }
+  }
+
+  .sj-columns {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .sj-window {
+    background: none;
+    border: none;
+    box-shadow: none;
+
+    .fa-window__bar {
+      margin-top: 22px;
+      padding: 0 0 8px;
+      background: none;
+      border-bottom: 2px solid color-mix(in srgb, var(--border-color) 60%, transparent);
+    }
+
+    .fa-window__title {
+      font-size: 9px;
+    }
+
+    .fa-step {
+      width: 22px;
+      height: 22px;
+      font-size: 8px;
+    }
+
+    .fa-window__body {
+      padding: 14px 0 0;
+    }
+  }
+
+  .sj-code__slots {
+    gap: 8px;
+  }
+
+  .sj-code__slot {
+    width: 52px;
+    height: 62px;
+    font-size: 20px;
+  }
+
+  .sj-chars {
+    grid-template-columns: 1fr;
+    max-height: none;
+  }
+
+  .sj-summary {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    margin: 24px -16px -40px;
+    padding: 14px 16px 18px;
+    background: linear-gradient(transparent, var(--bg-color) 30%);
+    border: none;
+    box-shadow: none;
+  }
+
+  .sj-summary__label,
+  .sj-summary__cancel {
+    display: none;
+  }
+
+  .sj-summary__text {
+    flex-basis: 100%;
+    font-size: 17px;
+    text-align: center;
+    color: var(--label-title-color);
+  }
+
+  .sj-summary__join {
+    width: 100%;
   }
 }
-
-/* ===== MOBILE ===== */
-
-.mobile-container {
-  width: 100vw;
-  max-width: 100vw;
-  min-height: 100vh;
-  padding: 0 12px 32px;
-  box-sizing: border-box;
-  overflow-x: hidden;
-}
-

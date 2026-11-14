@@ -33,6 +33,25 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.25.3',
+    date: '2026-11-14',
+    title: 'Área do jogador com a cara da nova tela inicial',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'Meus personagens com o visual da tela inicial: cards com vida, CA, atributos e experiência, e um botão para criar personagem direto da lista.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Entrar em uma aventura em duas etapas: o código da mesa em cinco casas e a escolha do personagem, com um resumo do que falta antes de entrar.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Minhas aventuras no mesmo visual de sessões criadas, com o código e a data de cada mesa e um botão para entrar em outra aventura.',
+      },
+    ],
+  },
+  {
     version: '1.25.2',
     date: '2026-11-14',
     title: 'Sessões, criação de sessão e bestiário com a cara da nova tela inicial',

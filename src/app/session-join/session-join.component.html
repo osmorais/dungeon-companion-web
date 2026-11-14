@@ -1,154 +1,154 @@
-@if (isMobile()) {
-  <!-- ===== MOBILE LAYOUT ===== (formulário no padrão das telas mobile: .m-* no styles.scss) -->
-  <div class="mobile-container">
+<!-- Entrar em uma aventura (1.25.3): visual da Home, em 2 etapas (código da mesa em 5 casas e
+     escolha do personagem) e barra de resumo com ENTRAR NA AVENTURA. Um template só. -->
+<div class="fa-stage">
+  <span class="fa-rail fa-rail--top" aria-hidden="true"></span>
+  <span class="fa-rail fa-rail--bottom" aria-hidden="true"></span>
 
-    <div class="m-header">
-      <button class="m-back" (click)="goBack()">&#8592;</button>
-      <span class="m-title">ENTRAR EM AVENTURA</span>
-    </div>
-
-    <section class="m-section">
-      <h2 class="m-section-title">DADOS DE ENTRADA</h2>
-
-      <div class="m-field">
-        <label class="m-label" for="m-session-code">CÓDIGO DA SESSÃO</label>
-        <input
-          id="m-session-code"
-          type="text"
-          class="m-input m-input--code"
-          placeholder="AB3C9"
-          maxlength="5"
-          [ngModel]="sessionCode()"
-          (ngModelChange)="onCodeInput($event)"
-        />
-        <p class="m-hint">{{ sessionCode().length }}/5</p>
+  <div class="sj-content">
+    <header class="sj-top">
+      <button type="button" class="fa-btn sj-back" (click)="goBack()" aria-label="Voltar">
+        ← <span class="sj-back__label">VOLTAR</span>
+      </button>
+      <div class="fa-intro sj-intro">
+        <h1 class="fa-heading">ENTRAR EM UMA AVENTURA</h1>
+        <p class="fa-desc fa-subheading">
+          Digite o código que o mestre passou e escolha quem vai à mesa.
+        </p>
       </div>
+    </header>
 
-      <p class="name-privacy-hint">
-        Você entra como <strong>{{ username() }}</strong>, seu nome de usuário — troque em Minha Conta.
-      </p>
-    </section>
-
-    <section class="m-section">
-      <h2 class="m-section-title">SELECIONE SEU PERSONAGEM</h2>
-
-      @if (loadError()) {
-        <p class="m-empty">ERRO AO CARREGAR PERSONAGENS.</p>
-      } @else if (loadingCharacters()) {
-        <app-skeleton-rows [rows]="3" [height]="70" />
-      } @else if (characters().length === 0) {
-        <p class="m-empty">NENHUM PERSONAGEM ENCONTRADO.</p>
-      } @else {
-        <div class="m-card-list">
-          @for (char of characters(); track char.id_character) {
-            <button class="m-card" [class.m-card--selected]="isSelected(char)" (click)="selectCharacter(char)">
-              <span class="m-card-icon"><img class="ui-icon" src="assets/icons/swords.png" alt="" /></span>
-              <span class="m-card-body">
-                <span class="m-card-title">{{ char.name }}</span>
-                <span class="m-card-desc">{{ char.class }} — {{ char.race }} — NÍVEL {{ char.level }}</span>
-              </span>
-              @if (isSelected(char)) {
-                <span class="m-card-icon"><img class="ui-icon" src="assets/icons/check.png" alt="" /></span>
-              }
-            </button>
-          }
+    <div class="sj-columns">
+      <!-- 1. Código da mesa -->
+      <section class="fa-window fa-window--main sj-window" aria-labelledby="sj-step-1">
+        <div class="fa-window__bar">
+          <span class="fa-step" aria-hidden="true">1</span>
+          <h2 class="fa-window__title" id="sj-step-1">CÓDIGO DA MESA</h2>
         </div>
-      }
-    </section>
-
-    @if (joinError()) {
-      <p class="m-error">{{ joinError() }}</p>
-    }
-
-    <button class="retro-btn m-submit" [disabled]="!canJoin() || joining()" (click)="join()">
-      {{ joining() ? 'ENTRANDO...' : 'ENTRAR NA AVENTURA' }}
-    </button>
-
-  </div>
-} @else {
-  <!-- ===== DESKTOP LAYOUT ===== -->
-  <div class="container">
-
-    <fieldset class="retro-panel title-panel">
-      <legend>ENTRAR EM UMA AVENTURA</legend>
-    </fieldset>
-
-    <!-- Código + com que nome você entra -->
-    <fieldset class="retro-panel">
-      <legend>DADOS DE ENTRADA</legend>
-      <div class="entry-grid">
-        <div class="field">
-          <label class="field-label">CÓDIGO DA SESSÃO</label>
-          <div class="code-input-wrap">
+        <div class="fa-window__body sj-code">
+          <label class="fa-label" for="sj-code">DIGITE AS 5 LETRAS E NÚMEROS</label>
+          <!-- Um campo de verdade por cima das casas: digitar, colar e apagar funcionam normal. -->
+          <div class="sj-code__field">
+            <div class="sj-code__slots" aria-hidden="true">
+              @for (char of codeSlots(); track $index) {
+                <span
+                  class="sj-code__slot"
+                  [class.sj-code__slot--next]="codeFocused() && $index === sessionCode().length"
+                  [class.sj-code__slot--filled]="!!char"
+                  >{{ char }}</span
+                >
+              }
+            </div>
             <input
+              id="sj-code"
               type="text"
-              class="code-input"
-              placeholder="ex: AB3C9"
+              class="sj-code__input"
               maxlength="5"
+              autocomplete="off"
+              autocapitalize="characters"
+              spellcheck="false"
               [ngModel]="sessionCode()"
               (ngModelChange)="onCodeInput($event)"
+              (focus)="codeFocused.set(true)"
+              (blur)="codeFocused.set(false)"
             />
-            <span class="code-counter" [class.code-counter--ready]="sessionCode().length === 5">
-              {{ sessionCode().length }}/5
-            </span>
           </div>
-        </div>
-
-        <div class="field">
-          <span class="field-label">VOCÊ ENTRA COMO</span>
-          <p class="name-privacy-hint">
-            <strong>{{ username() }}</strong>, seu nome de usuário — troque em Minha Conta.
+          <span
+            class="sj-code__counter"
+            [class.sj-code__counter--ready]="sessionCode().length === 5"
+          >
+            {{ sessionCode().length }} / 5{{ sessionCode().length === 5 ? ' ✓' : '' }}
+          </span>
+          <p class="sj-who">
+            <span class="fa-label">VOCÊ ENTRA COMO</span>
+            <span class="fa-desc sj-who__name">{{ username() }}</span>
+            <span class="fa-desc sj-who__hint">— troque em Minha Conta</span>
           </p>
         </div>
-      </div>
-    </fieldset>
+      </section>
 
-    <!-- Seleção de personagem -->
-    <fieldset class="retro-panel">
-      <legend>SELECIONE SEU PERSONAGEM</legend>
-
-      @if (loadError()) {
-        <p class="empty-msg">ERRO AO CARREGAR PERSONAGENS.</p>
-      } @else if (loadingCharacters()) {
-        <app-skeleton-rows [rows]="4" [height]="40" />
-      } @else if (characters().length === 0) {
-        <p class="empty-msg">NENHUM PERSONAGEM ENCONTRADO. CRIE UM PERSONAGEM PRIMEIRO.</p>
-      } @else {
-        <div class="char-grid">
-          @for (char of characters(); track char.id_character) {
-            <button
-              class="char-card"
-              [class.char-card--selected]="isSelected(char)"
-              (click)="selectCharacter(char)"
+      <!-- 2. Escolha do personagem -->
+      <section class="fa-window sj-window sj-window--chars" aria-labelledby="sj-step-2">
+        <div class="fa-window__bar">
+          <span class="fa-step" aria-hidden="true">2</span>
+          <h2 class="fa-window__title" id="sj-step-2">ESCOLHA SEU PERSONAGEM</h2>
+          @if (characters().length > 0) {
+            <span class="fa-count sj-count"
+              >PERSONAGENS <strong>{{ characters().length }}</strong></span
             >
-              <div class="char-card-top">
-                <span class="char-name">{{ char.name }}</span>
-                @if (isSelected(char)) {
-                  <span class="selected-mark"><img class="ui-icon" src="assets/icons/check.png" alt="" /></span>
-                }
-              </div>
-              <span class="char-meta">{{ char.class }} — {{ char.race }}</span>
-              <span class="char-level">NÍVEL {{ char.level }}</span>
-            </button>
           }
         </div>
+        <div class="fa-window__body">
+          @if (loadError()) {
+            <p class="fa-desc sj-empty" role="alert">Não foi possível carregar seus personagens.</p>
+          } @else if (loadingCharacters()) {
+            <app-skeleton-rows [rows]="4" [height]="56" />
+          } @else if (characters().length === 0) {
+            <div class="sj-none">
+              <p class="sj-none__title">CRIE UM PERSONAGEM PRIMEIRO</p>
+              <p class="fa-desc sj-empty">Para entrar numa mesa você precisa de um aventureiro.</p>
+              <button
+                type="button"
+                class="fa-btn fa-btn--primary"
+                [disabled]="openingCreate()"
+                (click)="createCharacter()"
+              >
+                + CRIAR PERSONAGEM
+              </button>
+            </div>
+          } @else {
+            <div class="sj-chars">
+              @for (char of characters(); track char.id_character) {
+                <button
+                  type="button"
+                  class="fa-pick sj-char"
+                  [class.fa-pick--on]="isSelected(char)"
+                  [attr.aria-pressed]="isSelected(char)"
+                  (click)="selectCharacter(char)"
+                >
+                  <span class="sj-char__badge" aria-hidden="true">
+                    <img class="ui-icon" src="assets/icons/swords.png" alt="" />
+                  </span>
+                  <span class="fa-pick__body">
+                    <span class="fa-pick__name">{{ char.name }}</span>
+                    <span class="fa-desc fa-pick__meta"
+                      >{{ char.class }} · {{ char.race }} · NV {{ char.level }}</span
+                    >
+                  </span>
+                  <span class="fa-pick__mark sj-char__mark" aria-hidden="true">
+                    @if (isSelected(char)) {
+                      <img class="ui-icon" src="assets/icons/check.png" alt="" />
+                    }
+                  </span>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </section>
+    </div>
+
+    <!-- Resumo e entrar -->
+    <div class="sj-summary">
+      <span class="fa-label sj-summary__label">RESUMO</span>
+      <span class="fa-desc sj-summary__text">
+        @if (missing()) {
+          {{ missing() }}
+        } @else {
+          Mesa {{ sessionCode() }} · vai com {{ selectedCharacter()!.name }}
+        }
+      </span>
+      @if (joinError()) {
+        <p class="sj-summary__error" role="alert">{{ joinError() }}</p>
       }
-    </fieldset>
-
-    @if (joinError()) {
-      <p class="error-msg">{{ joinError() }}</p>
-    }
-
-    <div class="action-row">
-      <button class="retro-btn back-btn" (click)="goBack()">← VOLTAR</button>
+      <button type="button" class="fa-btn sj-summary__cancel" (click)="goBack()">CANCELAR</button>
       <button
-        class="retro-btn join-btn"
+        type="button"
+        class="fa-btn fa-btn--primary sj-summary__join"
         [disabled]="!canJoin() || joining()"
         (click)="join()"
       >
         {{ joining() ? 'ENTRANDO...' : 'ENTRAR NA AVENTURA' }}
       </button>
     </div>
-
   </div>
-}
+</div>

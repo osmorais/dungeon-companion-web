@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter, Router } from '@angular/router';
+import { ActivatedRoute, provideRouter, Router } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
 import { GameSessionService } from '../services/game-session.service';
 import { GameSessionPagedList, GameSessionSummary } from '../models/game-session.interface';
@@ -28,10 +28,14 @@ describe('SessionListComponent (Sessões criadas)', () => {
   let getMySessions: ReturnType<typeof vi.fn>;
   let navigate: ReturnType<typeof vi.spyOn>;
 
-  function create(response: () => unknown) {
+  function create(response: () => unknown, role?: 'player') {
     getMySessions = vi.fn(response);
     TestBed.configureTestingModule({
-      providers: [provideRouter([]), { provide: GameSessionService, useValue: { getMySessions } }],
+      providers: [
+        provideRouter([]),
+        { provide: GameSessionService, useValue: { getMySessions } },
+        ...(role ? [{ provide: ActivatedRoute, useValue: { snapshot: { data: { role } } } }] : []),
+      ],
     });
     navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     const cmp = TestBed.runInInjectionContext(() => new SessionListComponent());
@@ -93,9 +97,30 @@ describe('SessionListComponent (Sessões criadas)', () => {
     const cmp = create(() => of(pageOf(1, 1)));
     cmp.openSession('gs-1');
     expect(navigate).toHaveBeenLastCalledWith(['/session', 'gs-1']);
-    cmp.createSession();
+    cmp.primaryAction();
     expect(navigate).toHaveBeenLastCalledWith(['/session-create']);
     cmp.goBack();
     expect(navigate).toHaveBeenLastCalledWith(['/']);
+  });
+
+  describe('Minhas aventuras (rota com data.role = player)', () => {
+    it('busca as mesas em que joga, com os textos do jogador', () => {
+      const cmp = create(() => of(pageOf(2, 2)), 'player');
+      expect(getMySessions).toHaveBeenCalledWith(1, 10, 'player');
+      expect(cmp.copy().title).toBe('MINHAS AVENTURAS');
+      expect(cmp.copy().icon).toContain('compass');
+    });
+
+    it('a ação de destaque leva para entrar em uma aventura', () => {
+      const cmp = create(() => of(pageOf(0, 0)), 'player');
+      cmp.primaryAction();
+      expect(navigate).toHaveBeenLastCalledWith(['/session-join']);
+    });
+
+    it('sem papel na rota: tela do mestre', () => {
+      const cmp = create(() => of(pageOf(0, 0)));
+      expect(cmp.role).toBe('dm');
+      expect(cmp.copy().title).toBe('SESSÕES CRIADAS');
+    });
   });
 });

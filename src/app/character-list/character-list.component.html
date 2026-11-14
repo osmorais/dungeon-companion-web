@@ -1,171 +1,228 @@
-@if (isMobile()) {
-  <!-- ===== MOBILE LAYOUT ===== -->
-  <div class="mobile-character-list-container">
+<!-- Meus personagens (1.25.3): visual da Home. Janela AVENTUREIROS com os cards (avatar, PV, CA,
+     atributos, XP) e + CRIAR PERSONAGEM; no celular os cards viram linhas compactas. -->
+<div class="fa-stage">
+  <span class="fa-rail fa-rail--top" aria-hidden="true"></span>
+  <span class="fa-rail fa-rail--bottom" aria-hidden="true"></span>
 
-    <div class="m-header">
-      <button class="m-back" (click)="goBack()">&#8592;</button>
-      <span class="m-title">MEUS PERSONAGENS</span>
-    </div>
-
-    @if (error()) {
-      <p class="m-empty">ERRO AO CARREGAR PERSONAGENS.</p>
-    } @else if (loading()) {
-      <div aria-busy="true" aria-label="Carregando">
-        <app-skeleton-rows [rows]="5" [height]="70" />
+  <div class="cl-content">
+    <header class="cl-top">
+      <button type="button" class="fa-btn cl-back" (click)="goBack()" aria-label="Voltar">
+        ← <span class="cl-back__label">VOLTAR</span>
+      </button>
+      <div class="fa-intro cl-intro">
+        <h1 class="fa-heading">MEUS PERSONAGENS</h1>
+        <p class="fa-desc fa-subheading">Seus aventureiros, prontos para a próxima mesa.</p>
       </div>
-    } @else if (characters().length === 0) {
-      <p class="m-empty">NENHUM PERSONAGEM ENCONTRADO.</p>
-    } @else {
-      <ul class="m-card-list">
-        @for (char of characters(); track char.id_character) {
-          <li class="m-card m-card--deletable" (click)="openSheet(char.id_character)">
-            <button class="m-card-delete" title="Remover personagem" (click)="requestDelete(char, $event)">✕</button>
-            @if (cardInfo(char.id_character); as info) {
-              <span class="m-card-icon char-mobile-avatar"><app-avatar-display [preset]="info.avatarPreset" /></span>
-            } @else {
-              <span class="m-card-icon"><img class="ui-icon" src="assets/icons/swords.png" alt="" /></span>
-            }
-            <span class="m-card-body">
-              <span class="m-card-title">{{ char.name }}</span>
-              <span class="m-card-desc">{{ char.class }} &mdash; {{ char.race }} &mdash; NÍVEL {{ char.level }}</span>
-            </span>
-            <span class="m-card-arrow">&#9658;</span>
-          </li>
-        }
-      </ul>
-
-      <div class="m-pagination">
-        <button class="m-page-btn" [disabled]="!hasPrev()" (click)="prevPage()">&#9664;</button>
-        <span class="m-page-info">{{ page() }} / {{ totalPages() }}</span>
-        <button class="m-page-btn" [disabled]="!hasNext()" (click)="nextPage()">&#9654;</button>
-      </div>
-
-      <p class="m-total">TOTAL: {{ totalCount() }}</p>
-    }
-
-  </div>
-} @else {
-  <!-- ===== DESKTOP LAYOUT ===== (página no tamanho da sessão: .page/.page-topbar/.d-grid no styles.scss) -->
-  <div class="page">
-
-    <header class="page-topbar">
-      <button class="retro-btn page-topbar-back" (click)="goBack()">← VOLTAR</button>
-      <h1 class="page-topbar-name">MEUS PERSONAGENS</h1>
-      @if (!loading() && !error() && totalCount() > 0) {
-        <div class="page-topbar-meta">
-          <span>AVENTUREIROS <strong>{{ totalCount() }}</strong></span>
-        </div>
-      }
     </header>
 
-    @if (error()) {
-      <p class="m-empty">ERRO AO CARREGAR PERSONAGENS.</p>
-    } @else if (loading()) {
-      <div class="d-grid" aria-busy="true" aria-label="Carregando">
-        @for (i of [1, 2, 3, 4, 5]; track i) {
-          <div class="d-card">
-            <div class="d-card-head">
-              <span class="skeleton skeleton--circle" style="width: 64px; height: 64px; flex-shrink: 0"></span>
-              <app-skeleton-rows [rows]="3" [height]="10" />
-            </div>
-            <app-skeleton-rows [rows]="4" [height]="14" />
-          </div>
-        }
-      </div>
-    } @else if (characters().length === 0) {
-      <p class="m-empty">NENHUM PERSONAGEM ENCONTRADO.</p>
-    } @else {
-      <div class="d-grid">
-        @for (char of characters(); track char.id_character) {
-          @let info = cardInfo(char.id_character);
-          <article
-            class="d-card d-card--deletable char-card framed-card"
-            [style.background-image]="info?.imageUrl ? 'linear-gradient(rgba(0,0,0,0.62), rgba(0,0,0,0.62)), url(' + info?.imageUrl + ')' : null"
-            (click)="openSheet(char.id_character)"
+    <section class="fa-window fa-window--main cl-window" aria-label="Seus personagens">
+      <div class="fa-window__bar">
+        <h2 class="fa-window__title">AVENTUREIROS</h2>
+        @if (!loading() && !error() && totalCount() > 0) {
+          <span class="fa-count cl-count"
+            >PERSONAGENS <strong>{{ totalCount() }}</strong></span
           >
-            <button class="m-card-delete" title="Remover personagem" (click)="requestDelete(char, $event)">✕</button>
+        }
+        <button
+          type="button"
+          class="fa-btn fa-btn--primary cl-new"
+          [disabled]="openingCreate()"
+          (click)="createCharacter()"
+        >
+          + CRIAR PERSONAGEM
+        </button>
+      </div>
 
-            <div class="d-card-head">
-              <div class="char-card-avatar">
-                @if (info) {
-                  <app-avatar-display [preset]="info.avatarPreset" />
-                } @else {
-                  <span class="skeleton skeleton--circle" style="width: 100%; height: 100%"></span>
-                }
+      @if (error()) {
+        <div class="cl-state" role="alert">
+          <span class="cl-state__icon cl-state__icon--error" aria-hidden="true">!</span>
+          <p class="cl-state__title">NÃO FOI POSSÍVEL CARREGAR OS PERSONAGENS</p>
+          <p class="fa-desc cl-state__desc">Confira sua conexão e tente de novo.</p>
+          <button type="button" class="fa-btn" (click)="loadPage()">TENTAR DE NOVO</button>
+        </div>
+      } @else if (loading()) {
+        <div class="cl-grid" aria-busy="true" aria-label="Carregando">
+          @for (i of [1, 2, 3]; track i) {
+            <div class="cl-card cl-card--skeleton">
+              <div class="cl-card__head">
+                <span class="skeleton skeleton--circle cl-card__avatar"></span>
+                <app-skeleton-rows [rows]="3" [height]="10" />
               </div>
-              <div class="char-card-id">
-                <h2 class="d-card-title">{{ char.name }}</h2>
-                <p class="d-card-desc">{{ info?.classLine ?? char.class + ' ' + char.level }}</p>
-                <p class="d-card-desc">{{ char.race }}{{ info ? ' · ' + info.background : '' }}</p>
-              </div>
+              <app-skeleton-rows [rows]="3" [height]="14" />
             </div>
+          }
+        </div>
+      } @else if (characters().length === 0) {
+        <div class="cl-state">
+          <span class="cl-state__icon" aria-hidden="true">
+            <img class="ui-icon" src="assets/icons/swords.png" alt="" />
+          </span>
+          <p class="cl-state__title">NENHUM PERSONAGEM AINDA</p>
+          <p class="fa-desc cl-state__desc">Forje o primeiro herói da sua jornada.</p>
+        </div>
+      } @else {
+        <ul class="cl-grid">
+          @for (char of characters(); track char.id_character) {
+            @let info = cardInfo(char.id_character);
+            <li
+              class="cl-card"
+              [class.cl-card--photo]="!!info?.imageUrl"
+              [style.background-image]="
+                info?.imageUrl
+                  ? 'linear-gradient(rgba(0,0,0,0.62), rgba(0,0,0,0.62)), url(' +
+                    info?.imageUrl +
+                    ')'
+                  : null
+              "
+            >
+              <a
+                class="cl-card__link"
+                [routerLink]="['/character-sheet', char.id_character]"
+                [attr.aria-label]="'Abrir a ficha de ' + char.name"
+              ></a>
+              <button
+                type="button"
+                class="cl-card__delete"
+                [title]="'Remover ' + char.name"
+                [attr.aria-label]="'Remover ' + char.name"
+                (click)="requestDelete(char, $event)"
+              >
+                ✕
+              </button>
 
-            @if (info) {
-              <div class="char-card-vitals">
-                <span class="char-card-vital" title="Pontos de vida">
-                  <img class="ui-icon" src="assets/icons/heart.png" alt="" />
-                  {{ info.hp.current }}/{{ info.hp.max }}{{ info.hp.temp > 0 ? ' +' + info.hp.temp : '' }}
-                </span>
-                <span class="char-card-vital" title="Classe de Armadura">CA <strong>{{ info.ac }}</strong></span>
-                <span class="char-card-vital" title="Iniciativa">INI <strong>{{ formatModifier(info.initiative) }}</strong></span>
-                <span class="char-card-vital" title="Percepção passiva">PP <strong>{{ info.passivePerception }}</strong></span>
-              </div>
-
-              <div class="char-card-attrs">
-                @for (attr of info.attrs; track attr.key) {
-                  <div class="char-card-attr">
-                    <span class="char-card-attr-label">{{ attr.label }}</span>
-                    <span class="char-card-attr-score">{{ attr.score }}</span>
-                    <span class="char-card-attr-mod">{{ formatModifier(attr.modifier) }}</span>
-                  </div>
-                }
-              </div>
-
-              <div class="char-card-xp">
-                <div class="char-card-xp-bar"><div class="char-card-xp-fill" [style.width.%]="xpPercent(info)"></div></div>
-                <span class="char-card-xp-text">
-                  @if (info.canLevelUp) {
-                    <img class="ui-icon" src="assets/icons/level-up.png" alt="" /> PODE SUBIR DE NÍVEL
-                  } @else if (info.nextLevelXp === null) {
-                    NÍVEL MÁXIMO
+              <div class="cl-card__head">
+                <span class="cl-card__avatar">
+                  @if (info) {
+                    <app-avatar-display [preset]="info.avatarPreset" />
                   } @else {
-                    {{ info.xp }} / {{ info.nextLevelXp }} XP
+                    <span class="skeleton skeleton--circle"></span>
                   }
                 </span>
+                <div class="cl-card__id">
+                  <h3 class="cl-card__name">{{ char.name }}</h3>
+                  <span class="fa-desc cl-card__line">{{
+                    info?.classLine ?? char.class + ' ' + char.level
+                  }}</span>
+                  <span class="fa-desc cl-card__meta"
+                    >{{ char.race }}{{ info ? ' · ' + info.background : '' }}</span
+                  >
+                </div>
+                <span class="cl-card__arrow" aria-hidden="true">›</span>
               </div>
-            } @else {
-              <app-skeleton-rows [rows]="4" [height]="14" />
-            }
-          </article>
-        }
-      </div>
 
-      <div class="m-pagination">
-        <button class="m-page-btn" [disabled]="!hasPrev()" (click)="prevPage()">&#9664;</button>
-        <span class="m-page-info">{{ page() }} / {{ totalPages() }}</span>
-        <button class="m-page-btn" [disabled]="!hasNext()" (click)="nextPage()">&#9654;</button>
-      </div>
-    }
+              @if (info) {
+                <div class="cl-card__vitals">
+                  <span class="cl-vital" title="Pontos de vida">
+                    <img class="ui-icon" src="assets/icons/heart.png" alt="" />
+                    <strong
+                      >{{ info.hp.current }}/{{ info.hp.max
+                      }}{{ info.hp.temp > 0 ? ' +' + info.hp.temp : '' }}</strong
+                    >
+                  </span>
+                  <span class="cl-vital" title="Classe de Armadura"
+                    >CA <strong>{{ info.ac }}</strong></span
+                  >
+                  <span class="cl-vital" title="Iniciativa"
+                    >INI <strong>{{ formatModifier(info.initiative) }}</strong></span
+                  >
+                  <span class="cl-vital" title="Percepção passiva"
+                    >PP <strong>{{ info.passivePerception }}</strong></span
+                  >
+                </div>
 
+                <div class="cl-card__attrs">
+                  @for (attr of info.attrs; track attr.key) {
+                    <span class="cl-attr">
+                      <span class="cl-attr__label">{{ attr.label }}</span>
+                      <span class="cl-attr__score">{{ attr.score }}</span>
+                      <span class="cl-attr__mod">{{ formatModifier(attr.modifier) }}</span>
+                    </span>
+                  }
+                </div>
+
+                <div class="cl-card__xp">
+                  <div class="cl-xp-bar" [class.cl-xp-bar--ready]="info.canLevelUp">
+                    <div class="cl-xp-bar__fill" [style.width.%]="xpPercent(info)"></div>
+                  </div>
+                  <span class="cl-xp-text" [class.cl-xp-text--ready]="info.canLevelUp">
+                    @if (info.canLevelUp) {
+                      PODE SUBIR DE NÍVEL
+                    } @else if (info.nextLevelXp === null) {
+                      NÍVEL MÁXIMO
+                    } @else {
+                      {{ info.xp }} / {{ info.nextLevelXp }} XP
+                    }
+                  </span>
+                </div>
+              } @else {
+                <app-skeleton-rows [rows]="3" [height]="14" />
+              }
+            </li>
+          }
+        </ul>
+
+        <footer class="cl-footer">
+          <span class="fa-label">
+            MOSTRANDO {{ rangeStart() }}–{{ rangeEnd() }} DE {{ totalCount() }}
+          </span>
+          <div class="cl-pager">
+            <button
+              type="button"
+              class="fa-btn cl-pager__btn"
+              [disabled]="!hasPrev()"
+              aria-label="Página anterior"
+              (click)="prevPage()"
+            >
+              ‹
+            </button>
+            <span class="cl-pager__info">{{ page() }} / {{ totalPages() }}</span>
+            <button
+              type="button"
+              class="fa-btn cl-pager__btn"
+              [disabled]="!hasNext()"
+              aria-label="Próxima página"
+              (click)="nextPage()"
+            >
+              ›
+            </button>
+          </div>
+        </footer>
+      }
+    </section>
   </div>
-}
+</div>
 
 <!-- ===== MODAL: CONFIRMAR REMOÇÃO ===== -->
 @if (deleteTarget(); as target) {
   <div class="overlay modal-overlay" (click)="cancelDelete()">
-    <div class="retro-panel delete-modal" (click)="$event.stopPropagation()">
-      <h3 class="modal-title">REMOVER PERSONAGEM</h3>
-      <p class="delete-modal-text">
-        Tem certeza que deseja remover <strong>{{ target.name }}</strong>? Essa ação não pode ser desfeita.
-      </p>
-      @if (deleteError()) {
-        <p class="delete-modal-error">{{ deleteError() }}</p>
-      }
-      <div class="delete-modal-actions">
-        <button class="retro-btn" [disabled]="deleting()" (click)="cancelDelete()">CANCELAR</button>
-        <button class="retro-btn delete-confirm-btn" [disabled]="deleting()" (click)="confirmDelete()">
-          {{ deleting() ? 'REMOVENDO...' : 'REMOVER' }}
-        </button>
+    <div
+      class="fa-window delete-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-modal-title"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="fa-window__bar">
+        <h3 class="fa-window__title" id="delete-modal-title">REMOVER PERSONAGEM</h3>
+      </div>
+      <div class="delete-modal-body">
+        <p class="fa-desc delete-modal-text">
+          Tem certeza que deseja remover <strong>{{ target.name }}</strong
+          >? Essa ação não pode ser desfeita.
+        </p>
+        @if (deleteError()) {
+          <p class="delete-modal-error" role="alert">{{ deleteError() }}</p>
+        }
+        <div class="delete-modal-actions">
+          <button class="fa-btn" [disabled]="deleting()" (click)="cancelDelete()">CANCELAR</button>
+          <button
+            class="fa-btn delete-confirm-btn"
+            [disabled]="deleting()"
+            (click)="confirmDelete()"
+          >
+            {{ deleting() ? 'REMOVENDO...' : 'REMOVER' }}
+          </button>
+        </div>
       </div>
     </div>
   </div>
