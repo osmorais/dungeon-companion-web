@@ -1,4 +1,12 @@
-import { Component, inject, OnInit, signal, computed, HostListener } from '@angular/core';
+import {
+  ApplicationRef,
+  Component,
+  inject,
+  OnInit,
+  signal,
+  computed,
+  HostListener,
+} from '@angular/core';
 import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -14,7 +22,10 @@ import {
   MonsterSort,
   filterMonsters,
   monsterFilterOptions,
+  pageRange,
 } from '../monster-filters/monster-filters';
+import { challengeRatingText } from '../services/monster-format';
+import { runViewTransition } from '../route-transition';
 
 /** Cartas por página (o bestiário tem 428 monstros). */
 const PAGE_SIZE = 8;
@@ -64,6 +75,13 @@ export class MonsterCatalogCreateComponent implements OnInit {
   readonly totalPages = computed(() =>
     Math.max(1, Math.ceil(this.filteredMonsters().length / PAGE_SIZE)),
   );
+  private readonly range = computed(() =>
+    pageRange(this.page(), PAGE_SIZE, this.filteredMonsters().length),
+  );
+  readonly rangeStart = computed(() => this.range().start);
+  readonly rangeEnd = computed(() => this.range().end);
+  /** ND do monstro aberto, como no livro ("1/4"). */
+  readonly crText = challengeRatingText;
   readonly visibleCards = computed(() =>
     this.filteredMonsters()
       .slice((this.page() - 1) * PAGE_SIZE, this.page() * PAGE_SIZE)
@@ -126,13 +144,16 @@ export class MonsterCatalogCreateComponent implements OnInit {
 
   selectMonster(monster: BestiaryMonsterSummary) {
     this.listScroll = typeof window !== 'undefined' ? window.scrollY : 0;
-    this.selected.set(monster);
-    this.selectedDetail.set(null);
-    this.detailError.set(false);
-    this.customName.set('');
-    this.catalogError.set(null);
-    this.loadingDetail.set(true);
-    this.scrollTo(0);
+    // A ficha entra deslizando como uma tela nova (mesma animação da troca de rota).
+    this.withTransition('forward', () => {
+      this.selected.set(monster);
+      this.selectedDetail.set(null);
+      this.detailError.set(false);
+      this.customName.set('');
+      this.catalogError.set(null);
+      this.loadingDetail.set(true);
+      this.scrollTo(0);
+    });
     this.monsterCatalogService.getBestiaryMonster(monster.index).subscribe({
       next: (detail) => {
         this.selectedDetail.set(detail);
@@ -147,10 +168,18 @@ export class MonsterCatalogCreateComponent implements OnInit {
 
   /** Volta pras cartas, com os filtros e a rolagem de antes. */
   closePreview() {
-    this.selected.set(null);
-    this.selectedDetail.set(null);
     const y = this.listScroll;
+    this.withTransition('back', () => {
+      this.selected.set(null);
+      this.selectedDetail.set(null);
+    });
     setTimeout(() => this.scrollTo(y));
+  }
+
+  private readonly appRef = inject(ApplicationRef);
+
+  private withTransition(dir: 'forward' | 'back', update: () => void) {
+    runViewTransition(dir, update, () => this.appRef.tick());
   }
 
   confirmCatalog() {

@@ -1,119 +1,179 @@
-<div [class]="isMobile() ? 'mobile-create-container' : 'create-container'">
-  @if (isMobile()) {
-    <div class="m-header">
-      <button class="m-back" (click)="goBack()">&#8592;</button>
-      <span class="m-title">CATALOGAR MONSTRO</span>
-    </div>
-  } @else {
-    <header class="page-topbar">
-      <button class="retro-btn page-topbar-back" (click)="goBack()">
-        {{ selected() ? '← VOLTAR ÀS CARTAS' : '← VOLTAR' }}
-      </button>
-      <h1 class="page-topbar-name">CATALOGAR NOVO MONSTRO</h1>
-    </header>
-  }
+<!-- Catalogar novo monstro (1.19.2): visual da Home. O livro de monstros em cartas (filtros numa
+     janela à esquerda) e, ao abrir uma carta, a ficha numa janela com o CATALOGAR no rodapé. -->
+<div class="fa-stage">
+  <span class="fa-rail fa-rail--top" aria-hidden="true"></span>
+  <span class="fa-rail fa-rail--bottom" aria-hidden="true"></span>
 
-  @if (selected(); as sel) {
-    <!-- A carta aberta: a ficha com a cara do detalhe, com o CATALOGAR embaixo da carta -->
-    @if (loadingDetail()) {
-      <div class="cc-panel" aria-busy="true" aria-label="Carregando o monstro">
-        <span class="skeleton" style="width: 180px; height: 250px; margin: 0 auto 16px"></span>
-        <app-skeleton-rows [rows]="6" [height]="12" />
+  <div class="cc-content" [class.cc-content--sheet]="selected()">
+    <header class="cc-top">
+      <button type="button" class="fa-btn cc-back" (click)="goBack()">
+        ←
+        <span class="cc-back__label">{{
+          selected() ? 'VOLTAR ÀS CARTAS' : 'VOLTAR AO BESTIÁRIO'
+        }}</span>
+      </button>
+      <div class="fa-intro cc-intro">
+        <h1 class="fa-heading">CATALOGAR NOVO MONSTRO</h1>
+        <p class="fa-desc fa-subheading">
+          {{
+            selected()
+              ? 'Confira a ficha e dê um nome, se quiser.'
+              : 'Escolha uma criatura do livro e leve para o seu bestiário.'
+          }}
+        </p>
       </div>
-    } @else if (detailError()) {
-      <p class="cc-empty" role="alert">ERRO AO CARREGAR O MONSTRO.</p>
-    } @else if (selectedDetail(); as detail) {
-      @if (previewCard(); as card) {
-        <app-monster-sheet
-          [block]="detail"
-          [card]="card"
-          [cardState]="cardState(sel)"
-          [hp]="sel.hp_max"
-          [ac]="sel.ac"
-          [fit]="true"
-        >
-          <div sheetFooter class="cc-catalog-footer">
-            <label class="cc-label" for="custom-name">NOME CUSTOMIZADO (OPCIONAL)</label>
-            <input
-              id="custom-name"
-              type="text"
-              class="cc-input"
-              maxlength="100"
-              [placeholder]="sel.name"
-              [ngModel]="customName()"
-              (ngModelChange)="customName.set($event)"
-              (keydown.enter)="confirmCatalog()"
-            />
-            @if (catalogError()) {
-              <p class="cc-error" role="alert">{{ catalogError() }}</p>
-            }
-            <button class="cc-catalog-btn" [disabled]="cataloging()" (click)="confirmCatalog()">
-              {{ cataloging() ? 'CATALOGANDO...' : 'CATALOGAR ESTE MONSTRO' }}
+    </header>
+
+    @if (selected(); as sel) {
+      <!-- A carta aberta: a ficha numa janela, com o CATALOGAR no rodapé -->
+      <section
+        class="fa-window fa-window--main cc-sheet"
+        [attr.aria-label]="'Ficha de ' + sel.name"
+      >
+        <div class="fa-window__bar">
+          <h2 class="fa-window__title">{{ sel.name }}</h2>
+          <span class="fa-label cc-sheet__type">{{ sel.type }} · {{ sel.size }}</span>
+          <span class="cc-sheet__cr">ND {{ crText(sel.challenge_rating) }}</span>
+        </div>
+
+        @if (loadingDetail()) {
+          <div class="cc-sheet__body" aria-busy="true" aria-label="Carregando o monstro">
+            <span class="skeleton" style="width: 180px; height: 250px; margin: 0 auto 16px"></span>
+            <app-skeleton-rows [rows]="6" [height]="12" />
+          </div>
+        } @else if (detailError()) {
+          <div class="cc-state" role="alert">
+            <p class="cc-state__title">NÃO FOI POSSÍVEL CARREGAR O MONSTRO</p>
+            <button type="button" class="fa-btn" (click)="selectMonster(sel)">
+              TENTAR DE NOVO
             </button>
           </div>
-        </app-monster-sheet>
-      }
-    }
-  } @else {
-    <!-- Busca e filtros (app-monster-filters): coluna da esquerda no desktop; no celular, recolhem -->
-    <div class="cc-layout">
-      <app-monster-filters
-        label="Buscar no livro de monstros"
-        [filters]="filters()"
-        [types]="filterOptions().types"
-        [sizes]="filterOptions().sizes"
-        [total]="filteredMonsters().length"
-        [sortOptions]="sortOptions"
-        [mobile]="isMobile()"
-        (patch)="patchFilters($event)"
-        (cleared)="clearFilters()"
-      />
-
-      <section class="cc-results" aria-label="Monstros do livro">
-        @if (loadingList()) {
-          <div class="cc-panel" aria-busy="true" aria-label="Carregando o bestiário">
-            <app-skeleton-rows [rows]="6" [height]="40" />
-          </div>
-        } @else if (listError()) {
-          <p class="cc-empty" role="alert">ERRO AO CARREGAR O BESTIÁRIO.</p>
-        } @else if (filteredMonsters().length === 0) {
-          <p class="cc-empty">NENHUM MONSTRO COM ESSES FILTROS.</p>
-        } @else {
-          <div class="cc-grid">
-            @for (item of visibleCards(); track item.monster.index) {
-              <button
-                type="button"
-                class="cc-card"
-                [attr.aria-label]="'Ver a ficha de ' + item.monster.name"
-                (click)="selectMonster(item.monster)"
-              >
-                <app-game-card [card]="item.card" [state]="item.state" />
-              </button>
-            }
-          </div>
-          @if (totalPages() > 1) {
-            <div class="m-pagination">
-              <button
-                class="m-page-btn"
-                [disabled]="page() === 1"
-                aria-label="Página anterior"
-                (click)="prevPage()"
-              >
-                &#9664;
-              </button>
-              <span class="m-page-info">{{ page() }} / {{ totalPages() }}</span>
-              <button
-                class="m-page-btn"
-                [disabled]="page() === totalPages()"
-                aria-label="Próxima página"
-                (click)="nextPage()"
-              >
-                &#9654;
-              </button>
-            </div>
+        } @else if (selectedDetail(); as detail) {
+          @if (previewCard(); as card) {
+            <app-monster-sheet
+              [block]="detail"
+              [card]="card"
+              [cardState]="cardState(sel)"
+              [hp]="sel.hp_max"
+              [ac]="sel.ac"
+              [fit]="true"
+            >
+              <div sheetFooter class="cc-catalog-footer">
+                <div class="fa-field cc-catalog-footer__field">
+                  <label class="fa-label" for="custom-name">NOME CUSTOMIZADO (OPCIONAL)</label>
+                  <input
+                    id="custom-name"
+                    type="text"
+                    class="fa-input"
+                    maxlength="100"
+                    [placeholder]="sel.name"
+                    [ngModel]="customName()"
+                    (ngModelChange)="customName.set($event)"
+                    (keydown.enter)="confirmCatalog()"
+                  />
+                </div>
+                <button
+                  type="button"
+                  class="fa-btn fa-btn--primary cc-catalog-btn"
+                  [disabled]="cataloging()"
+                  (click)="confirmCatalog()"
+                >
+                  {{ cataloging() ? 'CATALOGANDO...' : 'CATALOGAR ESTE MONSTRO' }}
+                </button>
+                @if (catalogError()) {
+                  <p class="cc-error" role="alert">{{ catalogError() }}</p>
+                }
+              </div>
+            </app-monster-sheet>
           }
         }
       </section>
-    </div>
-  }
+    } @else {
+      <div class="cc-layout">
+        <app-monster-filters
+          label="Buscar no livro de monstros"
+          [filters]="filters()"
+          [types]="filterOptions().types"
+          [sizes]="filterOptions().sizes"
+          [total]="filteredMonsters().length"
+          [sortOptions]="sortOptions"
+          [mobile]="isMobile()"
+          (patch)="patchFilters($event)"
+          (cleared)="clearFilters()"
+        />
+
+        <section class="fa-window fa-window--main cc-window" aria-label="Monstros do livro">
+          <div class="fa-window__bar">
+            <h2 class="fa-window__title">LIVRO DE MONSTROS</h2>
+            @if (!loadingList() && !listError()) {
+              <span class="fa-count cc-count">
+                MONSTROS <strong>{{ filteredMonsters().length }}</strong>
+                @if (filteredMonsters().length !== allMonsters().length) {
+                  DE <strong>{{ allMonsters().length }}</strong>
+                }
+              </span>
+            }
+          </div>
+
+          @if (loadingList()) {
+            <div class="cc-sheet__body" aria-busy="true" aria-label="Carregando o bestiário">
+              <app-skeleton-rows [rows]="6" [height]="40" />
+            </div>
+          } @else if (listError()) {
+            <div class="cc-state" role="alert">
+              <p class="cc-state__title">NÃO FOI POSSÍVEL CARREGAR O LIVRO DE MONSTROS</p>
+              <p class="fa-desc cc-state__desc">Volte e tente de novo em instantes.</p>
+            </div>
+          } @else if (filteredMonsters().length === 0) {
+            <div class="cc-state">
+              <p class="cc-state__title">NENHUM MONSTRO COM ESSES FILTROS</p>
+              <button type="button" class="fa-btn" (click)="clearFilters()">LIMPAR FILTROS</button>
+            </div>
+          } @else {
+            <div class="cc-grid">
+              @for (item of visibleCards(); track item.monster.index) {
+                <button
+                  type="button"
+                  class="cc-card"
+                  [attr.aria-label]="'Ver a ficha de ' + item.monster.name"
+                  (click)="selectMonster(item.monster)"
+                >
+                  <app-game-card [card]="item.card" [state]="item.state" />
+                  <span class="cc-card__tag" aria-hidden="true">VER FICHA ›</span>
+                </button>
+              }
+            </div>
+            <footer class="cc-footer">
+              <span class="fa-label">
+                MOSTRANDO {{ rangeStart() }}–{{ rangeEnd() }} DE {{ filteredMonsters().length }}
+              </span>
+              @if (totalPages() > 1) {
+                <div class="cc-pager">
+                  <button
+                    type="button"
+                    class="fa-btn cc-pager__btn"
+                    [disabled]="page() === 1"
+                    aria-label="Página anterior"
+                    (click)="prevPage()"
+                  >
+                    ‹
+                  </button>
+                  <span class="cc-pager__info">{{ page() }} / {{ totalPages() }}</span>
+                  <button
+                    type="button"
+                    class="fa-btn cc-pager__btn"
+                    [disabled]="page() === totalPages()"
+                    aria-label="Próxima página"
+                    (click)="nextPage()"
+                  >
+                    ›
+                  </button>
+                </div>
+              }
+            </footer>
+          }
+        </section>
+      </div>
+    }
+  </div>
 </div>

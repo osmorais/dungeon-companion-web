@@ -1,76 +1,165 @@
-// Só o botão "+ catalogar" na barra (a busca fica no painel de filtros): empurra pra direita sem
-// precisar de um <span></span> vazio como marcador de posição.
-.page-toolbar {
-  justify-content: flex-end;
+/* Bestiário (1.19.2). Cenário, janelas e botões vêm das classes .fa-* do styles.scss; os filtros
+   são o app-monster-filters (janela própria no desktop). A carta e a grade continuam as mesmas. */
+
+.mc-content {
+  position: relative;
+  z-index: 1;
+  width: min(1240px, 100%);
 }
 
-.new-btn {
-  float: none;
-  font-size: 8px;
-  padding: 8px 14px;
+/* ===== Topo ===== */
+
+.mc-top {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-bottom: 30px;
 }
 
-/* ===== Layout: filtros (app-monster-filters) | cartas, como na tela de catalogar ===== */
+.mc-back {
+  align-self: flex-start;
+}
 
-.catalog-layout {
+/* ===== Layout: filtros | cartas ===== */
+
+.mc-layout {
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
 }
 
 @media (min-width: 768px) {
-  .catalog-layout {
+  .mc-layout {
     grid-template-columns: 280px minmax(0, 1fr);
     align-items: start;
-    gap: 24px;
+    gap: 28px;
   }
 
   app-monster-filters {
     position: sticky;
     top: 16px;
   }
+
+  // Sem filtros (carregando, erro ou bestiário vazio): a janela ocupa a largura toda.
+  .mc-window:only-child {
+    grid-column: 1 / -1;
+  }
 }
 
-/* ===== MODAL: CONFIRMAR REMOÇÃO ===== */
+.mc-count {
+  margin-right: auto;
+}
+
+.mc-new {
+  margin-left: auto;
+}
+
+.mc-grid {
+  padding: 26px 26px 30px;
+}
+
+.mc-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 22px;
+  background-color: rgb(0 0 0 / 20%);
+  border-top: 2px solid var(--border-color);
+}
+
+.mc-pager {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mc-pager__btn {
+  padding: 6px 14px;
+  font-size: 14px;
+}
+
+.mc-pager__info {
+  font-size: 8px;
+}
+
+/* ===== Vazio, erro e filtros sem resultado ===== */
+
+.mc-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 48px 22px;
+  text-align: center;
+}
+
+.mc-state__icon {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  box-sizing: border-box;
+  background-color: rgb(0 0 0 / 25%);
+  border: 2px solid var(--border-color);
+  font-size: 26px;
+
+  &--error {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    font-size: 16px;
+  }
+}
+
+.mc-state__title {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--accent-color);
+}
+
+.mc-state__desc {
+  margin: 0;
+  color: var(--text-soft);
+}
+
+/* ===== MODAL: CONFIRMAR REMOÇÃO (janela .fa-window) ===== */
 
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  background: rgb(0 0 0 / 72%);
 }
 
 .delete-modal {
-  /* "fieldset.retro-panel" (styles.scss) só vale pra <fieldset> — como este painel é uma
-     <div>, precisa repetir fundo/borda aqui. */
-  border: 2px solid var(--border-color);
-  background-color: var(--panel-bg);
-
-  width: 380px;
+  width: 520px;
   max-width: 92vw;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 24px 20px 20px;
-  text-align: center;
 }
 
-.modal-title {
-  margin: 0;
-  font-size: 11px;
-  color: var(--accent-color);
+// Foco vai pro quadro inteiro (tabindex="-1" + .focus() no TS); a borda laranja já marca o limite.
+.delete-modal:focus {
+  outline: none;
+}
+
+.delete-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 22px;
 }
 
 .delete-modal-text {
   margin: 0;
-  font-size: 9px;
-  color: var(--text-color);
-  line-height: 1.8;
+  font-size: 21px;
+  line-height: 1.1;
+  color: var(--text-soft);
 
   strong {
+    font-weight: normal;
     color: var(--accent-color);
   }
 }
@@ -83,44 +172,89 @@
 
 .delete-modal-actions {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   gap: 12px;
-  margin-top: 4px;
 }
 
 .delete-confirm-btn {
-  color: #ff6b6b;
+  background-color: var(--btn-color-hover);
   border-color: #ff6b6b;
+  box-shadow: 4px 4px 0 rgb(0 0 0 / 45%);
 
-  &:hover:not(:disabled) {
+  &:hover:not(:disabled),
+  &:focus-visible {
     background-color: #ff6b6b;
+    border-color: #ff6b6b;
     color: var(--bg-color);
   }
 }
 
-// Foco vai pro quadro inteiro (tabindex="-1" + .focus() no TS); a borda de 2px já marca o limite.
-.delete-modal:focus {
-  outline: none;
-}
+/* ===== Celular: sem a janela em volta das cartas ===== */
 
-/* ===== MOBILE LAYOUT ===== */
+@media (max-width: 767px) {
+  .mc-top {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
 
-.mobile-catalog-container {
-  width: 100vw;
-  max-width: 100vw;
-  min-height: 100vh;
-  padding: 0 12px 24px;
-  box-sizing: border-box;
-  overflow-x: hidden;
-}
+  .mc-back {
+    align-self: center;
+  }
 
-.mobile-new-btn {
-  float: none;
-  width: 100%;
-  text-align: center;
-  font-size: 8px;
-  padding: 10px;
-  margin-bottom: 16px;
+  .mc-back__label {
+    display: none;
+  }
+
+  .mc-intro {
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+
+    .fa-heading {
+      margin-bottom: 8px;
+      font-size: 11px;
+    }
+
+    .fa-subheading {
+      font-size: 19px;
+    }
+  }
+
+  .mc-new-mobile {
+    width: 100%;
+    margin-bottom: 16px;
+  }
+
+  .mc-window {
+    background: none;
+    border: none;
+    box-shadow: none;
+
+    .fa-window__bar {
+      display: none;
+    }
+  }
+
+  .mc-grid {
+    padding: 22px 0 0;
+  }
+
+  .mc-state {
+    padding: 36px 0;
+  }
+
+  .mc-footer {
+    flex-direction: column-reverse;
+    padding: 20px 0 0;
+    background: none;
+    border: none;
+  }
+
+  .delete-modal-actions {
+    justify-content: center;
+  }
 }
 
 /* ===== Grade do bestiário: parecida com .card-grid (styles.scss), mas com auto-fit em vez de

@@ -2,22 +2,27 @@
   display: block;
 }
 
+/* Desktop (1.19.2): uma janela .fa-window (styles.scss) com a barra "FILTROS" e o LIMPAR. No
+   celular o painel some: a busca e o botão de filtros ficam direto sobre o cenário. */
 .mf-panel {
+  display: flex;
+  flex-direction: column;
   box-sizing: border-box;
-  border: 2px solid var(--border-color);
-  background-color: var(--panel-bg);
-  padding: 16px;
-
-  @media (max-width: 767px) {
-    padding: 12px;
-  }
 }
 
-.mf-panel,
+.mf-bar .mf-clear {
+  margin-left: auto;
+}
+
+.mf-content,
 .mf-body {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
+}
+
+.mf-panel.fa-window .mf-content {
+  padding: 18px;
 }
 
 // Celular: os filtros recolhem atrás deste botão (com quantos estão ligados e o total).
@@ -26,13 +31,18 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  margin-top: -6px;
   padding: 10px 12px;
-  background: var(--bg-color);
+  background: var(--panel-bg);
   border: 2px solid var(--border-color);
-  color: var(--accent-color);
+  color: var(--text-color);
   font-family: 'Press Start 2P', monospace;
-  font-size: 9px;
+  font-size: 8px;
   cursor: var(--cp);
+
+  &[aria-expanded='true'] {
+    border-color: var(--accent-color);
+  }
 
   .mf-count {
     font-size: 7px;
@@ -40,8 +50,19 @@
   }
 }
 
+// Filtros abertos no celular: num quadro escuro colado no botão.
+.mf-panel:not(.fa-window) .mf-body {
+  margin-top: -16px;
+  padding: 14px 12px;
+  background-color: rgb(0 0 0 / 25%);
+  border: 2px solid var(--border-color);
+  border-top: none;
+}
+
 .mf-label {
   font-size: 7px;
+  line-height: 1.6;
+  letter-spacing: 2px;
   color: var(--label-title-color);
 }
 
@@ -50,38 +71,56 @@
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
-  padding: 8px 10px;
-  background-color: var(--bg-color);
+  padding: 10px 12px;
+  background-color: rgb(0 0 0 / 25%);
   border: 2px solid var(--border-color);
   color: var(--text-color);
   font-family: 'Press Start 2P', monospace;
-  font-size: 9px;
+  font-size: 8px;
 
   &:focus {
     outline: none;
     border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgb(255 170 0 / 35%);
   }
 }
 
 .mf-select {
   cursor: var(--cp);
   text-transform: capitalize;
+
+  option {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+  }
 }
 
+// Busca em VT323, como os campos de texto das outras telas.
 .mf-search {
-  font-size: 10px;
-  padding: 10px 12px;
+  padding: 8px 12px;
+  color: var(--text-soft);
+  font-family: 'VT323', monospace;
+  font-size: 20px;
+
+  &::placeholder {
+    color: var(--label-title-color);
+  }
 }
 
 .mf-filter-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
-// Tipo e tamanho lado a lado; a ordenação na linha de baixo, inteira.
+// Na janela estreita do desktop: um campo por linha; no celular, tipo e tamanho lado a lado.
 .mf-filter-row {
   display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.mf-panel:not(.fa-window) .mf-filter-row {
   grid-template-columns: 1fr 1fr;
   gap: 12px 10px;
 
@@ -93,7 +132,7 @@
 .mf-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -103,14 +142,14 @@
   gap: 6px;
 }
 
-// Etiquetas de filtro: ligada fica com a cor de destaque (como os chips da ficha do monstro).
+// Etiquetas de filtro: ligada fica preenchida de laranja, como o botão de destaque.
 .mf-chip {
-  padding: 6px 8px;
-  background: var(--bg-color);
+  padding: 7px 9px;
+  background: var(--panel-bg);
   color: var(--text-color);
   border: 2px solid var(--border-color);
   font-family: 'Press Start 2P', monospace;
-  font-size: 8px;
+  font-size: 7px;
   cursor: var(--cp);
 
   &:hover,
@@ -118,10 +157,20 @@
     border-color: var(--accent-color);
   }
 
+  &:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+  }
+
   &--on {
-    border-color: var(--accent-color);
-    color: var(--accent-color);
-    background: rgba(255, 170, 0, 0.12);
+    background: var(--accent-color);
+    color: var(--bg-color);
+    border-color: #000;
+
+    &:hover,
+    &:focus-visible {
+      border-color: #000;
+    }
   }
 }
 
@@ -131,8 +180,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border-color);
+  padding-top: 14px;
+  border-top: 2px solid color-mix(in srgb, var(--border-color) 60%, transparent);
 
   .mf-chips {
     flex-basis: 100%;
@@ -140,14 +189,15 @@
 }
 
 .mf-count {
-  font-size: 8px;
-  color: var(--accent-color);
+  font-size: 7px;
+  letter-spacing: 1px;
+  color: var(--gold-color);
 }
 
 .mf-clear {
-  padding: 6px 8px;
+  padding: 7px 9px;
   background: none;
-  border: 1px dashed var(--border-color);
+  border: 2px dashed var(--border-color);
   color: var(--label-title-color);
   font-family: 'Press Start 2P', monospace;
   font-size: 7px;

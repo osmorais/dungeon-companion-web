@@ -104,3 +104,14 @@ export function activeFilterCount(f: MonsterFilters): number {
     f.flies,
   ].filter(Boolean).length;
 }
+
+/** Faixa mostrada no rodapé das listas em carta ("MOSTRANDO 9–16 DE 23"); vazia = 0–0. */
+export function pageRange(
+  page: number,
+  pageSize: number,
+  count: number,
+): { start: number; end: number } {
+  if (count === 0) return { start: 0, end: 0 };
+  const start = (page - 1) * pageSize + 1;
+  return { start, end: Math.min(count, page * pageSize) };
+}

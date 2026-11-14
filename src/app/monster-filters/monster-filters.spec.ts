@@ -3,6 +3,7 @@ import {
   CR_TIERS,
   EMPTY_MONSTER_FILTERS,
   activeFilterCount,
+  pageRange,
   filterMonsters,
   monsterFilterOptions,
 } from './monster-filters';
@@ -96,5 +97,13 @@ describe('filtros das listas de monstros (catalogar e bestiário)', () => {
     expect(activeFilterCount(f({ sort: 'cr' }))).toBe(0);
     expect(activeFilterCount(f({ search: ' ' }))).toBe(0);
     expect(activeFilterCount(f({ search: 'og', crMin: 2, flies: true }))).toBe(3);
+  });
+});
+
+describe('pageRange (rodapé "MOSTRANDO x–y DE n")', () => {
+  it('primeira página cheia, última incompleta e lista vazia', () => {
+    expect(pageRange(1, 8, 23)).toEqual({ start: 1, end: 8 });
+    expect(pageRange(3, 8, 23)).toEqual({ start: 17, end: 23 });
+    expect(pageRange(1, 8, 0)).toEqual({ start: 0, end: 0 });
   });
 });

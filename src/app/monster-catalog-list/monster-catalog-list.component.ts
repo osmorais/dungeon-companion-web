@@ -25,6 +25,7 @@ import {
   MonsterSort,
   filterMonsters,
   monsterFilterOptions,
+  pageRange,
 } from '../monster-filters/monster-filters';
 
 /** Cartas por página (como na tela de catalogar). */
@@ -97,6 +98,11 @@ export class MonsterCatalogListComponent implements OnInit {
   totalPages = computed(() => Math.ceil(this.filteredMonsters().length / this.pageSize) || 1);
   hasPrev = computed(() => this.page() > 1);
   hasNext = computed(() => this.page() < this.totalPages());
+  private readonly range = computed(() =>
+    pageRange(this.page(), this.pageSize, this.filteredMonsters().length),
+  );
+  rangeStart = computed(() => this.range().start);
+  rangeEnd = computed(() => this.range().end);
 
   deleteTarget = signal<MonsterCatalogEntry | null>(null);
   deleting = signal(false);

@@ -1,88 +1,129 @@
-@if (isMobile()) {
-  <!-- ===== MOBILE LAYOUT ===== -->
-  <div class="mobile-container">
+<!-- Sessões criadas (1.19.2): mesmo visual da Home — cenário com trilhos, título com sombra em
+     degrau e janela de borda laranja. Um template só; o celular ajusta por media query. -->
+<div class="fa-stage">
+  <span class="fa-rail fa-rail--top" aria-hidden="true"></span>
+  <span class="fa-rail fa-rail--bottom" aria-hidden="true"></span>
 
-    <div class="m-header">
-      <button class="m-back" (click)="goBack()">&#8592;</button>
-      <span class="m-title">SESSÕES CRIADAS</span>
-    </div>
-
-    @if (error()) {
-      <p class="m-empty">ERRO AO CARREGAR AS SESSÕES.</p>
-    } @else if (loading()) {
-      <div aria-busy="true" aria-label="Carregando">
-        <app-skeleton-rows [rows]="5" [height]="70" />
+  <div class="sl-content">
+    <header class="sl-top">
+      <button type="button" class="fa-btn sl-back" (click)="goBack()" aria-label="Voltar">
+        ← <span class="sl-back__label">VOLTAR</span>
+      </button>
+      <div class="fa-intro sl-intro">
+        <h1 class="fa-heading">SESSÕES CRIADAS</h1>
+        <p class="fa-desc fa-subheading">Suas campanhas esperam o próximo capítulo.</p>
       </div>
-    } @else if (sessions().length === 0) {
-      <p class="m-empty">NENHUMA SESSÃO ENCONTRADA.</p>
-    } @else {
-      <ul class="m-card-list">
-        @for (session of sessions(); track session.id_game_session) {
-          <li class="m-card" (click)="openSession(session.id_game_session)">
-            <span class="m-card-icon"><img class="ui-icon" src="assets/icons/book-open.png" alt="" /></span>
-            <span class="m-card-body">
-              <span class="m-card-title">{{ session.session_name }}</span>
-              <span class="m-card-desc">MESTRE: {{ session.dm_name }}</span>
-              <span class="m-card-desc">JOGADORES: {{ session.max_player_quantity }} &mdash; CÓDIGO: {{ session.session_code }}</span>
-            </span>
-            <span class="m-card-arrow">&#9658;</span>
-          </li>
-        }
-      </ul>
-
-      <div class="m-pagination">
-        <button class="m-page-btn" [disabled]="!hasPrev()" (click)="prevPage()">&#9664;</button>
-        <span class="m-page-info">{{ page() }} / {{ totalPages() }}</span>
-        <button class="m-page-btn" [disabled]="!hasNext()" (click)="nextPage()">&#9654;</button>
-      </div>
-
-      <p class="m-total">TOTAL: {{ totalCount() }}</p>
-    }
-
-  </div>
-} @else {
-  <!-- ===== DESKTOP LAYOUT ===== (página no tamanho da sessão: .page/.page-topbar/.d-grid no styles.scss) -->
-  <div class="page">
-
-    <header class="page-topbar">
-      <button class="retro-btn page-topbar-back" (click)="goBack()">← VOLTAR</button>
-      <h1 class="page-topbar-name">SESSÕES CRIADAS</h1>
-      @if (!loading() && !error() && totalCount() > 0) {
-        <div class="page-topbar-meta"><span>AVENTURAS <strong>{{ totalCount() }}</strong></span></div>
-      }
     </header>
 
-    @if (error()) {
-      <p class="m-empty">ERRO AO CARREGAR AS SESSÕES.</p>
-    } @else if (loading()) {
-      <div class="d-grid" aria-busy="true" aria-label="Carregando">
-        @for (i of [1, 2, 3, 4]; track i) {
-          <div class="d-card"><app-skeleton-rows [rows]="3" [height]="12" /></div>
+    <section class="fa-window fa-window--main">
+      <div class="fa-window__bar">
+        <h2 class="fa-window__title">SUAS MESAS</h2>
+        @if (!loading() && !error() && totalCount() > 0) {
+          <span class="sl-count"
+            >AVENTURAS <strong>{{ totalCount() }}</strong></span
+          >
+        }
+        @if (error() || loading() || totalCount() > 0) {
+          <button type="button" class="fa-btn fa-btn--primary sl-new" (click)="createSession()">
+            + NOVA SESSÃO
+          </button>
         }
       </div>
-    } @else if (sessions().length === 0) {
-      <p class="m-empty">NENHUMA SESSÃO ENCONTRADA.</p>
-    } @else {
-      <div class="d-grid">
-        @for (session of sessions(); track session.id_game_session) {
-          <article class="d-card" (click)="openSession(session.id_game_session)">
-            <div class="d-card-head">
-              <span class="d-card-icon"><img class="ui-icon" src="assets/icons/book-open.png" alt="" /></span>
-              <h2 class="d-card-title">{{ session.session_name }}</h2>
+
+      @if (error()) {
+        <div class="sl-state" role="alert">
+          <span class="sl-state__icon sl-state__icon--error" aria-hidden="true">!</span>
+          <p class="sl-state__title">NÃO FOI POSSÍVEL CARREGAR AS SESSÕES</p>
+          <p class="fa-desc sl-state__desc">Confira sua conexão e tente de novo.</p>
+          <button type="button" class="fa-btn" (click)="loadPage()">TENTAR DE NOVO</button>
+        </div>
+      } @else if (loading()) {
+        <div class="sl-grid" aria-busy="true" aria-label="Carregando">
+          @for (i of [1, 2, 3, 4]; track i) {
+            <div class="sl-card sl-card--skeleton">
+              <app-skeleton-rows [rows]="3" [height]="12" />
             </div>
-            <p class="d-card-desc">MESTRE <span class="d-card-value">{{ session.dm_name }}</span></p>
-            <p class="d-card-desc">CÓDIGO <span class="d-card-value d-card-code">{{ session.session_code }}</span></p>
-            <p class="d-card-desc">ATÉ <span class="d-card-value">{{ session.max_player_quantity }}</span> JOGADORES</p>
-          </article>
-        }
-      </div>
+          }
+        </div>
+      } @else if (sessions().length === 0) {
+        <div class="sl-state">
+          <span class="sl-state__icon" aria-hidden="true">
+            <img class="ui-icon" src="assets/icons/book-open.png" alt="" />
+          </span>
+          <p class="sl-state__title">NENHUMA SESSÃO AINDA</p>
+          <p class="fa-desc sl-state__desc">
+            Toda campanha começa com uma mesa vazia. Crie a primeira e chame seu grupo.
+          </p>
+          <button type="button" class="fa-btn fa-btn--primary" (click)="createSession()">
+            + CRIAR PRIMEIRA SESSÃO
+          </button>
+        </div>
+      } @else {
+        <ul class="sl-grid">
+          @for (session of sessions(); track session.id_game_session) {
+            <li>
+              <button type="button" class="sl-card" (click)="openSession(session.id_game_session)">
+                <span class="sl-card__head">
+                  <span class="sl-card__icon">
+                    <img class="ui-icon" src="assets/icons/book-open.png" alt="" />
+                  </span>
+                  <span class="sl-card__title">{{ session.session_name }}</span>
+                  <span class="sl-card__arrow" aria-hidden="true">›</span>
+                </span>
+                <span class="sl-card__data">
+                  <span class="sl-card__field">
+                    <span class="fa-label">MESTRE</span>
+                    <span class="fa-desc sl-card__value">{{ session.dm_name }}</span>
+                  </span>
+                  <span class="sl-card__field">
+                    <span class="fa-label">CÓDIGO</span>
+                    <span class="sl-card__code">{{ session.session_code }}</span>
+                  </span>
+                  <span class="sl-card__field">
+                    <span class="fa-label">JOGADORES</span>
+                    <span class="fa-desc sl-card__value"
+                      >ATÉ {{ session.max_player_quantity }}</span
+                    >
+                  </span>
+                  <span class="sl-card__field">
+                    <span class="fa-label">CRIADA EM</span>
+                    <span class="fa-desc sl-card__value">{{
+                      session.created_at | date: 'dd/MM/yyyy'
+                    }}</span>
+                  </span>
+                </span>
+              </button>
+            </li>
+          }
+        </ul>
 
-      <div class="m-pagination">
-        <button class="m-page-btn" [disabled]="!hasPrev()" (click)="prevPage()">&#9664;</button>
-        <span class="m-page-info">{{ page() }} / {{ totalPages() }}</span>
-        <button class="m-page-btn" [disabled]="!hasNext()" (click)="nextPage()">&#9654;</button>
-      </div>
-    }
-
+        <footer class="sl-footer">
+          <span class="fa-label"
+            >MOSTRANDO {{ rangeStart() }}–{{ rangeEnd() }} DE {{ totalCount() }}</span
+          >
+          <div class="sl-pager">
+            <button
+              type="button"
+              class="fa-btn sl-pager__btn"
+              [disabled]="!hasPrev()"
+              (click)="prevPage()"
+              aria-label="Página anterior"
+            >
+              ‹
+            </button>
+            <span class="sl-pager__info">{{ page() }} / {{ totalPages() }}</span>
+            <button
+              type="button"
+              class="fa-btn sl-pager__btn"
+              [disabled]="!hasNext()"
+              (click)="nextPage()"
+              aria-label="Próxima página"
+            >
+              ›
+            </button>
+          </div>
+        </footer>
+      }
+    </section>
   </div>
-}
+</div>

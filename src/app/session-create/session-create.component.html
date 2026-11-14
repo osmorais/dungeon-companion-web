@@ -1,306 +1,243 @@
-@if (isMobile()) {
-  <!-- ===== MOBILE LAYOUT ===== (formulário no padrão das telas mobile: .m-* no styles.scss) -->
-  <div class="mobile-container">
+<!-- Criar nova sessão (1.19.2): visual da Home, em 3 etapas (dados, quem vem junto, código) e
+     uma barra de resumo com SALVAR AVENTURA. Um template só; o celular ajusta por media query. -->
+<div class="fa-stage">
+  <span class="fa-rail fa-rail--top" aria-hidden="true"></span>
+  <span class="fa-rail fa-rail--bottom" aria-hidden="true"></span>
 
-    <div class="m-header">
-      <button class="m-back" (click)="goBack()">&#8592;</button>
-      <span class="m-title">CRIAR SESSÃO</span>
-    </div>
-
-    <section class="m-section">
-      <h2 class="m-section-title">DADOS DA SESSÃO</h2>
-
-      <div class="m-field">
-        <label class="m-label" for="m-session-name">NOME DA SESSÃO</label>
-        <input
-          id="m-session-name"
-          type="text"
-          class="m-input"
-          placeholder="Ex: A Maldição de Strahd"
-          [ngModel]="sessionName()"
-          (ngModelChange)="sessionName.set($event)"
-        />
-      </div>
-
-      <div class="m-field">
-        <label class="m-label" for="m-max-players">Nº MÁXIMO DE JOGADORES</label>
-        <input
-          id="m-max-players"
-          type="number"
-          class="m-input"
-          placeholder="Ex: 4"
-          min="1"
-          max="20"
-          [ngModel]="maxPlayers()"
-          (ngModelChange)="maxPlayers.set($event)"
-        />
-      </div>
-
-      <p class="name-privacy-hint">
-        Você mestra como <strong>{{ username() }}</strong>, seu nome de usuário — troque em Minha Conta.
-      </p>
-    </section>
-
-    <section class="m-section">
-      <h2 class="m-section-title">
-        <img class="ui-icon" src="assets/icons/wizard-hat.png" alt="" /> NPCS
-        @if (selectedNpcIds().size > 0) {
-          <span class="m-section-extra">{{ selectedNpcIds().size }} selecionado(s)</span>
-        }
-      </h2>
-
-      @if (loadingNpcs()) {
-        <app-skeleton-rows [rows]="3" [height]="56" />
-      } @else if (availableNpcs().length === 0) {
-        <p class="m-empty">Nenhum personagem criado ainda.</p>
-      } @else {
-        <div class="m-card-list">
-          @for (char of availableNpcs(); track char.id_character) {
-            <button
-              class="m-card m-card--compact"
-              [class.m-card--selected]="isNpcSelected(char.id_character)"
-              (click)="toggleNpc(char.id_character)"
-            >
-              <span class="m-card-body">
-                <span class="m-card-title">{{ char.name }}</span>
-                <span class="m-card-desc">{{ char.class }} · {{ char.race }} · NV {{ char.level }}</span>
-              </span>
-              @if (isNpcSelected(char.id_character)) {
-                <span class="m-card-icon"><img class="ui-icon" src="assets/icons/check.png" alt="" /></span>
-              }
-            </button>
-          }
-        </div>
-      }
-    </section>
-
-    <section class="m-section">
-      <h2 class="m-section-title"><img class="ui-icon" src="assets/icons/dragon.png" alt="" /> MONSTROS</h2>
-      <button class="m-card" disabled>
-        <span class="m-card-body">
-          <span class="m-card-title">SELECIONAR MONSTROS</span>
-          <span class="m-card-desc">Em breve...</span>
-        </span>
+  <div class="sc-content">
+    <header class="sc-top">
+      <button type="button" class="fa-btn sc-back" (click)="goBack()" aria-label="Voltar">
+        ← <span class="sc-back__label">VOLTAR</span>
       </button>
-    </section>
-
-    <section class="m-section">
-      <h2 class="m-section-title">
-        <img class="ui-icon" src="assets/icons/campfire.png" alt="" /> CONVIDAR AMIGOS
-        @if (selectedFriendIds().size > 0) {
-          <span class="m-section-extra">{{ selectedFriendIds().size }} selecionado(s)</span>
-        }
-      </h2>
-
-      @if (loadingFriends()) {
-        <app-skeleton-rows [rows]="2" [height]="56" />
-      } @else if (availableFriends().length === 0) {
-        <p class="m-empty">Você ainda não tem amigos para convidar.</p>
-      } @else {
-        <div class="m-card-list">
-          @for (friend of availableFriends(); track friend.id) {
-            <button
-              class="m-card m-card--compact"
-              [class.m-card--selected]="isFriendSelected(friend.id)"
-              (click)="toggleFriend(friend.id)"
-            >
-              <span class="m-card-body">
-                <span class="m-card-title">{{ friend.username }}</span>
-                <span class="m-card-desc">{{ presenceLine(friend) }}</span>
-              </span>
-              @if (isFriendSelected(friend.id)) {
-                <span class="m-card-icon"><img class="ui-icon" src="assets/icons/check.png" alt="" /></span>
-              }
-            </button>
-          }
-        </div>
-      }
-    </section>
-
-    <section class="m-section">
-      <h2 class="m-section-title">CÓDIGO DA SESSÃO</h2>
-      <button class="retro-btn m-submit" [disabled]="!canGenerate()" (click)="generateCode()">
-        <img class="ui-icon" src="assets/icons/gear.png" alt="" /> GERAR CÓDIGO
-      </button>
-      @if (sessionCode()) {
-        <div class="m-box session-code-box">
-          <span class="m-label">CÓDIGO GERADO</span>
-          <span class="session-code-value">{{ sessionCode() }}</span>
-        </div>
-      }
-    </section>
-
-    @if (saveError()) {
-      <p class="m-error">{{ saveError() }}</p>
-    }
-
-    <button class="retro-btn m-submit" [disabled]="!canSave() || saving()" (click)="saveSession()">
-      {{ saving() ? 'SALVANDO...' : 'SALVAR AVENTURA' }}
-    </button>
-
-  </div>
-} @else {
-  <!-- ===== DESKTOP LAYOUT ===== -->
-  <div class="container">
-
-    <fieldset class="retro-panel title-panel">
-      <legend>CRIAR NOVA SESSÃO</legend>
-    </fieldset>
-
-    <fieldset class="retro-panel">
-      <legend>DADOS DA SESSÃO</legend>
-
-      <div class="fields-grid">
-        <div class="field">
-          <label class="field-label">NOME DA SESSÃO</label>
-          <input
-            type="text"
-            placeholder="Ex: A Maldição de Strahd"
-            [ngModel]="sessionName()"
-            (ngModelChange)="sessionName.set($event)"
-          />
-        </div>
-
-        <div class="field">
-          <label class="field-label">Nº MÁXIMO DE JOGADORES</label>
-          <input
-            type="number"
-            placeholder="Ex: 4"
-            min="1"
-            max="20"
-            [ngModel]="maxPlayers()"
-            (ngModelChange)="maxPlayers.set($event)"
-          />
-        </div>
-
-        <div class="field field--full">
-          <span class="field-label">MESTRE</span>
-          <p class="name-privacy-hint">
-            <strong>{{ username() }}</strong>, seu nome de usuário — troque em Minha Conta.
-          </p>
-        </div>
+      <div class="fa-intro sc-intro">
+        <h1 class="fa-heading">CRIAR NOVA SESSÃO</h1>
+        <p class="fa-desc fa-subheading">Prepare a mesa e chame seu grupo.</p>
       </div>
-    </fieldset>
+    </header>
 
-    <fieldset class="retro-panel">
-      <legend>CRIATURAS E ALIADOS</legend>
-
-      <div class="catalog-row">
-
-        <!-- NPCs -->
-        <div class="npc-picker-panel">
-          <div class="npc-picker-header">
-            <span class="catalog-icon"><img class="ui-icon" src="assets/icons/wizard-hat.png" alt="" /></span>
-            <span class="catalog-title">NPCS</span>
-            @if (selectedNpcIds().size > 0) {
-              <span class="npc-selected-badge">{{ selectedNpcIds().size }} selecionado(s)</span>
-            }
+    <div class="sc-columns">
+      <div class="sc-column">
+        <!-- 1. Dados da sessão -->
+        <section class="fa-window fa-window--main sc-window" aria-labelledby="sc-step-1">
+          <div class="fa-window__bar">
+            <span class="fa-step" aria-hidden="true">1</span>
+            <h2 class="fa-window__title" id="sc-step-1">DADOS DA SESSÃO</h2>
           </div>
+          <div class="fa-window__body">
+            <div class="fa-field">
+              <label class="fa-label" for="sc-name">NOME DA SESSÃO</label>
+              <input
+                id="sc-name"
+                type="text"
+                class="fa-input"
+                placeholder="Ex: A Maldição de Strahd"
+                [ngModel]="sessionName()"
+                (ngModelChange)="sessionName.set($event)"
+              />
+            </div>
 
+            <div class="fa-field">
+              <label class="fa-label" for="sc-players">Nº MÁXIMO DE JOGADORES</label>
+              <div class="sc-stepper">
+                <button
+                  type="button"
+                  class="fa-btn sc-stepper__btn"
+                  aria-label="Menos um jogador"
+                  [disabled]="(maxPlayers() ?? 0) <= 1"
+                  (click)="stepPlayers(-1)"
+                >
+                  −
+                </button>
+                <input
+                  id="sc-players"
+                  type="number"
+                  class="fa-input sc-stepper__input"
+                  placeholder="4"
+                  min="1"
+                  max="20"
+                  [ngModel]="maxPlayers()"
+                  (ngModelChange)="maxPlayers.set($event)"
+                />
+                <button
+                  type="button"
+                  class="fa-btn sc-stepper__btn"
+                  aria-label="Mais um jogador"
+                  [disabled]="(maxPlayers() ?? 0) >= 20"
+                  (click)="stepPlayers(1)"
+                >
+                  +
+                </button>
+                <span class="fa-desc sc-stepper__hint">de 1 a 20</span>
+              </div>
+            </div>
+
+            <p class="sc-dm">
+              <span class="fa-label">MESTRE</span>
+              <span class="fa-desc sc-dm__name">{{ username() }}</span>
+              <span class="fa-desc sc-dm__hint">seu nome de usuário — troque em Minha Conta</span>
+            </p>
+          </div>
+        </section>
+
+        <!-- 3. Código de convite -->
+        <section class="fa-window sc-window sc-window--code" aria-labelledby="sc-step-3">
+          <div class="fa-window__bar">
+            <span class="fa-step" aria-hidden="true">3</span>
+            <h2 class="fa-window__title" id="sc-step-3">CÓDIGO DE CONVITE</h2>
+          </div>
+          <div class="fa-window__body sc-code">
+            <div
+              class="sc-code__slots"
+              [class.sc-code__slots--empty]="!sessionCode()"
+              [attr.aria-label]="
+                sessionCode() ? 'Código ' + sessionCode() : 'Código ainda não gerado'
+              "
+            >
+              @for (char of codeSlots(); track $index) {
+                <span class="sc-code__slot" aria-hidden="true">{{ char }}</span>
+              }
+            </div>
+            <p class="fa-desc sc-code__hint">
+              @if (sessionCode()) {
+                Os jogadores entram na mesa com este código.
+              } @else if (canGenerate()) {
+                Gere o código que os jogadores vão usar para entrar.
+              } @else {
+                Preencha o nome e o número de jogadores para gerar o código.
+              }
+            </p>
+            <button
+              type="button"
+              class="fa-btn"
+              [disabled]="!canGenerate()"
+              (click)="generateCode()"
+            >
+              {{ sessionCode() ? 'GERAR OUTRO CÓDIGO' : 'GERAR CÓDIGO' }}
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <!-- 2. Quem vem junto -->
+      <section class="fa-window sc-window sc-window--people" aria-labelledby="sc-step-2">
+        <div class="fa-window__bar">
+          <span class="fa-step" aria-hidden="true">2</span>
+          <h2 class="fa-window__title" id="sc-step-2">QUEM VEM JUNTO</h2>
+        </div>
+
+        <div class="fa-window__body sc-group">
+          <p class="sc-group__head">
+            <span class="fa-label">NPCS — SEUS PERSONAGENS</span>
+            @if (selectedNpcIds().size > 0) {
+              <span class="fa-count"
+                >NPCS <strong>{{ selectedNpcIds().size }}</strong></span
+              >
+            }
+          </p>
           @if (loadingNpcs()) {
-            <app-skeleton-rows [rows]="3" [height]="22" />
+            <app-skeleton-rows [rows]="3" [height]="48" />
           } @else if (availableNpcs().length === 0) {
-            <p class="npc-picker-empty">Nenhum personagem criado ainda.</p>
+            <p class="fa-desc sc-empty">Nenhum personagem criado ainda.</p>
           } @else {
-            <div class="npc-picker-list">
+            <div class="sc-list">
               @for (char of availableNpcs(); track char.id_character) {
-                <div
-                  class="npc-picker-item"
-                  [class.npc-picker-item--selected]="isNpcSelected(char.id_character)"
+                <button
+                  type="button"
+                  class="fa-pick"
+                  [class.fa-pick--on]="isNpcSelected(char.id_character)"
+                  [attr.aria-pressed]="isNpcSelected(char.id_character)"
                   (click)="toggleNpc(char.id_character)"
                 >
-                  <span class="npc-picker-check">{{ isNpcSelected(char.id_character) ? '✓' : '' }}</span>
-                  <div class="npc-picker-info">
-                    <span class="npc-picker-name">{{ char.name }}</span>
-                    <span class="npc-picker-meta">{{ char.class }} — {{ char.race }} — NV {{ char.level }}</span>
-                  </div>
-                </div>
+                  <span class="fa-pick__mark" aria-hidden="true">
+                    @if (isNpcSelected(char.id_character)) {
+                      <img class="ui-icon" src="assets/icons/check.png" alt="" />
+                    }
+                  </span>
+                  <span class="fa-pick__body">
+                    <span class="fa-pick__name">{{ char.name }}</span>
+                    <span class="fa-desc fa-pick__meta"
+                      >{{ char.class }} · {{ char.race }} · NV {{ char.level }}</span
+                    >
+                  </span>
+                </button>
+              }
+            </div>
+          }
+          <button type="button" class="fa-pick" disabled>
+            <span class="fa-pick__mark" aria-hidden="true"></span>
+            <span class="fa-pick__body">
+              <span class="fa-pick__name">MONSTROS</span>
+              <span class="fa-desc fa-pick__meta">Em breve: levar monstros do bestiário</span>
+            </span>
+          </button>
+        </div>
+
+        <div class="fa-window__body sc-group sc-group--friends">
+          <p class="sc-group__head">
+            <span class="fa-label">CONVIDAR AMIGOS</span>
+            @if (selectedFriendIds().size > 0) {
+              <span class="fa-count"
+                >CONVITES <strong>{{ selectedFriendIds().size }}</strong></span
+              >
+            }
+          </p>
+          @if (loadingFriends()) {
+            <app-skeleton-rows [rows]="2" [height]="48" />
+          } @else if (availableFriends().length === 0) {
+            <p class="fa-desc sc-empty">Você ainda não tem amigos para convidar.</p>
+          } @else {
+            <div class="sc-list">
+              @for (friend of availableFriends(); track friend.id) {
+                <button
+                  type="button"
+                  class="fa-pick"
+                  [class.fa-pick--on]="isFriendSelected(friend.id)"
+                  [attr.aria-pressed]="isFriendSelected(friend.id)"
+                  (click)="toggleFriend(friend.id)"
+                >
+                  <span class="fa-pick__mark" aria-hidden="true">
+                    @if (isFriendSelected(friend.id)) {
+                      <img class="ui-icon" src="assets/icons/check.png" alt="" />
+                    }
+                  </span>
+                  <span class="fa-pick__body">
+                    <span class="fa-pick__name">{{ friend.username }}</span>
+                    <span class="fa-desc fa-pick__meta">{{ presenceLine(friend) }}</span>
+                  </span>
+                </button>
               }
             </div>
           }
         </div>
+      </section>
+    </div>
 
-        <!-- Monstros (em breve) -->
-        <button class="catalog-btn" disabled>
-          <span class="catalog-icon"><img class="ui-icon" src="assets/icons/dragon.png" alt="" /></span>
-          <span class="catalog-title">SELECIONAR MONSTROS</span>
-          <span class="catalog-desc">Em breve...</span>
-        </button>
-
-      </div>
-    </fieldset>
-
-    <fieldset class="retro-panel">
-      <legend>CONVIDAR AMIGOS</legend>
-
-      <div class="npc-picker-panel">
-        <div class="npc-picker-header">
-          <span class="catalog-icon"><img class="ui-icon" src="assets/icons/campfire.png" alt="" /></span>
-          <span class="catalog-title">AMIGOS</span>
-          @if (selectedFriendIds().size > 0) {
-            <span class="npc-selected-badge">{{ selectedFriendIds().size }} selecionado(s)</span>
-          }
-        </div>
-
-        @if (loadingFriends()) {
-          <app-skeleton-rows [rows]="3" [height]="22" />
-        } @else if (availableFriends().length === 0) {
-          <p class="npc-picker-empty">Você ainda não tem amigos para convidar.</p>
-        } @else {
-          <div class="npc-picker-list">
-            @for (friend of availableFriends(); track friend.id) {
-              <div
-                class="npc-picker-item"
-                [class.npc-picker-item--selected]="isFriendSelected(friend.id)"
-                (click)="toggleFriend(friend.id)"
-              >
-                <span class="npc-picker-check">{{ isFriendSelected(friend.id) ? '✓' : '' }}</span>
-                <div class="npc-picker-info">
-                  <span class="npc-picker-name">{{ friend.username }}</span>
-                  <span class="npc-picker-meta">{{ presenceLine(friend) }}</span>
-                </div>
-              </div>
-            }
-          </div>
+    <!-- Resumo e salvar -->
+    <div class="sc-summary">
+      <span class="fa-label sc-summary__label">RESUMO</span>
+      <span class="fa-desc sc-summary__text">
+        {{ sessionName().trim() || 'Sem nome ainda' }}
+        @if (maxPlayers()) {
+          · até {{ maxPlayers() }} jogadores
         }
-      </div>
-    </fieldset>
-
-    <fieldset class="retro-panel">
-      <legend>CÓDIGO DA SESSÃO</legend>
-
-      <div class="code-row">
-        <button
-          class="retro-btn generate-btn"
-          [disabled]="!canGenerate()"
-          (click)="generateCode()"
-        >
-          <img class="ui-icon" src="assets/icons/gear.png" alt="" /> GERAR CÓDIGO
-        </button>
-
+        · {{ selectedNpcIds().size }} {{ selectedNpcIds().size === 1 ? 'NPC' : 'NPCs' }} ·
+        {{ selectedFriendIds().size }} {{ selectedFriendIds().size === 1 ? 'convite' : 'convites' }}
         @if (sessionCode()) {
-          <div class="code-display">
-            <span class="code-label">CÓDIGO GERADO:</span>
-            <span class="code-value">{{ sessionCode() }}</span>
-          </div>
+          · código {{ sessionCode() }}
         }
-      </div>
-    </fieldset>
-
-    @if (saveError()) {
-      <p class="error-msg">{{ saveError() }}</p>
-    }
-
-    <div class="action-row">
-      <button class="retro-btn back-btn" (click)="goBack()">← VOLTAR</button>
+      </span>
+      @if (saveError()) {
+        <p class="sc-summary__error" role="alert">{{ saveError() }}</p>
+      }
+      <button type="button" class="fa-btn sc-summary__cancel" (click)="goBack()">CANCELAR</button>
       <button
-        class="retro-btn create-btn"
+        type="button"
+        class="fa-btn fa-btn--primary sc-summary__save"
         [disabled]="!canSave() || saving()"
         (click)="saveSession()"
       >
         {{ saving() ? 'SALVANDO...' : 'SALVAR AVENTURA' }}
       </button>
     </div>
-
   </div>
-}
+</div>
