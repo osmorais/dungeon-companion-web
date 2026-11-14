@@ -440,6 +440,26 @@ describe('applySessionEvent', () => {
     });
   });
 
+  describe('penalidades de magia no monstro (1.26.0)', () => {
+    it('atualiza o monstro do mestre e o revelado da mesa', () => {
+      const effects = { faerie_fire: { from: 'Lyra' } };
+      const detail = apply(
+        sessionDetail({
+          monsters: [monster('m1'), monster('m2')],
+          revealed_monsters: [{ id_monster_session: 'm1', name: 'A', image_url: null }],
+        }),
+        {
+          type: 'monster_spell_effects_updated',
+          id_monster_session: 'm1',
+          spell_effects: effects,
+          is_revealed: true,
+        },
+      );
+      expect(detail.monsters.map((m) => m.spell_effects ?? null)).toEqual([effects, null]);
+      expect(detail.revealed_monsters[0].spell_effects).toEqual(effects);
+    });
+  });
+
   describe('combate', () => {
     it.each([
       'combat_started',
@@ -452,6 +472,27 @@ describe('applySessionEvent', () => {
       const next = combat([participant('a', { is_current_turn: true })]);
       const detail = apply(sessionDetail(), { type, combat: next });
       expect(detail.combat).toBe(next);
+    });
+
+    it('fim do combate apaga as penalidades de magia dos monstros (1.26.0)', () => {
+      const detail = apply(
+        sessionDetail({
+          monsters: [
+            monster('m1', { is_revealed: true, spell_effects: { bane: { from: 'Clara' } } }),
+          ],
+          revealed_monsters: [
+            {
+              id_monster_session: 'm1',
+              name: 'A',
+              image_url: null,
+              spell_effects: { bane: { from: 'Clara' } },
+            },
+          ],
+        }),
+        { type: 'combat_ended', id_combat_encounter: 'enc', hidden_monster_ids: [] },
+      );
+      expect(detail.monsters[0].spell_effects).toBeNull();
+      expect(detail.revealed_monsters[0].spell_effects).toEqual({});
     });
 
     it('fim do combate limpa o combate e esconde só os monstros indicados', () => {

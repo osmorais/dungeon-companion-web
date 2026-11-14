@@ -257,6 +257,7 @@ describe('PlayerActionsModalComponent — habilidades', () => {
 /** Traços no ataque com arma (fase 2): efeitos ativos, somas por turno, ataque poderoso, desarmado. */
 describe('PlayerActionsModalComponent — traços no ataque', () => {
   let updateActiveEffects: ReturnType<typeof vi.fn>;
+  let grantSpellBoon: ReturnType<typeof vi.fn>;
   let modal: PlayerActionsModalComponent;
 
   const features = (extra: Partial<CombatFeatures> = {}): CombatFeatures => ({
@@ -291,6 +292,7 @@ describe('PlayerActionsModalComponent — traços no ataque', () => {
     turnKey: string | null = null,
   ) {
     updateActiveEffects = vi.fn(() => of({ active_effects: { active: ['Fúria'], turn_uses: {} } }));
+    grantSpellBoon = vi.fn(() => of({ spell: 'Bênção', to: [] }));
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
@@ -314,11 +316,16 @@ describe('PlayerActionsModalComponent — traços no ataque', () => {
               of({ resource_trackers: [{ name: 'R', max: 3, used: 1, recharge_on: 'long_rest' }] }),
             ),
             updateActiveEffects,
+            updateSpellSlots: vi.fn(() => of({ slots_expended: { level_3: 1 } })),
           },
         },
         {
           provide: GameSessionService,
-          useValue: { announceSpellCast: vi.fn(() => of(undefined)) },
+          useValue: {
+            announceSpellCast: vi.fn(() => of(undefined)),
+            publishSpellCastStage: vi.fn(() => of(undefined)),
+            grantSpellBoon,
+          },
         },
       ],
     });
@@ -388,6 +395,267 @@ describe('PlayerActionsModalComponent — traços no ataque', () => {
     });
     modal.rollAttack(weapon('Adaga', 'Acuidade, Leve'));
     expect(modal.activeRoll()!).not.toHaveProperty('powerAttack.name');
+  });
+
+  const elementalFire = {
+    id_spell: 22,
+    name: 'Arma Elemental (fogo)',
+    slot_level: 5,
+    attack_bonus: 2,
+    damage_bonus: 0,
+    dice: { count: 2, sides: 4 },
+    damage_type: 'fogo',
+  };
+
+  it('Arma Elemental ativa: +ataque e dados do elemento na arma, mas não no desarmado', () => {
+    create(
+      features({
+        active_effects: { active: [], turn_uses: {}, spell_weapon: elementalFire },
+        unarmed: {
+          name: 'Ataque Desarmado',
+          attack_bonus: 5,
+          dice: { count: 1, sides: 4 },
+          damage_modifier: 3,
+        },
+      }),
+    );
+    modal.rollAttack(weapon('Espada Longa', 'Versátil'));
+    expect(modal.activeRoll()).toMatchObject({
+      label: 'Ataque: Espada Longa + Arma Elemental (fogo)',
+      modifier: 7,
+      damage: {
+        modifier: 3,
+        extraDice: [{ count: 2, sides: 4 }],
+        label: 'Dano: Espada Longa + Arma Elemental (fogo)',
+      },
+    });
+    modal.rollUnarmed();
+    expect(modal.activeRoll()).toMatchObject({
+      modifier: 5,
+      damage: { modifier: 3, label: 'Dano: Ataque Desarmado' },
+    });
+    expect(modal.activeRoll()).not.toHaveProperty('damage.extraDice.0');
+  });
+
+  it('Arma Mágica ativa soma no ataque e no dano; Encerrar apaga', () => {
+    create(
+      features({
+        active_effects: {
+          active: [],
+          turn_uses: {},
+          spell_weapon: {
+            ...elementalFire,
+            id_spell: 24,
+            name: 'Arma Mágica',
+            attack_bonus: 2,
+            damage_bonus: 2,
+            dice: null,
+            damage_type: null,
+          },
+        },
+      }),
+    );
+    modal.rollAttack(weapon('Maça', null));
+    expect(modal.activeRoll()).toMatchObject({ modifier: 7, damage: { modifier: 5 } });
+    modal.endSpellWeapon();
+    expect(updateActiveEffects).toHaveBeenCalledWith(7, { spell_weapon: null });
+  });
+
+  it('lançar Arma Elemental gasta o espaço e guarda o efeito com o círculo e o elemento escolhido', () => {
+    create(features());
+    const spell = {
+      id_spell: 22,
+      name: 'Arma Elemental',
+      spellLevel: 3,
+      roll: null,
+    } as unknown as Spell;
+    modal.weaponElement.set('frio');
+    modal.castSpell(spell, 5);
+    expect(updateActiveEffects).toHaveBeenCalledWith(7, {
+      spell_weapon: { id_spell: 22, slot_level: 5, element: 'frio' },
+    });
+  });
+
+  it('lançar outra magia não mexe na arma', () => {
+    create(features());
+    modal.castSpell(
+      { id_spell: 49, name: 'Bruxaria', spellLevel: 1, roll: null } as unknown as Spell,
+      1,
+    );
+    expect(updateActiveEffects).not.toHaveBeenCalled();
+  });
+
+  const allies = [
+    { id_player_session: 'p2', name: 'Thorin' },
+    { id_player_session: 'p3', name: 'Lyra' },
+    { id_player_session: 'p4', name: 'Kael' },
+    { id_player_session: 'p5', name: 'Bran' },
+  ];
+
+  it('lançar Bênção pede os alvos antes de gastar o espaço e entrega a quem foi escolhido', () => {
+    create(features());
+    modal.allies = allies;
+    const bless = { id_spell: 42, name: 'Bênção', spellLevel: 1, roll: null } as unknown as Spell;
+    modal.castSpell(bless, 2);
+    expect(modal.boonCast()).toEqual({ spell: bless, slotLevel: 2 });
+    expect(grantSpellBoon).not.toHaveBeenCalled();
+    // 2º círculo: até 4 alvos (você já vem marcado)
+    expect(modal.boonMax()).toBe(4);
+    ['p2', 'p3', 'p4', 'p5'].forEach((id) => modal.toggleBoonTarget(id));
+    expect(modal.boonTargets()).toEqual(['p2', 'p3', 'p4']);
+    modal.confirmBoonCast();
+    expect(grantSpellBoon).toHaveBeenCalledWith('gs', {
+      id_character: 7,
+      id_spell: 42,
+      slot_level: 2,
+      include_self: true,
+      id_player_sessions: ['p2', 'p3', 'p4'],
+    });
+    expect(modal.boonCast()).toBeNull();
+  });
+
+  it('Orientação (truque): um alvo só — desmarcar você libera um aliado', () => {
+    create(features());
+    modal.allies = allies;
+    const guidance = {
+      id_spell: 247,
+      name: 'Orientação',
+      spellLevel: 0,
+      roll: null,
+    } as unknown as Spell;
+    modal.castSpell(guidance, 0);
+    modal.toggleBoonTarget('p2');
+    expect(modal.boonTargets()).toEqual([]);
+    modal.toggleBoonSelf();
+    modal.toggleBoonTarget('p2');
+    modal.confirmBoonCast();
+    expect(grantSpellBoon).toHaveBeenCalledWith('gs', {
+      id_character: 7,
+      id_spell: 247,
+      slot_level: 0,
+      include_self: false,
+      id_player_sessions: ['p2'],
+    });
+  });
+
+  it('magias de CA recebidas aparecem nos efeitos ativos e dá pra encerrar', () => {
+    create(
+      features({
+        active_effects: {
+          active: [],
+          turn_uses: {},
+          mage_armor: { from: 'Elara' },
+          shield: { from: 'Elara' },
+        },
+      }),
+    );
+    expect(modal.receivedBoons()).toEqual([
+      { key: 'mage_armor', label: 'Armadura Arcana de Elara (CA 13 + DES sem armadura)' },
+      { key: 'shield', label: 'Escudo Arcano de Elara (+5 na CA até o seu próximo turno)' },
+    ]);
+    modal.endBoon('shield');
+    expect(updateActiveEffects).toHaveBeenCalledWith(7, { consume_boon: 'shield' });
+  });
+
+  it('Escudo Arcano: lança só em você', () => {
+    create(features());
+    modal.allies = allies;
+    const shield = {
+      id_spell: 145,
+      name: 'Escudo Arcano',
+      spellLevel: 1,
+      roll: null,
+    } as unknown as Spell;
+    modal.castSpell(shield, 1);
+    expect(modal.isSelfOnlyBoon(shield)).toBe(true);
+    modal.confirmBoonCast();
+    expect(grantSpellBoon).toHaveBeenCalledWith('gs', {
+      id_character: 7,
+      id_spell: 145,
+      slot_level: 1,
+      include_self: true,
+      id_player_sessions: [],
+    });
+  });
+
+  it('lançar Perdição: marca os monstros (até 3 no 1º) e pede a resistência ao mestre com a penalidade', () => {
+    create(features());
+    const requestSecretRoll = vi.fn(() => of([]));
+    (TestBed.inject(GameSessionService) as unknown as Record<string, unknown>)[
+      'requestSecretRoll'
+    ] = requestSecretRoll;
+    modal.applyTargets = ['m1', 'm2', 'm3', 'm4'].map((id) => ({
+      key: `monster:${id}`,
+      label: id,
+      allowsTempHp: false,
+    }));
+    const bane = {
+      id_spell: 264,
+      name: 'Perdição',
+      spellLevel: 1,
+      roll: {
+        kind: 'save',
+        save_ability: 'CHA',
+        save_dc: 13,
+        save_against: ['magic'],
+        by_slot: {},
+      },
+    } as unknown as Spell;
+    modal.castSpell(bane, 1);
+    expect(modal.curseCast()).toEqual({ spell: bane, slotLevel: 1 });
+    ['monster:m1', 'monster:m2', 'monster:m3', 'monster:m4'].forEach((k) =>
+      modal.toggleCurseTarget(k),
+    );
+    expect(modal.curseTargets()).toEqual(['monster:m1', 'monster:m2', 'monster:m3']);
+    modal.confirmCurseCast();
+    expect(requestSecretRoll).toHaveBeenCalledWith('gs', {
+      id_player_sessions: [],
+      id_monster_sessions: ['m1', 'm2', 'm3'],
+      check: { kind: 'save', ability: 'CHA' },
+      label: 'Perdição',
+      dc: 13,
+      against: ['magic'],
+      secret: false,
+      on_fail_effect: { key: 'bane', from: 'Krusk' },
+    });
+  });
+
+  it('Perdição sem monstro revelado na mesa: lança como antes, sem escolher', () => {
+    create(features());
+    const bane = { id_spell: 264, name: 'Perdição', spellLevel: 1, roll: null } as unknown as Spell;
+    modal.castSpell(bane, 1);
+    expect(modal.curseCast()).toBeNull();
+  });
+
+  it('sem alvo marcado não lança', () => {
+    create(features());
+    modal.castSpell(
+      { id_spell: 305, name: 'Resistência', spellLevel: 0, roll: null } as unknown as Spell,
+      0,
+    );
+    modal.toggleBoonSelf();
+    modal.confirmBoonCast();
+    expect(grantSpellBoon).not.toHaveBeenCalled();
+  });
+
+  it('magias recebidas: Bênção entra no ataque, aparecem nos efeitos ativos e dá pra encerrar/gastar', () => {
+    create(
+      features({
+        active_effects: {
+          active: [],
+          turn_uses: {},
+          bless: { from: 'Clara' },
+          guidance: { from: 'Clara' },
+        },
+      }),
+    );
+    modal.rollAttack(weapon('Maça', null));
+    expect(modal.activeRoll()).toMatchObject({ blessing: { from: 'Clara' } });
+    expect(modal.receivedBoons().map((b) => b.key)).toEqual(['bless', 'guidance']);
+    modal.onBoostDieUsed('guidance');
+    expect(updateActiveEffects).toHaveBeenCalledWith(7, { consume_boon: 'guidance' });
+    modal.endBoon('bless');
+    expect(updateActiveEffects).toHaveBeenCalledWith(7, { consume_boon: 'bless' });
   });
 
   it('Ataque Furtivo: só acuidade/distância e some depois de usado nesta vez do combate', () => {

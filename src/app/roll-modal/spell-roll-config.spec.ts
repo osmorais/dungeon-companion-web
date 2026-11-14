@@ -211,6 +211,39 @@ describe('spellRollConfig — resistência', () => {
     ).toBeNull();
   });
 
+  it('magia contínua que soma dano com resistência ao lançar (Rogar Maldição): CD no anúncio', () => {
+    const entry = { instances: 1, dice_count: 1, dice_sides: 8, modifier: 0, extra_dice: [] };
+    const curse = spell(
+      3,
+      attackRoll(
+        { '3': entry },
+        {
+          kind: 'rider',
+          attack_type: null,
+          attack_bonus: null,
+          damage_type: 'necrótico',
+          save_ability: 'WIS',
+          save_dc: 14,
+          rider_trigger: 'each_hit',
+          rider_attack: 'any',
+        },
+      ),
+    );
+    // lançar não abre rolagem (antes caía no ataque mágico com o dado da magia)
+    expect(spellRollConfig(curse, 3)).toBeNull();
+    expect(spellSaveInfo(curse)).toEqual({ save_dc: 14, save_ability: 'WIS' });
+    const divineFavor = {
+      ...curse,
+      spellLevel: 1,
+      roll: { ...curse.roll!, save_ability: null, save_dc: null, by_slot: { '1': entry } },
+    };
+    expect(spellRollConfig(divineFavor, 1)).toBeNull();
+    expect(spellSaveInfo(divineFavor)).toBeNull();
+    // Destruição (só no acerto): a CD vai no acerto, não num lançamento
+    const smite = { ...curse, roll: { ...curse.roll!, rider_trigger: 'next_hit' as const } };
+    expect(spellSaveInfo(smite)).toBeNull();
+  });
+
   it('saveNote escreve o atributo por extenso', () => {
     expect(saveNote(15, 'CON')).toBe('CD 15 de Constituição');
     expect(saveNote(12, 'WIS')).toBe('CD 12 de Sabedoria');

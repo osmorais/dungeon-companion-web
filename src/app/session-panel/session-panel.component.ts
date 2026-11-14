@@ -13,6 +13,7 @@ import {
   MonsterActionOp,
   MonsterActionState,
   MonsterSession,
+  MonsterSpellEffects,
   NpcSession,
   PlayerSession,
   RechargeRoll,
@@ -718,6 +719,7 @@ export class SessionPanelComponent implements OnDestroy {
             // Mestre tem a ficha: o modal já ajusta imunidade/resistência/vulnerabilidade.
             defenses: monsterApplyDefenses(m.data_snapshot),
             avatar: { imageUrl: this.monsterImageOf(m), avatarPreset: null },
+            spellEffects: m.spell_effects ?? {},
           }))
       : detail.revealed_monsters.map((m) => ({
           key: `monster:${m.id_monster_session}`,
@@ -725,6 +727,7 @@ export class SessionPanelComponent implements OnDestroy {
           allowsTempHp: false,
           damageOnly: true,
           avatar: { imageUrl: monsterImage(m.image_url, m.monster_slug), avatarPreset: null },
+          spellEffects: m.spell_effects ?? {},
         }));
     // Companheiros: PV normal, sem PV temporário (a API não guarda temporário pra eles).
     const companions = (detail.companions ?? []).map((c) => ({
@@ -1574,11 +1577,62 @@ export class SessionPanelComponent implements OnDestroy {
     if (cast && !cast.private) this.markOwnCast(cast.castId);
     this.activeMonsterRoll.set({
       monster,
-      config: request.config,
+      config: this.withMonsterSpellEffects(monster, request.config),
       cast,
       ...(request.followUps?.length ? { followUps: request.followUps } : {}),
       key: ++this.monsterRollCounter,
     });
+  }
+
+  /**
+   * Penalidades de magia do monstro na rolagem dele (1.26.0): Perdição tira 1d4 do ataque e da
+   * resistência; Zombaria Viciosa dá desvantagem no próximo ataque (e é gasta ao abrir); Raio do
+   * Enfraquecimento vira lembrete (a ficha não diz se o ataque usa Força).
+   */
+  withMonsterSpellEffects(monster: MonsterSession, config: AbilityRollConfig): AbilityRollConfig {
+    if (config.mode !== 'ability') return config;
+    const fresh = this.sessionDetail()?.monsters.find((m) => m.id_monster_session === monster.id_monster_session);
+    const effects = fresh?.spell_effects ?? monster.spell_effects;
+    if (!effects) return config;
+    const isAttack = config.rollType === 'attack' && !config.autoHit;
+    const isD20 = isAttack || config.rollType === 'save';
+    const reminders = [...(config.reminders ?? [])];
+    const next: AbilityRollConfig = { ...config };
+    if (isD20 && effects.bane) {
+      next.penaltyDie = { label: 'Perdição' };
+      reminders.push(`Perdição de ${effects.bane.from}: −1d4 nesta jogada`);
+    }
+    if (isAttack && effects.vicious_mockery) {
+      next.disadvantageFrom = ['Zombaria Viciosa'];
+      reminders.push(`Desvantagem (Zombaria Viciosa de ${effects.vicious_mockery.from})`);
+      this.spendMonsterSpellEffect(monster.id_monster_session, 'vicious_mockery');
+    }
+    if (isAttack && effects.enfeebled)
+      reminders.push('Raio do Enfraquecimento: metade do dano se o ataque usa Força');
+    if (reminders.length) next.reminders = reminders;
+    return next;
+  }
+
+  /** Mestre tira uma penalidade de magia do monstro (gaveta) ou ela é gasta (Zombaria). */
+  spendMonsterSpellEffect(idMonsterSession: string, key: keyof MonsterSpellEffects): void {
+    const sessionId = this.sessionDetail()?.game_session.id_game_session;
+    if (!sessionId) return;
+    this.gameSessionService.updateMonsterSpellEffect(sessionId, idMonsterSession, { key, active: false }).subscribe({
+      next: ({ spell_effects }) =>
+        this.sessionState.patch((detail) => ({
+          ...detail,
+          monsters: detail.monsters.map((m) =>
+            m.id_monster_session === idMonsterSession ? { ...m, spell_effects } : m,
+          ),
+        })),
+      error: () => undefined,
+    });
+  }
+
+  /** Penalidades do monstro pra resistência pedida por magia (Perdição tira 1d4). */
+  monsterEffectsFor(idMonsterSession: string | null | undefined): MonsterSpellEffects | null {
+    if (!idMonsterSession) return null;
+    return this.sessionDetail()?.monsters.find((m) => m.id_monster_session === idMonsterSession)?.spell_effects ?? null;
   }
 
   /**

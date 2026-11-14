@@ -42,6 +42,40 @@ export interface ActiveEffects {
   bardic_inspiration?: { sides: number; from: string } | null;
   /** Druida transformado (Forma Selvagem). */
   wild_shape?: WildShapeState | null;
+  /** Arma Mágica / Arma Elemental lançada (bônus já no círculo do espaço gasto). */
+  spell_weapon?: SpellWeaponEffect | null;
+  /** Bênção recebida: +1d4 em todo ataque e resistência até acabar. */
+  bless?: { from: string } | null;
+  /** Orientação recebida: +1d4 em um teste de habilidade (gasta ao usar). */
+  guidance?: { from: string } | null;
+  /** Resistência (truque) recebida: +1d4 em um teste de resistência (gasta ao usar). */
+  resistance?: { from: string } | null;
+  /** Magias na CA (a CA da ficha já vem somada pela API). */
+  mage_armor?: { from: string } | null;
+  shield_of_faith?: { from: string } | null;
+  shield?: { from: string } | null;
+  barkskin?: { from: string } | null;
+  haste?: { from: string } | null;
+}
+
+export type SpellBoonKey =
+  | 'bless'
+  | 'guidance'
+  | 'resistance'
+  | 'mage_armor'
+  | 'shield_of_faith'
+  | 'shield'
+  | 'barkskin'
+  | 'haste';
+
+export interface SpellWeaponEffect {
+  id_spell: number;
+  name: string;
+  slot_level: number;
+  attack_bonus: number;
+  damage_bonus: number;
+  dice: { count: number; sides: number } | null;
+  damage_type: string | null;
 }
 
 /** Forma em que o druida está — cópia da ficha da besta, com o PV da forma. */

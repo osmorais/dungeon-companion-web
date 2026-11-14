@@ -1100,6 +1100,48 @@ describe('RollModalComponent — fase 4 dos traços (d20 e defesas)', () => {
     expect(postRoll.mock.calls[1][1].label).toBe('Resistência: SAB (Inspiração Bárdica +8)');
   });
 
+  it('Bênção: rola 1d4 junto com o d20 e soma, sem botão e sem gastar', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.5); // d20 11, d4 3
+    const { modal } = create({ ...save, blessing: { from: 'Irmã Clara' } });
+    modal.roll();
+    settle();
+    expect(modal.blessRoll()).toBe(3);
+    expect(modal.result()!.total).toBe(11 + 2 + 3);
+    expect(postRoll.mock.calls[0][1].label).toBe('Resistência: SAB (Bênção +3)');
+    expect(modal.canUseBoostDie).toBe(false);
+  });
+
+  it('Bênção fica a mesma quando o d20 é rolado de novo (Indomável)', () => {
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0.1); // d20 3, d4 1
+    const { modal } = create({ ...save, blessing: { from: 'Irmã Clara' }, indomitable: 1 });
+    modal.roll();
+    settle();
+    random.mockReturnValue(0.6); // d20 13
+    modal.rerollIndomitable();
+    expect(modal.result()).toMatchObject({ chosen: [13], total: 13 + 2 + 1 });
+  });
+
+  it('Resistência (truque): botão soma 1d4 uma vez e avisa o pai pra gastar', () => {
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0.5); // d20 11
+    const { modal, rolled } = create({
+      ...save,
+      boostDie: { key: 'resistance', label: 'Resistência', from: 'Irmã Clara' },
+    });
+    const used = vi.fn();
+    modal.boostDieUsed.subscribe(used);
+    modal.roll();
+    settle();
+    expect(modal.canUseBoostDie).toBe(true);
+    expect(rolled).not.toHaveBeenCalled(); // espera o CONCLUIR pra dar tempo de usar
+    random.mockReturnValue(0.99); // d4 4
+    modal.useBoostDie();
+    expect(modal.boostRoll()).toBe(4);
+    expect(modal.result()!.total).toBe(11 + 2 + 4);
+    expect(used).toHaveBeenCalledWith('resistance');
+    expect(modal.canUseBoostDie).toBe(false);
+    expect(postRoll.mock.calls[1][1].label).toBe('Resistência: SAB (Resistência +4)');
+  });
+
   it('cura não oferece alvo que só aceita dano (monstro na mão do jogador)', () => {
     const targets = [
       { key: 'player:p1', label: 'Ana', allowsTempHp: true },

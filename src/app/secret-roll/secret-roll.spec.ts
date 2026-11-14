@@ -253,6 +253,17 @@ describe('SecretRollPromptComponent (mestre, resistência de monstro — 1.24.2)
     });
   });
 
+  it('monstro com Perdição: a resistência tira 1d4, com lembrete (1.26.0)', () => {
+    const { prompt } = create({ dexterity: 14, saving_throws: [{ ability: 'DES', bonus: 4 }] });
+    prompt.monsterEffects = { bane: { from: 'Clara' } };
+    prompt.roll();
+    expect(prompt.rollConfig()).toMatchObject({
+      modifier: 4,
+      penaltyDie: { label: 'Perdição' },
+      reminders: ['Perdição de Clara: −1d4 nesta resistência'],
+    });
+  });
+
   it('sem resistência listada, usa o modificador do atributo', () => {
     const { prompt } = create({ dexterity: 8 });
     prompt.roll();

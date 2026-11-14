@@ -15,12 +15,15 @@ export function saveNote(dc: number, ability: NonNullable<SpellRoll['save_abilit
   return `CD ${dc} de ${SAVE_ABILITY_NAME[ability]}`;
 }
 
-/** CD e atributo pra mandar no anúncio da magia (`null` se não for de resistência). */
+/** CD e atributo pra mandar no anúncio da magia (`null` se não for de resistência). Vale também
+ *  pra magia contínua que soma dano com resistência ao lançar (Rogar Maldição). */
 export function spellSaveInfo(
   spell: Spell,
 ): { save_dc: number; save_ability: NonNullable<SpellRoll['save_ability']> } | null {
   const roll = spell.roll;
-  if (roll?.kind !== 'save' || roll.save_dc === null || !roll.save_ability) return null;
+  const castWithSave =
+    roll?.kind === 'save' || (roll?.kind === 'rider' && roll.rider_trigger === 'each_hit');
+  if (!roll || !castWithSave || roll.save_dc === null || !roll.save_ability) return null;
   return { save_dc: roll.save_dc, save_ability: roll.save_ability };
 }
 
@@ -38,7 +41,9 @@ export function spellSaveInfo(
  */
 export function spellRollConfig(spell: Spell, slotLevel: number): AbilityRollConfig | null {
   const roll = spell.roll;
-  if (!roll) return null;
+  // Magia que soma dano no ataque (Bruxaria, Auxílio Divino…) não rola nada ao lançar: o dado
+  // entra no acerto de um ataque, marcado no modal.
+  if (!roll || roll.kind === 'rider') return null;
   const entry = roll.by_slot[spell.spellLevel === 0 ? '0' : String(slotLevel)];
   if (!entry) return null;
 

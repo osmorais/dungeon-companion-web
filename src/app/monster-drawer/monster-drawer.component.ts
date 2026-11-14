@@ -7,8 +7,10 @@ import {
   MonsterActionOp,
   MonsterActionState,
   MonsterSession,
+  MonsterSpellEffects,
   RechargeRoll,
 } from '../models/game-session.interface';
+import { MonsterSpellEffectKey, monsterEffectList } from '../roll-modal/monster-spell-effects';
 import {
   MonsterActionsComponent,
   MonsterRollRequest,
@@ -58,12 +60,15 @@ export class MonsterDrawerComponent {
   get monster(): MonsterSession {
     return this.monsterSig()!;
   }
+  readonly monsterEffectList = monsterEffectList;
   @Input() isTurn = false;
   @Input() canEndTurn = false;
   @Input() endingTurn = false;
   @Input() revealing = false;
   @Input() defeating = false;
   @Input() actionState: MonsterActionState | null = null;
+  /** Penalidades de magia no monstro (Perdição, Fogo das Fadas…) — 1.26.0. */
+  @Input() spellEffects: MonsterSpellEffects | null = null;
   @Input() rechargeRolls: RechargeRoll[] | null = null;
   @Input() actionError: string | null = null;
   @Input() editing = false;
@@ -74,6 +79,8 @@ export class MonsterDrawerComponent {
   @Input() imageError: string | null = null;
 
   @Output() closed = new EventEmitter<void>();
+  /** Mestre tirou uma penalidade de magia (perdeu a concentração quem lançou, passou na resistência…). */
+  @Output() removeEffect = new EventEmitter<MonsterSpellEffectKey>();
   @Output() endTurn = new EventEmitter<void>();
   @Output() toggleReveal = new EventEmitter<Event>();
   /** DERROTAR: a sessão pergunta antes e tira o monstro (o XP soma no combate, 1.15.0). */

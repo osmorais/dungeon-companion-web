@@ -146,6 +146,8 @@ export interface MonsterSession {
   image_url: string | null;
   /** Usos das ações (1.11.0) — nulo/ausente = nada gasto. */
   action_state?: MonsterActionState | null;
+  /** Penalidades de magia (Perdição, Fogo das Fadas…) — 1.26.0. */
+  spell_effects?: MonsterSpellEffects | null;
   /** Descrição do bestiário (1.11.0; nula em ficha antiga) — vem no detalhe da sessão. */
   lore?: string | null;
 }
@@ -183,10 +185,21 @@ export interface RechargeRoll {
  * Versão pública de um monstro revelado — só o que os jogadores podem ver: nome, imagem e a carta
  * (tipo, tamanho, descrição; 1.11.0), sem status/PV. Os campos da carta são nulos em ficha antiga.
  */
+/** Penalidades de magia no monstro (1.26.0), com quem lançou. */
+export interface MonsterSpellEffects {
+  bane?: { from: string };
+  faerie_fire?: { from: string };
+  guiding_bolt?: { from: string };
+  vicious_mockery?: { from: string };
+  enfeebled?: { from: string };
+}
+
 export interface RevealedMonster {
   id_monster_session: string;
   name: string;
   image_url: string | null;
+  /** Penalidades de magia visíveis pra mesa (1.26.0); ausente no aviso de revelar. */
+  spell_effects?: MonsterSpellEffects;
   /** Slug do bestiário (arte padrão, 1.23.0); ausente na API antiga. */
   monster_slug?: string | null;
   monster_type?: string | null;
@@ -403,6 +416,8 @@ export interface SecretRollRequestPayload {
   against?: SaveContext[];
   /** `false`: resistência pública contra uma magia/ação, pedida por quem lançou. */
   secret?: boolean;
+  /** Monstro: penalidade que fica nele se falhar (Perdição, Zombaria…) — 1.26.0. */
+  on_fail_effect?: { key: keyof MonsterSpellEffects; from: string } | null;
 }
 
 /** Anúncio de "personagem lançou uma magia" — só informativo, não persiste no backend (ao

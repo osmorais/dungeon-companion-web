@@ -1,4 +1,5 @@
 import { AvatarPreset } from '../models/avatar-preset.interface';
+import { MonsterSpellEffects } from '../models/game-session.interface';
 
 /** Alvo em que o resultado de uma rolagem de dano/cura pode ser aplicado direto (opcional). */
 export interface ApplyTarget {
@@ -9,6 +10,8 @@ export interface ApplyTarget {
   allowsTempHp: boolean;
   /** Só aceita dano (monstro na mão do jogador: ele não cura monstro). */
   damageOnly?: boolean;
+  /** Monstro: penalidades de magia (Fogo das Fadas/Raio Guiador dão vantagem contra ele). */
+  spellEffects?: MonsterSpellEffects;
   /** Anel do alvo na escolha do começo do lançamento (1.25.0): foto/arte ou avatar montado. */
   avatar?: { imageUrl: string | null; avatarPreset: AvatarPreset | null };
   /** Resistências e reações do alvo (jogador/NPC) — o modal ajusta o dano ao aplicar. Monstro

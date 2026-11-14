@@ -1228,6 +1228,7 @@
 @if (pendingSecretRolls()[0]; as secret) {
   @for (s of [secret]; track s.request_id) {
     <app-secret-roll-prompt [request]="s" [sessionId]="id()" [monster]="monsterBlockFor(s.id_monster_session)"
+      [monsterEffects]="monsterEffectsFor(s.id_monster_session)"
       (closed)="finishSecretRoll()" />
   }
 }
@@ -1398,6 +1399,8 @@
     [revealing]="revealingMonsterId() === monster.id_monster_session"
     [defeating]="defeatingMonsterId() === monster.id_monster_session"
     [actionState]="monster.action_state ?? null"
+    [spellEffects]="monster.spell_effects ?? null"
+    (removeEffect)="spendMonsterSpellEffect(monster.id_monster_session, $event)"
     [rechargeRolls]="monsterRechargeRolls()[monster.id_monster_session] ?? null"
     [actionError]="monsterActionError()"
     [editing]="editingMonsterStats()"

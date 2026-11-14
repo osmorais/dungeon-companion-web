@@ -19,6 +19,7 @@ import {
   MonsterActionOp,
   MonsterActionState,
   MonsterSession,
+  MonsterSpellEffects,
   PlayerSession,
   RollLogEntry,
   RollLogPayload,
@@ -417,6 +418,35 @@ export class GameSessionService {
   ): Observable<{ sides: number; to: string }> {
     return this.http.post<{ sides: number; to: string }>(
       `${this.baseUrl}/api/game-session/${sessionId}/bardic-inspiration`,
+      payload,
+    );
+  }
+
+  /** Liga/desliga uma penalidade de magia num monstro (mestre: qualquer; jogador: revelado). */
+  updateMonsterSpellEffect(
+    sessionId: string,
+    idMonsterSession: string,
+    body: { key: keyof MonsterSpellEffects; active: boolean; from?: string },
+  ): Observable<{ spell_effects: MonsterSpellEffects }> {
+    return this.http.patch<{ spell_effects: MonsterSpellEffects }>(
+      `${this.baseUrl}/api/game-session/${sessionId}/monster/${idMonsterSession}/spell-effects`,
+      body,
+    );
+  }
+
+  /** Bênção / Orientação / Resistência lançada: o 1d4 fica guardado em cada alvo da mesa. */
+  grantSpellBoon(
+    sessionId: string,
+    payload: {
+      id_character: number;
+      id_spell: number;
+      slot_level: number;
+      include_self: boolean;
+      id_player_sessions: string[];
+    },
+  ): Observable<{ spell: string; to: string[] }> {
+    return this.http.post<{ spell: string; to: string[] }>(
+      `${this.baseUrl}/api/game-session/${sessionId}/spell-boon`,
       payload,
     );
   }

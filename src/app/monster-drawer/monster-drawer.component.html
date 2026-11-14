@@ -30,6 +30,24 @@
       </div>
     }
 
+    @if (monsterEffectList(spellEffects); as effects) {
+      @if (effects.length) {
+        <div class="pa-section">
+          <h4 class="pa-section-title">PENALIDADES DE MAGIA</h4>
+          <div class="pa-row-list">
+            @for (effect of effects; track effect.key) {
+              <div class="pa-action-row pa-action-row--static">
+                <span>{{ effect.label }}</span>
+                <button class="pa-cast-btn" (click)="removeEffect.emit(effect.key)">
+                  <span class="pa-cast-btn-label">Tirar</span>
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    }
+
     <!-- Destaque: números e ações que se usam toda hora -->
     <div class="pa-hero" [class.pa-hero--turn]="isTurn">
       <div class="pa-hero-stats">
