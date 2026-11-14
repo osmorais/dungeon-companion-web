@@ -124,4 +124,32 @@ describe('SessionCreateComponent: convidar amigos', () => {
     component.ngOnInit();
     expect(component.loadingFriends()).toBe(false);
   });
+
+  describe('número de jogadores (− e +) e código', () => {
+    it('vazio: + começa em 1; − não passa de 1', () => {
+      component.maxPlayers.set(null);
+      component.stepPlayers(1);
+      expect(component.maxPlayers()).toBe(1);
+      component.stepPlayers(-1);
+      expect(component.maxPlayers()).toBe(1);
+    });
+
+    it('sobe e desce de um em um, até 20', () => {
+      component.maxPlayers.set(4);
+      component.stepPlayers(1);
+      expect(component.maxPlayers()).toBe(5);
+      component.stepPlayers(-1);
+      expect(component.maxPlayers()).toBe(4);
+      component.maxPlayers.set(20);
+      component.stepPlayers(1);
+      expect(component.maxPlayers()).toBe(20);
+    });
+
+    it('casas do código: pontos antes de gerar, as 5 letras depois', () => {
+      component.sessionCode.set('');
+      expect(component.codeSlots()).toEqual(['·', '·', '·', '·', '·']);
+      component.sessionCode.set('RX7K2');
+      expect(component.codeSlots()).toEqual(['R', 'X', '7', 'K', '2']);
+    });
+  });
 });

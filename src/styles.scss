@@ -1370,3 +1370,446 @@ input[type="checkbox"].retro-checkbox {
   padding: 6px 8px;
   font-size: 7px;
 }
+
+/* ===== Telas no padrão da Home (1.25.2) =====
+   Peças da Home nova (home.component.scss) pras outras telas: cenário com sombra e trilhos
+   (.fa-stage/.fa-rail), título com sombra em degrau (.fa-intro), janela de borda laranja
+   (.fa-window) e botões (.fa-btn, .fa-btn--primary). Primeira tela: Sessões criadas.
+   Toda tela nova nesse padrão: UMA .fa-window--main (a janela que se transforma na troca de
+   tela) e UM .fa-heading — ver "Transição entre telas" no fim deste arquivo. */
+.fa-stage {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100vw;
+  min-height: calc(100dvh - var(--footer-height));
+  padding: 44px 24px 48px;
+  box-sizing: border-box;
+
+  &::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 30%, rgb(0 0 0 / 45%) 100%);
+    pointer-events: none;
+  }
+}
+
+.fa-rail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  height: 6px;
+  opacity: 0.6;
+  background:
+    linear-gradient(var(--border-color), var(--border-color)) center / 100% 2px no-repeat,
+    repeating-linear-gradient(90deg, var(--border-color) 0 4px, transparent 4px 16px);
+  pointer-events: none;
+
+  &--top {
+    top: 14px;
+  }
+
+  &--bottom {
+    bottom: 14px;
+  }
+}
+
+.fa-intro {
+  text-align: center;
+}
+
+.fa-heading {
+  margin: 0 0 12px;
+  font-size: 16px;
+  line-height: 1.6;
+  font-weight: normal;
+  color: var(--accent-color);
+  text-shadow: 3px 3px 0 #000;
+}
+
+/* Texto corrido em VT323: bem mais legível que a Press Start em 6–7 px. */
+.fa-desc {
+  font-family: 'VT323', monospace;
+  font-size: 19px;
+  line-height: 1.05;
+}
+
+.fa-subheading {
+  margin: 0;
+  font-size: 22px;
+  color: var(--text-soft);
+}
+
+.fa-label {
+  font-size: 7px;
+  line-height: 1.6;
+  letter-spacing: 2px;
+  color: var(--label-title-color);
+}
+
+.fa-window {
+  background-color: color-mix(in srgb, var(--bg-color) 82%, var(--panel-bg));
+  border: 2px solid var(--accent-color);
+  box-shadow:
+    0 0 0 2px #000,
+    8px 8px 0 rgb(0 0 0 / 45%);
+}
+
+.fa-window__bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 22px;
+  background-color: var(--panel-bg);
+  border-bottom: 2px solid var(--border-color);
+}
+
+.fa-window__title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: normal;
+  letter-spacing: 1px;
+  color: var(--accent-color);
+}
+
+.fa-btn {
+  padding: 10px 16px;
+  background-color: var(--btn-color);
+  color: var(--text-color);
+  border: 2px solid var(--border-color);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  line-height: 1.6;
+  cursor: var(--cp);
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    background-color: var(--btn-color-hover);
+    border-color: var(--accent-color);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: var(--cx);
+  }
+
+  &--primary {
+    padding: 14px 20px;
+    background-color: var(--accent-color);
+    color: var(--bg-color);
+    border-color: #000;
+    box-shadow: 4px 4px 0 rgb(0 0 0 / 45%);
+
+    &:hover:not(:disabled),
+    &:focus-visible {
+      background-color: color-mix(in srgb, var(--accent-color) 85%, #fff);
+      border-color: #000;
+    }
+  }
+}
+
+@media (max-width: 767px) {
+  .fa-stage {
+    padding: 34px 16px 40px;
+  }
+}
+
+/* Formulários e listas no padrão da Home (1.25.2): campo (rótulo pequeno + caixa escura com texto
+   em VT323), item marcável (NPC, amigo), contador da barra, etapa numerada e janela em colunas. */
+.fa-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.fa-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 8px 12px;
+  background-color: rgb(0 0 0 / 25%);
+  border: 2px solid var(--border-color);
+  color: var(--text-soft);
+  font-family: 'VT323', monospace;
+  font-size: 20px;
+  line-height: 1.1;
+
+  &::placeholder {
+    color: var(--label-title-color);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgb(255 170 0 / 35%);
+  }
+}
+
+.fa-window__body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 22px;
+}
+
+.fa-step {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  box-sizing: border-box;
+  background-color: var(--accent-color);
+  color: var(--bg-color);
+  border: 2px solid #000;
+  font-size: 9px;
+}
+
+.fa-count {
+  font-size: 7px;
+  letter-spacing: 2px;
+  color: var(--label-title-color);
+
+  strong {
+    margin-left: 6px;
+    font-size: 10px;
+    font-weight: normal;
+    color: var(--gold-color);
+  }
+}
+
+.fa-pick {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  box-sizing: border-box;
+  background-color: var(--panel-bg);
+  color: var(--text-color);
+  border: 2px solid var(--border-color);
+  font-family: 'Press Start 2P', monospace;
+  text-align: left;
+  cursor: var(--cp);
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    border-color: var(--accent-color);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    border-style: dashed;
+    cursor: var(--cx);
+  }
+
+  &--on {
+    background-color: var(--btn-color-hover);
+    border-color: var(--accent-color);
+    box-shadow: inset 4px 0 0 var(--accent-color);
+  }
+}
+
+.fa-pick__mark {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  box-sizing: border-box;
+  background-color: rgb(0 0 0 / 25%);
+  border: 2px solid var(--border-color);
+  color: var(--bg-color);
+  font-size: 10px;
+
+  .fa-pick--on & {
+    background-color: var(--accent-color);
+    border-color: #000;
+  }
+}
+
+.fa-pick__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.fa-pick__name {
+  font-size: 8px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+
+  .fa-pick--on & {
+    color: var(--accent-color);
+  }
+}
+
+.fa-pick__meta {
+  color: var(--label-title-color);
+}
+
+/* ===== Transição entre telas (1.25.2) =====
+   View Transitions do roteador (route-transition.ts). A tela que sai desliza e some; a nova chega
+   deslizando do outro lado e freia devagar, como o vagão da Home encostando no fim do trilho. Ao
+   voltar (Home, botão do navegador), o sentido inverte. Fundo e rodapé ficam na raiz (parados) e
+   só a página anda; os trilhos têm nome próprio e também ficam parados; no desktop a janela e o
+   título se transformam nos da tela de destino.
+   Os nomes só valem enquanto a transição roda (`data-route-dir`, posto pelo route-transition.ts):
+   `view-transition-name` cria contexto de empilhamento, e fixo na página prenderia os modais e
+   gavetas da sessão debaixo do rodapé. Sem suporte no navegador ou com "reduzir movimento", a
+   troca é direta como antes. */
+:root {
+  --route-shift: 72px;
+  --route-ease-in: cubic-bezier(0.45, 0, 0.15, 1.02);
+  --route-ease-out: cubic-bezier(0.55, 0, 1, 0.45);
+}
+
+:root[data-route-dir] {
+  // A tela da rota é o elemento logo depois do <router-outlet>.
+  router-outlet + * {
+    display: block;
+    view-transition-name: page;
+  }
+
+  .home-rail--top,
+  .fa-rail--top {
+    view-transition-name: rail-top;
+  }
+
+  .home-rail--bottom,
+  .fa-rail--bottom {
+    view-transition-name: rail-bottom;
+  }
+
+  // Uma janela por tela: a principal (.fa-window--main). Nome repetido na mesma tela faz o
+  // navegador cancelar a transição inteira (a troca volta a ser seca).
+  @media (min-width: 768px) {
+    .home-window,
+    .fa-window--main {
+      view-transition-name: page-window;
+    }
+
+    .home-heading,
+    .fa-heading {
+      view-transition-name: page-heading;
+    }
+  }
+}
+
+::view-transition-old(page) {
+  animation: route-out 240ms var(--route-ease-out) both;
+}
+
+::view-transition-new(page) {
+  animation: route-in 520ms var(--route-ease-in) 60ms both;
+}
+
+:root[data-route-dir='back']::view-transition-old(page) {
+  animation-name: route-out-back;
+}
+
+:root[data-route-dir='back']::view-transition-new(page) {
+  animation-name: route-in-back;
+}
+
+// A janela muda de tamanho e lugar no ritmo do trilho; o conteúdo troca por dentro.
+::view-transition-group(page-window),
+::view-transition-group(page-heading) {
+  animation-duration: 560ms;
+  animation-timing-function: var(--route-ease-in);
+}
+
+::view-transition-old(page-window),
+::view-transition-new(page-window) {
+  height: 100%;
+  object-fit: none;
+  object-position: top left;
+}
+
+::view-transition-old(page-window) {
+  animation: route-fade-out 200ms ease-out both;
+}
+
+::view-transition-new(page-window) {
+  animation: route-fade-in 360ms ease-in 140ms both;
+}
+
+@keyframes route-out {
+  to {
+    opacity: 0;
+    transform: translateX(calc(var(--route-shift) * -1));
+  }
+}
+
+@keyframes route-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--route-shift));
+  }
+}
+
+@keyframes route-out-back {
+  to {
+    opacity: 0;
+    transform: translateX(var(--route-shift));
+  }
+}
+
+@keyframes route-in-back {
+  from {
+    opacity: 0;
+    transform: translateX(calc(var(--route-shift) * -1));
+  }
+}
+
+@keyframes route-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes route-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+// Celular: o vagão vem de mais longe (um terço da tela), sem transformar a janela.
+@media (max-width: 767px) {
+  :root {
+    --route-shift: 33vw;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

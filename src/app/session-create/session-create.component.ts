@@ -1,4 +1,4 @@
-import { Component, computed, HostListener, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -14,6 +14,8 @@ import { presenceLine } from '../friends/friends-page';
 
 /** O máximo que a API devolve por página (amigos conectados vêm primeiro). */
 const FRIENDS_TO_PICK = 50;
+export const MIN_PLAYERS = 1;
+export const MAX_PLAYERS = 20;
 
 @Component({
   selector: 'app-session-create',
@@ -33,8 +35,6 @@ export class SessionCreateComponent implements OnInit {
   /** O mestre aparece com o nome de usuário (1.9.0) — não há mais nome de mestre a digitar. */
   readonly username = computed(() => this.auth.currentUser()?.username ?? '');
 
-  isMobile = signal(typeof window !== 'undefined' && window.innerWidth < 768);
-
   sessionName = signal('');
   maxPlayers = signal<number | null>(null);
   sessionCode = signal('');
@@ -50,15 +50,10 @@ export class SessionCreateComponent implements OnInit {
   loadingFriends = signal(false);
   selectedFriendIds = signal<Set<string>>(new Set());
 
-  @HostListener('window:resize')
-  onResize() {
-    this.isMobile.set(window.innerWidth < 768);
-  }
-
   ngOnInit(): void {
     this.loadingNpcs.set(true);
     this.charService.getCharacters(1, 100).subscribe({
-      next: res => {
+      next: (res) => {
         this.availableNpcs.set(res.CharacterPagedList ?? []);
         this.loadingNpcs.set(false);
       },
@@ -66,7 +61,7 @@ export class SessionCreateComponent implements OnInit {
     });
     this.loadingFriends.set(true);
     this.friendService.getFriends(1, FRIENDS_TO_PICK).subscribe({
-      next: res => {
+      next: (res) => {
         this.availableFriends.set(res.items);
         this.loadingFriends.set(false);
       },
@@ -79,7 +74,7 @@ export class SessionCreateComponent implements OnInit {
   }
 
   toggleFriend(id: string): void {
-    this.selectedFriendIds.update(set => {
+    this.selectedFriendIds.update((set) => {
       const next = new Set(set);
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
@@ -91,7 +86,7 @@ export class SessionCreateComponent implements OnInit {
   }
 
   toggleNpc(id: number): void {
-    this.selectedNpcIds.update(set => {
+    this.selectedNpcIds.update((set) => {
       const next = new Set(set);
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
@@ -108,22 +103,27 @@ export class SessionCreateComponent implements OnInit {
   }
 
   canGenerate(): boolean {
-    return (
-      this.sessionName().trim().length > 0 &&
-      (this.maxPlayers() ?? 0) > 0
-    );
+    return this.sessionName().trim().length > 0 && (this.maxPlayers() ?? 0) > 0;
   }
 
   canSave(): boolean {
     return this.canGenerate() && this.sessionCode().length > 0;
   }
+  /** Botões − e + do número de jogadores (1 a 20; vazio começa em 1). */
+  stepPlayers(delta: number) {
+    const next = (this.maxPlayers() ?? 0) + delta;
+    this.maxPlayers.set(Math.min(MAX_PLAYERS, Math.max(MIN_PLAYERS, next)));
+  }
+
+  /** As 5 casas do código de convite ("·" enquanto não foi gerado). */
+  readonly codeSlots = computed(() => (this.sessionCode() || '·····').split(''));
 
   saveSession() {
     if (!this.canSave() || this.saving()) return;
     this.saveError.set('');
     this.saving.set(true);
 
-    const npcs = Array.from(this.selectedNpcIds()).map(id => ({ id_character: id }));
+    const npcs = Array.from(this.selectedNpcIds()).map((id) => ({ id_character: id }));
 
     this.gameSessionService
       .createSession({
@@ -134,7 +134,7 @@ export class SessionCreateComponent implements OnInit {
         monsters: [],
       })
       .subscribe({
-        next: res => this.inviteFriendsAndOpen(res.game_session.id_game_session),
+        next: (res) => this.inviteFriendsAndOpen(res.game_session.id_game_session),
         error: () => {
           this.saving.set(false);
           this.saveError.set('ERRO AO SALVAR AVENTURA. TENTE NOVAMENTE.');
@@ -145,7 +145,7 @@ export class SessionCreateComponent implements OnInit {
   /** Convite que falha não impede de abrir a sessão: dá pra convidar de novo lá dentro. */
   private inviteFriendsAndOpen(idGameSession: string): void {
     const open = () => this.router.navigate(['/session', idGameSession]);
-    const invites = Array.from(this.selectedFriendIds()).map(friendId =>
+    const invites = Array.from(this.selectedFriendIds()).map((friendId) =>
       this.inviteService.send(idGameSession, friendId, '').pipe(catchError(() => of(null))),
     );
     if (invites.length === 0) {

@@ -32,11 +32,14 @@ describe('MonsterFiltersComponent (painel de filtros)', () => {
     expect(patches).toEqual([{ crMin: 5, crMax: 10 }, { legendary: true }]);
   });
 
-  it('faixa ligada fica marcada; LIMPAR FILTROS só aparece com filtro ligado', () => {
+  it('desktop: janela FILTROS, com LIMPAR na barra só com filtro ligado', () => {
     const { el, button, cleared } = render({ filters: { crMin: 17, crMax: null, flies: true } });
+    expect(el.querySelector('.mf-panel')?.classList).toContain('fa-window');
+    expect(el.querySelector('.mf-bar')?.textContent).toContain('FILTROS');
     expect(button('17+').getAttribute('aria-pressed')).toBe('true');
     expect(button('TODOS').getAttribute('aria-pressed')).toBe('false');
-    button('LIMPAR FILTROS (2)').click();
+    expect(el.querySelector('.mf-bar .mf-clear')).not.toBeNull();
+    button('LIMPAR (2)').click();
     expect(cleared()).toBe(1);
     expect(render().el.querySelector('.mf-clear')).toBeNull();
     expect(el.textContent).toContain('14 MONSTROS');
@@ -52,8 +55,17 @@ describe('MonsterFiltersComponent (painel de filtros)', () => {
     fixture.detectChanges();
     expect(el.querySelector('.mf-body')).not.toBeNull();
     expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(el.querySelector('.mf-bar')).toBeNull();
+    expect(el.querySelector('.mf-panel')?.classList).not.toContain('fa-window');
     toggle.click();
     fixture.detectChanges();
     expect(el.querySelector('.mf-body')).toBeNull();
+  });
+
+  it('celular: LIMPAR FILTROS fica no fim dos filtros abertos', () => {
+    const { fixture, el, button } = render({ mobile: true, filters: { legendary: true } });
+    el.querySelector<HTMLButtonElement>('.mf-toggle')!.click();
+    fixture.detectChanges();
+    expect(button('LIMPAR FILTROS (1)')).toBeDefined();
   });
 });

@@ -1,62 +1,98 @@
-<!-- Mesmo layout da tela de catalogar: filtros (app-monster-filters) à esquerda no desktop e
-     recolhíveis no celular; cartas em páginas de 8. Desktop no tamanho da sessão (.page no styles.scss). -->
-<div [class]="isMobile() ? 'mobile-catalog-container' : 'page'">
-  @if (isMobile()) {
-    <div class="m-header">
-      <button class="m-back" (click)="goBack()">&#8592;</button>
-      <span class="m-title">BESTIÁRIO</span>
-    </div>
-    <button #newButton class="retro-btn mobile-new-btn" (click)="catalogNew()">
-      + CATALOGAR NOVO MONSTRO
-    </button>
-  } @else {
-    <header class="page-topbar">
-      <button class="retro-btn page-topbar-back" (click)="goBack()">← VOLTAR</button>
-      <h1 class="page-topbar-name">BESTIÁRIO</h1>
-      @if (!loading() && !error() && totalCount() > 0) {
-        <div class="page-topbar-meta">
-          <span
-            >MONSTROS <strong>{{ totalCount() }}</strong></span
-          >
-        </div>
-      }
+<!-- Bestiário (1.25.2): visual da Home. Filtros numa janela à esquerda (app-monster-filters) e as
+     cartas na janela SEUS MONSTROS, em páginas de 8; no celular os filtros recolhem. -->
+<div class="fa-stage">
+  <span class="fa-rail fa-rail--top" aria-hidden="true"></span>
+  <span class="fa-rail fa-rail--bottom" aria-hidden="true"></span>
+
+  <div class="mc-content">
+    <header class="mc-top">
+      <button type="button" class="fa-btn mc-back" (click)="goBack()" aria-label="Voltar">
+        ← <span class="mc-back__label">VOLTAR</span>
+      </button>
+      <div class="fa-intro mc-intro">
+        <h1 class="fa-heading">BESTIÁRIO</h1>
+        <p class="fa-desc fa-subheading">
+          Suas criaturas catalogadas, prontas para a próxima batalha.
+        </p>
+      </div>
     </header>
-    <div class="page-toolbar">
-      <button #newButton class="retro-btn new-btn" (click)="catalogNew()">
+
+    @if (isMobile()) {
+      <button
+        #newButton
+        type="button"
+        class="fa-btn fa-btn--primary new-btn mc-new-mobile"
+        (click)="catalogNew()"
+      >
         + CATALOGAR NOVO MONSTRO
       </button>
-    </div>
-  }
+    }
 
-  @if (error()) {
-    <p class="m-empty" role="alert">ERRO AO CARREGAR O BESTIÁRIO.</p>
-  } @else if (loading()) {
-    <div class="catalog-grid" aria-busy="true" aria-label="Carregando">
-      @for (i of [1, 2, 3, 4]; track i) {
-        <span class="skeleton card-skeleton"></span>
+    <div class="mc-layout">
+      @if (!loading() && !error() && monsters().length > 0) {
+        <app-monster-filters
+          label="Buscar no bestiário"
+          [filters]="filters()"
+          [types]="filterOptions().types"
+          [sizes]="filterOptions().sizes"
+          [total]="filteredMonsters().length"
+          [sortOptions]="sortOptions"
+          [mobile]="isMobile()"
+          (patch)="patchFilters($event)"
+          (cleared)="clearFilters()"
+        />
       }
-    </div>
-  } @else if (monsters().length === 0) {
-    <p class="m-empty">NENHUM MONSTRO CATALOGADO AINDA.</p>
-  } @else {
-    <div class="catalog-layout">
-      <app-monster-filters
-        label="Buscar no bestiário"
-        [filters]="filters()"
-        [types]="filterOptions().types"
-        [sizes]="filterOptions().sizes"
-        [total]="filteredMonsters().length"
-        [sortOptions]="sortOptions"
-        [mobile]="isMobile()"
-        (patch)="patchFilters($event)"
-        (cleared)="clearFilters()"
-      />
 
-      <section class="catalog-results" aria-label="Monstros catalogados">
-        @if (filteredMonsters().length === 0) {
-          <p class="m-empty">NENHUM MONSTRO COM ESSES FILTROS.</p>
+      <section class="fa-window fa-window--main mc-window" aria-label="Monstros catalogados">
+        <div class="fa-window__bar">
+          <h2 class="fa-window__title">SEUS MONSTROS</h2>
+          @if (!loading() && !error() && totalCount() > 0) {
+            <span class="fa-count mc-count"
+              >MONSTROS <strong>{{ totalCount() }}</strong></span
+            >
+          }
+          @if (!isMobile()) {
+            <button
+              #newButton
+              type="button"
+              class="fa-btn fa-btn--primary new-btn mc-new"
+              (click)="catalogNew()"
+            >
+              + CATALOGAR NOVO MONSTRO
+            </button>
+          }
+        </div>
+
+        @if (error()) {
+          <div class="mc-state" role="alert">
+            <span class="mc-state__icon mc-state__icon--error" aria-hidden="true">!</span>
+            <p class="mc-state__title">NÃO FOI POSSÍVEL CARREGAR O BESTIÁRIO</p>
+            <p class="fa-desc mc-state__desc">Confira sua conexão e tente de novo.</p>
+            <button type="button" class="fa-btn" (click)="loadAll()">TENTAR DE NOVO</button>
+          </div>
+        } @else if (loading()) {
+          <div class="catalog-grid mc-grid" aria-busy="true" aria-label="Carregando">
+            @for (i of [1, 2, 3, 4]; track i) {
+              <span class="skeleton card-skeleton"></span>
+            }
+          </div>
+        } @else if (monsters().length === 0) {
+          <div class="mc-state">
+            <span class="mc-state__icon" aria-hidden="true">
+              <img class="ui-icon" src="assets/icons/dragon.png" alt="" />
+            </span>
+            <p class="mc-state__title">NENHUM MONSTRO CATALOGADO AINDA</p>
+            <p class="fa-desc mc-state__desc">
+              Escolha criaturas do livro de monstros para usar nas suas sessões.
+            </p>
+          </div>
+        } @else if (filteredMonsters().length === 0) {
+          <div class="mc-state">
+            <p class="mc-state__title">NENHUM MONSTRO COM ESSES FILTROS</p>
+            <button type="button" class="fa-btn" (click)="clearFilters()">LIMPAR FILTROS</button>
+          </div>
         } @else {
-          <div class="catalog-grid">
+          <div class="catalog-grid mc-grid">
             @for (monster of pageMonsters(); track monster.id_monster_catalog) {
               <div class="catalog-card">
                 <app-game-card [card]="toCard(monster)" [state]="cardState(monster)" />
@@ -77,34 +113,38 @@
             }
           </div>
 
-          @if (totalPages() > 1) {
-            <div class="m-pagination">
-              <button
-                class="m-page-btn"
-                [disabled]="!hasPrev()"
-                aria-label="Página anterior"
-                (click)="prevPage()"
-              >
-                &#9664;
-              </button>
-              <span class="m-page-info">{{ page() }} / {{ totalPages() }}</span>
-              <button
-                class="m-page-btn"
-                [disabled]="!hasNext()"
-                aria-label="Próxima página"
-                (click)="nextPage()"
-              >
-                &#9654;
-              </button>
-            </div>
-          }
-        }
-        @if (isMobile()) {
-          <p class="m-total">TOTAL: {{ totalCount() }}</p>
+          <footer class="mc-footer">
+            <span class="fa-label">
+              MOSTRANDO {{ rangeStart() }}–{{ rangeEnd() }} DE {{ filteredMonsters().length }}
+            </span>
+            @if (totalPages() > 1) {
+              <div class="mc-pager">
+                <button
+                  type="button"
+                  class="fa-btn mc-pager__btn"
+                  [disabled]="!hasPrev()"
+                  aria-label="Página anterior"
+                  (click)="prevPage()"
+                >
+                  ‹
+                </button>
+                <span class="mc-pager__info">{{ page() }} / {{ totalPages() }}</span>
+                <button
+                  type="button"
+                  class="fa-btn mc-pager__btn"
+                  [disabled]="!hasNext()"
+                  aria-label="Próxima página"
+                  (click)="nextPage()"
+                >
+                  ›
+                </button>
+              </div>
+            }
+          </footer>
         }
       </section>
     </div>
-  }
+  </div>
 </div>
 
 <!-- ===== MODAL: CONFIRMAR REMOÇÃO ===== -->
@@ -112,30 +152,34 @@
   <div class="overlay modal-overlay" (click)="cancelDelete()">
     <div
       #deleteModal
-      class="retro-panel delete-modal"
+      class="fa-window delete-modal"
       role="dialog"
       aria-modal="true"
       aria-labelledby="delete-modal-title"
       tabindex="-1"
       (click)="$event.stopPropagation()"
     >
-      <h3 class="modal-title" id="delete-modal-title">REMOVER MONSTRO</h3>
-      <p class="delete-modal-text">
-        Tem certeza que deseja remover <strong>{{ monsterName(target) }}</strong> do bestiário? Essa
-        ação não pode ser desfeita.
-      </p>
-      @if (deleteError()) {
-        <p class="delete-modal-error" role="alert">{{ deleteError() }}</p>
-      }
-      <div class="delete-modal-actions">
-        <button class="retro-btn" [disabled]="deleting()" (click)="cancelDelete()">CANCELAR</button>
-        <button
-          class="retro-btn delete-confirm-btn"
-          [disabled]="deleting()"
-          (click)="confirmDelete()"
-        >
-          {{ deleting() ? 'REMOVENDO...' : 'REMOVER' }}
-        </button>
+      <div class="fa-window__bar">
+        <h3 class="fa-window__title" id="delete-modal-title">REMOVER MONSTRO</h3>
+      </div>
+      <div class="delete-modal-body">
+        <p class="fa-desc delete-modal-text">
+          Tem certeza que deseja remover <strong>{{ monsterName(target) }}</strong> do bestiário?
+          Essa ação não pode ser desfeita.
+        </p>
+        @if (deleteError()) {
+          <p class="delete-modal-error" role="alert">{{ deleteError() }}</p>
+        }
+        <div class="delete-modal-actions">
+          <button class="fa-btn" [disabled]="deleting()" (click)="cancelDelete()">CANCELAR</button>
+          <button
+            class="fa-btn delete-confirm-btn"
+            [disabled]="deleting()"
+            (click)="confirmDelete()"
+          >
+            {{ deleting() ? 'REMOVENDO...' : 'REMOVER' }}
+          </button>
+        </div>
       </div>
     </div>
   </div>
