@@ -33,6 +33,46 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.26.0',
+    date: '2026-11-14',
+    title:
+      'Magias de apoio e penalidades valendo de verdade: Bênção, Perdição, Escudo Arcano e mais',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'Perdição, Fogo das Fadas, Raio Guiador, Zombaria Viciosa e Raio do Enfraquecimento agora ficam no monstro: quando ele falha na resistência (ou é atingido pelo Raio Guiador), a penalidade aparece na ficha do monstro para o mestre e entra sozinha nas rolagens — −1d4 nos ataques e resistências do monstro com Perdição, vantagem para quem ataca um alvo com Fogo das Fadas ou Raio Guiador, desvantagem no próximo ataque dele com Zombaria Viciosa e um lembrete de metade do dano com o Raio do Enfraquecimento. Acabam no fim do combate ou quando o mestre tira.',
+      },
+      {
+        kind: 'novidade',
+        text: 'Armadura Arcana, Escudo da Fé, Escudo Arcano, Pele de Árvore e Velocidade agora mudam a CA de quem recebe, na ficha e na hora de conferir se o ataque de um monstro acertou. O Escudo Arcano acaba sozinho no seu próximo turno; a Armadura Arcana continua depois do combate; as outras acabam no fim do combate ou quando você encerrar. Velocidade também dá vantagem nas resistências de Destreza.',
+      },
+      {
+        kind: 'novidade',
+        text: 'Bênção, Orientação e Resistência agora funcionam na mesa: ao lançar, escolha quem recebe (você e/ou outros jogadores). Com a Bênção, o 1d4 entra sozinho em todos os ataques e testes de resistência de quem foi abençoado; Orientação e Resistência viram um botão de +1d4 no próximo teste de habilidade ou de resistência.',
+      },
+      {
+        kind: 'novidade',
+        text: 'Arma Mágica e Arma Elemental agora valem de verdade: ao lançar, o bônus no ataque (e no dano, ou os dados do elemento escolhido) entra sozinho em todos os seus ataques com arma, já no valor do círculo usado. Aparece em "Efeitos ativos" e acaba no fim do combate, no descanso longo ou quando você encerrar.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Auxílio Divino agora soma 1d4 de dano radiante nos ataques com arma: depois de lançar, marque a magia como ativa na hora do acerto.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Marca da Punição funciona como as Destruições: ao acertar um ataque com arma, escolha usar a magia e os 2d6 radiantes (mais 1d6 por círculo acima do 2º) entram no dano.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Rogar Maldição mostra a CD de Sabedoria ao lançar e, se você escolheu a maldição de dano, soma 1d8 necrótico nos seus ataques contra o alvo amaldiçoado.',
+      },
+      {
+        kind: 'correcao',
+        text: 'Lançar Bruxaria, Marca do Caçador ou Manto do Cruzado não abre mais uma rolagem de ataque por engano: a magia só é anunciada, e o dado entra no dano quando você acerta.',
+      },
+    ],
+  },
+  {
     version: '1.25.2',
     date: '2026-11-14',
     title: 'Sessões, criação de sessão e bestiário com a cara da nova tela inicial',

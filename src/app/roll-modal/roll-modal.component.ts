@@ -29,6 +29,7 @@ import { PixelDieComponent } from '../pixel-die/pixel-die.component';
 import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
 import { PixelNumericDieComponent } from '../pixel-numeric-die/pixel-numeric-die.component';
 import { hasRiderChoices, RiderChoices, RiderOption } from './spell-riders';
+import { advantageAgainst, MonsterSpellEffectKey, SPELL_MONSTER_EFFECT } from './monster-spell-effects';
 import {
   ApplyKind,
   ApplyRequest,
@@ -95,6 +96,14 @@ export interface AbilityRollConfig {
   indomitable?: number;
   /** Inspiração Bárdica guardada: soma o dado nesta rolagem (uma vez) e consome. */
   inspiration?: { sides: number; from: string };
+  /** Bênção ativa (ataque e resistência): rola 1d4 junto com o d20 e soma, sem gastar. */
+  blessing?: { from: string };
+  /** Perdição no monstro (ataque e resistência): rola 1d4 junto com o d20 e subtrai. */
+  penaltyDie?: { label: string };
+  /** Desvantagem que já vem marcada (Zombaria Viciosa no monstro). */
+  disadvantageFrom?: string[];
+  /** Orientação (teste) ou Resistência (resistência) guardada: botão que soma 1d4 uma vez e gasta. */
+  boostDie?: { key: 'guidance' | 'resistance'; label: string; from: string };
   /** Avisos desta rolagem (ex.: o efeito de uma ação de monstro). */
   reminders?: string[];
   /** Vantagens que valem nesta rolagem (contexto conhecido, ou Fúria em Força): entram sozinhas e
@@ -235,17 +244,61 @@ export class RollModalComponent implements OnInit, OnDestroy {
   @Output() indomitableUsed = new EventEmitter<void>();
   /** Inspiração Bárdica usada — o pai apaga o dado guardado. */
   @Output() inspirationUsed = new EventEmitter<void>();
+  /** Orientação/Resistência usada — o pai gasta a magia guardada. */
+  @Output() boostDieUsed = new EventEmitter<'guidance' | 'resistance'>();
 
   indomitableSpent = signal(false);
   /** Valor tirado no dado de Inspiração Bárdica (somado ao total). */
   inspirationRoll = signal<number | null>(null);
+  /** 1d4 da Bênção desta jogada (rolado junto com o d20; fica o mesmo se rolar o d20 de novo). */
+  blessRoll = signal<number | null>(null);
+  /** 1d4 de Orientação/Resistência usado nesta rolagem. */
+  boostRoll = signal<number | null>(null);
+  /** 1d4 da Perdição tirado nesta jogada do monstro (subtraído). */
+  penaltyRoll = signal<number | null>(null);
+
+  get canUseBoostDie(): boolean {
+    return this.d20Settled && this.config.mode === 'ability' && !!this.config.boostDie && this.boostRoll() === null;
+  }
+
+  get penaltyLabel(): string {
+    return this.config.mode === 'ability' ? (this.config.penaltyDie?.label ?? 'Perdição') : 'Perdição';
+  }
+
+  get boostDieLabel(): string {
+    return this.config.mode === 'ability' ? (this.config.boostDie?.label ?? '') : '';
+  }
+
+  /** Orientação/Resistência: rola 1d4, soma no total desta rolagem e gasta a magia. */
+  useBoostDie(): void {
+    const res = this.result();
+    const boost = this.config.mode === 'ability' ? this.config.boostDie : undefined;
+    if (!res || !boost || !this.canUseBoostDie) return;
+    const value = this.rollDie(4);
+    this.boostRoll.set(value);
+    this.boostDieUsed.emit(boost.key);
+    this.result.set({ ...res, total: res.total + value });
+    this.postRoll(res.rolls, res.total + value, this.rolledSides, ` (${boost.label} +${value})`);
+  }
+
+  /** Soma fora do d20 que fica valendo se o d20 for rolado de novo (Sortudo, Indomável). */
+  private get d20Extras(): number {
+    return (
+      (this.inspirationRoll() ?? 0) +
+      (this.blessRoll() ?? 0) +
+      (this.boostRoll() ?? 0) -
+      (this.penaltyRoll() ?? 0)
+    );
+  }
 
   get reminders(): string[] {
     return this.config.mode === 'ability' && this.isAbility ? (this.config.reminders ?? []) : [];
   }
 
   get advantageFrom(): string[] {
-    return this.config.mode === 'ability' && this.isAbility ? (this.config.advantageFrom ?? []) : [];
+    if (this.config.mode !== 'ability' || !this.isAbility) return [];
+    // Ataque num monstro com Fogo das Fadas/Raio Guiador: vantagem contra ele (1.26.0).
+    return [...(this.config.advantageFrom ?? []), ...advantageAgainst(this.currentAttackTarget?.spellEffects)];
   }
 
   get advantageReminders(): string[] {
@@ -377,8 +430,7 @@ export class RollModalComponent implements OnInit, OnDestroy {
         : state === 'normal'
           ? rolls
           : [state === 'disadvantage' ? Math.min(...rolls) : Math.max(...rolls)];
-    const total =
-      chosen.reduce((sum, r) => sum + r, 0) + this.modifier + (this.inspirationRoll() ?? 0);
+    const total = chosen.reduce((sum, r) => sum + r, 0) + this.modifier + this.d20Extras;
     this.displayValues.set(rolls);
     this.result.set({ rolls, chosen, total });
     if (this.attackPhase() === 'awaiting-hit') {
@@ -466,6 +518,13 @@ export class RollModalComponent implements OnInit, OnDestroy {
     });
   }
 
+  /** Penalidade que a magia deixa no monstro que falhar (`null` se não deixa). */
+  private get onFailEffect(): { key: MonsterSpellEffectKey; from: string } | null {
+    const key = this.cast?.idSpell != null ? SPELL_MONSTER_EFFECT[this.cast.idSpell] : undefined;
+    if (!key || key === 'guiding_bolt') return null;
+    return { key, from: this.actorName.slice(0, 60) };
+  }
+
   requestSaves(): void {
     const ids = [...this.saveRequestPicks()].filter((id) => !this.saveRequests()[id]);
     if (this.config.mode !== 'ability' || !this.sessionId || !ids.length) return;
@@ -487,6 +546,8 @@ export class RollModalComponent implements OnInit, OnDestroy {
         dc: save.dc,
         against: save.against ?? [],
         secret: false,
+        // Zombaria Viciosa: o monstro que falhar fica com desvantagem no próximo ataque (1.26.0).
+        ...(monsterIds.length && this.onFailEffect ? { on_fail_effect: this.onFailEffect } : {}),
       })
       .subscribe({
         next: (created) => {
@@ -678,6 +739,8 @@ export class RollModalComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     if (this.canHideRoll && this.startHidden) this.rollHidden.set(true);
     if (this.advantageFrom.length) this.autoAdvantageOn.set(true);
+    if (this.config.mode === 'ability' && this.config.disadvantageFrom?.length)
+      this.manualAdvantage.set('disadvantage');
     const start = this.config.mode === 'ability' ? this.config.instances?.start : undefined;
     if (start && start > 1) this.instanceIndex.set(start);
     if (this.cast) {
@@ -700,6 +763,8 @@ export class RollModalComponent implements OnInit, OnDestroy {
 
   /** Começa a rolagem (depois da escolha dos alvos, quando há). */
   private startFlow(): void {
+    // O alvo escolhido pode dar vantagem (Fogo das Fadas, Raio Guiador).
+    if (this.advantageFrom.length) this.autoAdvantageOn.set(true);
     if (this.pendingDamage && this.config.mode === 'ability' && this.config.autoHit) {
       this.attackPhase.set('damage');
       // Valor fixo, sem dado (Integridade Corporal, Curar pelo Toque, Preservar a Vida): já
@@ -1466,6 +1531,7 @@ export class RollModalComponent implements OnInit, OnDestroy {
     if (!this.pendingDamage) return;
     this.attackResolved.emit(true);
     this.resolveCastAttack(true);
+    this.markGuidingBoltOnHit();
     if (this.pendingDamage.smite?.length || hasRiderChoices(this.pendingDamage.riders)) {
       this.attackPhase.set('smite-choice');
       return;
@@ -1559,6 +1625,33 @@ export class RollModalComponent implements OnInit, OnDestroy {
     this.riderFlat.set(0);
     this.riderNames.set([]);
     this.attackPhase.set('attack');
+    // Próximo alvo: a vantagem contra ele (Fogo das Fadas, Raio Guiador) é a dele.
+    this.autoAdvantageOn.set(this.advantageFrom.length > 0);
+  }
+
+  /** Raio Guiador acertou um monstro: o próximo ataque contra ele tem vantagem (1.26.0). */
+  private markGuidingBoltOnHit(): void {
+    const target = this.currentAttackTarget;
+    if (this.cast?.idSpell !== 290 || !target?.key.startsWith('monster:') || !this.sessionId) return;
+    this.gameSessionService
+      .updateMonsterSpellEffect(this.sessionId, target.key.slice('monster:'.length), {
+        key: 'guiding_bolt',
+        active: true,
+        from: this.actorName.slice(0, 60),
+      })
+      .subscribe({ error: () => undefined });
+  }
+
+  /** Atacou um monstro marcado pelo Raio Guiador: a vantagem foi usada, a marca sai. */
+  private spendGuidingBolt(): void {
+    const target = this.currentAttackTarget;
+    if (!target?.spellEffects?.guiding_bolt || !this.sessionId || !target.key.startsWith('monster:')) return;
+    this.gameSessionService
+      .updateMonsterSpellEffect(this.sessionId, target.key.slice('monster:'.length), {
+        key: 'guiding_bolt',
+        active: false,
+      })
+      .subscribe({ error: () => undefined });
   }
 
   /** Encerra antes de usar todos os raios (ex.: o alvo caiu). */
@@ -1644,10 +1737,23 @@ export class RollModalComponent implements OnInit, OnDestroy {
       chosen = rolls;
     }
 
-    const total = chosen.reduce((sum, r) => sum + r, 0) + this.modifier;
+    // Bênção: 1d4 a cada jogada de ataque/resistência nova (não no dano).
+    const bless =
+      this.isAbility && this.config.mode === 'ability' && this.config.blessing ? this.rollDie(4) : null;
+    this.blessRoll.set(bless);
+    const penalty =
+      this.isAbility && this.config.mode === 'ability' && this.config.penaltyDie ? this.rollDie(4) : null;
+    this.penaltyRoll.set(penalty);
+    const total = chosen.reduce((sum, r) => sum + r, 0) + this.modifier + (bless ?? 0) - (penalty ?? 0);
     this.isRolling.set(false);
     this.result.set({ rolls, chosen, total });
-    this.postRoll(rolls, total, sidesList);
+    const suffix =
+      (bless !== null ? ` (Bênção +${bless})` : '') +
+      (penalty !== null && this.config.mode === 'ability'
+        ? ` (${this.config.penaltyDie?.label ?? 'Perdição'} −${penalty})`
+        : '');
+    this.postRoll(rolls, total, sidesList, suffix);
+    if (this.isAbility) this.spendGuidingBolt();
 
     // Impacto em tela cheia (golpe de arma, efeito de magia ou névoa de cura) — só dentro da
     // sessão (a ficha isolada não tem sessionId). Quem rola não recebe o toast da própria
@@ -1693,10 +1799,14 @@ export class RollModalComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Teste/resistência com Sortudo/Indomável/Inspiração pra oferecer: espera o "CONCLUIR".
+    // Teste/resistência com Sortudo/Indomável/Inspiração/Orientação pra oferecer: espera o "CONCLUIR".
     if (
       this.isAbility &&
-      (this.canHalflingReroll || this.canUseLuck || this.canIndomitable || this.canUseInspiration)
+      (this.canHalflingReroll ||
+        this.canUseLuck ||
+        this.canIndomitable ||
+        this.canUseInspiration ||
+        this.canUseBoostDie)
     ) {
       this.awaitingLuck.set(true);
       return;

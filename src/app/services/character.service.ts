@@ -2,7 +2,14 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpContext } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { CharacterSheetData } from '../models/character.interface';
-import { ActiveEffects, CharacterBackground, CharacterSheetResponse, ResourceTracker, WildShapeOption } from '../models/character-response.interface';
+import {
+  ActiveEffects,
+  CharacterBackground,
+  CharacterSheetResponse,
+  ResourceTracker,
+  SpellBoonKey,
+  WildShapeOption,
+} from '../models/character-response.interface';
 import { AvatarPreset } from '../models/avatar-preset.interface';
 import { CharacterOptions } from '../models/character-options.interface';
 import { CharacterSummary, CharacterPagedList } from '../models/character-summary.interface';
@@ -149,13 +156,16 @@ export class CharacterService {
     );
   }
 
-  /** Liga/desliga Fúria/Arma Sagrada, ou marca uma soma 1×/turno como usada na vez do combate. */
+  /** Liga/desliga Fúria/Arma Sagrada, guarda/encerra Arma Mágica/Elemental, gasta/encerra
+   *  Bênção/Orientação/Resistência, ou marca uma soma 1×/turno como usada na vez do combate. */
   updateActiveEffects(
     id: number,
     body:
       | { effect: string; active: boolean }
       | { turn_use: string; turn_key: string }
-      | { consume_inspiration: true },
+      | { consume_inspiration: true }
+      | { spell_weapon: { id_spell: number; slot_level: number; element: string | null } | null }
+      | { consume_boon: SpellBoonKey },
   ): Observable<{ active_effects: ActiveEffects }> {
     return this.http.patch<{ active_effects: ActiveEffects }>(
       `${this.baseUrl}/api/character-sheet/${id}/active-effects`,

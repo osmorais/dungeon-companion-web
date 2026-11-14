@@ -59,7 +59,8 @@ function available(tracker: ResourceTracker | undefined): number {
 
 /**
  * O que o personagem tem pra mexer num d20: Sortudo (Halfling e talento), Inspiração Bárdica
- * guardada, Indomável (só resistência) e as vantagens que valem pra esta rolagem.
+ * guardada, Indomável (só resistência), magias de apoio recebidas (Bênção em ataque e resistência;
+ * Orientação no teste; Resistência na resistência) e as vantagens que valem pra esta rolagem.
  */
 export function d20Options(
   features: CombatFeatures | null | undefined,
@@ -73,15 +74,27 @@ export function d20Options(
   | 'luckPoints'
   | 'inspiration'
   | 'indomitable'
+  | 'blessing'
+  | 'boostDie'
   | 'advantageFrom'
   | 'advantageReminders'
 > {
   const byName = (name: string) => trackers.find((t) => t.name === name);
+  const effects = features?.active_effects;
+  const bless = kind !== 'check' ? effects?.bless : null;
+  const guidance = kind === 'check' ? effects?.guidance : null;
+  const resistance = kind === 'save' ? effects?.resistance : null;
   return {
     halflingLucky: !!features?.halfling_lucky,
     luckPoints: available(byName('Pontos de Sorte')),
     inspiration: features?.active_effects.bardic_inspiration ?? undefined,
     indomitable: kind === 'save' ? available(byName('Indomável')) : 0,
+    blessing: bless ? { from: bless.from } : undefined,
+    boostDie: guidance
+      ? { key: 'guidance', label: 'Orientação', from: guidance.from }
+      : resistance
+        ? { key: 'resistance', label: 'Resistência', from: resistance.from }
+        : undefined,
     ...splitAdvantage(features?.d20_reminders ?? [], kind, ability, against),
   };
 }

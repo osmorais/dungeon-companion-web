@@ -9,6 +9,8 @@ import {
   ClassAbility,
   CombatFeatures,
   ResourceTracker,
+  SpellBoonKey,
+  SpellWeaponEffect,
 } from '../models/character-response.interface';
 import { Skill, Spell, WeaponRow } from '../models/character-options.interface';
 import {
@@ -19,6 +21,18 @@ import {
   spellSaveInfo,
 } from '../roll-modal/spell-roll-config';
 import { ApplyRequest, ApplyTarget } from '../roll-modal/apply-target';
+import { isSelfOnlyBoon, isSpellBoon, spellBoonMaxTargets } from '../roll-modal/spell-boons';
+import {
+  MONSTER_CURSE_SPELLS,
+  SPELL_MONSTER_EFFECT,
+  monsterCurseMaxTargets,
+} from '../roll-modal/monster-spell-effects';
+import {
+  ELEMENTAL_WEAPON_TYPES,
+  ElementalWeaponType,
+  needsElementChoice,
+  spellWeaponRequest,
+} from '../roll-modal/spell-weapon';
 import { ATTRIBUTE_PT_TO_EN, d20Options } from '../roll-modal/d20-options';
 import { AttackCounterService } from './attack-counter.service';
 import { WildShapePickerComponent, formatSpeed } from './wild-shape-picker.component';
@@ -521,6 +535,7 @@ export class PlayerActionsModalComponent implements OnInit {
       isRanged: false,
       properties: '',
       damageType: 'contundente',
+      unarmed: true,
     });
     if (attacks > 1) config.instances = { count: attacks, label: 'golpe' };
     this.startWeaponCast(unarmedCardInfo(unarmed), unarmedToCard(unarmed));
@@ -557,6 +572,16 @@ export class PlayerActionsModalComponent implements OnInit {
     return this.combatFeatures()?.active_effects.active ?? [];
   }
 
+  /** Arma Mágica / Arma Elemental ativa (entra sozinha nos ataques com arma). */
+  spellWeapon(): SpellWeaponEffect | null {
+    return this.combatFeatures()?.active_effects.spell_weapon ?? null;
+  }
+
+  /** Elemento escolhido pra Arma Elemental antes de lançar. */
+  readonly weaponElement = signal<ElementalWeaponType>('fogo');
+  readonly elementalWeaponTypes = ELEMENTAL_WEAPON_TYPES;
+  readonly needsElementChoice = needsElementChoice;
+
   /**
    * Ataque com arma (ou desarmado) com os traços do personagem: bônus de ataque dos efeitos
    * ativos (Arma Sagrada), Fúria somada no dano corpo a corpo de Força, ataque poderoso (talento),
@@ -573,8 +598,11 @@ export class PlayerActionsModalComponent implements OnInit {
     properties: string;
     damageType?: string | null;
     smite?: SmiteOption[];
+    /** Ataque desarmado: Arma Mágica/Elemental não valem (encantam uma arma). */
+    unarmed?: boolean;
   }): AbilityRollConfig {
     const features = this.combatFeatures();
+    const spellWeapon = w.unarmed ? null : this.spellWeapon();
     const active = this.activeEffects();
     const melee = !w.isRanged;
     const finesse = w.properties.includes('acuidade');
@@ -585,7 +613,11 @@ export class PlayerActionsModalComponent implements OnInit {
     const activeRiders = (features?.riders ?? []).filter(
       (r) => r.requires_active && active.includes(r.requires_active) && this.riderApplies(r.applies, w, usesStr),
     );
-    const extraNames = [...attackBonuses.map((b) => b.name), ...activeRiders.map((r) => r.name)];
+    const extraNames = [
+      ...attackBonuses.map((b) => b.name),
+      ...(spellWeapon ? [spellWeapon.name] : []),
+      ...activeRiders.map((r) => r.name),
+    ];
     const power = (features?.power_attack ?? []).find((p) =>
       p.applies === 'ranged' ? w.isRanged : melee && w.properties.includes('pesada'),
     );
@@ -607,7 +639,8 @@ export class PlayerActionsModalComponent implements OnInit {
       mode: 'ability',
       rollType: 'attack',
       label: [`Ataque: ${w.name}`, ...extraNames].join(' + '),
-      modifier: w.attackBonus + attackBonuses.reduce((sum, b) => sum + b.bonus, 0),
+      modifier:
+        w.attackBonus + attackBonuses.reduce((sum, b) => sum + b.bonus, 0) + (spellWeapon?.attack_bonus ?? 0),
       critMin: features?.crit_min ?? 20,
       powerAttack: power ? { name: power.name } : undefined,
       ...this.d20Options('attack'),
@@ -615,8 +648,16 @@ export class PlayerActionsModalComponent implements OnInit {
         ? {
             diceCount: w.dice.count,
             diceSides: w.dice.sides,
-            modifier: w.damageModifier + activeRiders.reduce((sum, r) => sum + r.flat, 0),
-            label: [`Dano: ${w.name}`, ...activeRiders.map((r) => r.name)].join(' + '),
+            modifier:
+              w.damageModifier +
+              activeRiders.reduce((sum, r) => sum + r.flat, 0) +
+              (spellWeapon?.damage_bonus ?? 0),
+            extraDice: spellWeapon?.dice ? [spellWeapon.dice] : undefined,
+            label: [
+              `Dano: ${w.name}`,
+              ...(spellWeapon ? [spellWeapon.name] : []),
+              ...activeRiders.map((r) => r.name),
+            ].join(' + '),
             damageType: w.damageType ?? null,
             critExtraDice: melee ? (features?.melee_crit_extra_dice ?? 0) : 0,
             smite: w.smite,
@@ -649,6 +690,14 @@ export class PlayerActionsModalComponent implements OnInit {
   /** Encerra Fúria/Arma Sagrada antes da hora (também acabam no descanso longo e no fim do combate). */
   endEffect(effect: string): void {
     this.charService.updateActiveEffects(this.idCharacter, { effect, active: false }).subscribe({
+      next: ({ active_effects }) => this.patchActiveEffects(active_effects),
+      error: (err) => this.handleActionError(err),
+    });
+  }
+
+  /** Encerra Arma Mágica/Elemental antes da hora (perdeu a concentração, por exemplo). */
+  endSpellWeapon(): void {
+    this.charService.updateActiveEffects(this.idCharacter, { spell_weapon: null }).subscribe({
       next: ({ active_effects }) => this.patchActiveEffects(active_effects),
       error: (err) => this.handleActionError(err),
     });
@@ -1310,7 +1359,27 @@ export class PlayerActionsModalComponent implements OnInit {
     return this.inCombat && isLongCastingTime(spell.casting_time);
   }
 
-  castSpell(spell: Spell, slotLevel: number): void {
+  castSpell(
+    spell: Spell,
+    slotLevel: number,
+    boonTargets?: { includeSelf: boolean; ids: string[] },
+    curseTargets?: string[],
+  ): void {
+    // Perdição/Fogo das Fadas/Raio do Enfraquecimento: marcar os monstros que precisam resistir.
+    if (MONSTER_CURSE_SPELLS[spell.id_spell] && this.sessionId && !curseTargets && this.curseMonsters().length) {
+      this.curseTargets.set([]);
+      this.curseCast.set({ spell, slotLevel });
+      return;
+    }
+    this.curseCast.set(null);
+    // Bênção/Orientação/Resistência na mesa: escolher os alvos antes de gastar o espaço.
+    if (isSpellBoon(spell) && this.sessionId && !boonTargets) {
+      this.boonSelf.set(true);
+      this.boonTargets.set([]);
+      this.boonCast.set({ spell, slotLevel });
+      return;
+    }
+    this.boonCast.set(null);
     // Aviso, não trava: o mestre pode liberar se a cena permitir.
     if (
       this.isLongCastInCombat(spell) &&
@@ -1325,11 +1394,33 @@ export class PlayerActionsModalComponent implements OnInit {
     // Ataque mágico também soma Bruxaria (vale pra qualquer ataque).
     if (rollConfig?.damage && spell.roll?.kind === 'attack') {
       rollConfig.damage.riders = this.riderChoices('spell');
+      // Bênção vale em toda jogada de ataque, inclusive de magia.
+      rollConfig.blessing = this.d20Options('attack').blessing;
     }
     // Lançamento (1.5.0): a mesa vê um aviso só, com a carta e as rolagens. Com rolagem, quem
     // lança acompanha no modal (que manda as etapas); sem rolagem, já vai pronto pra mesa.
     const cast = this.castContextFor(spell);
+    const weaponRequest = spellWeaponRequest(spell, slotLevel, this.weaponElement());
     const openRoll = () => {
+      if (curseTargets?.length) this.requestCurseSaves(spell, curseTargets);
+      if (boonTargets && this.sessionId) {
+        this.gameSessionService
+          .grantSpellBoon(this.sessionId, {
+            id_character: this.idCharacter,
+            id_spell: spell.id_spell,
+            slot_level: spell.spellLevel === 0 ? 0 : slotLevel,
+            include_self: boonTargets.includeSelf,
+            id_player_sessions: boonTargets.ids,
+          })
+          // A tela fecha ao lançar; quem recebeu vê o efeito ao abrir as ações de novo.
+          .subscribe({ error: () => undefined });
+      }
+      // Arma Mágica/Elemental: o bônus fica guardado no personagem e entra nos ataques com arma.
+      if (weaponRequest) {
+        this.charService
+          .updateActiveEffects(this.idCharacter, weaponRequest)
+          .subscribe({ next: ({ active_effects }) => this.patchActiveEffects(active_effects), error: () => undefined });
+      }
       if (!rollConfig) return;
       this.closeSpellDetail();
       this.activeRollCast.set(cast);
@@ -1338,11 +1429,128 @@ export class PlayerActionsModalComponent implements OnInit {
     };
     if (!rollConfig) this.publishCastWithoutRolls(cast);
     if (spell.spellLevel === 0) {
-      if (rollConfig) openRoll();
-      else this.closed.emit();
+      openRoll();
+      if (!rollConfig) this.closed.emit();
     } else {
       this.expendSlot(slotLevel, 1, !rollConfig, openRoll);
     }
+  }
+
+  /** Perdição/Fogo das Fadas/Raio do Enfraquecimento aguardando os monstros atingidos (1.26.0). */
+  readonly curseCast = signal<{ spell: Spell; slotLevel: number } | null>(null);
+  readonly curseTargets = signal<string[]>([]);
+
+  /** Monstros revelados da mesa (alvos possíveis das penalidades). */
+  curseMonsters(): ApplyTarget[] {
+    return this.applyTargets.filter((t) => t.key.startsWith('monster:'));
+  }
+
+  /** Limite de monstros (Perdição: 3 +1 por círculo; Raio: 1; Fogo das Fadas: área, sem limite). */
+  curseMax(): number | null {
+    const pending = this.curseCast();
+    return pending ? monsterCurseMaxTargets(pending.spell.id_spell, pending.slotLevel) : null;
+  }
+
+  toggleCurseTarget(key: string): void {
+    const current = this.curseTargets();
+    const max = this.curseMax();
+    if (current.includes(key)) this.curseTargets.set(current.filter((k) => k !== key));
+    else if (max === null || current.length < max) this.curseTargets.set([...current, key]);
+  }
+
+  confirmCurseCast(): void {
+    const pending = this.curseCast();
+    if (!pending || !this.curseTargets().length) return;
+    this.castSpell(pending.spell, pending.slotLevel, undefined, this.curseTargets());
+  }
+
+  /** Pede a resistência dos monstros ao mestre; quem falhar fica com a penalidade (a API marca). */
+  private requestCurseSaves(spell: Spell, targetKeys: string[]): void {
+    const key = SPELL_MONSTER_EFFECT[spell.id_spell];
+    const roll = spell.roll;
+    if (!this.sessionId || !key || !roll?.save_ability || roll.save_dc === null) return;
+    this.gameSessionService
+      .requestSecretRoll(this.sessionId, {
+        id_player_sessions: [],
+        id_monster_sessions: targetKeys.map((k) => k.slice('monster:'.length)),
+        check: { kind: 'save', ability: roll.save_ability },
+        label: spell.name.slice(0, 60),
+        dc: roll.save_dc,
+        against: roll.save_against ?? [],
+        secret: false,
+        on_fail_effect: { key, from: this.actorName.slice(0, 60) },
+      })
+      .subscribe({ error: () => undefined });
+  }
+
+  /** Bênção/Orientação/Resistência aguardando os alvos (você e/ou jogadores da mesa). */
+  readonly boonCast = signal<{ spell: Spell; slotLevel: number } | null>(null);
+  readonly boonSelf = signal(true);
+  readonly boonTargets = signal<string[]>([]);
+
+  boonMax(): number {
+    const pending = this.boonCast();
+    return pending ? spellBoonMaxTargets(pending.spell, pending.slotLevel) : 0;
+  }
+
+  boonChosenCount(): number {
+    return (this.boonSelf() ? 1 : 0) + this.boonTargets().length;
+  }
+
+  toggleBoonTarget(id: string): void {
+    const current = this.boonTargets();
+    if (current.includes(id)) this.boonTargets.set(current.filter((t) => t !== id));
+    else if (this.boonChosenCount() < this.boonMax()) this.boonTargets.set([...current, id]);
+  }
+
+  toggleBoonSelf(): void {
+    if (this.boonSelf()) this.boonSelf.set(false);
+    else if (this.boonChosenCount() < this.boonMax()) this.boonSelf.set(true);
+  }
+
+  /** Escudo Arcano: só "você" na escolha de alvos. */
+  readonly isSelfOnlyBoon = isSelfOnlyBoon;
+
+  confirmBoonCast(): void {
+    const pending = this.boonCast();
+    if (!pending || this.boonChosenCount() === 0) return;
+    this.castSpell(pending.spell, pending.slotLevel, { includeSelf: this.boonSelf(), ids: this.boonTargets() });
+  }
+
+  /** Orientação/Resistência usada num teste: gasta a magia guardada. */
+  onBoostDieUsed(key: 'guidance' | 'resistance'): void {
+    this.charService.updateActiveEffects(this.idCharacter, { consume_boon: key }).subscribe({
+      next: ({ active_effects }) => this.patchActiveEffects(active_effects),
+      error: () => undefined,
+    });
+  }
+
+  /** Magias de apoio recebidas, pra seção EFEITOS ATIVOS. */
+  receivedBoons(): { key: SpellBoonKey; label: string }[] {
+    const effects = this.combatFeatures()?.active_effects;
+    if (!effects) return [];
+    const labels: [SpellBoonKey, string, string][] = [
+      ['bless', 'Bênção', '+1d4 em ataque e resistência'],
+      ['guidance', 'Orientação', '+1d4 num teste'],
+      ['resistance', 'Resistência', '+1d4 numa resistência'],
+      ['mage_armor', 'Armadura Arcana', 'CA 13 + DES sem armadura'],
+      ['shield_of_faith', 'Escudo da Fé', '+2 na CA'],
+      ['shield', 'Escudo Arcano', '+5 na CA até o seu próximo turno'],
+      ['barkskin', 'Pele de Árvore', 'CA mínima 16'],
+      ['haste', 'Velocidade', '+2 na CA e vantagem em resistência de DES'],
+    ];
+    return labels.flatMap(([key, name, what]) => {
+      const boon = effects[key];
+      return boon ? [{ key, label: `${name} de ${boon.from} (${what})` }] : [];
+    });
+  }
+
+  /** Encerra a magia de apoio recebida (acabou a concentração de quem lançou, por exemplo). */
+  endBoon(key: SpellBoonKey): void {
+    this.charService.updateActiveEffects(this.idCharacter, { consume_boon: key }).subscribe({
+      next: ({ active_effects }) => this.patchActiveEffects(active_effects),
+      error: (err) => this.handleActionError(err),
+    });
   }
 
   private castContextFor(spell: Spell): SpellCastContext {

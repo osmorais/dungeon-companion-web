@@ -11,6 +11,7 @@ import { AbilityRollConfig, RollModalComponent } from '../roll-modal/roll-modal.
 import { ATTRIBUTE_PT_TO_EN, SAVE_CONTEXT_LABELS, d20Options } from '../roll-modal/d20-options';
 import { secretCheckModifier } from './secret-roll-checks';
 import { MonsterStatBlock } from '../models/monster-catalog.interface';
+import { MonsterSpellEffects } from '../models/game-session.interface';
 import { monsterChecks } from '../monster-actions/monster-actions';
 
 /** Atributo do pedido (inglês) → sigla da ficha do monstro. */
@@ -59,6 +60,8 @@ export class SecretRollPromptComponent implements OnInit {
   @Input() sessionId: string | undefined;
   /** Ficha do monstro atingido (pedido de monstro, só na tela do mestre). */
   @Input() monster: MonsterStatBlock | null = null;
+  /** Penalidades de magia do monstro (Perdição tira 1d4 da resistência) — 1.26.0. */
+  @Input() monsterEffects: MonsterSpellEffects | null = null;
   @Output() closed = new EventEmitter<void>();
 
   actorName = signal('Personagem');
@@ -133,6 +136,12 @@ export class SecretRollPromptComponent implements OnInit {
         rollType: 'save',
         label: `Resistência: ${this.request.label.replace(/^Magia: /, '')}`,
         modifier: this.modifier,
+        ...(this.monsterEffects?.bane
+          ? {
+              penaltyDie: { label: 'Perdição' },
+              reminders: [`Perdição de ${this.monsterEffects.bane.from}: −1d4 nesta resistência`],
+            }
+          : {}),
       });
       return;
     }
@@ -179,6 +188,14 @@ export class SecretRollPromptComponent implements OnInit {
     if (this.request.id_character === null) return;
     this.charService
       .updateActiveEffects(this.request.id_character, { consume_inspiration: true })
+      .subscribe({ error: () => undefined });
+  }
+
+  /** Resistência (truque) usada nesta resistência: gasta a magia guardada. */
+  onBoostDieUsed(key: 'guidance' | 'resistance'): void {
+    if (this.request.id_character === null) return;
+    this.charService
+      .updateActiveEffects(this.request.id_character, { consume_boon: key })
       .subscribe({ error: () => undefined });
   }
 

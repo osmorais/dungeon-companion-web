@@ -181,6 +181,21 @@ export function applySessionEvent(
         ),
       };
 
+    case 'monster_spell_effects_updated':
+      return {
+        ...detail,
+        monsters: detail.monsters.map((m) =>
+          m.id_monster_session === event.id_monster_session
+            ? { ...m, spell_effects: event.spell_effects }
+            : m,
+        ),
+        revealed_monsters: detail.revealed_monsters.map((r) =>
+          r.id_monster_session === event.id_monster_session
+            ? { ...r, spell_effects: event.spell_effects }
+            : r,
+        ),
+      };
+
     case 'monster_revealed':
       return {
         ...detail,
@@ -270,12 +285,15 @@ export function applySessionEvent(
       return {
         ...detail,
         combat: null,
-        monsters: detail.monsters.map((m) =>
-          hidden.has(m.id_monster_session) ? { ...m, is_revealed: false } : m,
-        ),
-        revealed_monsters: detail.revealed_monsters.filter(
-          (r) => !hidden.has(r.id_monster_session),
-        ),
+        // As penalidades de magia (Perdição, Fogo das Fadas…) acabam com o combate.
+        monsters: detail.monsters.map((m) => ({
+          ...m,
+          spell_effects: null,
+          ...(hidden.has(m.id_monster_session) ? { is_revealed: false } : {}),
+        })),
+        revealed_monsters: detail.revealed_monsters
+          .filter((r) => !hidden.has(r.id_monster_session))
+          .map((r) => ({ ...r, spell_effects: {} })),
       };
     }
 

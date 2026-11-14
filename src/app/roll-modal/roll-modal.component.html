@@ -448,8 +448,24 @@
         @if (inspirationRoll() !== null) {
           <p class="roll-modifier-line">Inspiração Bárdica: +{{ inspirationRoll() }}</p>
         }
-        @if (canHalflingReroll || canUseLuck || canIndomitable || canUseInspiration) {
+        @if (blessRoll() !== null) {
+          <p class="roll-modifier-line">Bênção: +{{ blessRoll() }}</p>
+        }
+        @if (penaltyRoll() !== null) {
+          <p class="roll-modifier-line">{{ penaltyLabel }}: −{{ penaltyRoll() }}</p>
+        }
+        @if (boostRoll() !== null) {
+          <p class="roll-modifier-line">{{ boostDieLabel }}: +{{ boostRoll() }}</p>
+        }
+        @if (
+          canHalflingReroll || canUseLuck || canIndomitable || canUseInspiration || canUseBoostDie
+        ) {
           <div class="roll-modal-actions">
+            @if (canUseBoostDie) {
+              <button class="roll-btn-secondary" (click)="useBoostDie()">
+                {{ boostDieLabel.toUpperCase() }} (d4)
+              </button>
+            }
             @if (canUseInspiration) {
               <button class="roll-btn-secondary" (click)="useInspiration()">
                 <img class="ui-icon" src="assets/icons/lute.png" alt="" /> INSPIRAÇÃO BÁRDICA (d{{

@@ -67,6 +67,31 @@ describe('splitAdvantage (vantagem condicional)', () => {
     });
     expect(d20Options(undefined, trackers, 'check', 'STR', null).indomitable).toBe(0);
   });
+
+  it('d20Options: Bênção em ataque e resistência; Orientação no teste; Resistência na resistência', () => {
+    const features = {
+      active_effects: {
+        active: [],
+        turn_uses: {},
+        bless: { from: 'Clara' },
+        guidance: { from: 'Clara' },
+        resistance: { from: 'Bran' },
+      },
+    } as unknown as Parameters<typeof d20Options>[0];
+    expect(d20Options(features, [], 'attack', undefined, null)).toMatchObject({
+      blessing: { from: 'Clara' },
+      boostDie: undefined,
+    });
+    expect(d20Options(features, [], 'save', 'WIS', null)).toMatchObject({
+      blessing: { from: 'Clara' },
+      boostDie: { key: 'resistance', label: 'Resistência', from: 'Bran' },
+    });
+    expect(d20Options(features, [], 'check', 'DEX', null)).toMatchObject({
+      blessing: undefined,
+      boostDie: { key: 'guidance', label: 'Orientação', from: 'Clara' },
+    });
+    expect(d20Options(undefined, [], 'attack', undefined, null).blessing).toBeUndefined();
+  });
 });
 
 describe('RollModalComponent — vantagem condicional, Indomável e pedido de resistência', () => {

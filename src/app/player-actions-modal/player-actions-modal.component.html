@@ -245,7 +245,7 @@
         </div>
       </div>
 
-      @if (activeEffects().length) {
+      @if (activeEffects().length || spellWeapon() || receivedBoons().length) {
         <div class="pa-section">
           <h4 class="pa-section-title">EFEITOS ATIVOS</h4>
           <div class="pa-row-list">
@@ -253,6 +253,24 @@
               <div class="pa-action-row pa-action-row--static">
                 <span>{{ effect }}</span>
                 <button class="pa-cast-btn" (click)="endEffect(effect)">
+                  <span class="pa-cast-btn-label">Encerrar</span>
+                </button>
+              </div>
+            }
+            @for (boon of receivedBoons(); track boon.key) {
+              <div class="pa-action-row pa-action-row--static">
+                <span>{{ boon.label }}</span>
+                <button class="pa-cast-btn" (click)="endBoon(boon.key)">
+                  <span class="pa-cast-btn-label">Encerrar</span>
+                </button>
+              </div>
+            }
+            @if (spellWeapon(); as sw) {
+              <div class="pa-action-row pa-action-row--static">
+                <span>
+                  {{ sw.name }} (+{{ sw.attack_bonus }} no ataque{{ sw.damage_bonus ? ', +' + sw.damage_bonus + ' no dano' : '' }}{{ sw.dice ? ', +' + sw.dice.count + 'd' + sw.dice.sides + ' ' + sw.damage_type : '' }})
+                </span>
+                <button class="pa-cast-btn" (click)="endSpellWeapon()">
                   <span class="pa-cast-btn-label">Encerrar</span>
                 </button>
               </div>
@@ -634,6 +652,7 @@
     (luckUsed)="onLuckUsed()"
     (indomitableUsed)="onIndomitableUsed()"
     (inspirationUsed)="onInspirationUsed()"
+    (boostDieUsed)="onBoostDieUsed($event)"
     [applyTargets]="applyTargets"
     (applyToTarget)="applyToTarget.emit($event)"
   />
@@ -709,6 +728,19 @@
   @if (isOnHitSpell(spell) && isCastable(spell)) {
     <span class="pa-no-slots">use ao acertar um ataque com arma</span>
   } @else if (isCastable(spell)) {
+    @if (needsElementChoice(spell)) {
+      <select
+        class="pa-hp-input pa-ally-select"
+        aria-label="Elemento da Arma Elemental"
+        [value]="weaponElement()"
+        (click)="$event.stopPropagation()"
+        (change)="weaponElement.set($any($event.target).value)"
+      >
+        @for (el of elementalWeaponTypes; track el) {
+          <option [value]="el">{{ el }}</option>
+        }
+      </select>
+    }
     @if (spell.spellLevel === 0) {
       <button class="pa-cast-btn" (click)="$event.stopPropagation(); castSpell(spell, 0)">
         <span class="pa-cast-btn-label">LANÇAR</span>
@@ -722,6 +754,67 @@
     }
     @if (spell.spellLevel > 0 && availableSlotLevelsFor(spell).length === 0) {
       <span class="pa-no-slots">sem espaços disponíveis</span>
+    }
+    @if (curseCast(); as pending) {
+      @if (pending.spell.id_spell === spell.id_spell) {
+        <div class="pa-cast-options" (click)="$event.stopPropagation()">
+          <span class="pa-no-slots">
+            Monstros atingidos {{ curseTargets().length }}{{ curseMax() !== null ? '/' + curseMax() : '' }} — o mestre rola a resistência:
+          </span>
+          @for (monster of curseMonsters(); track monster.key) {
+            <label class="pa-no-slots">
+              <input
+                type="checkbox"
+                [checked]="curseTargets().includes(monster.key)"
+                [disabled]="!curseTargets().includes(monster.key) && curseMax() !== null && curseTargets().length >= curseMax()!"
+                (change)="toggleCurseTarget(monster.key)"
+              />
+              {{ monster.label }}
+            </label>
+          }
+          <button class="pa-cast-btn" [disabled]="curseTargets().length === 0 || expendingSlot()" (click)="confirmCurseCast()">
+            <span class="pa-cast-btn-label">LANÇAR</span>
+          </button>
+          <button class="pa-cast-btn" (click)="curseCast.set(null)">
+            <span class="pa-cast-btn-label">Cancelar</span>
+          </button>
+        </div>
+      }
+    }
+    @if (boonCast(); as pending) {
+      @if (pending.spell.id_spell === spell.id_spell) {
+        <div class="pa-cast-options" (click)="$event.stopPropagation()">
+          <span class="pa-no-slots">
+            Alvos {{ boonChosenCount() }}/{{ boonMax() }}{{ pending.spell.spellLevel > 0 ? ' (nv' + pending.slotLevel + ')' : '' }}:
+          </span>
+          <label class="pa-no-slots">
+            <input
+              type="checkbox"
+              [checked]="boonSelf()"
+              [disabled]="!boonSelf() && boonChosenCount() >= boonMax()"
+              (change)="toggleBoonSelf()"
+            />
+            você
+          </label>
+          @for (ally of isSelfOnlyBoon(pending.spell) ? [] : allies; track ally.id_player_session) {
+            <label class="pa-no-slots">
+              <input
+                type="checkbox"
+                [checked]="boonTargets().includes(ally.id_player_session)"
+                [disabled]="!boonTargets().includes(ally.id_player_session) && boonChosenCount() >= boonMax()"
+                (change)="toggleBoonTarget(ally.id_player_session)"
+              />
+              {{ ally.name }}
+            </label>
+          }
+          <button class="pa-cast-btn" [disabled]="boonChosenCount() === 0 || expendingSlot()" (click)="confirmBoonCast()">
+            <span class="pa-cast-btn-label">LANÇAR</span>
+          </button>
+          <button class="pa-cast-btn" (click)="boonCast.set(null)">
+            <span class="pa-cast-btn-label">Cancelar</span>
+          </button>
+        </div>
+      }
     }
   }
 </ng-template>

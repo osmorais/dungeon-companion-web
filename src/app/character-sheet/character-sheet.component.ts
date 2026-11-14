@@ -8,6 +8,12 @@ import { CharacterService, HitDieRollResult } from '../services/character.servic
 import { Skill, Spell, WeaponRow } from '../models/character-options.interface';
 import { abilityAsSpell, spellRollConfig } from '../roll-modal/spell-roll-config';
 import { isOnHitSpell } from '../roll-modal/spell-riders';
+import {
+  ELEMENTAL_WEAPON_TYPES,
+  ElementalWeaponType,
+  needsElementChoice,
+  spellWeaponRequest,
+} from '../roll-modal/spell-weapon';
 import { CharacterSheetResponse, ResourceTracker, ClassAbility } from '../models/character-response.interface';
 import { AvatarPreset } from '../models/avatar-preset.interface';
 import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
@@ -663,11 +669,22 @@ export class CharacterSheetComponent {
       .sort((a, b) => a - b);
   }
 
+  /** Elemento escolhido pra Arma Elemental antes de lançar. */
+  readonly weaponElement = signal<ElementalWeaponType>('fogo');
+  readonly elementalWeaponTypes = ELEMENTAL_WEAPON_TYPES;
+  readonly needsElementChoice = needsElementChoice;
+
   /** Gasta o espaço (truque não gasta) e, se a magia tiver rolagem cadastrada, abre o modal de
    *  ataque/dano — mesmo fluxo da tela de ações da sessão. */
   castSpell(spell: Spell, slotLevel: number): void {
     const rollConfig = spellRollConfig(spell, slotLevel);
+    const id = this.sheetData()?.character_sheet.id_character;
+    const weaponRequest = spellWeaponRequest(spell, slotLevel, this.weaponElement());
     const openRoll = () => {
+      // Arma Mágica/Elemental: o bônus fica guardado no personagem (vale nos ataques da sessão).
+      if (weaponRequest && id) {
+        this.charService.updateActiveEffects(id, weaponRequest).subscribe({ error: () => undefined });
+      }
       if (rollConfig) this.activeRoll.set(rollConfig);
     };
     if (spell.spellLevel === 0) openRoll();

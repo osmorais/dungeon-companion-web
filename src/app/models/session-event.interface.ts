@@ -9,6 +9,7 @@ import {
   MonsterActionState,
   MonsterCastInfo,
   MonsterSession,
+  MonsterSpellEffects,
   NpcSession,
   PlayerSession,
   RechargeRoll,
@@ -105,6 +106,12 @@ export interface SessionEventPayloadMap {
   roll_added: { roll: RollLogEntry };
   /** Mestre mudou uma opção da mesa no Quadro do Mestre (1.25.0). */
   session_settings_updated: { auto_hit_check: boolean };
+  /** Penalidades de magia de um monstro mudaram (1.26.0). */
+  monster_spell_effects_updated: {
+    id_monster_session: string;
+    spell_effects: MonsterSpellEffects;
+    is_revealed: boolean;
+  };
   /** Resistência de monstro resolvida pelo mestre: a mesa sabe só se passou ou falhou (1.24.2). */
   save_resolved: {
     save_request_id: string;

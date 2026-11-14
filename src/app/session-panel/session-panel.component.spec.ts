@@ -101,6 +101,79 @@ describe('SessionPanelComponent', () => {
     });
   });
 
+  describe('penalidades de magia no monstro (1.26.0)', () => {
+    const attack = {
+      mode: 'ability' as const,
+      rollType: 'attack' as const,
+      label: 'Ataque: Cimitarra',
+      modifier: 4,
+    };
+
+    function withEffects(spell_effects: MonsterSession['spell_effects']): MonsterSession {
+      const goblin = monster('m1', { spell_effects });
+      detail.update((d) => ({ ...d!, monsters: [goblin] }));
+      return goblin;
+    }
+
+    it('Perdição tira 1d4 do ataque e da resistência do monstro, com lembrete', () => {
+      const monster = withEffects({ bane: { from: 'Clara' } });
+      expect(component.withMonsterSpellEffects(monster, attack)).toMatchObject({
+        penaltyDie: { label: 'Perdição' },
+        reminders: ['Perdição de Clara: −1d4 nesta jogada'],
+      });
+      expect(
+        component.withMonsterSpellEffects(monster, {
+          ...attack,
+          rollType: 'save',
+          label: 'Resistência',
+        }),
+      ).toMatchObject({ penaltyDie: { label: 'Perdição' } });
+      // teste de perícia e ataque automático não levam
+      expect(
+        component.withMonsterSpellEffects(monster, {
+          ...attack,
+          rollType: 'skill',
+          label: 'Percepção',
+        }),
+      ).not.toHaveProperty('penaltyDie');
+      expect(
+        component.withMonsterSpellEffects(monster, { ...attack, autoHit: true }),
+      ).not.toHaveProperty('penaltyDie');
+    });
+
+    it('Zombaria Viciosa: desvantagem no próximo ataque e a marca é gasta ao abrir', () => {
+      const update = vi.fn(() => of({ spell_effects: {} }));
+      (gameSessionService as unknown as Record<string, unknown>)['updateMonsterSpellEffect'] =
+        update;
+      const monster = withEffects({ vicious_mockery: { from: 'Lyra' } });
+      expect(component.withMonsterSpellEffects(monster, attack)).toMatchObject({
+        disadvantageFrom: ['Zombaria Viciosa'],
+      });
+      expect(update).toHaveBeenCalledWith('gs', monster.id_monster_session, {
+        key: 'vicious_mockery',
+        active: false,
+      });
+      expect(detail()!.monsters[0].spell_effects).toEqual({});
+    });
+
+    it('Raio do Enfraquecimento vira lembrete; sem penalidade, a rolagem não muda', () => {
+      const monster = withEffects({ enfeebled: { from: 'Elara' } });
+      expect(component.withMonsterSpellEffects(monster, attack).reminders).toEqual([
+        'Raio do Enfraquecimento: metade do dano se o ataque usa Força',
+      ]);
+      const clean = withEffects(null);
+      expect(component.withMonsterSpellEffects(clean, attack)).toBe(attack);
+    });
+
+    it('resistência pedida por magia recebe as penalidades do monstro', () => {
+      const monster = withEffects({ bane: { from: 'Clara' } });
+      expect(component.monsterEffectsFor(monster.id_monster_session)).toEqual({
+        bane: { from: 'Clara' },
+      });
+      expect(component.monsterEffectsFor(null)).toBeNull();
+    });
+  });
+
   describe('Quadro do Mestre: acerto automático (1.25.0)', () => {
     it('liga a opção na API e a mesa já fica com ela', () => {
       const update = vi.fn(() => of({ auto_hit_check: true }));
@@ -885,6 +958,8 @@ describe('SessionPanelComponent', () => {
           damageOnly: true,
           // Revelado sem slug (API antiga): a imagem genérica.
           avatar: { imageUrl: 'assets/monster.png', avatarPreset: null },
+          // Sem penalidades de magia (1.26.0).
+          spellEffects: {},
         });
       });
 

@@ -995,6 +995,14 @@
       @if (isOnHitSpell(spell) && isCastable(spell)) {
         <p class="spell-no-slots">Use na sessão, ao acertar um ataque com arma.</p>
       } @else if (isCastable(spell)) {
+        @if (needsElementChoice(spell)) {
+          <select class="retro-btn spell-slot-btn" aria-label="Elemento da Arma Elemental"
+                  [value]="weaponElement()" (change)="weaponElement.set($any($event.target).value)">
+            @for (el of elementalWeaponTypes; track el) {
+              <option [value]="el">ELEMENTO: {{ el.toUpperCase() }}</option>
+            }
+          </select>
+        }
         @if (spell.spellLevel === 0) {
           <button class="retro-btn spell-slot-btn" (click)="castSpell(spell, 0); closeSpellModal()">LANÇAR TRUQUE</button>
         } @else {
