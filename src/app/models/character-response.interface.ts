@@ -40,6 +40,41 @@ export interface ActiveEffects {
   turn_uses: Record<string, string>;
   /** Inspiração Bárdica recebida e ainda não usada. */
   bardic_inspiration?: { sides: number; from: string } | null;
+  /** Druida transformado (Forma Selvagem). */
+  wild_shape?: WildShapeState | null;
+}
+
+/** Forma em que o druida está — cópia da ficha da besta, com o PV da forma. */
+export interface WildShapeState {
+  slug: string;
+  name: string;
+  challenge_rating: number;
+  hp_current: number;
+  hp_max: number;
+  armor_class: number;
+  strength: number;
+  dexterity: number;
+  constitution: number;
+  speed: string;
+  /** Ações no formato do bestiário (as cartas de ataque saem daqui). */
+  actions: unknown[];
+}
+
+export interface WildShapeView extends WildShapeState {
+  druid_hit_points: { current: number; max: number };
+  /** Sem Magias da Besta (nv18): não lança magias transformado. */
+  spells_blocked: boolean;
+  hours: number;
+}
+
+/** Besta que o druida pode virar (lista da Forma Selvagem). */
+export interface WildShapeOption {
+  slug: string;
+  name: string;
+  challenge_rating: number;
+  hp_max: number;
+  ac: number;
+  speed: Record<string, string>;
 }
 
 /**
@@ -90,6 +125,16 @@ export interface CombatFeatures {
   halfling_lucky: boolean;
   /** Lembretes de vantagem nos testes de resistência/perícia. */
   d20_reminders?: D20Reminder[];
+  /** Ataques por ação de Atacar (Ataque Extra). Ausente na API antiga = 1. */
+  attacks_per_action?: number;
+  /** Ladino nv2: Ação Ardilosa (Disparar, Desengajar ou Esconder como ação bônus). */
+  cunning_action?: boolean;
+  /** Ranger do Conclave da Besta (nv3): tem Companheiro Animal na mesa. */
+  animal_companion?: boolean;
+  /** Alcance da visão no escuro, em metros; `null` se não tem. */
+  darkvision_m?: number | null;
+  /** Druida transformado: a forma, o PV dele e se as magias estão travadas. */
+  wild_shape?: WildShapeView | null;
 }
 
 export interface CharacterSheetResponse {
@@ -133,6 +178,8 @@ export interface CharacterSheetResponse {
       weapons: string[];
       tools: string[];
       languages: string[];
+      /** Vagas "à escolha" e o já escolhido (1.24.0); ausente na API antiga. */
+      choices?: SheetLanguageToolChoices;
     };
     equipment: {
       currency: { cp: number; sp: number; ep: number; gp: number; pp: number };
@@ -164,4 +211,14 @@ export interface CharacterSheetResponse {
     /** Traços que mexem no ataque (só na ficha carregada). */
     combat_features?: CombatFeatures;
   };
+}
+
+/** Idiomas e ferramentas à escolha da raça e do antecedente, como a ficha recebe (1.24.0). */
+export interface SheetLanguageToolChoices {
+  language_count: number;
+  language_options: string[];
+  fixed_languages: string[];
+  chosen_languages: string[];
+  tool_slots: { placeholder: string; options: string[] }[];
+  chosen_tools: Record<string, string>;
 }

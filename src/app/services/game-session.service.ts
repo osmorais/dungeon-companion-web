@@ -5,6 +5,7 @@ import { environment } from '../../environments/environment';
 import { SKIP_LOADING_OVERLAY } from '../loading-overlay/loading.interceptor';
 import {
   CombatEncounterDetail,
+  CompanionOption,
   CreateGameSessionPayload,
   GameSessionDetail,
   GameSessionPagedList,
@@ -27,8 +28,26 @@ import {
   StartEncounterParticipantInput,
   SubmitInitiativePayload,
   ReferenceImage,
+  SessionCompanion,
   ShownReferenceImage,
 } from '../models/game-session.interface';
+
+/** PV do alvo depois de aplicar; no monstro, o que entrou e a defesa que valeu (1.24.4). */
+export interface ApplyAmountResult {
+  current_hit_points?: number;
+  temporary_hit_points?: number;
+  applied_amount?: number;
+  defense?: 'immune' | 'resistant' | 'vulnerable';
+}
+
+/** Pedido criado: pra um jogador ou (1.24.2) pra um monstro, que o mestre rola. */
+export interface SecretRollRequestCreated {
+  id_player_session: string | null;
+  id_monster_session?: string | null;
+  /** `null` com `immune`: monstro imune ao dano, sem pedido (1.24.4). */
+  request_id: string | null;
+  immune?: boolean;
+}
 
 export interface AddMonsterToSessionInput {
   id_monster_catalog?: string;
@@ -79,10 +98,24 @@ export class GameSessionService {
     idPlayerSession: string,
     currentHitPoints: number,
     temporaryHitPoints: number,
-  ): Observable<{ current_hit_points: number } | null> {
-    return this.http.patch<{ current_hit_points: number } | null>(
+    /** Forma Selvagem: dano que passou do PV da forma (vai pro druida). */
+    overflow = 0,
+  ): Observable<{
+    current_hit_points: number;
+    max_hit_points?: number;
+    wild_shape_name?: string | null;
+  } | null> {
+    return this.http.patch<{
+      current_hit_points: number;
+      max_hit_points?: number;
+      wild_shape_name?: string | null;
+    } | null>(
       `${this.baseUrl}/api/game-session/player/${idPlayerSession}/hp`,
-      { current_hit_points: currentHitPoints, temporary_hit_points: temporaryHitPoints },
+      {
+        current_hit_points: currentHitPoints,
+        temporary_hit_points: temporaryHitPoints,
+        ...(overflow > 0 ? { overflow } : {}),
+      },
       { context: this.silentContext() },
     );
   }
@@ -168,16 +201,88 @@ export class GameSessionService {
     sessionId: string,
     payload: {
       id_character: number;
-      target_kind: 'player' | 'npc' | 'monster';
+      target_kind: 'player' | 'npc' | 'monster' | 'companion';
       target_id: string;
       amount: number;
       kind: 'damage' | 'heal' | 'temp_hp';
       cast_id?: string;
+      damage_type?: string | null;
     },
-  ): Observable<{ current_hit_points?: number; temporary_hit_points?: number }> {
-    return this.http.post<{ current_hit_points?: number; temporary_hit_points?: number }>(
+  ): Observable<ApplyAmountResult> {
+    return this.http.post<ApplyAmountResult>(
       `${this.baseUrl}/api/game-session/${sessionId}/apply-amount`,
       payload,
+      { context: this.silentContext() },
+    );
+  }
+
+  // ── Acerto automático do ataque (1.25.0) ──
+
+  /** Mestre liga/desliga o acerto automático da mesa (Quadro do Mestre). */
+  updateSessionSettings(
+    sessionId: string,
+    settings: { auto_hit_check: boolean },
+  ): Observable<{ auto_hit_check: boolean }> {
+    return this.http.patch<{ auto_hit_check: boolean }>(
+      `${this.baseUrl}/api/game-session/${sessionId}/settings`,
+      settings,
+      { context: this.silentContext() },
+    );
+  }
+
+  /** O ataque acertou o alvo? A API compara com a CA sem revelar o número. */
+  attackCheck(
+    sessionId: string,
+    input: {
+      target_kind: 'player' | 'npc' | 'monster' | 'companion';
+      target_id: string;
+      total: number;
+      natural: number;
+    },
+  ): Observable<{ hit: boolean }> {
+    return this.http.post<{ hit: boolean }>(
+      `${this.baseUrl}/api/game-session/${sessionId}/attack-check`,
+      input,
+      { context: this.silentContext() },
+    );
+  }
+
+  // ── Companheiro Animal (ranger do Conclave da Besta) ──
+
+  /** Bestas que o ranger pode escolher (`allowed` falso se ainda não tem a característica). */
+  getCompanionOptions(
+    sessionId: string,
+    idPlayerSession: string,
+  ): Observable<{ allowed: boolean; beasts: CompanionOption[] }> {
+    return this.http.get<{ allowed: boolean; beasts: CompanionOption[] }>(
+      `${this.baseUrl}/api/game-session/${sessionId}/companion-options`,
+      { params: { id_player_session: idPlayerSession }, context: this.silentContext() },
+    );
+  }
+
+  /** Escolhe (ou troca) o companheiro: chega com o PV cheio. */
+  chooseCompanion(
+    sessionId: string,
+    idPlayerSession: string,
+    slug: string,
+  ): Observable<SessionCompanion> {
+    return this.http.post<SessionCompanion>(
+      `${this.baseUrl}/api/game-session/${sessionId}/companion`,
+      { id_player_session: idPlayerSession, slug },
+      { context: this.silentContext() },
+    );
+  }
+
+  dismissCompanion(idCompanion: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/api/game-session/companion/${idCompanion}`, {
+      context: this.silentContext(),
+    });
+  }
+
+  setCompanionHp(idCompanion: string, hpCurrent: number): Observable<{ hp_current: number }> {
+    return this.http.patch<{ hp_current: number }>(
+      `${this.baseUrl}/api/game-session/companion/${idCompanion}/hp`,
+      { hp_current: hpCurrent },
       { context: this.silentContext() },
     );
   }
@@ -320,8 +425,8 @@ export class GameSessionService {
   requestSecretRoll(
     sessionId: string,
     payload: SecretRollRequestPayload,
-  ): Observable<{ id_player_session: string; request_id: string }[]> {
-    return this.http.post<{ id_player_session: string; request_id: string }[]>(
+  ): Observable<SecretRollRequestCreated[]> {
+    return this.http.post<SecretRollRequestCreated[]>(
       `${this.baseUrl}/api/game-session/${sessionId}/secret-roll-request`,
       payload,
     );

@@ -6,6 +6,7 @@ import {
   NpcSession,
   PlayerSession,
   RollLogEntry,
+  SessionCompanion,
 } from '../app/models/game-session.interface';
 
 /** Fábricas de dados de sessão pros testes — fora do build da aplicação (ver tsconfig.app.json). */
@@ -34,6 +35,30 @@ export function player(id: string, overrides: Partial<PlayerSession> = {}): Play
 
 export function npc(id: string, overrides: Partial<NpcSession> = {}): NpcSession {
   return { ...player(id), id_npc_session: id, ...overrides } as NpcSession;
+}
+
+/** Companheiro Animal (lobo) do ranger `idPlayerSession`. */
+export function companion(
+  id: string,
+  idPlayerSession: string,
+  overrides: Partial<SessionCompanion> = {},
+): SessionCompanion {
+  return {
+    id_session_companion: id,
+    id_game_session: 'gs',
+    id_player_session: idPlayerSession,
+    slug: 'lobo',
+    name: 'Lobo',
+    color: '#5fb3d9',
+    hp_current: 12,
+    hp_max: 12,
+    armor_class: 15,
+    proficiency_bonus: 2,
+    attacks_per_command: 1,
+    speed: 'terrestre 12 m',
+    actions: [],
+    ...overrides,
+  };
 }
 
 export function monster(id: string, overrides: Partial<MonsterSession> = {}): MonsterSession {

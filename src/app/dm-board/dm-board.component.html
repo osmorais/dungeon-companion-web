@@ -331,15 +331,16 @@
       <div class="dm-board-grid">
         <button
           class="retro-btn dm-board-toggle"
-          [class.dm-board-toggle--on]="pollingEnabled"
+          [class.dm-board-toggle--on]="autoHitCheck"
+          [disabled]="savingAutoHit"
           [title]="
-            pollingEnabled
-              ? 'Polling ativo (6s) — clique para usar WebSocket'
-              : 'WebSocket ativo — clique para usar polling (6s)'
+            autoHitCheck
+              ? 'A mesa confere o ataque contra a CA do alvo sozinha — clique para perguntar a quem rola'
+              : 'Quem rola responde se passou da CA — clique para a mesa conferir sozinha'
           "
-          (click)="togglePolling.emit()"
+          (click)="toggleAutoHit.emit()"
         >
-          POLLING: {{ pollingEnabled ? 'ON' : 'OFF' }}
+          ACERTO AUTOMÁTICO: {{ autoHitCheck ? 'ON' : 'OFF' }}
         </button>
         <button
           class="retro-btn dm-board-toggle"

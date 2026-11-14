@@ -1363,7 +1363,15 @@ input[type="checkbox"].retro-checkbox {
   }
 }
 
-/* ===== Telas no padrão da Home (1.19.2) =====
+/* Botão de escolher idiomas e ferramentas na ficha (1.24.0) — global pra não pesar o SCSS da ficha. */
+.lt-open-btn {
+  float: none;
+  margin: 8px 0 0;
+  padding: 6px 8px;
+  font-size: 7px;
+}
+
+/* ===== Telas no padrão da Home (1.25.2) =====
    Peças da Home nova (home.component.scss) pras outras telas: cenário com sombra e trilhos
    (.fa-stage/.fa-rail), título com sombra em degrau (.fa-intro), janela de borda laranja
    (.fa-window) e botões (.fa-btn, .fa-btn--primary). Primeira tela: Sessões criadas.
@@ -1521,7 +1529,7 @@ input[type="checkbox"].retro-checkbox {
   }
 }
 
-/* Formulários e listas no padrão da Home (1.19.2): campo (rótulo pequeno + caixa escura com texto
+/* Formulários e listas no padrão da Home (1.25.2): campo (rótulo pequeno + caixa escura com texto
    em VT323), item marcável (NPC, amigo), contador da barra, etapa numerada e janela em colunas. */
 .fa-field {
   display: flex;
@@ -1665,7 +1673,7 @@ input[type="checkbox"].retro-checkbox {
   color: var(--label-title-color);
 }
 
-/* ===== Transição entre telas (1.19.2) =====
+/* ===== Transição entre telas (1.25.2) =====
    View Transitions do roteador (route-transition.ts). A tela que sai desliza e some; a nova chega
    deslizando do outro lado e freia devagar, como o vagão da Home encostando no fim do trilho. Ao
    voltar (Home, botão do navegador), o sentido inverte. Fundo e rodapé ficam na raiz (parados) e

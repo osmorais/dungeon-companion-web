@@ -1,5 +1,17 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+} from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { GameSessionService } from '../services/game-session.service';
 import { SessionStateService } from '../services/session-state.service';
@@ -8,14 +20,22 @@ import { DamageImpactService } from '../services/damage-impact.service';
 import {
   AdvantageState,
   CastStageRoll,
+  CastStageTarget,
   RollLogEntry,
   RollLogPayload,
   RollType,
 } from '../models/game-session.interface';
 import { PixelDieComponent } from '../pixel-die/pixel-die.component';
+import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
 import { PixelNumericDieComponent } from '../pixel-numeric-die/pixel-numeric-die.component';
 import { hasRiderChoices, RiderChoices, RiderOption } from './spell-riders';
-import { ApplyKind, ApplyRequest, ApplyTarget, resistsDamage } from './apply-target';
+import {
+  ApplyKind,
+  ApplyRequest,
+  ApplyTarget,
+  normalizeDamageType,
+  resistsDamage,
+} from './apply-target';
 import { CastShatterComponent } from '../spell-cast/cast-shatter.component';
 import { CastTriumphComponent } from '../spell-cast/cast-triumph.component';
 import { SpellCastStageComponent } from '../spell-cast/spell-cast-stage.component';
@@ -108,7 +128,12 @@ export interface AbilityRollConfig {
   };
   /** Vários ataques na mesma ação (raios do Raio Ardente, feixes da Rajada Mística): depois de
    *  cada um (acerto + dano, ou erro), o modal oferece o próximo até `count`. */
-  instances?: { count: number; label: string };
+  instances?: {
+    count: number;
+    label: string;
+    /** Começa num ataque que não o primeiro (Ataque Extra: o 1º já foi feito nesta vez). */
+    start?: number;
+  };
 }
 
 export interface FreeformRollConfig {
@@ -146,6 +171,7 @@ const CAST_ECHO_WAIT_MS = 2500;
     SpellCastStageComponent,
     CastShatterComponent,
     CastTriumphComponent,
+    AvatarDisplayComponent,
   ],
   templateUrl: './roll-modal.component.html',
   styleUrls: ['./roll-modal.component.scss'],
@@ -168,6 +194,8 @@ export class RollModalComponent implements OnInit, OnDestroy {
   @Input() secretRequestId: string | null = null;
   /** Com `secretRequestId`: teste secreto (oculto) ou resistência pública pedida por quem lançou. */
   @Input() secretRoll = true;
+  /** Já rola ao abrir (pedido de resistência: o ROLAR do aviso rola direto, sem 2º clique). */
+  @Input() autoRoll = false;
   /** Alvos em que o dano/cura rolado pode ser aplicado direto (opcional). Vazio = sem a opção,
    *  e o modal se comporta como antes (encerra sozinho ao terminar a rolagem de dano). */
   @Input() applyTargets: ApplyTarget[] = [];
@@ -409,21 +437,23 @@ export class RollModalComponent implements OnInit, OnDestroy {
     this.roll();
   }
 
-  /** Pedido de resistência aos jogadores atingidos (quem lançou marca quem foi pego). */
+  /** Pedido de resistência aos atingidos (quem lançou marca quem foi pego): jogadores rolam na
+   *  própria tela; monstros, o mestre rola (1.24.2). Chave = a do alvo ("player:…"/"monster:…"). */
   saveRequestPicks = signal<ReadonlySet<string>>(new Set());
-  /** id_player_session → id do pedido. */
+  /** chave do alvo → id do pedido. */
   saveRequests = signal<Record<string, string>>({});
   requestingSaves = signal(false);
   saveRequestError = signal<string | null>(null);
 
-  /** Jogadores que podem receber o pedido (só com CD conhecida e dentro da sessão). */
+  /** Quem pode receber o pedido (só com CD conhecida e dentro da sessão): jogadores e monstros
+   *  da mesa (o jogador só vê os revelados). */
   get saveRequestTargets(): { id: string; label: string }[] {
     if (this.config.mode !== 'ability' || !this.sessionId) return [];
     const save = this.config.save;
     if (!save?.dc || !save.ability) return [];
     return this.applyTargets
-      .filter((t) => t.key.startsWith('player:'))
-      .map((t) => ({ id: t.key.slice('player:'.length), label: t.label }));
+      .filter((t) => t.key.startsWith('player:') || t.key.startsWith('monster:'))
+      .map((t) => ({ id: t.key, label: t.label }));
   }
 
   toggleSaveTarget(id: string): void {
@@ -443,9 +473,15 @@ export class RollModalComponent implements OnInit, OnDestroy {
     if (!save?.dc || !save.ability || this.requestingSaves()) return;
     this.requestingSaves.set(true);
     this.saveRequestError.set(null);
+    const idsOf = (prefix: string) =>
+      ids.filter((key) => key.startsWith(prefix)).map((key) => key.slice(prefix.length));
+    const monsterIds = idsOf('monster:');
+    const damageType = normalizeDamageType(this.config.damage?.damageType) || null;
     this.gameSessionService
       .requestSecretRoll(this.sessionId, {
-        id_player_sessions: ids,
+        id_player_sessions: idsOf('player:'),
+        ...(monsterIds.length ? { id_monster_sessions: monsterIds } : {}),
+        ...(monsterIds.length && damageType ? { damage_type: damageType } : {}),
         check: { kind: 'save', ability: save.ability },
         label: this.config.label.slice(0, 60),
         dc: save.dc,
@@ -457,7 +493,14 @@ export class RollModalComponent implements OnInit, OnDestroy {
           this.requestingSaves.set(false);
           this.saveRequests.update((map) => ({
             ...map,
-            ...Object.fromEntries(created.map((r) => [r.id_player_session, r.request_id])),
+            ...Object.fromEntries(
+              created.map((r) => [
+                r.id_monster_session
+                  ? `monster:${r.id_monster_session}`
+                  : `player:${r.id_player_session}`,
+                r.immune || !r.request_id ? IMMUNE_REQUEST : r.request_id,
+              ]),
+            ),
           }));
           this.saveRequestPicks.set(new Set());
         },
@@ -469,9 +512,13 @@ export class RollModalComponent implements OnInit, OnDestroy {
   }
 
   /** Situação do pedido de um jogador: aguardando, passou ou falhou (a última rolagem dele). */
-  saveStatus(id: string): 'pending' | 'success' | 'fail' | null {
+  saveStatus(id: string): 'pending' | 'success' | 'fail' | 'immune' | null {
     const requestId = this.saveRequests()[id];
     if (!requestId) return null;
+    if (requestId === IMMUNE_REQUEST) return 'immune';
+    // Monstro: o total fica oculto com o mestre; chega só o passou/falhou (1.24.2).
+    const resolved = this.sessionState.saveOutcomes()[requestId];
+    if (resolved) return resolved;
     const answer = this.sessionState
       .detail()
       ?.recent_rolls.find((r) => r.save_request_id === requestId);
@@ -518,6 +565,7 @@ export class RollModalComponent implements OnInit, OnDestroy {
       saveNote: cast.saveNote,
       stamp: monsterSequenceStamp(cast.monsterAction),
       applied: this.applied(),
+      targets: this.stageTargets(),
       done: false,
     };
   });
@@ -609,6 +657,7 @@ export class RollModalComponent implements OnInit, OnDestroy {
       phase,
       this.castRolls().map((r) => r.ref),
       this.applied(),
+      this.stageTargets(),
     );
     const sessionId = this.sessionId;
     this.castQueue = this.castQueue.then(() =>
@@ -629,6 +678,8 @@ export class RollModalComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     if (this.canHideRoll && this.startHidden) this.rollHidden.set(true);
     if (this.advantageFrom.length) this.autoAdvantageOn.set(true);
+    const start = this.config.mode === 'ability' ? this.config.instances?.start : undefined;
+    if (start && start > 1) this.instanceIndex.set(start);
     if (this.cast) {
       // Anuncia o lançamento já ao abrir: a mesa e quem lança veem a carta entrar juntos.
       this.sendCastStage('open');
@@ -638,6 +689,17 @@ export class RollModalComponent implements OnInit, OnDestroy {
         }, CAST_ECHO_WAIT_MS);
       }
     }
+    if (this.autoRoll && !this.pendingDamage) setTimeout(() => this.roll());
+    // Lançamento com alvos possíveis: antes de tudo, quem está sendo atingido (1.25.0).
+    if (this.canPickTargets) {
+      this.pickingTargets.set(true);
+      return;
+    }
+    this.startFlow();
+  }
+
+  /** Começa a rolagem (depois da escolha dos alvos, quando há). */
+  private startFlow(): void {
     if (this.pendingDamage && this.config.mode === 'ability' && this.config.autoHit) {
       this.attackPhase.set('damage');
       // Valor fixo, sem dado (Integridade Corporal, Curar pelo Toque, Preservar a Vida): já
@@ -647,6 +709,216 @@ export class RollModalComponent implements OnInit, OnDestroy {
         this.finishRoll([]);
       }
     }
+  }
+
+  /** ===================== ESCOLHA DOS ALVOS NO COMEÇO (1.25.0) ===================== */
+
+  /** Mostrando os anéis dos alvos (antes de rolar). */
+  pickingTargets = signal(false);
+  /** Alvos escolhidos; `null` = SEM ALVO (o fluxo de antes, com a lista no fim). */
+  chosenTargets = signal<ApplyTarget[] | null>(null);
+  pickedKeys = signal<ReadonlySet<string>>(new Set());
+  /** Conferindo o acerto na API (acerto automático da mesa). */
+  checkingHit = signal(false);
+  /** A conferência falhou: volta a perguntar "passou da CA?". */
+  private hitCheckFailed = signal(false);
+  /** Aviso "nem todos rolaram a resistência" antes de aplicar. */
+  confirmingPending = signal(false);
+
+  /** Escolha no começo: lançamento com alvos possíveis (cura repartida segue como antes). */
+  private get canPickTargets(): boolean {
+    return (
+      !!this.cast &&
+      this.config.mode === 'ability' &&
+      !this.isDistributing &&
+      this.applicableTargets.length > 0
+    );
+  }
+
+  get hasChosenTargets(): boolean {
+    return (this.chosenTargets()?.length ?? 0) > 0;
+  }
+
+  isPicked(key: string): boolean {
+    return this.pickedKeys().has(key);
+  }
+
+  togglePick(key: string): void {
+    this.toggleIn(this.pickedKeys, key);
+  }
+
+  /** Confirma os alvos: na resistência, já pede a quem rola (jogadores e monstros). */
+  confirmTargets(): void {
+    const chosen = this.applicableTargets.filter((t) => this.pickedKeys().has(t.key));
+    if (!chosen.length) return;
+    this.chosenTargets.set(chosen);
+    this.pickingTargets.set(false);
+    const requestable = new Set(this.saveRequestTargets.map((t) => t.id));
+    const keys = chosen.map((t) => t.key).filter((k) => requestable.has(k));
+    if (keys.length) {
+      this.saveRequestPicks.set(new Set(keys));
+      this.requestSaves();
+    }
+    this.sendCastStage('open');
+    this.startFlow();
+  }
+
+  /** SEM ALVO: só anuncia, e o resto segue como antes. */
+  skipTargets(): void {
+    this.chosenTargets.set(null);
+    this.pickingTargets.set(false);
+    this.startFlow();
+  }
+
+  /** Ataque com jogada (não automático): cada ataque vai num dos alvos, na ordem. */
+  private get isAttackRoll(): boolean {
+    return this.config.mode === 'ability' && this.config.rollType === 'attack' && !this.config.autoHit;
+  }
+
+  get currentAttackTarget(): ApplyTarget | null {
+    const chosen = this.chosenTargets();
+    if (!chosen?.length || !this.isAttackRoll) return null;
+    return chosen[(this.instanceIndex() - 1) % chosen.length];
+  }
+
+  /** Quem recebe o dano/cura deste passo: o alvo do ataque, ou todos os escolhidos. */
+  get targetsToApply(): ApplyTarget[] {
+    const current = this.currentAttackTarget;
+    if (current) return [current];
+    return this.chosenTargets() ?? [];
+  }
+
+  /** Mesa com acerto automático (opção do Quadro do Mestre) e um alvo pra conferir. */
+  private get autoHitCheck(): boolean {
+    return (
+      !!this.sessionState.detail()?.game_session.auto_hit_check &&
+      !!this.currentAttackTarget &&
+      !this.hitCheckFailed()
+    );
+  }
+
+  /** Acerto automático: espera o Sortudo/Inspiração se houver (aí o botão CONFERIR ACERTO). */
+  get offersHitCheck(): boolean {
+    return this.isAwaitingHitDecision && this.autoHitCheck && !this.checkingHit();
+  }
+
+  /** A API compara o total com a CA do alvo (sem revelar a CA) e segue: dano ou errou. */
+  checkHit(): void {
+    const res = this.result();
+    const target = this.currentAttackTarget;
+    if (!res || !target || !this.sessionId || this.checkingHit()) return;
+    if (this.isCritical()) {
+      this.rollDamageNow();
+      return;
+    }
+    const [kind, id] = target.key.split(':');
+    this.checkingHit.set(true);
+    this.gameSessionService
+      .attackCheck(this.sessionId, {
+        target_kind: kind as 'player' | 'npc' | 'monster' | 'companion',
+        target_id: id,
+        total: res.total,
+        natural: res.chosen[0] ?? res.rolls[0],
+      })
+      .subscribe({
+        next: ({ hit }) => {
+          this.checkingHit.set(false);
+          if (hit) this.rollDamageNow();
+          else this.confirmMiss();
+        },
+        error: () => {
+          this.checkingHit.set(false);
+          this.hitCheckFailed.set(true);
+        },
+      });
+  }
+
+  /** Resultado da resistência de um alvo escolhido (ou `null`: ninguém pediu, ex.: NPC). */
+  private saveOf(target: ApplyTarget): CastStageTarget['save'] {
+    return this.saveStatus(target.key);
+  }
+
+  /** O que este alvo recebe: na resistência, conforme passou (metade/nada) ou falhou. */
+  amountForChosen(target: ApplyTarget): number {
+    if (this.config.mode === 'ability' && this.config.save && this.saveOf(target) === 'success') {
+      const onSuccess = this.config.save.onSuccess;
+      if (onSuccess === 'none') return 0;
+      if (onSuccess === 'half') return this.amountForTarget(target, 'half');
+    }
+    return this.amountForTarget(target, 'full');
+  }
+
+  /** "Goblin, Lyra" — quem falta rolar, no aviso antes de aplicar. */
+  get pendingNames(): string {
+    return this.pendingSaveTargets.map((t) => t.label).join(', ');
+  }
+
+  /** Alvos que ainda não rolaram a resistência pedida. */
+  get pendingSaveTargets(): ApplyTarget[] {
+    return this.targetsToApply.filter((t) => this.saveOf(t) === 'pending');
+  }
+
+  /** APLICAR: quem ainda não rolou fica sem o dano (com aviso antes). Depois fecha. */
+  applyChosen(force = false): void {
+    if (!this.result()) return;
+    const pending = this.pendingSaveTargets;
+    if (pending.length && !force) {
+      this.confirmingPending.set(true);
+      return;
+    }
+    this.confirmingPending.set(false);
+    const kind = this.applyKind;
+    for (const target of this.targetsToApply) {
+      if (pending.includes(target)) continue;
+      const amount = this.amountForChosen(target);
+      if (amount > 0)
+        this.applyToTarget.emit({
+          targetKey: target.key,
+          amount,
+          kind,
+          castId: this.cast?.castId,
+          damageType: this.applyDamageType,
+        });
+      this.applied.update((list) => [...list, { label: target.label, amount, kind }]);
+    }
+    this.sendCastStage('open');
+    this.advanceAfterApply();
+  }
+
+  /** CONCLUIR SEM APLICAR: o mesmo que o CONCLUIR de antes. */
+  concludeWithoutApply(): void {
+    this.confirmingPending.set(false);
+    this.advanceAfterApply();
+  }
+
+  /** Vários ataques: o próximo (no próximo alvo); senão, encerra. */
+  private advanceAfterApply(): void {
+    this.awaitingApply.set(false);
+    if (this.isAttackRoll && this.hasMoreInstances) {
+      this.nextInstance();
+      return;
+    }
+    this.finishApply();
+  }
+
+  /** Alvos com o resultado da resistência, pro palco de todos. */
+  private stageTargets(): CastStageTarget[] {
+    return (this.chosenTargets() ?? []).map((t) => ({ label: t.label, save: this.saveOf(t) }));
+  }
+
+  /** Reenvia o palco quando muda o resultado de alguma resistência (todos veem o carimbo). */
+  private readonly stageTargetsKey = computed(() =>
+    this.stageTargets()
+      .map((t) => `${t.label}:${t.save ?? ''}`)
+      .join('|'),
+  );
+
+  constructor() {
+    effect(() => {
+      const key = this.stageTargetsKey();
+      if (!key) return;
+      untracked(() => this.sendCastStage('open'));
+    });
   }
 
   /** Estado da escolha de Destruição Divina (fase 'smite-choice'). */
@@ -759,6 +1031,7 @@ export class RollModalComponent implements OnInit, OnDestroy {
   /** Mostra o "APLICAR EM…" depois de uma rolagem de dano/cura, se houver alvos. */
   get canApply(): boolean {
     return (
+      !this.hasChosenTargets &&
       this.applyTargets.length > 0 &&
       !!this.result() &&
       !this.isRolling() &&
@@ -843,12 +1116,37 @@ export class RollModalComponent implements OnInit, OnDestroy {
   /** Quanto o alvo recebe: `full` = falhou/acertou, `half` = passou na resistência,
    *  `uncanny` = Esquiva Sobrenatural; com Evasão e resistência ao tipo já aplicadas. */
   amountForTarget(target: ApplyTarget | undefined, mode: 'full' | 'half' | 'uncanny'): number {
+    if (this.immunityOf(target)) return 0;
     const total = this.result()?.total ?? 0;
     let amount = mode === 'half' ? Math.floor(total / 2) : total;
     if (this.hasEvasion(target)) amount = mode === 'half' ? 0 : Math.floor(total / 2);
     if (mode === 'uncanny') amount = Math.floor(amount / 2);
-    if (this.resistanceOf(target)) amount = Math.floor(amount / 2);
+    // Resistência e vulnerabilidade juntas se anulam.
+    const resists = !!this.resistanceOf(target);
+    const vulnerable = !!this.vulnerabilityOf(target);
+    if (resists && !vulnerable) amount = Math.floor(amount / 2);
+    if (vulnerable && !resists) amount = amount * 2;
     return amount;
+  }
+
+  /** Imunidade do alvo ao tipo deste dano: a da ficha do monstro (mestre) ou a que a API
+   *  respondeu no pedido de resistência (jogador, 1.24.4). */
+  immunityOf(target: ApplyTarget | undefined): string | null {
+    if (this.applyKind !== 'damage' || !target) return null;
+    if (this.saveStatus(target.key) === 'immune') return 'imune';
+    if (!target.defenses?.immunities?.length) return null;
+    return resistsDamage(target.defenses.immunities, this.pendingDamage?.damageType);
+  }
+
+  vulnerabilityOf(target: ApplyTarget | undefined): string | null {
+    if (this.applyKind !== 'damage' || !target?.defenses?.vulnerabilities?.length) return null;
+    return resistsDamage(target.defenses.vulnerabilities, this.pendingDamage?.damageType);
+  }
+
+  /** Tipo do dano pra API ajustar no monstro (jogador não vê a ficha dele). */
+  private get applyDamageType(): string | null {
+    if (this.applyKind !== 'damage') return null;
+    return normalizeDamageType(this.pendingDamage?.damageType) || null;
   }
 
   /** Alvo único escolhido no seletor (cura distribuída e chamadas antigas). */
@@ -914,8 +1212,9 @@ export class RollModalComponent implements OnInit, OnDestroy {
     this.selectedKeys.set(new Set(this.pendingTargets.map((t) => t.key)));
   }
 
+  /** Passou: marcado à mão ou a resistência pedida voltou "passou" (jogador ou monstro). */
   isPassed(key: string): boolean {
-    return this.passedKeys().has(key);
+    return this.passedKeys().has(key) || this.saveStatus(key) === 'success';
   }
 
   togglePassed(key: string): void {
@@ -955,7 +1254,13 @@ export class RollModalComponent implements OnInit, OnDestroy {
       const amount = this.pendingAmount(target);
       // Evasão (passou): nada a aplicar — só registra pra mesa ver.
       if (amount > 0)
-        this.applyToTarget.emit({ targetKey: target.key, amount, kind, castId: this.cast?.castId });
+        this.applyToTarget.emit({
+          targetKey: target.key,
+          amount,
+          kind,
+          castId: this.cast?.castId,
+          damageType: this.applyDamageType,
+        });
       this.applied.update((list) => [...list, { label: target.label, amount, kind }]);
     }
     this.appliedKeys.update((done) => new Set([...done, ...targets.map((t) => t.key)]));
@@ -990,7 +1295,13 @@ export class RollModalComponent implements OnInit, OnDestroy {
     }
     this.distributeAmount.set(null);
     const kind = this.applyKind;
-    this.applyToTarget.emit({ targetKey: target.key, amount, kind, castId: this.cast?.castId });
+    this.applyToTarget.emit({
+      targetKey: target.key,
+      amount,
+      kind,
+      castId: this.cast?.castId,
+      damageType: this.applyDamageType,
+    });
     this.applied.update((list) => [...list, { label: target.label, amount, kind }]);
     this.sendCastStage('open');
   }
@@ -1357,10 +1668,25 @@ export class RollModalComponent implements OnInit, OnDestroy {
       const critMin = this.config.mode === 'ability' ? (this.config.critMin ?? 20) : 20;
       this.isCritical.set(chosen.length === 1 && chosen[0] >= critMin);
       this.attackPhase.set('awaiting-hit');
+      // Acerto automático: confere já, a não ser que dê pra usar Sortudo/Inspiração antes.
+      if (
+        this.autoHitCheck &&
+        !(this.canHalflingReroll || this.canUseLuck || this.canUseInspiration)
+      )
+        this.checkHit();
       return;
     }
 
     this.lastRollWasDamage = this.attackPhase() === 'damage';
+
+    // Alvos escolhidos no começo: só APLICAR O DANO / CONCLUIR SEM APLICAR (o próximo ataque vem
+    // depois disso).
+    if (this.attackPhase() === 'damage' && this.hasChosenTargets) {
+      this.applied.set([]);
+      this.resetBatch();
+      this.awaitingApply.set(true);
+      return;
+    }
 
     if (this.attackPhase() === 'damage' && this.hasMoreInstances) {
       this.attackPhase.set('next-instance');
@@ -1441,3 +1767,6 @@ export class RollModalComponent implements OnInit, OnDestroy {
     });
   }
 }
+
+/** Marca, no lugar do id do pedido, o monstro imune ao dano (a API nem pediu, 1.24.4). */
+const IMMUNE_REQUEST = 'immune';

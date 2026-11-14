@@ -18,6 +18,7 @@ import {
   RechargeRoll,
   RevealedMonster,
   RollLogEntry,
+  SessionCompanion,
 } from '../models/game-session.interface';
 import { CharacterSummary } from '../models/character-summary.interface';
 import { AvatarPreset } from '../models/avatar-preset.interface';
@@ -26,6 +27,8 @@ import { Spell } from '../models/character-options.interface';
 import { AvatarDisplayComponent } from '../avatar-display/avatar-display.component';
 import { XpBarComponent } from '../xp-bar/xp-bar.component';
 import { HpBarComponent } from '../hp-bar/hp-bar.component';
+import { CompanionCardComponent } from './companion-card.component';
+import { applySessionEvent } from '../services/session-event.reducer';
 import { PixelDieComponent } from '../pixel-die/pixel-die.component';
 import { PixelNumericDieComponent } from '../pixel-numeric-die/pixel-numeric-die.component';
 import { PlayerActionsModalComponent } from '../player-actions-modal/player-actions-modal.component';
@@ -79,7 +82,13 @@ import { MonsterRevealNoticeComponent } from '../monster-reveal/monster-reveal-n
 import { MonsterCarouselComponent } from '../monster-reveal/monster-carousel.component';
 import { MonsterDrawerComponent } from '../monster-drawer/monster-drawer.component';
 import { MonsterDefeatNoticeComponent } from '../monster-reveal/monster-defeat-notice.component';
-import { MonsterRevealInfo, monsterActionToCard, monsterToCard } from '../game-card/monster-card';
+import {
+  MonsterRevealInfo,
+  defaultMonsterImage,
+  monsterActionToCard,
+  monsterImage,
+  monsterToCard,
+} from '../game-card/monster-card';
 import { GameCardComponent } from '../game-card/game-card.component';
 import { GameCardData } from '../game-card/game-card.model';
 import { CastStageView, castRollView } from '../spell-cast/spell-cast-stage.model';
@@ -96,6 +105,11 @@ import { challengeRatingText, monsterSpeedText } from '../services/monster-forma
 import { IMAGE_TYPE_ERROR, isAcceptedImageFile } from '../constants/image-upload';
 import { SessionFriendsInviteComponent } from '../session-invite-modal/session-friends-invite.component';
 
+import { MonsterStatBlock } from '../models/monster-catalog.interface';
+import { monsterApplyDefenses } from '../roll-modal/apply-target';
+
+/** Aviso "APLICOU": por que o dano no monstro mudou (1.24.4). */
+const DEFENSE_LABEL = { immune: 'imune', resistant: 'resistente', vulnerable: 'vulnerável' } as const;
 @Component({
   selector: 'app-session-panel',
   standalone: true,
@@ -112,6 +126,7 @@ import { SessionFriendsInviteComponent } from '../session-invite-modal/session-f
     AvatarDisplayComponent,
     XpBarComponent,
     HpBarComponent,
+    CompanionCardComponent,
     PixelDieComponent,
     PixelNumericDieComponent,
     PlayerActionsModalComponent,
@@ -183,6 +198,11 @@ export class SessionPanelComponent implements OnDestroy {
 
   /** Imagem padrão pra monstros sem `image_url` cadastrada (avatar revelado, modais de anúncio/derrota/detalhe). */
   readonly DEFAULT_MONSTER_IMAGE = 'assets/monster.png';
+
+  /** Imagem do monstro da mesa: a do mestre ou a arte padrão do slug (1.23.0). */
+  monsterImageOf(monster: MonsterSession): string {
+    return monsterImage(monster.image_url, monster.monster_api_slug);
+  }
 
   /** Quando ligado, desliga o socket e usa polling a cada 6s pra atualizar a sessão. */
   pollingEnabled = signal(false);
@@ -286,7 +306,7 @@ export class SessionPanelComponent implements OnDestroy {
       if (event.type === 'monster_defeated') {
         this.showMonsterDefeatedToast({
           name: event.name,
-          imageUrl: event.image_url,
+          imageUrl: monsterImage(event.image_url, event.monster_slug),
           monsterType: event.monster_type ?? null,
           size: event.size ?? null,
         });
@@ -295,7 +315,7 @@ export class SessionPanelComponent implements OnDestroy {
       if (event.type === 'monster_revealed') {
         this.queueMonsterAnnouncement({
           name: event.name,
-          imageUrl: event.image_url,
+          imageUrl: monsterImage(event.image_url, event.monster_slug),
           monsterType: event.monster_type ?? null,
           size: event.size ?? null,
           lore: event.lore ?? null,
@@ -381,6 +401,27 @@ export class SessionPanelComponent implements OnDestroy {
 
   toggleScreenEffects(): void {
     this.damageImpact.toggleEnabled();
+  }
+
+  savingAutoHit = signal(false);
+
+  /** Quadro do Mestre: liga/desliga o acerto automático da mesa (1.25.0). */
+  toggleAutoHit(): void {
+    const detail = this.sessionDetail();
+    if (!detail || this.savingAutoHit()) return;
+    const next = !detail.game_session.auto_hit_check;
+    this.savingAutoHit.set(true);
+    this.gameSessionService
+      .updateSessionSettings(detail.game_session.id_game_session, { auto_hit_check: next })
+      .pipe(finalize(() => this.savingAutoHit.set(false)))
+      .subscribe({
+        next: ({ auto_hit_check }) =>
+          this.sessionState.patch((d) => ({
+            ...d,
+            game_session: { ...d.game_session, auto_hit_check },
+          })),
+        error: (err) => alert(apiErrorMessage(err, 'Não foi possível mudar a opção.')),
+      });
   }
 
   togglePolling() {
@@ -521,6 +562,99 @@ export class SessionPanelComponent implements OnDestroy {
     this.activeActionsCharacter.set(null);
   }
 
+  /** ========================= COMPANHEIRO ANIMAL ========================= */
+
+  /** Companheiros dos rangers na mesa (API antiga: nenhum). */
+  companions = computed(() => this.sessionDetail()?.companions ?? []);
+
+  savingCompanionHp = signal<Set<string>>(new Set());
+
+  /** O ranger dono do companheiro (jogador da mesa). */
+  companionOwner(companion: SessionCompanion): PlayerSession | undefined {
+    return this.sessionDetail()?.players.find((p) => p.id_player_session === companion.id_player_session);
+  }
+
+  companionOwnerName(companion: SessionCompanion): string {
+    const owner = this.companionOwner(companion);
+    return owner?.character?.name ?? owner?.player_name ?? '—';
+  }
+
+  /** Cor do contorno do card do ranger (a mesma do companheiro); `null` sem companheiro. */
+  companionColorFor(player: PlayerSession): string | null {
+    return this.companions().find((c) => c.id_player_session === player.id_player_session)?.color ?? null;
+  }
+
+  /** Mestre ou o jogador do ranger: mexe no PV e nas ações do companheiro. */
+  canManageCompanion(companion: SessionCompanion): boolean {
+    return this.isOwner() || this.myPlayer()?.id_player_session === companion.id_player_session;
+  }
+
+  /** Ações do companheiro: abrem no modal do ranger (age na vez dele). */
+  openCompanionActions(companion: SessionCompanion): void {
+    const owner = this.companionOwner(companion);
+    if (owner?.character) this.openPlayerActions(owner.id_character, owner.character.name);
+  }
+
+  isCompanionTurn(companion: SessionCompanion): boolean {
+    const owner = this.companionOwner(companion);
+    return !!owner && this.isPlayerCurrentTurn(owner);
+  }
+
+  /** Sessão do jogador dono do personagem (o modal de ações usa pro companheiro). */
+  playerSessionIdFor(idCharacter: number): string | null {
+    return this.sessionDetail()?.players.find((p) => p.id_character === idCharacter)?.id_player_session ?? null;
+  }
+
+  companionFor(idCharacter: number): SessionCompanion | null {
+    const idPlayerSession = this.playerSessionIdFor(idCharacter);
+    return this.companions().find((c) => c.id_player_session === idPlayerSession) ?? null;
+  }
+
+  /** O modal escolheu/trocou/dispensou: a mesa atualiza na hora (o socket confirma depois). */
+  onCompanionSet(idCharacter: number, companion: SessionCompanion | null): void {
+    const idPlayerSession = this.playerSessionIdFor(idCharacter);
+    if (!idPlayerSession) return;
+    this.sessionState.patch((d) =>
+      applySessionEvent(d, {
+        type: 'companion_set',
+        id_game_session: d.game_session.id_game_session,
+        id_player_session: idPlayerSession,
+        companion,
+      }),
+    );
+  }
+
+  /** Dano (negativo) ou cura (positivo) no companheiro, entre 0 e o máximo. */
+  applyCompanionHpDelta(companion: SessionCompanion, delta: number): void {
+    const id = companion.id_session_companion;
+    if (!delta || this.savingCompanionHp().has(id)) return;
+    const next = Math.min(companion.hp_max, Math.max(0, companion.hp_current + delta));
+    const toggle = (add: boolean) =>
+      this.savingCompanionHp.update((set) => {
+        const n = new Set(set);
+        if (add) n.add(id);
+        else n.delete(id);
+        return n;
+      });
+    toggle(true);
+    this.gameSessionService
+      .setCompanionHp(id, next)
+      .pipe(finalize(() => toggle(false)))
+      .subscribe({
+        next: ({ hp_current }) => this.patchCompanionHp(id, hp_current),
+        error: (err) => alert(apiErrorMessage(err, 'Não foi possível ajustar o PV do companheiro.')),
+      });
+  }
+
+  private patchCompanionHp(id: string, hpCurrent: number): void {
+    this.sessionState.patch((d) => ({
+      ...d,
+      companions: (d.companions ?? []).map((c) =>
+        c.id_session_companion === id ? { ...c, hp_current: hpCurrent } : c,
+      ),
+    }));
+  }
+
   /** PV ao vivo (com o editado na mesa) do jogador dono do personagem; NPC/sem jogador → null (a gaveta usa a ficha). */
   liveHpFor(idCharacter: number): { current: number; max: number; temp: number } | null {
     const player = this.sessionDetail()?.players.find((p) => p.id_character === idCharacter && p.character);
@@ -561,6 +695,7 @@ export class SessionPanelComponent implements OnDestroy {
         label: p.character!.name ?? p.player_name,
         allowsTempHp: true,
         defenses: p.character!.defenses,
+        avatar: this.targetAvatar(p.id_character, p.character!.name),
       }));
     const npcs = detail.npcs
       .filter((n) => n.character)
@@ -569,6 +704,7 @@ export class SessionPanelComponent implements OnDestroy {
         label: n.character!.name,
         allowsTempHp: false,
         defenses: n.character!.defenses,
+        avatar: this.targetAvatar(n.id_character, n.character!.name),
       }));
     // Só monstros revelados, pra todos (1.13.2): escondido não entra nem pro mestre — o nome iria
     // pra mesa na linha "APLICOU … em …" do lançamento. Jogador: sem PV, e só dano.
@@ -579,14 +715,32 @@ export class SessionPanelComponent implements OnDestroy {
             key: `monster:${m.id_monster_session}`,
             label: this.monsterDisplayName(m),
             allowsTempHp: false,
+            // Mestre tem a ficha: o modal já ajusta imunidade/resistência/vulnerabilidade.
+            defenses: monsterApplyDefenses(m.data_snapshot),
+            avatar: { imageUrl: this.monsterImageOf(m), avatarPreset: null },
           }))
       : detail.revealed_monsters.map((m) => ({
           key: `monster:${m.id_monster_session}`,
           label: m.name,
           allowsTempHp: false,
           damageOnly: true,
+          avatar: { imageUrl: monsterImage(m.image_url, m.monster_slug), avatarPreset: null },
         }));
-    return [...players, ...npcs, ...monsters];
+    // Companheiros: PV normal, sem PV temporário (a API não guarda temporário pra eles).
+    const companions = (detail.companions ?? []).map((c) => ({
+      key: `companion:${c.id_session_companion}`,
+      label: `${c.name} (companheiro de ${this.companionOwnerName(c)})`,
+      allowsTempHp: false,
+      avatar: { imageUrl: defaultMonsterImage(c.slug), avatarPreset: null },
+    }));
+    return [...players, ...npcs, ...companions, ...monsters];
+  }
+
+  /** Avatar do personagem pro anel da escolha de alvos (1.25.0) — sempre o avatar montado, nunca
+   *  a imagem de fundo do card (essa é pra moldura, não pro anel). */
+  private targetAvatar(idCharacter: number, name: string): ApplyTarget['avatar'] {
+    const card = this.characterCardFor(idCharacter, name);
+    return { imageUrl: null, avatarPreset: card.avatarPreset };
   }
 
   /** Outros jogadores com personagem (Inspiração Bárdica escolhe um deles). */
@@ -605,12 +759,19 @@ export class SessionPanelComponent implements OnDestroy {
   }
 
   /** Aplica o resultado de uma rolagem no alvo, com as mesmas regras do dano/cura em lote. */
-  applyRollToTarget({ targetKey, amount, kind, castId }: ApplyRequest): void {
+  applyRollToTarget({ targetKey, amount, kind, castId, damageType }: ApplyRequest): void {
     const detail = this.sessionDetail();
     if (!detail || amount <= 0) return;
     const [type, id] = targetKey.split(':');
     if (!this.isOwner()) {
-      this.applyViaServer(type as 'player' | 'npc' | 'monster', id, amount, kind, castId);
+      this.applyViaServer(
+        type as 'player' | 'npc' | 'monster' | 'companion',
+        id,
+        amount,
+        kind,
+        castId,
+        damageType,
+      );
       return;
     }
     if (type === 'player') {
@@ -629,6 +790,11 @@ export class SessionPanelComponent implements OnDestroy {
       return;
     }
     const sign = kind === 'damage' ? -1 : 1;
+    if (type === 'companion') {
+      const companion = detail.companions?.find((c) => c.id_session_companion === id);
+      if (companion && kind !== 'temp_hp') this.applyCompanionHpDelta(companion, sign * amount);
+      return;
+    }
     if (type === 'npc') {
       const npc = detail.npcs.find((n) => n.id_npc_session === id);
       if (npc?.character) this.applyNpcHpDelta(npc, sign, amount);
@@ -643,11 +809,12 @@ export class SessionPanelComponent implements OnDestroy {
    * o PV (o jogador não grava PV dos outros diretamente). O PV novo chega também pelo socket.
    */
   private applyViaServer(
-    type: 'player' | 'npc' | 'monster',
+    type: 'player' | 'npc' | 'monster' | 'companion',
     id: string,
     amount: number,
     kind: ApplyRequest['kind'],
     castId?: string,
+    damageType?: string | null,
   ): void {
     const sessionId = this.sessionDetail()?.game_session.id_game_session;
     const actor = this.activeActionsCharacter();
@@ -660,10 +827,16 @@ export class SessionPanelComponent implements OnDestroy {
         amount,
         kind,
         ...(castId ? { cast_id: castId } : {}),
+        // Monstro: a API aplica imunidade/resistência/vulnerabilidade da ficha (1.24.4).
+        ...(type === 'monster' && damageType ? { damage_type: damageType } : {}),
       })
       .subscribe({
         next: (result) => {
           if (result.current_hit_points === undefined) return;
+          if (type === 'companion') {
+            this.patchCompanionHp(id, result.current_hit_points);
+            return;
+          }
           this.sessionState.patch((d) => ({
             ...d,
             players: d.players.map((p) =>
@@ -824,9 +997,13 @@ export class SessionPanelComponent implements OnDestroy {
     const nextTemp = Math.max(0, currentTemp - amount);
     const spillover = Math.max(0, amount - currentTemp);
     const nextHp = Math.max(0, this.editedHp(player) - spillover);
+    // Forma Selvagem: o que passa do PV da forma vai pro druida (a API aplica).
+    const overflow = player.character?.wild_shape_name
+      ? Math.max(0, spillover - this.editedHp(player))
+      : 0;
 
     if (amount === this.playerDamageInput(player)) this.clearPlayerDamageInput(player);
-    this.commitPlayerHp(player, nextHp, nextTemp);
+    this.commitPlayerHp(player, nextHp, nextTemp, overflow);
   }
 
   /**
@@ -882,19 +1059,27 @@ export class SessionPanelComponent implements OnDestroy {
     this.commitPlayerHp(pending.player, pending.player.character!.max_hit_points, temp);
   }
 
-  private commitPlayerHp(player: PlayerSession, newHp: number, newTempHp: number): void {
+  private commitPlayerHp(
+    player: PlayerSession,
+    newHp: number,
+    newTempHp: number,
+    overflow = 0,
+  ): void {
     const id = player.id_player_session;
     this.hpEdits.update(edits => ({ ...edits, [id]: newHp }));
     this.tempHpEdits.update(edits => ({ ...edits, [id]: newTempHp }));
-    this.saveHp(player);
+    this.saveHp(player, overflow);
   }
 
-  saveHp(player: PlayerSession) {
+  saveHp(player: PlayerSession, overflow = 0) {
     const newHp = this.editedHp(player);
     const newTempHp = this.editedTempHp(player);
     const id = player.id_player_session;
     this.savingHp.update(s => { const n = new Set(s); n.add(id); return n; });
-    this.gameSessionService.updatePlayerHp(id, newHp, newTempHp).pipe(
+    const update = overflow
+      ? this.gameSessionService.updatePlayerHp(id, newHp, newTempHp, overflow)
+      : this.gameSessionService.updatePlayerHp(id, newHp, newTempHp);
+    update.pipe(
       finalize(() => this.savingHp.update(s => { const n = new Set(s); n.delete(id); return n; })),
     ).subscribe({
       next: (response) => {
@@ -907,7 +1092,18 @@ export class SessionPanelComponent implements OnDestroy {
               ? {
                   ...p,
                   character: p.character
-                    ? { ...p.character, current_hit_points: storedHp, temporary_hit_points: newTempHp }
+                    ? {
+                        ...p.character,
+                        current_hit_points: storedHp,
+                        temporary_hit_points: newTempHp,
+                        // Forma Selvagem: a forma acabou (ou mudou) — o máximo e o nome vêm da API.
+                        ...(response?.max_hit_points !== undefined
+                          ? { max_hit_points: response.max_hit_points }
+                          : {}),
+                        ...(response?.wild_shape_name !== undefined
+                          ? { wild_shape_name: response.wild_shape_name }
+                          : {}),
+                      }
                     : p.character,
                 }
               : p,
@@ -1402,11 +1598,11 @@ export class SessionPanelComponent implements OnDestroy {
       spellName: action.name,
       actor: {
         name,
-        imageUrl: monster.image_url,
+        imageUrl: this.monsterImageOf(monster),
         avatarPreset: null,
         monsterCard: this.monsterCardFor(monster.id_monster_session),
       },
-      card: monsterActionToCard(action, monster.image_url),
+      card: monsterActionToCard(action, this.monsterImageOf(monster)),
       // A CD da ação de monstro fica só com o mestre: o aviso da mesa não mostra.
       saveDc: null,
       saveAbility: request.castSave?.ability ?? null,
@@ -1966,8 +2162,9 @@ export class SessionPanelComponent implements OnDestroy {
     const weapon = stage.weapon ?? null;
     const monsterAction = stage.monster_action ?? null;
     const monster = stage.monster ?? null;
+    const monsterImg = monster ? monsterImage(monster.image_url, monster.monster_slug) : null;
     const card = monsterAction
-      ? monsterActionToCard(monsterAction, monster?.image_url ?? null)
+      ? monsterActionToCard(monsterAction, monsterImg)
       : weapon
         ? weaponInfoToCard(weapon)
         : stage.spell
@@ -1984,12 +2181,12 @@ export class SessionPanelComponent implements OnDestroy {
       actor: monster
         ? {
             name: monster.name,
-            imageUrl: monster.image_url,
+            imageUrl: monsterImg,
             avatarPreset: null,
             // A descrição não vem na etapa: sai da lista (revelados do jogador / monstros do mestre).
             monsterCard: monsterToCard({
               name: monster.name,
-              imageUrl: monster.image_url,
+              imageUrl: monsterImg,
               monsterType: monster.monster_type,
               size: monster.size,
               lore: this.monsterLore(monster.id_monster_session),
@@ -2004,6 +2201,7 @@ export class SessionPanelComponent implements OnDestroy {
       saveNote: stage.save_dc && stage.save_ability ? saveNote(stage.save_dc, stage.save_ability) : null,
       stamp: monsterSequenceStamp(monsterAction),
       applied: stage.applied ?? [],
+      targets: stage.targets ?? [],
       done: stage.phase === 'done',
     };
   }
@@ -2146,7 +2344,7 @@ export class SessionPanelComponent implements OnDestroy {
       event.actor_name,
       event.amount,
       event.kind,
-      event.target_label,
+      event.defense ? `${event.target_label} (${DEFENSE_LABEL[event.defense]})` : event.target_label,
     );
   }
 
@@ -2507,9 +2705,12 @@ export class SessionPanelComponent implements OnDestroy {
     const detail = this.sessionDetail();
     const name = this.combatParticipantName(p);
     if (p.participant_type === 'monster') {
+      const own = detail?.monsters.find((m) => m.id_monster_session === p.id_monster_session);
+      const revealed = detail?.revealed_monsters.find((m) => m.id_monster_session === p.id_monster_session);
+      // Jogador: só a arte do revelado (o escondido continua com a genérica, sem entregar quem é).
       const image = this.isOwner()
-        ? detail?.monsters.find((m) => m.id_monster_session === p.id_monster_session)?.image_url
-        : detail?.revealed_monsters.find((m) => m.id_monster_session === p.id_monster_session)?.image_url;
+        ? own && this.monsterImageOf(own)
+        : revealed && monsterImage(revealed.image_url, revealed.monster_slug);
       // A carta do monstro (1.13.0); escondido, pro jogador continua o "misterioso" sem carta.
       const monsterCard = p.id_monster_session ? this.monsterCardFor(p.id_monster_session) : null;
       return { name, imageUrl: image || this.DEFAULT_MONSTER_IMAGE, avatarPreset: null, monsterCard };
@@ -2538,7 +2739,7 @@ export class SessionPanelComponent implements OnDestroy {
       if (!m) return null;
       return monsterToCard({
         name: this.monsterDisplayName(m),
-        imageUrl: m.image_url,
+        imageUrl: this.monsterImageOf(m),
         monsterType: m.data_snapshot.type,
         size: m.data_snapshot.size,
         lore: m.lore,
@@ -2548,7 +2749,7 @@ export class SessionPanelComponent implements OnDestroy {
     if (!r) return null;
     return monsterToCard({
       name: r.name,
-      imageUrl: r.image_url,
+      imageUrl: monsterImage(r.image_url, r.monster_slug),
       monsterType: r.monster_type,
       size: r.size,
       lore: r.lore,
@@ -2716,7 +2917,7 @@ export class SessionPanelComponent implements OnDestroy {
     this.battlePrepareCheckedFor.add(pending.id_combat_participant);
 
     this.checkingBattlePrepare.set(true);
-    this.charService.getCharacterById(player.id_character).subscribe({
+    this.charService.getCharacterById(player.id_character, false, this.id()).subscribe({
       next: (sheet) => {
         this.checkingBattlePrepare.set(false);
         const info = sheet.character_sheet.spellcasting_info;
@@ -2797,7 +2998,7 @@ export class SessionPanelComponent implements OnDestroy {
     if (next && !this.battleCanPrepareMore()) return revert();
 
     this.battlePrepareError.set(null);
-    this.charService.setSpellPrepared(id, spell.id_spell, next).subscribe({
+    this.charService.setSpellPrepared(id, spell.id_spell, next, this.id()).subscribe({
       error: (err) => {
         revert();
         this.battlePrepareError.set(apiErrorMessage(err, 'Não foi possível preparar a magia.'));
@@ -2972,6 +3173,15 @@ export class SessionPanelComponent implements OnDestroy {
   receiveSecretRoll(request: SecretRollPromptRequest): void {
     this.pendingSecretRolls.update((queue) =>
       queue.some((r) => r.request_id === request.request_id) ? queue : [...queue, request],
+    );
+  }
+
+  /** Ficha do monstro do pedido de resistência (só o mestre tem a lista de monstros). */
+  monsterBlockFor(idMonsterSession: string | null | undefined): MonsterStatBlock | null {
+    if (!idMonsterSession) return null;
+    return (
+      this.sessionDetail()?.monsters.find((m) => m.id_monster_session === idMonsterSession)
+        ?.data_snapshot ?? null
     );
   }
 

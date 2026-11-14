@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, Router, ViewTransitionInfo } from '@angular/router';
 
 /**
- * Transição entre telas (1.19.2): a tela nova chega deslizando como um vagão no trilho da Home,
+ * Transição entre telas (1.25.2): a tela nova chega deslizando como um vagão no trilho da Home,
  * em vez de só trocar. Só a página anda (fundo, trilhos e rodapé ficam parados), e no desktop a
  * janela da Home se transforma na janela da tela de destino. A animação e os nomes ficam no
  * `styles.scss` (seção "Transição entre telas"); aqui só se decide o sentido e se marca o

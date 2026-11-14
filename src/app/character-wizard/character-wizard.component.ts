@@ -51,10 +51,17 @@ interface DiceBreakdown {
   total: number;
 }
 
+import {
+  LanguageToolPickerComponent,
+  LanguageToolValue,
+  ToolChoiceSlot,
+  languageToolComplete,
+  trimLanguageToolValue,
+} from '../language-tool-picker/language-tool-picker.component';
 @Component({
   selector: 'app-character-wizard',
   standalone: true,
-  imports: [CommonModule, FormsModule, DragonAnimationComponent, LoadingOverlayComponent, AvatarPickerModalComponent, AvatarCustomizerComponent, PixelDieComponent, PixelNumericDieComponent, TomAssistantComponent, WizardProgressComponent, GameCardComponent, CardViewerComponent],
+  imports: [CommonModule, FormsModule, DragonAnimationComponent, LoadingOverlayComponent, AvatarPickerModalComponent, AvatarCustomizerComponent, PixelDieComponent, PixelNumericDieComponent, TomAssistantComponent, WizardProgressComponent, GameCardComponent, CardViewerComponent, LanguageToolPickerComponent],
   templateUrl: './character-wizard.component.html',
   styleUrls: ['./character-wizard.component.scss']
 })
@@ -168,6 +175,7 @@ export class CharacterWizardComponent implements OnInit {
     this.availableAlignments = options.alignments ?? [];
     this.availableSpells = options.spells ?? [];
     this.availableArmours = (options.armours ?? []).filter(a => a.armour_type !== 'Escudo');
+    this.availableLanguages = options.languages ?? [];
     this.availableWeapons = options.weapons.map(w => {
       const props = w.properties ? w.properties.split(', ') : [];
       return {
@@ -334,6 +342,7 @@ export class CharacterWizardComponent implements OnInit {
           (this.availableSubraces.length === 0 || !!this.characterData.core_build.subrace) &&
           (this.availableLevel1Subclasses.length === 0 || !!this.characterData.core_build.id_subclass) &&
           (this.toolProficiencyOptions.length === 0 || !!this.characterData.choices.tool_proficiency) &&
+          this.languageToolChoicesValid() &&
           (!this.abilityBonusChoice ||
             (this.characterData.choices.ability_bonus_choices ?? []).length === this.abilityBonusChoice.count) &&
           (this.fightingStyleOptions.length === 0 || !!this.characterData.choices.fighting_style) &&
@@ -657,6 +666,52 @@ export class CharacterWizardComponent implements OnInit {
   }
 
   /** ========================= FERRAMENTA / ESTILO DE COMBATE (ESCOLHAS DE RAÇA/CLASSE) ========================= */
+
+  /** ========================= IDIOMAS E FERRAMENTAS À ESCOLHA (1.24.0) ========================= */
+
+  availableLanguages: string[] = [];
+
+  get languageChoiceCount(): number {
+    return (this.selectedRace?.extra_languages ?? 0) + (this.selectedBackground?.languages_number ?? 0);
+  }
+
+  get fixedLanguages(): string[] {
+    return this.selectedRace?.languages ?? [];
+  }
+
+  get toolChoiceSlots(): ToolChoiceSlot[] {
+    return this.selectedBackground?.tool_choices ?? [];
+  }
+
+  /** Só há o que escolher se a API mandou a lista de idiomas (API antiga: nada aparece). */
+  get hasLanguageToolChoices(): boolean {
+    return (
+      (this.availableLanguages.length > 0 && this.languageChoiceCount > 0) ||
+      this.toolChoiceSlots.length > 0
+    );
+  }
+
+  get languageToolValue(): LanguageToolValue {
+    return {
+      languages: this.characterData.choices.languages ?? [],
+      tools: this.characterData.choices.tools ?? {},
+    };
+  }
+
+  onLanguageToolChange(value: LanguageToolValue): void {
+    this.characterData.choices.languages = value.languages;
+    this.characterData.choices.tools = value.tools;
+  }
+
+  private languageToolChoicesValid(): boolean {
+    if (!this.hasLanguageToolChoices) return true;
+    return languageToolComplete(
+      this.languageToolValue,
+      this.availableLanguages.length ? this.languageChoiceCount : 0,
+      this.fixedLanguages,
+      this.toolChoiceSlots,
+    );
+  }
 
   get toolProficiencyOptions(): string[] {
     return this.selectedRace?.tool_proficiency_options ?? [];
@@ -1536,6 +1591,16 @@ export class CharacterWizardComponent implements OnInit {
     this.characterData.choices.expertise_skill_ids = (this.characterData.choices.expertise_skill_ids ?? [])
       .filter(id => validPoolIds.has(id))
       .slice(0, this.expertiseGrantCount);
+
+    // Raça/antecedente podem ter mudado depois de escolher: manda só o que vale agora.
+    const languageTools = trimLanguageToolValue(
+      this.languageToolValue,
+      this.availableLanguages.length ? this.languageChoiceCount : 0,
+      this.fixedLanguages,
+      this.toolChoiceSlots,
+    );
+    this.characterData.choices.languages = languageTools.languages;
+    this.characterData.choices.tools = languageTools.tools;
 
     this.savingCharacter = true;
     this.loadingOverlay.show('SALVANDO SEU PERSONAGEM...', 'AGUARDE ENQUANTO A MAGIA ACONTECE');

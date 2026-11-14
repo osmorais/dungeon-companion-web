@@ -8,7 +8,7 @@ import { GameSessionSummary } from '../models/game-session.interface';
 
 const PAGE_SIZE = 10;
 
-/** Sessões criadas pelo mestre (`/sessions`) — visual da Home 1.19.x (1.19.2). */
+/** Sessões criadas pelo mestre (`/sessions`) — visual da Home 1.19.x (1.25.2). */
 @Component({
   selector: 'app-session-list',
   standalone: true,

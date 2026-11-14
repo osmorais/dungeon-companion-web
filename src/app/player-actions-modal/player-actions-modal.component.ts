@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output, computed, inject, signal } from '@angular/core';
 import { CommonModule, KeyValuePipe } from '@angular/common';
+import { map } from 'rxjs';
 import { CharacterService, HitDieRollResult } from '../services/character.service';
 import { GameSessionService } from '../services/game-session.service';
 import {
@@ -19,6 +20,13 @@ import {
 } from '../roll-modal/spell-roll-config';
 import { ApplyRequest, ApplyTarget } from '../roll-modal/apply-target';
 import { ATTRIBUTE_PT_TO_EN, d20Options } from '../roll-modal/d20-options';
+import { AttackCounterService } from './attack-counter.service';
+import { WildShapePickerComponent, formatSpeed } from './wild-shape-picker.component';
+import { monsterActions, MonsterActionButton } from '../monster-actions/monster-actions';
+import { MonsterStatBlock } from '../models/monster-catalog.interface';
+import { apiErrorMessage } from '../auth/auth-errors';
+import { WildShapeOption } from '../models/character-response.interface';
+import { SessionCompanion } from '../models/game-session.interface';
 import {
   isOnHitSpell,
   RiderAttackKind,
@@ -75,13 +83,14 @@ export function isLongCastingTime(castingTime: string | null | undefined): boole
     GameCardComponent,
     CardViewerComponent,
     CardDeckComponent,
-    CardHandComponent, AvatarDisplayComponent],
+    CardHandComponent, AvatarDisplayComponent, WildShapePickerComponent],
   templateUrl: './player-actions-modal.component.html',
   styleUrls: ['../bottom-drawer/bottom-drawer.scss', './player-actions-modal.component.scss'],
 })
 export class PlayerActionsModalComponent implements OnInit {
   private charService = inject(CharacterService);
   private gameSessionService = inject(GameSessionService);
+  private attackCounter = inject(AttackCounterService);
 
   @Input({ required: true }) idCharacter!: number;
   @Input() fallbackName = 'Personagem';
@@ -89,6 +98,10 @@ export class PlayerActionsModalComponent implements OnInit {
   /** Alvos em que o dano/cura rolado pode ser aplicado direto (opcional) — a sessão monta a lista
    *  conforme as permissões (mestre: todos; jogador: só o próprio personagem). */
   @Input() applyTargets: ApplyTarget[] = [];
+  /** Jogador dono do personagem nesta mesa (`null` em NPC): escolhe o Companheiro Animal. */
+  @Input() idPlayerSession: string | null = null;
+  /** Companheiro Animal do ranger nesta mesa (`null` = ainda não escolheu). */
+  @Input() companion: SessionCompanion | null = null;
   /** Vez atual do combate ("<combate>:<rodada>:<participante>") — trava as somas 1×/turno
    *  (Ataque Furtivo…). `null` fora de combate: sem trava. */
   @Input() turnKey: string | null = null;
@@ -130,6 +143,8 @@ export class PlayerActionsModalComponent implements OnInit {
   /** DANO/CURA no próprio personagem (a sessão aplica: temporários, confirmação de vida extra). */
   @Output() adjustHp = new EventEmitter<{ kind: 'damage' | 'heal'; amount: number }>();
   @Output() closed = new EventEmitter<void>();
+  /** Companheiro escolhido, trocado ou dispensado (a mesa atualiza sem esperar o socket). */
+  @Output() companionSet = new EventEmitter<SessionCompanion | null>();
   /** Repassa a confirmação de acerto/erro do roll-modal (só dispara no fluxo de ataque com dano) —
    *  a sessão usa isso pra reagir (ex: Tom). */
   @Output() attackResolved = new EventEmitter<boolean>();
@@ -185,7 +200,7 @@ export class PlayerActionsModalComponent implements OnInit {
   actionError = signal<string | null>(null);
 
   ngOnInit(): void {
-    this.charService.getCharacterById(this.idCharacter).subscribe({
+    this.charService.getCharacterById(this.idCharacter, false, this.sessionId).subscribe({
       next: (sheet) => {
         this.sheet.set(sheet);
         this.loading.set(false);
@@ -203,6 +218,162 @@ export class PlayerActionsModalComponent implements OnInit {
 
   close(): void {
     this.closed.emit();
+  }
+
+  // ========================= FORMA SELVAGEM =========================
+
+  wildShapePicking = signal(false);
+  wildShapeBusy = signal(false);
+  readonly formatSpeed = formatSpeed;
+
+  /** Forma em que o druida está (`null` = forma normal). */
+  wildShape() {
+    return this.combatFeatures()?.wild_shape ?? null;
+  }
+
+  /** Ataques da besta: as mesmas cartas das ações de monstro, montadas da ficha dela. */
+  wildShapeActions = computed<MonsterActionButton[]>(() => {
+    const form = this.combatFeatures()?.wild_shape;
+    if (!form) return [];
+    const block = { actions: form.actions } as unknown as MonsterStatBlock;
+    return monsterActions(block).filter((b) => !!b.config);
+  });
+
+  startWildShape(beast: WildShapeOption): void {
+    if (this.wildShapeBusy()) return;
+    this.wildShapeBusy.set(true);
+    this.actionError.set(null);
+    this.charService.startWildShape(this.idCharacter, beast.slug).subscribe({
+      next: () => {
+        this.wildShapeBusy.set(false);
+        this.wildShapePicking.set(false);
+        this.reloadSheet();
+        if (this.sessionId)
+          this.gameSessionService
+            .announceSpellCast(this.sessionId, {
+              id_character: this.idCharacter,
+              actor_name: this.actorName,
+              spell_name: `Forma Selvagem: ${beast.name}`,
+              is_ability: true,
+            })
+            .subscribe({ error: () => undefined });
+      },
+      error: (err) => {
+        this.wildShapeBusy.set(false);
+        this.wildShapePicking.set(false);
+        this.actionError.set(apiErrorMessage(err, 'Não foi possível transformar.'));
+      },
+    });
+  }
+
+  endWildShape(): void {
+    if (this.wildShapeBusy()) return;
+    this.wildShapeBusy.set(true);
+    this.actionError.set(null);
+    this.charService.endWildShape(this.idCharacter).subscribe({
+      next: () => {
+        this.wildShapeBusy.set(false);
+        this.reloadSheet();
+      },
+      error: (err) => {
+        this.wildShapeBusy.set(false);
+        this.actionError.set(apiErrorMessage(err, 'Não foi possível sair da forma.'));
+      },
+    });
+  }
+
+  /** Ataque da besta: o mesmo modal das ações de monstro, com o nome da forma. */
+  rollWildShapeAction(button: MonsterActionButton): void {
+    const form = this.wildShape();
+    if (!form || !button.config || button.config.mode !== 'ability') return;
+    this.activeRoll.set({ ...button.config, label: `${form.name}: ${button.config.label}` });
+  }
+
+  // ========================= COMPANHEIRO ANIMAL =========================
+
+  companionPicking = signal(false);
+  companionBusy = signal(false);
+
+  /** Ranger do Conclave da Besta numa mesa, jogando com o próprio personagem (não NPC). */
+  hasCompanionFeature(): boolean {
+    return !!this.combatFeatures()?.animal_companion && !!this.sessionId && !!this.idPlayerSession;
+  }
+
+  /** Bestas que o ranger pode escolher (a API filtra: ND 1/4, até Médio). */
+  readonly companionLoader = () =>
+    this.gameSessionService
+      .getCompanionOptions(this.sessionId!, this.idPlayerSession!)
+      .pipe(map((res) => ({ beasts: res.beasts })));
+
+  /**
+   * Ações da besta com a proficiência do ranger somada no ataque e no dano. A partir do nível 11
+   * ela ataca duas vezes quando o ranger manda atacar.
+   */
+  companionActions(): MonsterActionButton[] {
+    const companion = this.companion;
+    if (!companion) return [];
+    const block = { actions: companion.actions } as unknown as MonsterStatBlock;
+    return monsterActions(block)
+      .filter((b) => !!b.config)
+      .map((b) => ({ ...b, config: companionConfig(b.config as AbilityRollConfig, companion) }));
+  }
+
+  chooseCompanion(beast: WildShapeOption): void {
+    if (this.companionBusy() || !this.sessionId || !this.idPlayerSession) return;
+    this.companionBusy.set(true);
+    this.actionError.set(null);
+    const sessionId = this.sessionId;
+    this.gameSessionService.chooseCompanion(sessionId, this.idPlayerSession, beast.slug).subscribe({
+      next: (companion) => {
+        this.companionBusy.set(false);
+        this.companionPicking.set(false);
+        this.companionSet.emit(companion);
+        this.gameSessionService
+          .announceSpellCast(sessionId, {
+            id_character: this.idCharacter,
+            actor_name: this.actorName,
+            spell_name: `Companheiro Animal: ${companion.name}`,
+            is_ability: true,
+          })
+          .subscribe({ error: () => undefined });
+      },
+      error: (err) => {
+        this.companionBusy.set(false);
+        this.companionPicking.set(false);
+        this.actionError.set(apiErrorMessage(err, 'Não foi possível escolher o companheiro.'));
+      },
+    });
+  }
+
+  dismissCompanion(): void {
+    const companion = this.companion;
+    if (!companion || this.companionBusy()) return;
+    this.companionBusy.set(true);
+    this.actionError.set(null);
+    this.gameSessionService.dismissCompanion(companion.id_session_companion).subscribe({
+      next: () => {
+        this.companionBusy.set(false);
+        this.companionSet.emit(null);
+      },
+      error: (err) => {
+        this.companionBusy.set(false);
+        this.actionError.set(apiErrorMessage(err, 'Não foi possível dispensar o companheiro.'));
+      },
+    });
+  }
+
+  /** Ataque do companheiro: o modal das ações de monstro, com o nome dele. */
+  rollCompanionAction(button: MonsterActionButton): void {
+    if (!this.companion || !button.config || button.config.mode !== 'ability') return;
+    this.activeRoll.set({ ...button.config, label: `${this.companion.name}: ${button.config.label}` });
+  }
+
+  /** A ficha muda inteira ao transformar ou voltar (PV, CA, atributos, ataques). */
+  private reloadSheet(): void {
+    this.charService.getCharacterById(this.idCharacter, true, this.sessionId).subscribe({
+      next: (sheet) => this.sheet.set(sheet),
+      error: () => undefined,
+    });
   }
 
   private handleActionError(err: unknown): void {
@@ -277,7 +448,7 @@ export class PlayerActionsModalComponent implements OnInit {
     const match = weapon.damage_die?.match(/^(\d+)d(\d+)$/i);
     this.startWeaponCast(weaponCardInfo(weapon), weaponToCard(weapon));
     this.activeRoll.set(
-      this.attackConfig({
+      this.withExtraAttack(this.attackConfig({
         name: weapon.name,
         attackBonus: weapon.attack_bonus,
         dice: match ? { count: parseInt(match[1], 10), sides: parseInt(match[2], 10) } : null,
@@ -286,8 +457,56 @@ export class PlayerActionsModalComponent implements OnInit {
         properties: (weapon.properties ?? '').toLowerCase(),
         damageType: weapon.damage_type,
         smite: this.smiteOptionsFor(weapon),
-      }),
+      })),
     );
+  }
+
+  /**
+   * Ataque Extra: a ação de Atacar dá vários ataques, e o modal conta "ataque k de N". No combate
+   * a conta segue pela vez (fechar e reabrir continua de onde parou); acabados os N, uma nova ação
+   * de Atacar (Surto de Ação) recomeça do 1.
+   */
+  private withExtraAttack(config: AbilityRollConfig): AbilityRollConfig {
+    const perAction = this.combatFeatures()?.attacks_per_action ?? 1;
+    if (perAction < 2) return config;
+    const used = this.turnKey ? this.attackCounter.used(this.idCharacter, this.turnKey) : 0;
+    return {
+      ...config,
+      instances: { count: perAction, label: 'ataque', start: (used % perAction) + 1 },
+    };
+  }
+
+  /** Ataque resolvido (acertou ou errou): conta na vez, pro Ataque Extra. */
+  onAttackResolved(hit: boolean): void {
+    const roll = this.activeRoll();
+    if (this.turnKey && roll?.mode === 'ability' && roll.instances?.label === 'ataque')
+      this.attackCounter.record(this.idCharacter, this.turnKey);
+    this.attackResolved.emit(hit);
+  }
+
+  /** Ação Ardilosa (Ladino): ação bônus anunciada na mesa; Esconder já abre a Furtividade. */
+  readonly cunningOptions = [
+    { key: 'dash', label: 'DISPARAR', name: 'Disparar' },
+    { key: 'disengage', label: 'DESENGAJAR', name: 'Desengajar' },
+    { key: 'hide', label: 'ESCONDER', name: 'Esconder' },
+  ] as const;
+  cunningUsed = signal<string | null>(null);
+
+  useCunningAction(option: (typeof this.cunningOptions)[number]): void {
+    this.cunningUsed.set(option.name);
+    if (this.sessionId)
+      this.gameSessionService
+        .announceSpellCast(this.sessionId, {
+          id_character: this.idCharacter,
+          actor_name: this.actorName,
+          spell_name: `Ação Ardilosa: ${option.name}`,
+          is_ability: true,
+        })
+        .subscribe({ error: () => undefined });
+    if (option.key === 'hide') {
+      const stealth = this.sheet()?.character_sheet.skills.find((s) => s.name === 'Furtividade');
+      if (stealth) this.rollSkill(stealth);
+    }
   }
 
   /** Ataque desarmado do Monge (Artes Marciais); `attacks` = 2 na Rajada de Golpes. */
@@ -305,7 +524,8 @@ export class PlayerActionsModalComponent implements OnInit {
     });
     if (attacks > 1) config.instances = { count: attacks, label: 'golpe' };
     this.startWeaponCast(unarmedCardInfo(unarmed), unarmedToCard(unarmed));
-    this.activeRoll.set(config);
+    // Rajada de Golpes é ação bônus, fora do Ataque Extra.
+    this.activeRoll.set(attacks > 1 ? config : this.withExtraAttack(config));
   }
 
   /**
@@ -891,6 +1111,11 @@ export class PlayerActionsModalComponent implements OnInit {
    */
   useClassAbility(ability: ClassAbility, amount?: number, allyPlayerSession?: string): void {
     if (!this.canUseClassAbility(ability)) return;
+    // Forma Selvagem: escolher a besta primeiro; a API gasta o uso ao transformar.
+    if (ability.name === 'Forma Selvagem') {
+      if (!this.wildShape()) this.wildShapePicking.set(true);
+      return;
+    }
     if (ability.targets_ally && allyPlayerSession === undefined) {
       this.allyTarget.set('');
       this.allyAbility.set(ability);
@@ -1039,7 +1264,7 @@ export class PlayerActionsModalComponent implements OnInit {
     const next = !spell.is_prepared;
     if (next && !this.canPrepareMore()) return revert();
     this.actionError.set(null);
-    this.charService.setSpellPrepared(this.idCharacter, spell.id_spell, next).subscribe({
+    this.charService.setSpellPrepared(this.idCharacter, spell.id_spell, next, this.sessionId).subscribe({
       next: () => this.applyPreparedLocally(spell.id_spell, next),
       error: (err) => {
         revert();
@@ -1167,4 +1392,24 @@ export class PlayerActionsModalComponent implements OnInit {
         : null,
     };
   }
+}
+
+/**
+ * Rolagem de uma ação do companheiro: proficiência do ranger no ataque (só quando há jogada de
+ * ataque) e no dano; com Ataques Múltiplos (nv11), "ataque da besta 1 de 2".
+ */
+export function companionConfig(
+  config: AbilityRollConfig,
+  companion: Pick<SessionCompanion, 'proficiency_bonus' | 'attacks_per_command'>,
+): AbilityRollConfig {
+  if (config.rollType !== 'attack') return config;
+  const pb = companion.proficiency_bonus;
+  return {
+    ...config,
+    modifier: config.autoHit ? config.modifier : config.modifier + pb,
+    ...(config.damage ? { damage: { ...config.damage, modifier: config.damage.modifier + pb } } : {}),
+    ...(companion.attacks_per_command > 1 && !config.autoHit
+      ? { instances: { count: companion.attacks_per_command, label: 'ataque da besta' } }
+      : {}),
+  };
 }

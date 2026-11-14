@@ -13,7 +13,11 @@ import { Router } from '@angular/router';
 import { MonsterCatalogService } from '../services/monster-catalog.service';
 import { BestiaryMonsterSummary, MonsterStatBlock } from '../models/monster-catalog.interface';
 import { GameCardComponent } from '../game-card/game-card.component';
-import { bestiaryMonsterCard, monsterCardState } from '../game-card/monster-card';
+import {
+  MONSTER_ART_SLUGS,
+  bestiaryMonsterCard,
+  monsterCardState,
+} from '../game-card/monster-card';
 import { MonsterSheetComponent } from '../monster-sheet/monster-sheet.component';
 import { MonsterFiltersComponent } from '../monster-filters/monster-filters.component';
 import {
@@ -69,7 +73,9 @@ export class MonsterCatalogCreateComponent implements OnInit {
   ];
   readonly filters = signal<MonsterFilters>(EMPTY_MONSTER_FILTERS);
   readonly filterOptions = computed(() => monsterFilterOptions(this.allMonsters()));
-  readonly filteredMonsters = computed(() => filterMonsters(this.allMonsters(), this.filters()));
+  readonly filteredMonsters = computed(() =>
+    filterMonsters(this.allMonsters(), this.filters(), (m) => MONSTER_ART_SLUGS.has(m.index)),
+  );
 
   readonly page = signal(1);
   readonly totalPages = computed(() =>

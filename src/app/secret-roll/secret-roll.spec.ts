@@ -212,3 +212,75 @@ describe('SecretRollPromptComponent (jogador)', () => {
     expect(prompt.loading()).toBe(false);
   });
 });
+
+describe('SecretRollPromptComponent (mestre, resistência de monstro — 1.24.2)', () => {
+  function create(monster: unknown) {
+    TestBed.resetTestingModule();
+    const getCharacterById = vi.fn();
+    TestBed.configureTestingModule({
+      providers: [{ provide: CharacterService, useValue: { getCharacterById } }],
+    });
+    const prompt = TestBed.runInInjectionContext(() => new SecretRollPromptComponent());
+    prompt.request = {
+      request_id: 'req-m',
+      id_character: null,
+      id_monster_session: 'm1',
+      monster_name: 'Goblin',
+      dc: 15,
+      label: 'Magia: Bola de Fogo',
+      check: { kind: 'save', ability: 'DEX' },
+      secret: false,
+    };
+    prompt.monster = monster as SecretRollPromptComponent['monster'];
+    prompt.ngOnInit();
+    return { prompt, getCharacterById };
+  }
+
+  it('rola com o bônus de resistência da ficha do monstro, sem buscar ficha de personagem', () => {
+    const { prompt, getCharacterById } = create({
+      dexterity: 14,
+      saving_throws: [{ ability: 'DES', bonus: 4 }],
+    });
+    expect(getCharacterById).not.toHaveBeenCalled();
+    expect(prompt.isMonster).toBe(true);
+    expect(prompt.actorName()).toBe('Goblin');
+    prompt.roll();
+    expect(prompt.rollConfig()).toEqual({
+      mode: 'ability',
+      rollType: 'save',
+      label: 'Resistência: Bola de Fogo',
+      modifier: 4,
+    });
+  });
+
+  it('sem resistência listada, usa o modificador do atributo', () => {
+    const { prompt } = create({ dexterity: 8 });
+    prompt.roll();
+    expect(prompt.rollConfig()?.modifier).toBe(-1);
+  });
+
+  it('monstro que saiu da mesa: avisa em vez de rolar', () => {
+    const { prompt } = create(null);
+    expect(prompt.error()).toBe(true);
+  });
+});
+
+describe('SecretRollPromptComponent — volta pro lançamento depois de rolar (1.25.0)', () => {
+  it('fecha sozinho depois de mostrar o resultado', () => {
+    vi.useFakeTimers();
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [{ provide: CharacterService, useValue: { getCharacterById: vi.fn() } }],
+    });
+    const prompt = TestBed.runInInjectionContext(() => new SecretRollPromptComponent());
+    const closed = vi.fn();
+    prompt.closed.subscribe(closed);
+    prompt.onRolled();
+    prompt.onRolled(); // só um fechamento
+    vi.advanceTimersByTime(SecretRollPromptComponent.RESULT_READ_MS - 1);
+    expect(closed).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+    expect(closed).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+});

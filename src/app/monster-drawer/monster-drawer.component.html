@@ -7,7 +7,7 @@
   >
     <span class="bottom-drawer-avatar avatar-ring-wrap" aria-hidden="true">
       <span class="bottom-drawer-avatar-circle">
-        <img [src]="monster.image_url || card().fallbackIcon" alt="" />
+        <img [src]="artUrl()" alt="" />
       </span>
       <span class="avatar-ring"></span>
     </span>
@@ -275,7 +275,7 @@
             [block]="monster.data_snapshot"
             [state]="actionState"
             [rechargeRolls]="rechargeRolls"
-            [imageUrl]="monster.image_url"
+            [imageUrl]="artUrl()"
             [asCards]="true"
             part="actions"
             (roll)="roll.emit($event)"

@@ -970,3 +970,24 @@
   }
 }
 
+
+/* Seção E dos traços (1.20.0): aviso do Ataque Extra e botões da Ação Ardilosa. */
+.pa-hint {
+  margin: 6px 0 0;
+  font-size: 7px;
+  line-height: 1.6;
+  color: var(--label-title-color);
+}
+
+.pa-cunning {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pa-cunning-btn {
+  float: none;
+  margin: 0;
+  padding: 6px 10px;
+  font-size: 7px;
+}

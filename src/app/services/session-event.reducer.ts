@@ -18,6 +18,14 @@ export function applySessionEvent(
       return {
         ...detail,
         players: detail.players.filter((p) => p.id_player_session !== event.id_player_session),
+        // O companheiro sai junto com o ranger (cascata no banco).
+        ...(detail.companions
+          ? {
+              companions: detail.companions.filter(
+                (c) => c.id_player_session !== event.id_player_session,
+              ),
+            }
+          : {}),
       };
 
     case 'npc_added':
@@ -64,9 +72,33 @@ export function applySessionEvent(
                   ...p.character,
                   current_hit_points: event.current_hit_points,
                   temporary_hit_points: event.temporary_hit_points,
+                  // Forma Selvagem: começou, acabou ou mudou o PV da forma.
+                  ...(event.max_hit_points !== undefined
+                    ? { max_hit_points: event.max_hit_points }
+                    : {}),
+                  ...(event.wild_shape_name !== undefined
+                    ? { wild_shape_name: event.wild_shape_name }
+                    : {}),
                 },
               }
             : p,
+        ),
+      };
+
+    case 'companion_set': {
+      const others = (detail.companions ?? []).filter(
+        (c) => c.id_player_session !== event.id_player_session,
+      );
+      return { ...detail, companions: event.companion ? [...others, event.companion] : others };
+    }
+
+    case 'companion_hp_updated':
+      return {
+        ...detail,
+        companions: (detail.companions ?? []).map((c) =>
+          c.id_session_companion === event.id_session_companion
+            ? { ...c, hp_current: event.hp_current }
+            : c,
         ),
       };
 
@@ -168,6 +200,8 @@ export function applySessionEvent(
                 monster_type: event.monster_type ?? null,
                 size: event.size ?? null,
                 lore: event.lore ?? null,
+                // Arte padrão do monstro pro jogador (1.23.0) — sem isso só aparecia no recarregar.
+                monster_slug: event.monster_slug ?? null,
               },
             ],
       };
@@ -187,6 +221,14 @@ export function applySessionEvent(
       // 30 = mesmo LIMIT de GameSessionRepository.findRecentRolls no backend.
       return { ...detail, recent_rolls: [event.roll, ...detail.recent_rolls].slice(0, 30) };
 
+    case 'session_settings_updated':
+      return {
+        ...detail,
+        game_session: { ...detail.game_session, auto_hit_check: event.auto_hit_check },
+      };
+
+    // Não muda a mesa: o passou/falhou fica no SessionStateService (`saveOutcomes`).
+    case 'save_resolved':
     case 'secret_roll_requested':
       // Só pro jogador alvo e sem estado compartilhado — o pedido é tratado no session-panel.
       return detail;

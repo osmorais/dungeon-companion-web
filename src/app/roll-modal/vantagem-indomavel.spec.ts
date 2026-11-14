@@ -180,16 +180,17 @@ describe('RollModalComponent — vantagem condicional, Indomável e pedido de re
       { key: 'monster:m1', label: 'Goblin', allowsTempHp: false },
     ];
 
-    it('só jogadores entram na lista, e só com CD conhecida', () => {
+    it('jogadores e monstros entram na lista (1.24.2), e só com CD conhecida', () => {
       expect(create(spell(14), { applyTargets: targets }).saveRequestTargets).toEqual([
-        { id: 'p1', label: 'Thorin' },
+        { id: 'player:p1', label: 'Thorin' },
+        { id: 'monster:m1', label: 'Goblin' },
       ]);
       expect(create(spell(null), { applyTargets: targets }).saveRequestTargets).toEqual([]);
     });
 
     it('pede a resistência pública com CD e contexto, e mostra se passou ou falhou', () => {
       const modal = create(spell(14), { applyTargets: targets });
-      modal.toggleSaveTarget('p1');
+      modal.toggleSaveTarget('player:p1');
       modal.requestSaves();
       expect(requestSecretRoll).toHaveBeenCalledWith('gs', {
         id_player_sessions: ['p1'],
@@ -199,13 +200,13 @@ describe('RollModalComponent — vantagem condicional, Indomável e pedido de re
         against: ['poison', 'magic'],
         secret: false,
       });
-      expect(modal.saveStatus('p1')).toBe('pending');
+      expect(modal.saveStatus('player:p1')).toBe('pending');
       state.detail.set({
         recent_rolls: [{ save_request_id: 'req-1', save_outcome: 'fail' } as RollLogEntry],
       } as GameSessionDetail);
-      expect(modal.saveStatus('p1')).toBe('fail');
+      expect(modal.saveStatus('player:p1')).toBe('fail');
       // quem já recebeu o pedido não é marcado de novo
-      modal.toggleSaveTarget('p1');
+      modal.toggleSaveTarget('player:p1');
       expect(modal.saveRequestPicks().size).toBe(0);
     });
 
@@ -213,10 +214,68 @@ describe('RollModalComponent — vantagem condicional, Indomável e pedido de re
       const { throwError } = await import('rxjs');
       requestSecretRoll.mockReturnValue(throwError(() => new Error('x')));
       const modal = create(spell(14), { applyTargets: targets });
-      modal.toggleSaveTarget('p1');
+      modal.toggleSaveTarget('player:p1');
       modal.requestSaves();
       expect(modal.saveRequestError()).toMatch(/Não foi possível/);
-      expect(modal.saveRequestPicks().has('p1')).toBe(true);
+      expect(modal.saveRequestPicks().has('player:p1')).toBe(true);
+    });
+
+    it('monstro imune ao dano: a API nem pede, a lista mostra "imune" e o dano vira 0 (1.24.4)', () => {
+      requestSecretRoll.mockReturnValue(
+        of([{ id_player_session: null, id_monster_session: 'm1', request_id: null, immune: true }]),
+      );
+      const poison = { ...spell(14), damage: { ...spell(14).damage!, damageType: 'veneno' } };
+      const modal = create(poison, { applyTargets: targets });
+      modal.toggleSaveTarget('monster:m1');
+      modal.requestSaves();
+      expect(requestSecretRoll).toHaveBeenCalledWith(
+        'gs',
+        expect.objectContaining({ id_monster_sessions: ['m1'], damage_type: 'veneno' }),
+      );
+      expect(modal.saveStatus('monster:m1')).toBe('immune');
+      expect(modal.immunityOf(targets[1])).toBe('imune');
+    });
+
+    it('resistência que voltou "passou" já marca o alvo como passou na aplicação', () => {
+      requestSecretRoll.mockReturnValue(
+        of([{ id_player_session: null, id_monster_session: 'm1', request_id: 'req-m' }]),
+      );
+      const modal = create(spell(14), { applyTargets: targets });
+      modal.toggleSaveTarget('monster:m1');
+      modal.requestSaves();
+      expect(modal.isPassed('monster:m1')).toBe(false);
+      state.applyEvent({
+        type: 'save_resolved',
+        id_game_session: 'gs',
+        save_request_id: 'req-m',
+        id_monster_session: 'm1',
+        name: 'Goblin',
+        outcome: 'success',
+      });
+      expect(modal.isPassed('monster:m1')).toBe(true);
+    });
+
+    it('monstro: o pedido vai com id_monster_sessions e o passou/falhou chega pelo save_resolved', () => {
+      requestSecretRoll.mockReturnValue(
+        of([{ id_player_session: null, id_monster_session: 'm1', request_id: 'req-m' }]),
+      );
+      const modal = create(spell(14), { applyTargets: targets });
+      modal.toggleSaveTarget('monster:m1');
+      modal.requestSaves();
+      expect(requestSecretRoll).toHaveBeenCalledWith(
+        'gs',
+        expect.objectContaining({ id_player_sessions: [], id_monster_sessions: ['m1'] }),
+      );
+      expect(modal.saveStatus('monster:m1')).toBe('pending');
+      state.applyEvent({
+        type: 'save_resolved',
+        id_game_session: 'gs',
+        save_request_id: 'req-m',
+        id_monster_session: 'm1',
+        name: 'Goblin',
+        outcome: 'success',
+      });
+      expect(modal.saveStatus('monster:m1')).toBe('success');
     });
   });
 });

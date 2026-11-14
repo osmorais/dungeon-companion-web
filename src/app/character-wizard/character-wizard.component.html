@@ -227,6 +227,16 @@
                 *ngTemplateOutlet="choiceInfo; context: { meta: selectedBackgroundMeta, traits: selectedBackgroundTraits }"
               ></ng-container>
             }
+            @if (hasLanguageToolChoices) {
+              <app-language-tool-picker
+                [languageCount]="availableLanguages.length ? languageChoiceCount : 0"
+                [fixedLanguages]="fixedLanguages"
+                [languages]="availableLanguages"
+                [toolSlots]="toolChoiceSlots"
+                [value]="languageToolValue"
+                (valueChange)="onLanguageToolChange($event)"
+              />
+            }
           </div>
         </section>
 
@@ -852,6 +862,16 @@
               <ng-container
                 *ngTemplateOutlet="choiceInfo; context: { meta: selectedBackgroundMeta, traits: selectedBackgroundTraits }"
               ></ng-container>
+            }
+            @if (hasLanguageToolChoices) {
+              <app-language-tool-picker
+                [languageCount]="availableLanguages.length ? languageChoiceCount : 0"
+                [fixedLanguages]="fixedLanguages"
+                [languages]="availableLanguages"
+                [toolSlots]="toolChoiceSlots"
+                [value]="languageToolValue"
+                (valueChange)="onLanguageToolChange($event)"
+              />
             }
           </div>
         </fieldset>

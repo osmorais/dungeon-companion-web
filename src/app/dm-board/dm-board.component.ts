@@ -67,7 +67,9 @@ export class DmBoardComponent implements OnInit, OnDestroy {
   private gameSessionService = inject(GameSessionService);
 
   @Input({ required: true }) detail!: GameSessionDetail;
-  @Input() pollingEnabled = false;
+  /** Acerto automático do ataque contra a CA do alvo (opção da mesa, 1.25.0). */
+  @Input() autoHitCheck = false;
+  @Input() savingAutoHit = false;
   @Input() screenEffectsEnabled = false;
   @Input() endingCombat = false;
   /** Monstro com revelar/esconder em andamento — desabilita o botão dele. */
@@ -89,7 +91,7 @@ export class DmBoardComponent implements OnInit, OnDestroy {
   @Output() applyArea = new EventEmitter<AreaApplyRequest>();
   /** A sessão foi apagada pelo quadro — o session-panel sai da tela. */
   @Output() sessionDeleted = new EventEmitter<void>();
-  @Output() togglePolling = new EventEmitter<void>();
+  @Output() toggleAutoHit = new EventEmitter<void>();
   @Output() toggleScreenEffects = new EventEmitter<void>();
 
   readonly monsterName = monsterDisplayName;
