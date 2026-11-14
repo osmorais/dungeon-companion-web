@@ -33,6 +33,33 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.25.2',
+    date: '2026-11-14',
+    title: 'Sessões, criação de sessão e bestiário com a cara da nova tela inicial',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'Criar sessão ficou em três etapas (dados, quem vem junto e código de convite), com botões de mais e menos para o número de jogadores, o código em destaque e um resumo antes de salvar.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Bestiário e catalogar monstro com o mesmo visual: filtros numa janela ao lado das cartas, contagem do que está aparecendo e, ao passar o mouse numa carta do livro, o aviso para ver a ficha.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Trocar de tela ficou mais suave: a tela nova chega deslizando como um vagão no trilho, e ao voltar ela vem pelo outro lado. No computador, a janela da tela inicial se transforma na janela da tela escolhida.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A tela de sessões criadas ganhou o mesmo visual da nova tela inicial: cards maiores, com o código de convite em destaque e a data em que cada sessão foi criada.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Dá para criar uma sessão nova direto da lista, e se algo der errado ao carregar, um botão tenta de novo.',
+      },
+    ],
+  },
+  {
     version: '1.25.1',
     date: '2026-11-13',
     title: 'Nova tela inicial',
