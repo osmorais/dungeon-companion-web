@@ -2,6 +2,7 @@ import { CharacterCardData } from '../character-card/character-card.component';
 import { GameCardData } from '../game-card/game-card.model';
 import {
   CastStageApplied,
+  CastStageTarget,
   CastStageRoll,
   MonsterActionCardInfo,
   SpellCastStagePayload,
@@ -44,6 +45,7 @@ export function castStagePayload(
   phase: 'open' | 'done' | 'cancel',
   rolls: CastStageRoll[],
   applied: CastStageApplied[] = [],
+  targets: CastStageTarget[] = [],
 ): SpellCastStagePayload {
   return {
     cast_id: ctx.castId,
@@ -57,6 +59,7 @@ export function castStagePayload(
     phase,
     rolls,
     applied,
+    ...(targets.length ? { targets } : {}),
     save_dc: ctx.saveDc,
     save_ability: ctx.saveAbility,
   };

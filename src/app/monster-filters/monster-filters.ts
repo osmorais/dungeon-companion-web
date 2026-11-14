@@ -56,7 +56,21 @@ const SIZE_ORDER = ['Miúdo', 'Pequeno', 'Médio', 'Grande', 'Enorme', 'Imenso']
 const byName = (a: FilterableMonster, b: FilterableMonster) =>
   a.name.localeCompare(b.name, 'pt', { numeric: true });
 
-export function filterMonsters<T extends FilterableMonster>(list: T[], f: MonsterFilters): T[] {
+/**
+ * Filtra e ordena. Com `hasArt`, as cartas com arte própria (a do mestre ou a do monstro) vêm
+ * sempre antes das que mostram a imagem genérica; dentro de cada grupo vale a ordenação escolhida.
+ */
+export function filterMonsters<T extends FilterableMonster>(
+  list: T[],
+  f: MonsterFilters,
+  hasArt?: (m: T) => boolean,
+): T[] {
+  const sorted = sortMonsters(list, f);
+  if (!hasArt) return sorted;
+  return [...sorted.filter(hasArt), ...sorted.filter((m) => !hasArt(m))];
+}
+
+function sortMonsters<T extends FilterableMonster>(list: T[], f: MonsterFilters): T[] {
   const term = normalizeSearch(f.search);
   const result = list.filter(
     (m) =>

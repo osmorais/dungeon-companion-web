@@ -16,7 +16,11 @@ import { Router, RouterLink } from '@angular/router';
 import { MonsterCatalogService } from '../services/monster-catalog.service';
 import { MonsterCatalogEntry } from '../models/monster-catalog.interface';
 import { catalogMonsterName } from '../services/monster-format';
-import { catalogMonsterCard, catalogMonsterCardState } from '../game-card/monster-card';
+import {
+  MONSTER_ART_SLUGS,
+  catalogMonsterCard,
+  catalogMonsterCardState,
+} from '../game-card/monster-card';
 import { MonsterFiltersComponent } from '../monster-filters/monster-filters.component';
 import {
   EMPTY_MONSTER_FILTERS,
@@ -33,7 +37,11 @@ const PAGE_SIZE = 8;
 const FETCH_SIZE = 50;
 
 /** Monstro do bestiário com o que os filtros olham (o nome que o mestre deu e o original). */
-type CatalogItem = FilterableMonster & { entry: MonsterCatalogEntry };
+type CatalogItem = FilterableMonster & {
+  entry: MonsterCatalogEntry;
+  /** Imagem do mestre ou arte do monstro: vem antes na lista. */
+  hasArt: boolean;
+};
 
 function toItem(entry: MonsterCatalogEntry): CatalogItem {
   const s = entry.data_snapshot;
@@ -46,6 +54,7 @@ function toItem(entry: MonsterCatalogEntry): CatalogItem {
     size: s.size,
     legendary: !!s.legendary_actions?.length,
     flies: !!s.speed?.['voo'],
+    hasArt: !!entry.image_url || MONSTER_ART_SLUGS.has(entry.monster_api_slug),
   };
 }
 
@@ -88,7 +97,7 @@ export class MonsterCatalogListComponent implements OnInit {
   private readonly items = computed(() => this.monsters().map(toItem));
   readonly filterOptions = computed(() => monsterFilterOptions(this.items()));
   readonly filteredMonsters = computed(() =>
-    filterMonsters(this.items(), this.filters()).map((i) => i.entry),
+    filterMonsters(this.items(), this.filters(), (i) => i.hasArt).map((i) => i.entry),
   );
   readonly pageMonsters = computed(() =>
     this.filteredMonsters().slice((this.page() - 1) * PAGE_SIZE, this.page() * PAGE_SIZE),

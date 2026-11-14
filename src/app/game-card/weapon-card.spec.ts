@@ -34,6 +34,16 @@ describe('isSimpleWeapon', () => {
 });
 
 describe('weaponToCard', () => {
+  it('versátil mostra o dano com as duas mãos; sem proficiência ganha a etiqueta', () => {
+    const card = weaponToCard(
+      weapon({ name: 'Bordão', damage_die: '1d6', damage_modifier: 2, versatile_die: '1d8' }),
+    );
+    expect(card.stats[0].value).toBe('1d6+2 (1d8+2 duas mãos)');
+    expect(card.tags).toEqual([]);
+    const heavy = weaponToCard(weapon({ name: 'Besta Pesada', proficient: false }));
+    expect(heavy.tags).toEqual(['SEM PROFICIÊNCIA']);
+  });
+
   it('arma do catálogo (criação) sem modificador nem bônus: só o dado, nunca "undefined"', () => {
     const raw = weapon({ name: 'Adaga', damage_die: '1d4' }) as Partial<WeaponRow>;
     delete raw.damage_modifier;

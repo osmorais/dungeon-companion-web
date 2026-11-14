@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
+import { monsterApplyDefenses } from './apply-target';
 import { RollModalComponent, AbilityRollConfig } from './roll-modal.component';
 import { GameSessionService } from '../services/game-session.service';
 import { DamageImpactService } from '../services/damage-impact.service';
@@ -381,6 +382,26 @@ describe('RollModalComponent — fase 4', () => {
 
   const settle = () => vi.advanceTimersByTime(1000);
 
+  describe('autoRoll (pedido de resistência)', () => {
+    const save: AbilityRollConfig = { mode: 'ability', rollType: 'save', label: 'x', modifier: 2 };
+
+    it('com autoRoll, já rola ao abrir; sem, espera o clique', () => {
+      const component = TestBed.runInInjectionContext(() => new RollModalComponent());
+      component.config = save;
+      component.autoRoll = true;
+      component.ngOnInit();
+      vi.advanceTimersByTime(0);
+      expect(component.isRolling()).toBe(true);
+      settle();
+      expect(component.result()).not.toBeNull();
+
+      const manual = create(save).modal;
+      vi.advanceTimersByTime(0);
+      expect(manual.isRolling()).toBe(false);
+      expect(manual.result()).toBeNull();
+    });
+  });
+
   describe('crítico', () => {
     it('20 natural: acerto crítico e os dados de dano dobram (o modificador não)', () => {
       const random = vi.spyOn(Math, 'random').mockReturnValue(0.999);
@@ -493,6 +514,53 @@ describe('RollModalComponent — fase 4', () => {
       damage: { diceCount: 8, diceSides: 6, modifier: 0, label: 'Dano: Bola de Fogo' },
     };
 
+    describe('defesas do monstro (mestre, 1.24.4)', () => {
+      const poison: AbilityRollConfig = {
+        ...fireball,
+        label: 'Magia: Rajada de Veneno',
+        damage: { ...fireball.damage!, damageType: 'veneno' },
+      };
+      const skeleton = {
+        key: 'monster:m1',
+        label: 'Esqueleto',
+        allowsTempHp: false,
+        defenses: monsterApplyDefenses({
+          damage_immunities: ['veneno'],
+          damage_vulnerabilities: ['concussão'],
+          damage_resistances: ['concussão, cortante e perfurante de ataques não-mágicos'],
+        }),
+      };
+
+      it('imune: aplica 0; o tipo do dano vai junto pra API', () => {
+        const { modal, applied } = create(poison, [skeleton]);
+        modal.roll();
+        settle();
+        modal.setApplyTarget({ target: { value: 'monster:m1' } } as unknown as Event);
+        expect(modal.immunityOf(skeleton)).toBe('veneno');
+        expect(modal.amountFor('full')).toBe(0);
+        modal.apply();
+        expect(applied).not.toHaveBeenCalled();
+        expect(modal.applied()).toEqual([{ label: 'Esqueleto', amount: 0, kind: 'damage' }]);
+      });
+
+      it('vulnerável: o dobro (concussão = contundente); o composto não conta', () => {
+        const club: AbilityRollConfig = {
+          ...fireball,
+          damage: { ...fireball.damage!, damageType: 'Concussão' },
+        };
+        const { modal, applied } = create(club, [skeleton]);
+        modal.roll();
+        settle();
+        const total = modal.result()!.total;
+        modal.setApplyTarget({ target: { value: 'monster:m1' } } as unknown as Event);
+        modal.apply();
+        expect(applied).toHaveBeenCalledWith(
+          expect.objectContaining({ amount: total * 2, damageType: 'contundente' }),
+        );
+        expect(modal.resistanceOf(skeleton)).toBeNull();
+      });
+    });
+
     it('sem alvos: encerra sozinho como antes', () => {
       const { modal, rolled } = create(fireball);
       modal.roll();
@@ -516,8 +584,13 @@ describe('RollModalComponent — fase 4', () => {
       modal.setApplyTarget({ target: { value: 'player:p1' } } as unknown as Event);
       modal.apply('half');
       expect(applied.mock.calls.map(([req]) => req)).toEqual([
-        { targetKey: 'monster:m1', amount: total, kind: 'damage' },
-        { targetKey: 'player:p1', amount: Math.floor(total / 2), kind: 'damage' },
+        { targetKey: 'monster:m1', amount: total, kind: 'damage', damageType: null },
+        {
+          targetKey: 'player:p1',
+          amount: Math.floor(total / 2),
+          kind: 'damage',
+          damageType: null,
+        },
       ]);
       expect(modal.applied()).toHaveLength(2);
 

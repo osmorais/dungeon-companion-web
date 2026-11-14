@@ -15,6 +15,9 @@ export class SessionStateService {
   private socketService = inject(SessionSocketService);
 
   readonly detail = signal<GameSessionDetail | null>(null);
+  /** Resistências de monstro já resolvidas (id do pedido → passou/falhou), 1.24.2. Fora do
+   *  `detail` porque o refetch completo do polling substitui o detalhe inteiro. */
+  readonly saveOutcomes = signal<Readonly<Record<string, 'success' | 'fail'>>>({});
 
   /** Refetch completo — usado no load inicial, no polling e na safety-net. Sempre SUBSTITUI o estado. */
   loadFull(sessionId: string): Observable<GameSessionDetail> {
@@ -29,6 +32,8 @@ export class SessionStateService {
 
   /** Aplica uma mensagem tipada do socket — nunca faz I/O, só reduz o estado atual. */
   applyEvent(event: SessionEvent): void {
+    if (event.type === 'save_resolved')
+      this.saveOutcomes.update((map) => ({ ...map, [event.save_request_id]: event.outcome }));
     this.detail.update((current) => (current ? applySessionEvent(current, event) : current));
   }
 

@@ -3,7 +3,11 @@ import { SkeletonRowsComponent } from '../skeleton/skeleton-rows.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MonsterCatalogService } from '../services/monster-catalog.service';
 import { MonsterCatalogEntry } from '../models/monster-catalog.interface';
-import { catalogMonsterCard, catalogMonsterCardState } from '../game-card/monster-card';
+import {
+  catalogMonsterCard,
+  catalogMonsterCardState,
+  monsterImage,
+} from '../game-card/monster-card';
 import { MonsterSheetComponent } from '../monster-sheet/monster-sheet.component';
 import { catalogMonsterName } from '../services/monster-format';
 import { IMAGE_TYPE_ERROR, isAcceptedImageFile } from '../constants/image-upload';
@@ -20,6 +24,11 @@ import { IMAGE_TYPE_ERROR, isAcceptedImageFile } from '../constants/image-upload
   styleUrls: ['./monster-catalog-detail.component.scss'],
 })
 export class MonsterCatalogDetailComponent implements OnInit {
+  /** Imagem do mestre ou a arte padrão do slug (cartas das ações na ficha). */
+  artUrl(m: MonsterCatalogEntry): string {
+    return monsterImage(m.image_url, m.monster_api_slug);
+  }
+
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private monsterCatalogService = inject(MonsterCatalogService);

@@ -117,6 +117,12 @@
                   <label>MOVIMENTO</label>
                   <span>{{ data.character_sheet.combat_stats.speed }}</span>
                 </div>
+                @if (data.character_sheet.combat_features?.darkvision_m; as darkvision) {
+                  <div class="mobile-stat-card">
+                    <label>VISÃO NO ESCURO</label>
+                    <span>{{ darkvision }} m</span>
+                  </div>
+                }
                 <div class="mobile-stat-card">
                   <label>BÔNUS PROF.</label>
                   <span>{{ formatMod(data.character_sheet.combat_stats.proficiency_bonus) }}</span>
@@ -251,7 +257,13 @@
               <div class="m-box mobile-prof">
                 <p><span>ARMADURAS</span>{{ data.character_sheet.proficiencies_and_languages.armor.join(', ') || '—' }}</p>
                 <p><span>ARMAS</span>{{ data.character_sheet.proficiencies_and_languages.weapons.join(', ') || '—' }}</p>
+                <p><span>FERRAMENTAS</span>{{ data.character_sheet.proficiencies_and_languages.tools.join(', ') || '—' }}</p>
                 <p><span>IDIOMAS</span>{{ data.character_sheet.proficiencies_and_languages.languages.join(', ') || '—' }}</p>
+                @if (hasLanguageToolChoices()) {
+                  <button class="retro-btn lt-open-btn" (click)="showLanguageToolModal.set(true)">
+                    {{ hasPendingLanguageToolChoices() ? 'ESCOLHER IDIOMAS E FERRAMENTAS' : 'TROCAR IDIOMAS E FERRAMENTAS' }}
+                  </button>
+                }
               </div>
             </div>
           }
@@ -524,6 +536,12 @@
             <span class="sheet-hero-label">MOVIMENTO</span>
             <span class="sheet-stat-value">{{ data.character_sheet.combat_stats.speed }}</span>
           </div>
+          @if (data.character_sheet.combat_features?.darkvision_m; as darkvision) {
+            <div class="sheet-stat">
+              <span class="sheet-hero-label">VISÃO NO ESCURO</span>
+              <span class="sheet-stat-value">{{ darkvision }} m</span>
+            </div>
+          }
           <div class="sheet-stat">
             <span class="sheet-hero-label">BÔNUS PROF.</span>
             <span class="sheet-stat-value">{{ formatMod(data.character_sheet.combat_stats.proficiency_bonus) }}</span>
@@ -745,7 +763,13 @@
             <legend>PROFICIÊNCIAS</legend>
             <p class="prof-label">Armaduras: {{ data.character_sheet.proficiencies_and_languages.armor.join(', ') || '—' }}</p>
             <p class="prof-label">Armas: {{ data.character_sheet.proficiencies_and_languages.weapons.join(', ') || '—' }}</p>
+            <p class="prof-label">Ferramentas: {{ data.character_sheet.proficiencies_and_languages.tools.join(', ') || '—' }}</p>
             <p class="prof-label">Idiomas: {{ data.character_sheet.proficiencies_and_languages.languages.join(', ') || '—' }}</p>
+            @if (hasLanguageToolChoices()) {
+              <button class="retro-btn lt-open-btn" (click)="showLanguageToolModal.set(true)">
+                {{ hasPendingLanguageToolChoices() ? 'ESCOLHER IDIOMAS E FERRAMENTAS' : 'TROCAR IDIOMAS E FERRAMENTAS' }}
+              </button>
+            }
           </fieldset>
         </div>
 
@@ -1083,6 +1107,14 @@
     [idCharacter]="sheetData()!.character_sheet.id_character!"
     (closed)="closeLevelUpModal()"
     (leveledUp)="onLeveledUp()" />
+}
+
+@if (showLanguageToolModal() && sheetData()?.character_sheet?.id_character && sheetData()!.character_sheet.proficiencies_and_languages.choices) {
+  <app-language-tool-modal
+    [idCharacter]="sheetData()!.character_sheet.id_character!"
+    [choices]="sheetData()!.character_sheet.proficiencies_and_languages.choices!"
+    (closed)="showLanguageToolModal.set(false)"
+    (saved)="onLanguageToolSaved($event)" />
 }
 
 @if (showEquipmentModal() && sheetData()?.character_sheet?.id_character) {

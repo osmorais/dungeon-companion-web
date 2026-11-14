@@ -1362,3 +1362,11 @@ input[type="checkbox"].retro-checkbox {
     --notice-bg: url('/assets/frames/notice-bg-sombrio-quadrado.webp');
   }
 }
+
+/* Botão de escolher idiomas e ferramentas na ficha (1.24.0) — global pra não pesar o SCSS da ficha. */
+.lt-open-btn {
+  float: none;
+  margin: 8px 0 0;
+  padding: 6px 8px;
+  font-size: 7px;
+}

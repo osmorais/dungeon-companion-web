@@ -78,7 +78,7 @@
                 (change)="toggleMonster(monster.id_monster_session)"
               />
               <div class="sf-avatar">
-                <img [src]="monster.image_url || DEFAULT_MONSTER_IMAGE" [alt]="monsterName(monster)" />
+                <img [src]="imageOf(monster)" [alt]="monsterName(monster)" />
               </div>
               <div class="sf-info">
                 <span class="sf-name">{{ monsterName(monster) }}</span>

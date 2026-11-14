@@ -82,6 +82,31 @@
     </div>
   }
 
+  <!-- Alvos escolhidos no começo (1.25.0): o resultado da resistência de cada um, com carimbo -->
+  @if (view.targets?.length) {
+    <ul class="cs-targets" aria-live="polite">
+      @for (t of view.targets; track $index) {
+        <li class="cs-target">
+          <span class="cs-target-name">{{ t.label }}</span>
+          @switch (t.save) {
+            @case ('success') {
+              <span class="cs-stamp cs-stamp--hit cs-stamp--save">PASSOU</span>
+            }
+            @case ('fail') {
+              <span class="cs-stamp cs-stamp--miss cs-stamp--save">FALHOU</span>
+            }
+            @case ('immune') {
+              <span class="cs-stamp cs-stamp--immune cs-stamp--save">IMUNE</span>
+            }
+            @case ('pending') {
+              <span class="cs-waiting">ROLANDO A RESISTÊNCIA...</span>
+            }
+          }
+        </li>
+      }
+    </ul>
+  }
+
   @if (appliedLines().length > 0) {
     <ul class="cs-applied" aria-live="polite">
       @for (line of appliedLines(); track $index) {

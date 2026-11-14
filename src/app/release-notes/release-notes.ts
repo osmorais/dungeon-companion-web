@@ -33,8 +33,8 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
-    version: '1.19.1',
-    date: '2026-11-12',
+    version: '1.25.1',
+    date: '2026-11-13',
     title: 'Nova tela inicial',
     changes: [
       {
@@ -44,6 +44,244 @@ export const RELEASES: Release[] = [
       {
         kind: 'melhoria',
         text: 'No celular, escolher jogador ou mestre leva para uma tela só com as opções; para voltar, use a seta ou arraste para a direita.',
+      },
+    ],
+  },
+  {
+    version: '1.25.0',
+    date: '2026-11-13',
+    title: 'Lançamento com alvos escolhidos no começo',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'Ao lançar uma magia ou atacar, a primeira coisa é escolher quem você está atingindo, pelos anéis dos personagens, NPCs e monstros da mesa (dá para marcar vários, ou seguir SEM ALVO). Nas magias com teste de resistência, os alvos já recebem o pedido para rolar.',
+      },
+      {
+        kind: 'novidade',
+        text: 'No fim, só dois botões: APLICAR O DANO (conforme quem passou ou falhou na resistência) e CONCLUIR SEM APLICAR. Se alguém ainda não rolou, o jogo avisa antes de aplicar.',
+      },
+      {
+        kind: 'novidade',
+        text: 'Quadro do Mestre: opção de acerto automático — a mesa compara o ataque com a CA do alvo e diz se acertou, sem mostrar a CA do monstro. O botão de polling saiu do quadro.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'PASSOU e FALHOU aparecem em destaque na tela de lançamento para todos, e quem rolou a resistência volta para acompanhar o dano.',
+      },
+    ],
+  },
+  {
+    version: '1.24.5',
+    date: '2026-11-12',
+    title: 'Resistência rolada direto do aviso',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'Quem é atingido por uma magia com teste de resistência clica em ROLAR no aviso e o dado já rola ali, na frente da tela de lançamento — antes a rolagem abria escondida atrás dela e pedia mais um clique.',
+      },
+    ],
+  },
+  {
+    version: '1.24.4',
+    date: '2026-11-12',
+    title: 'Imunidades e resistências dos monstros',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'O dano aplicado em monstros respeita a ficha do bestiário: imune não sofre nada, resistente sofre metade e vulnerável sofre o dobro. O aviso da mesa mostra quando o monstro era imune, resistente ou vulnerável.',
+      },
+      {
+        kind: 'correcao',
+        text: 'Ao pedir resistência a um monstro imune ao dano da magia (como um esqueleto contra veneno), ele nem precisa rolar: aparece como imune.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Quando a resistência pedida volta como "passou", o alvo já vem marcado para receber metade do dano.',
+      },
+    ],
+  },
+  {
+    version: '1.24.3',
+    date: '2026-11-12',
+    title: 'Preparar magias antes da luta',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'Preparar magias antes de rolar a iniciativa voltou a funcionar para quem também joga noutra mesa: um combate que ficou aberto em outra sessão não trava mais o preparo nesta.',
+      },
+    ],
+  },
+  {
+    version: '1.24.2',
+    date: '2026-11-12',
+    title: 'Resistência de monstros contra magias',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'Quem lança uma magia com teste de resistência (como Bola de Fogo) agora pode marcar também os monstros atingidos. O pedido chega para o mestre, que rola a resistência de cada monstro com o bônus da ficha dele.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A mesa vê só se o monstro passou ou falhou; o número rolado fica com o mestre.',
+      },
+    ],
+  },
+  {
+    version: '1.24.1',
+    date: '2026-11-12',
+    title: 'Mesa do mestre em tempo real de novo',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'A mesa do mestre voltou a atualizar na hora: revelar e esconder monstros, os avisos de monstro revelado e derrotado e as outras mudanças da mesa aparecem sem atraso, como para os jogadores.',
+      },
+      {
+        kind: 'correcao',
+        text: 'O jogador passa a ver a arte do monstro assim que ele é revelado, sem precisar recarregar a página.',
+      },
+    ],
+  },
+  {
+    version: '1.24.0',
+    date: '2026-11-12',
+    title: 'Escolha de idiomas e ferramentas',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'Na criação do personagem, você escolhe os idiomas extras da raça e do antecedente e qual kit de jogo, instrumento musical ou ferramenta de artesão o antecedente dá, em vez de ficar "à escolha".',
+      },
+      {
+        kind: 'novidade',
+        text: 'Personagens já criados podem fazer essas escolhas na própria ficha, no quadro de proficiências, e trocar depois se quiserem.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A ficha passa a mostrar as ferramentas em que o personagem tem proficiência.',
+      },
+    ],
+  },
+  {
+    version: '1.23.3',
+    date: '2026-11-12',
+    title: 'Ficha: proficiência em armas e impressão corrigidas',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'O ataque com uma arma que a classe não sabe usar (por exemplo, um bruxo com besta pesada) não soma mais o bônus de proficiência. As armas marciais dos Domínios da Guerra e da Tempestade e do Colégio da Bravura passam a contar.',
+      },
+      {
+        kind: 'correcao',
+        text: 'A ficha impressa mostra o dano com o atributo somado, o dano das armas versáteis com as duas mãos, a armadura vestida e o escudo.',
+      },
+      {
+        kind: 'correcao',
+        text: 'Humanos e meio-elfos ganham o idioma extra que o livro dá.',
+      },
+      {
+        kind: 'correcao',
+        text: 'O monge que usa escudo deixa de somar a Sabedoria na CA, como no livro.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A carta da arma mostra o dano com as duas mãos nas armas versáteis e avisa quando o personagem não tem proficiência nela.',
+      },
+    ],
+  },
+  {
+    version: '1.23.2',
+    date: '2026-11-12',
+    title: 'Bestiário mostra primeiro os monstros com arte',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'No bestiário e na tela de catalogar, os monstros com arte própria (a do bestiário ou a imagem enviada pelo mestre) aparecem primeiro; os que ainda usam a imagem genérica vêm depois. Os filtros e a ordenação continuam valendo dentro de cada grupo.',
+      },
+    ],
+  },
+  {
+    version: '1.23.1',
+    date: '2026-11-12',
+    title: 'Talento repetido ao subir de nível',
+    changes: [
+      {
+        kind: 'correcao',
+        text: 'Ao subir de nível, o talento que o personagem já tem não aparece mais para escolher de novo. Só o Adepto Elemental, que o livro deixa repetir com outro tipo de dano, continua na lista.',
+      },
+    ],
+  },
+  {
+    version: '1.23.0',
+    date: '2026-11-12',
+    title: 'Artes dos monstros',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'Vinte e quatro monstros comuns ganharam arte própria em pixel art: goblin, kobold, orc, esqueleto, zumbi, lobo, bandido, cultista, rato gigante, aranha gigante, ogro, gnoll, hobgoblin, bugbear, chefe goblin, capitão dos bandidos, lobo atroz, worg, carniçal, sombra, urso-coruja, mímico, cubo gelatinoso e harpia.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A arte aparece na carta, na mesa, no início do combate, nos avisos e no bestiário sempre que o mestre não enviou uma imagem própria. A imagem do mestre continua valendo por cima.',
+      },
+    ],
+  },
+  {
+    version: '1.22.0',
+    date: '2026-11-12',
+    title: 'Companheiro Animal',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'Companheiro Animal: o patrulheiro do Conclave da Besta (a partir do nível 3) escolhe uma besta de ND 1/4 ou menor para lutar ao seu lado. Ela aparece na mesa junto dos NPCs, com PV e CA, e um contorno da mesma cor liga o card dela ao do patrulheiro.',
+      },
+      {
+        kind: 'novidade',
+        text: 'O companheiro age na vez do patrulheiro: os ataques dele ficam nas ações do patrulheiro, já somando a proficiência no ataque e no dano (duas vezes por comando a partir do nível 11). Dá para trocar ou dispensar a besta a qualquer momento.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Dano e cura das rolagens podem ser aplicados direto no companheiro, e o mestre e o patrulheiro ajustam o PV dele no card.',
+      },
+    ],
+  },
+  {
+    version: '1.21.0',
+    date: '2026-11-12',
+    title: 'Forma Selvagem',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'Forma Selvagem: o druida escolhe a besta do bestiário (pelo nível dele, com as regras de nado e voo) e passa a usar o PV, a CA, a força, a destreza, a constituição, o deslocamento e os ataques dela. O Círculo da Lua vira bestas mais fortes.',
+      },
+      {
+        kind: 'novidade',
+        text: 'Quando o PV da forma chega a 0, o druida volta à forma normal e o dano que sobrou passa para ele. A mesa vê no card a forma e o PV dela.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'Transformado, o druida não lança magias até sair da forma (a partir do nível 18, com Magias da Besta, pode).',
+      },
+    ],
+  },
+  {
+    version: '1.20.0',
+    date: '2026-11-12',
+    title: 'Ataque Extra, Ação Ardilosa e visão no escuro',
+    changes: [
+      {
+        kind: 'novidade',
+        text: 'Ataque Extra: quem ataca mais de uma vez por ação vê a contagem ("ataque 1 de 2"). No combate, a contagem continua de onde parou na mesma vez, mesmo fechando a tela de ações.',
+      },
+      {
+        kind: 'novidade',
+        text: 'Ação Ardilosa: o ladino escolhe Disparar, Desengajar ou Esconder como ação bônus, e a mesa é avisada. Esconder já abre o teste de Furtividade.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'O alcance da visão no escuro aparece na ficha e no card do personagem na mesa.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'A ficha e os pedidos de resistência carregam mais rápido.',
       },
     ],
   },

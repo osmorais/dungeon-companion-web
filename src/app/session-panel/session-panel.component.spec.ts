@@ -8,6 +8,7 @@ import { SessionStateService } from '../services/session-state.service';
 import { CharacterService } from '../services/character.service';
 import { AuthService } from '../services/auth.service';
 import {
+  CombatParticipant,
   GameSessionDetail,
   MonsterSession,
   NpcSession,
@@ -15,6 +16,7 @@ import {
 } from '../models/game-session.interface';
 import {
   combat,
+  companion,
   monster,
   npc,
   participant,
@@ -40,6 +42,7 @@ describe('SessionPanelComponent', () => {
     updateNpcHp: ReturnType<typeof vi.fn>;
     updateMonsterHp: ReturnType<typeof vi.fn>;
     applyAmount: ReturnType<typeof vi.fn>;
+    setCompanionHp: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(() => {
@@ -49,6 +52,7 @@ describe('SessionPanelComponent', () => {
       updateNpcHp: vi.fn(() => of({})),
       updateMonsterHp: vi.fn(() => of({})),
       applyAmount: vi.fn(() => of({})),
+      setCompanionHp: vi.fn((_id: string, hp: number) => of({ hp_current: hp })),
     };
     TestBed.configureTestingModule({
       providers: [
@@ -75,6 +79,76 @@ describe('SessionPanelComponent', () => {
     else if ('id_player_session' in target) component.setPlayerDamageInput(target, event);
     else component.setMonsterDamageInput(target, event);
   }
+
+  describe('anéis da escolha de alvos (1.25.0)', () => {
+    it('jogador e NPC: sempre o avatar montado, nunca a imagem de fundo', () => {
+      const preset = { race: 'elf' } as unknown as NonNullable<
+        PlayerSession['character']
+      >['avatar_preset'];
+      const withBg = player('p1', {
+        id_character: 10,
+        character: {
+          ...player('p1').character!,
+          image_url: 'https://x/fundo.png',
+          avatar_preset: preset,
+        },
+      });
+      detail.set(sessionDetail({ players: [withBg] }));
+      expect(component.applyTargetsFor(10)[0].avatar).toEqual({
+        imageUrl: null,
+        avatarPreset: preset,
+      });
+    });
+  });
+
+  describe('Quadro do Mestre: acerto automático (1.25.0)', () => {
+    it('liga a opção na API e a mesa já fica com ela', () => {
+      const update = vi.fn(() => of({ auto_hit_check: true }));
+      (gameSessionService as unknown as Record<string, unknown>)['updateSessionSettings'] = update;
+      component.toggleAutoHit();
+      expect(update).toHaveBeenCalledWith('gs', { auto_hit_check: true });
+      expect(detail()!.game_session.auto_hit_check).toBe(true);
+      expect(component.savingAutoHit()).toBe(false);
+    });
+  });
+
+  describe('arte padrão do monstro (1.23.0)', () => {
+    it('mestre: imagem dele ou a arte do slug, na lista, no turno e na carta', () => {
+      const semImagem = monster('m1');
+      const comImagem = monster('m2', { image_url: 'https://x/m2.png' });
+      const semArte = monster('m3', { monster_api_slug: 'troll' });
+      detail.set(sessionDetail({ monsters: [semImagem, comImagem, semArte] }));
+      expect(component.monsterImageOf(semImagem)).toBe('assets/monsters/goblin.webp');
+      expect(component.monsterImageOf(comImagem)).toBe('https://x/m2.png');
+      expect(component.monsterImageOf(semArte)).toBe('assets/monster.png');
+      expect(component.monsterCardFor('m1')?.art).toBe('assets/monsters/goblin.webp');
+      expect(
+        component.turnCardFor({
+          participant_type: 'monster',
+          id_monster_session: 'm1',
+        } as CombatParticipant).imageUrl,
+      ).toBe('assets/monsters/goblin.webp');
+    });
+
+    it('jogador: a arte só do monstro revelado, pelo slug que a API manda', () => {
+      detail.set(
+        sessionDetail({
+          game_session: { ...sessionDetail().game_session, user_id: 'outro-mestre' },
+          revealed_monsters: [
+            { id_monster_session: 'm1', name: 'Coisa', image_url: null, monster_slug: 'mimico' },
+          ],
+        }),
+      );
+      expect(component.monsterCardFor('m1')?.art).toBe('assets/monsters/mimico.webp');
+      // Escondido: o jogador não recebe nada dele, continua a genérica.
+      expect(
+        component.turnCardFor({
+          participant_type: 'monster',
+          id_monster_session: 'm9',
+        } as CombatParticipant).imageUrl,
+      ).toBe('assets/monster.png');
+    });
+  });
 
   describe('reação do Tom às rolagens', () => {
     const d20 = (id: string, actor: string, natural: number) =>
@@ -262,6 +336,20 @@ describe('SessionPanelComponent', () => {
       typeDamage(p, 3);
       component.applyPlayerDamage(p);
       expect(gameSessionService.updatePlayerHp).toHaveBeenCalledWith('p1', 15, 2);
+    });
+
+    it('Forma Selvagem: o dano que passa do PV da forma vai junto (a API passa pro druida)', () => {
+      const p = player('p1', {
+        character: {
+          ...player('p1').character!,
+          current_hit_points: 4,
+          temporary_hit_points: 0,
+          wild_shape_name: 'Lobo',
+        },
+      });
+      typeDamage(p, 10);
+      component.applyPlayerDamage(p);
+      expect(gameSessionService.updatePlayerHp).toHaveBeenCalledWith('p1', 0, 0, 6);
     });
 
     it('PV não fica negativo', () => {
@@ -501,11 +589,24 @@ describe('SessionPanelComponent', () => {
           monsters: [{ ...m1, is_revealed: true }, hidden],
         }),
       );
-      expect(component.applyTargetsFor(10)).toEqual([
+      // toMatchObject: cada alvo leva também a imagem do anel (1.25.0).
+      expect(component.applyTargetsFor(10)).toMatchObject([
         { key: 'player:p1', label: 'Personagem p1', allowsTempHp: true },
         { key: 'player:p2', label: 'Personagem p2', allowsTempHp: true },
         { key: 'npc:n1', label: 'Personagem n1', allowsTempHp: false },
-        { key: 'monster:m1', label: 'Goblin', allowsTempHp: false },
+        {
+          key: 'monster:m1',
+          label: 'Goblin',
+          allowsTempHp: false,
+          // Mestre: defesas da ficha do monstro (1.24.4) — o goblin não tem nenhuma.
+          defenses: {
+            resistances: [],
+            immunities: [],
+            vulnerabilities: [],
+            uncanny_dodge: false,
+            evasion: false,
+          },
+        },
       ]);
     });
 
@@ -782,6 +883,8 @@ describe('SessionPanelComponent', () => {
           label: 'Goblin Chefe',
           allowsTempHp: false,
           damageOnly: true,
+          // Revelado sem slug (API antiga): a imagem genérica.
+          avatar: { imageUrl: 'assets/monster.png', avatarPreset: null },
         });
       });
 
@@ -803,6 +906,36 @@ describe('SessionPanelComponent', () => {
         const updated = detail()!.players.find((p) => p.id_player_session === 'p1')!;
         expect(updated.character!.current_hit_points).toBe(12);
         expect(updated.character!.temporary_hit_points).toBe(0);
+      });
+
+      it('dano em monstro leva o tipo pra API aplicar imunidade/resistência (1.24.4)', () => {
+        asPlayer();
+        component.activeActionsCharacter.set({ id: 20, name: 'Personagem p2' });
+        gameSessionService.applyAmount.mockReturnValue(
+          of({ applied_amount: 0, defense: 'immune' }),
+        );
+        component.applyRollToTarget({
+          targetKey: 'monster:m1',
+          amount: 6,
+          kind: 'damage',
+          damageType: 'veneno',
+        });
+        expect(gameSessionService.applyAmount.mock.calls[0][1]).toMatchObject({
+          target_kind: 'monster',
+          damage_type: 'veneno',
+        });
+      });
+
+      it('aviso "APLICOU" diz quando o monstro era imune', () => {
+        component.onAmountApplied({
+          id_character: 20,
+          actor_name: 'Ana',
+          target_label: 'Esqueleto',
+          amount: 0,
+          kind: 'damage',
+          defense: 'immune',
+        });
+        expect(component.activeSpellCastToast()?.targets).toEqual(['Esqueleto (imune)']);
       });
 
       it('dano em monstro: nada de PV volta pro jogador', () => {
@@ -845,6 +978,87 @@ describe('SessionPanelComponent', () => {
       expect(gameSessionService.updateMonsterHp).toHaveBeenCalledWith('m1', 0);
       component.applyRollToTarget({ targetKey: 'npc:n1', amount: 5, kind: 'heal' });
       expect(gameSessionService.updateNpcHp).toHaveBeenCalledWith('n1', 20);
+    });
+
+    describe('Companheiro Animal', () => {
+      const c1 = companion('c1', 'p1', { hp_current: 10, hp_max: 12 });
+
+      it('entra nos alvos com o nome do ranger, sem PV temporário', () => {
+        detail.set(sessionDetail({ players: [p1], companions: [c1] }));
+        expect(component.applyTargetsFor(10)).toContainEqual({
+          key: 'companion:c1',
+          label: 'Lobo (companheiro de Personagem p1)',
+          allowsTempHp: false,
+          avatar: { imageUrl: 'assets/monsters/lobo.webp', avatarPreset: null },
+        });
+      });
+
+      it('mestre: dano e cura limitados entre 0 e o máximo; PV temporário ignorado', () => {
+        detail.set(sessionDetail({ players: [p1], companions: [c1] }));
+        component.applyRollToTarget({ targetKey: 'companion:c1', amount: 50, kind: 'heal' });
+        expect(gameSessionService.setCompanionHp).toHaveBeenLastCalledWith('c1', 12);
+        expect(detail()!.companions![0].hp_current).toBe(12);
+        component.applyRollToTarget({ targetKey: 'companion:c1', amount: 30, kind: 'damage' });
+        expect(gameSessionService.setCompanionHp).toHaveBeenLastCalledWith('c1', 0);
+        component.applyRollToTarget({ targetKey: 'companion:c1', amount: 5, kind: 'temp_hp' });
+        expect(gameSessionService.setCompanionHp).toHaveBeenCalledTimes(2);
+      });
+
+      it('jogador: manda pro servidor como companion e usa o PV que volta', () => {
+        detail.set(
+          sessionDetail({
+            game_session: { ...sessionDetail().game_session, user_id: 'outro-mestre' },
+            players: [p1, p2],
+            companions: [c1],
+          }),
+        );
+        component.activeActionsCharacter.set({ id: 20, name: 'Personagem p2' });
+        gameSessionService.applyAmount.mockReturnValue(of({ current_hit_points: 4 }));
+        component.applyRollToTarget({ targetKey: 'companion:c1', amount: 6, kind: 'damage' });
+        expect(gameSessionService.applyAmount).toHaveBeenCalledWith('gs', {
+          id_character: 20,
+          target_kind: 'companion',
+          target_id: 'c1',
+          amount: 6,
+          kind: 'damage',
+        });
+        expect(gameSessionService.setCompanionHp).not.toHaveBeenCalled();
+        expect(detail()!.companions![0].hp_current).toBe(4);
+      });
+
+      it('o card do ranger ganha a cor do companheiro; o modal recebe o companheiro dele', () => {
+        detail.set(sessionDetail({ players: [p1, p2], companions: [c1] }));
+        expect(component.companionColorFor(p1)).toBe('#5fb3d9');
+        expect(component.companionColorFor(p2)).toBeNull();
+        expect(component.companionFor(10)?.id_session_companion).toBe('c1');
+        expect(component.companionFor(20)).toBeNull();
+        expect(component.playerSessionIdFor(20)).toBe('p2');
+      });
+
+      it('escolher/dispensar no modal atualiza a mesa na hora', () => {
+        detail.set(sessionDetail({ players: [p1], companions: [] }));
+        component.onCompanionSet(10, c1);
+        expect(detail()!.companions).toEqual([c1]);
+        component.onCompanionSet(10, null);
+        expect(detail()!.companions).toEqual([]);
+      });
+
+      it('só o mestre e o jogador do ranger mexem no companheiro', () => {
+        // p1 é do usuário logado ('dm'), que aqui não é o mestre.
+        const c2 = companion('c2', 'p2');
+        detail.set(
+          sessionDetail({
+            game_session: { ...sessionDetail().game_session, user_id: 'outro-mestre' },
+            players: [p1, p2],
+            companions: [c1, c2],
+          }),
+        );
+        expect(component.canManageCompanion(c1)).toBe(true);
+        expect(component.canManageCompanion(c2)).toBe(false);
+        // Mestre: todos.
+        detail.set(sessionDetail({ players: [p1, p2], companions: [c1, c2] }));
+        expect(component.canManageCompanion(c2)).toBe(true);
+      });
     });
 
     it('alvo inexistente ou valor zero não faz nada', () => {

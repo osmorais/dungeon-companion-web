@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpContext } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { CharacterSheetData } from '../models/character.interface';
-import { ActiveEffects, CharacterBackground, CharacterSheetResponse, ResourceTracker } from '../models/character-response.interface';
+import { ActiveEffects, CharacterBackground, CharacterSheetResponse, ResourceTracker, WildShapeOption } from '../models/character-response.interface';
 import { AvatarPreset } from '../models/avatar-preset.interface';
 import { CharacterOptions } from '../models/character-options.interface';
 import { CharacterSummary, CharacterPagedList } from '../models/character-summary.interface';
@@ -53,9 +53,15 @@ export class CharacterService {
   }
 
   /** `silent` evita o overlay de carregamento em tela cheia — usado pelo tooltip de hover no avatar. */
-  getCharacterById(id: number, silent = false): Observable<CharacterSheetResponse> {
+  /** `sessionId`: mesa de onde a ficha foi aberta — só o combate dela trava o preparo de magias. */
+  getCharacterById(
+    id: number,
+    silent = false,
+    sessionId?: string | null,
+  ): Observable<CharacterSheetResponse> {
     return this.http.get<CharacterSheetResponse>(`${this.baseUrl}/api/character-sheet/${id}`, {
       context: silent ? new HttpContext().set(SKIP_LOADING_OVERLAY, true) : undefined,
+      ...(sessionId ? { params: { session_id: sessionId } } : {}),
     });
   }
 
@@ -121,6 +127,28 @@ export class CharacterService {
     );
   }
 
+  /** Bestas que o druida pode virar no nível dele (Forma Selvagem). */
+  getWildShapeOptions(id: number): Observable<{ beasts: WildShapeOption[] }> {
+    return this.http.get<{ beasts: WildShapeOption[] }>(
+      `${this.baseUrl}/api/character-sheet/${id}/wild-shape/options`,
+    );
+  }
+
+  /** Transforma o druida na besta (gasta um uso). */
+  startWildShape(id: number, slug: string): Observable<{ active_effects: ActiveEffects }> {
+    return this.http.post<{ active_effects: ActiveEffects }>(
+      `${this.baseUrl}/api/character-sheet/${id}/wild-shape`,
+      { slug },
+    );
+  }
+
+  /** Volta o druida à forma normal. */
+  endWildShape(id: number): Observable<{ active_effects: ActiveEffects }> {
+    return this.http.delete<{ active_effects: ActiveEffects }>(
+      `${this.baseUrl}/api/character-sheet/${id}/wild-shape`,
+    );
+  }
+
   /** Liga/desliga Fúria/Arma Sagrada, ou marca uma soma 1×/turno como usada na vez do combate. */
   updateActiveEffects(
     id: number,
@@ -154,6 +182,17 @@ export class CharacterService {
     return this.http.patch<EquipmentUpdateResult>(`${this.baseUrl}/api/character-sheet/${id}/equipment`, input);
   }
 
+  /** Idiomas e ferramentas à escolha (1.24.0); devolve como a ficha passa a mostrar. */
+  updateLanguageToolChoices(
+    id: number,
+    input: { languages: string[]; tools: Record<string, string> },
+  ): Observable<{ languages: string[]; tools: string[] }> {
+    return this.http.patch<{ languages: string[]; tools: string[] }>(
+      `${this.baseUrl}/api/character-sheet/${id}/language-tool-choices`,
+      input,
+    );
+  }
+
   previewLevelUp(id: number, idSubclass?: string): Observable<LevelUpPreview> {
     const params: Record<string, string> = idSubclass ? { id_subclass: idSubclass } : {};
     return this.http.get<LevelUpPreview>(`${this.baseUrl}/api/character-sheet/${id}/level-up/preview`, { params });
@@ -167,10 +206,16 @@ export class CharacterService {
     return this.http.post<LevelUpResult>(`${this.baseUrl}/api/character-sheet/${id}/level-up/confirm`, input);
   }
 
-  setSpellPrepared(id: number, idSpell: number, isPrepared: boolean): Observable<{ success: boolean }> {
+  /** `sessionId`: mesa onde está — um combate esquecido aberto noutra mesa não trava o preparo. */
+  setSpellPrepared(
+    id: number,
+    idSpell: number,
+    isPrepared: boolean,
+    sessionId?: string | null,
+  ): Observable<{ success: boolean }> {
     return this.http.patch<{ success: boolean }>(
       `${this.baseUrl}/api/character-sheet/${id}/spells/${idSpell}/prepared`,
-      { is_prepared: isPrepared },
+      { is_prepared: isPrepared, ...(sessionId ? { id_game_session: sessionId } : {}) },
     );
   }
 }

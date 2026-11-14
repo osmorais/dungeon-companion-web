@@ -2,6 +2,7 @@ import { applySessionEvent } from './session-event.reducer';
 import { SessionEvent } from '../models/session-event.interface';
 import {
   combat,
+  companion,
   monster,
   npc,
   participant,
@@ -24,6 +25,58 @@ function apply(detail: ReturnType<typeof sessionDetail>, event: EventInput) {
 }
 
 describe('applySessionEvent', () => {
+  describe('Companheiro Animal', () => {
+    it('companion_set adiciona, troca (um por ranger) e dispensa', () => {
+      let detail = sessionDetail({ players: [player('p1'), player('p2')] });
+      detail = apply(detail, {
+        type: 'companion_set',
+        id_player_session: 'p1',
+        companion: companion('c1', 'p1'),
+      });
+      detail = apply(detail, {
+        type: 'companion_set',
+        id_player_session: 'p2',
+        companion: companion('c2', 'p2'),
+      });
+      detail = apply(detail, {
+        type: 'companion_set',
+        id_player_session: 'p1',
+        companion: companion('c1', 'p1', { name: 'Pantera' }),
+      });
+      expect(detail.companions!.map((c) => c.name)).toEqual(['Lobo', 'Pantera']);
+      detail = apply(detail, { type: 'companion_set', id_player_session: 'p2', companion: null });
+      expect(detail.companions!.map((c) => c.id_session_companion)).toEqual(['c1']);
+    });
+
+    it('companion_hp_updated muda só o PV daquele companheiro', () => {
+      const detail = apply(
+        sessionDetail({ companions: [companion('c1', 'p1'), companion('c2', 'p2')] }),
+        { type: 'companion_hp_updated', id_session_companion: 'c2', hp_current: 3 },
+      );
+      expect(detail.companions!.map((c) => c.hp_current)).toEqual([12, 3]);
+    });
+
+    it('API antiga (sem companions): o evento cria a lista', () => {
+      const detail = apply(sessionDetail(), {
+        type: 'companion_set',
+        id_player_session: 'p1',
+        companion: companion('c1', 'p1'),
+      });
+      expect(detail.companions).toHaveLength(1);
+    });
+
+    it('o ranger sai da mesa e o companheiro sai junto', () => {
+      const detail = apply(
+        sessionDetail({
+          players: [player('p1'), player('p2')],
+          companions: [companion('c1', 'p1'), companion('c2', 'p2')],
+        }),
+        { type: 'player_removed', id_player_session: 'p1' },
+      );
+      expect(detail.companions!.map((c) => c.id_session_companion)).toEqual(['c2']);
+    });
+  });
+
   it('não muta o estado anterior', () => {
     const detail = sessionDetail({ players: [player('p1')] });
     const snapshot = structuredClone(detail);
@@ -34,6 +87,44 @@ describe('applySessionEvent', () => {
       temporary_hit_points: 0,
     });
     expect(detail).toEqual(snapshot);
+  });
+
+  it('Forma Selvagem: o PV máximo e a forma mudam junto com o PV', () => {
+    let detail = sessionDetail({ players: [player('p1')] });
+    detail = apply(detail, {
+      type: 'player_hp_updated',
+      id_player_session: 'p1',
+      current_hit_points: 11,
+      temporary_hit_points: 0,
+      max_hit_points: 11,
+      wild_shape_name: 'Lobo',
+    });
+    expect(detail.players[0].character).toMatchObject({
+      current_hit_points: 11,
+      max_hit_points: 11,
+      wild_shape_name: 'Lobo',
+    });
+    detail = apply(detail, {
+      type: 'player_hp_updated',
+      id_player_session: 'p1',
+      current_hit_points: 18,
+      temporary_hit_points: 0,
+      max_hit_points: 30,
+      wild_shape_name: null,
+    });
+    expect(detail.players[0].character).toMatchObject({
+      current_hit_points: 18,
+      max_hit_points: 30,
+      wild_shape_name: null,
+    });
+    // sem os campos (PV comum), o máximo fica como estava
+    detail = apply(detail, {
+      type: 'player_hp_updated',
+      id_player_session: 'p1',
+      current_hit_points: 10,
+      temporary_hit_points: 0,
+    });
+    expect(detail.players[0].character?.max_hit_points).toBe(30);
   });
 
   describe('jogadores e NPCs', () => {
@@ -143,6 +234,38 @@ describe('applySessionEvent', () => {
       expect(m.data_snapshot).toMatchObject({ name: 'Goblin', strength: 8, dexterity: 18 });
     });
 
+    it('session_settings_updated muda a opção de acerto automático da mesa (1.25.0)', () => {
+      const detail = apply(sessionDetail(), {
+        type: 'session_settings_updated',
+        auto_hit_check: true,
+      });
+      expect(detail.game_session.auto_hit_check).toBe(true);
+    });
+
+    it('save_resolved não mexe na mesa (o passou/falhou fica no SessionStateService)', () => {
+      const detail = sessionDetail({ monsters: [monster('m1')] });
+      expect(
+        apply(detail, {
+          type: 'save_resolved',
+          save_request_id: 'r',
+          id_monster_session: 'm1',
+          name: 'Goblin',
+          outcome: 'fail',
+        }),
+      ).toBe(detail);
+    });
+
+    it('revelado guarda o slug da arte padrão (1.23.0)', () => {
+      const detail = apply(sessionDetail({ monsters: [monster('m1')] }), {
+        type: 'monster_revealed',
+        id_monster_session: 'm1',
+        name: 'Coisa',
+        image_url: null,
+        monster_slug: 'mimico',
+      });
+      expect(detail.revealed_monsters[0].monster_slug).toBe('mimico');
+    });
+
     it('revelar adiciona aos revelados (sem duplicar) e esconder remove', () => {
       let detail = sessionDetail({ monsters: [monster('m1')] });
       const reveal = {
@@ -162,6 +285,7 @@ describe('applySessionEvent', () => {
           monster_type: null,
           size: null,
           lore: null,
+          monster_slug: null,
         },
       ]);
 
@@ -189,6 +313,7 @@ describe('applySessionEvent', () => {
           monster_type: 'dragão',
           size: 'Enorme',
           lore: 'Senhor da montanha.',
+          monster_slug: null,
         },
       ]);
     });

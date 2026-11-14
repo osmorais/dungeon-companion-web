@@ -1,6 +1,11 @@
 import { CharacterCardData } from '../character-card/character-card.component';
 import { GameCardData } from '../game-card/game-card.model';
-import { CastStageApplied, CastStageRoll, RollLogEntry } from '../models/game-session.interface';
+import {
+  CastStageApplied,
+  CastStageTarget,
+  CastStageRoll,
+  RollLogEntry,
+} from '../models/game-session.interface';
 
 /** Rolagem do lançamento já com os dados pra desenhar (dados em pixel art + total). */
 export interface CastStageRollView {
@@ -37,6 +42,8 @@ export interface CastStageView {
   stamp?: string | null;
   /** Dano/cura já aplicado nos alvos (no lugar do aviso avulso "APLICOU"). */
   applied: CastStageApplied[];
+  /** Alvos escolhidos no começo e o resultado da resistência de cada um (1.25.0). */
+  targets?: CastStageTarget[];
   /** Quem lança terminou: o aviso da mesa some sozinho depois de alguns segundos. */
   done: boolean;
 }
