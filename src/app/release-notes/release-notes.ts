@@ -33,6 +33,21 @@ export interface Release {
 
 export const RELEASES: Release[] = [
   {
+    version: '1.25.1',
+    date: '2026-11-13',
+    title: 'Nova tela inicial',
+    changes: [
+      {
+        kind: 'melhoria',
+        text: 'Tela inicial nova: o menu começa no meio da tela e, ao escolher jogador ou mestre, desliza para a lateral e abre as opções ao lado, com textos maiores e mais fáceis de ler.',
+      },
+      {
+        kind: 'melhoria',
+        text: 'No celular, escolher jogador ou mestre leva para uma tela só com as opções; para voltar, use a seta ou arraste para a direita.',
+      },
+    ],
+  },
+  {
     version: '1.25.0',
     date: '2026-11-13',
     title: 'Lançamento com alvos escolhidos no começo',
